@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/color_selector_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="@dimen/dp5">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="10dp"
+        android:layout_toStartOf="@id/item_favorites_tag"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/item_favorites_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/color_accent"
+            android:textSize="15sp"
+            tools:text="我的收藏" />
+
+        <TextView
+            android:id="@+id/item_favorites_describe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp5"
+            android:textColor="@color/color_gray"
+            android:textSize="12sp"
+            tools:text="14个内容 · 仅自己可见" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/item_favorites_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/dp10"
+        android:layout_toStartOf="@id/item_favorites_checkbox"
+        android:background="@drawable/shape_round_dp5"
+        android:backgroundTint="@color/color_prominent_press"
+        android:minEms="3"
+        android:padding="@dimen/dp2"
+        android:text="默认"
+        android:textAlignment="center"
+        android:textColor="@color/text_color_white"
+        android:textSize="@dimen/sp11" />
+
+    <CheckBox
+        android:id="@+id/item_favorites_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="10dp"
+        android:button="@drawable/shape_checkbox" />
+</RelativeLayout>

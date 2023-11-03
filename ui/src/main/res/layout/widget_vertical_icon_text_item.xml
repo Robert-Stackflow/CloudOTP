@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/vertical_icon_text_item_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/vertical_icon_text_item_icon"
+        android:layout_width="@dimen/dp35"
+        android:layout_height="@dimen/dp35"
+        android:background="@android:color/transparent"
+        android:clickable="false"
+        android:contentDescription="@string/cd_vertical_icon_text_item_icon"
+        android:focusable="false"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_light_visible"
+        app:layout_constraintEnd_toEndOf="@id/vertical_icon_text_item_text"
+        app:layout_constraintStart_toStartOf="@id/vertical_icon_text_item_text"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/vertical_icon_text_item_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxEms="5"
+        android:gravity="center"
+        android:maxLines="2"
+        android:textAlignment="center"
+        android:textColor="@color/color_gray"
+        android:textSize="@dimen/vertical_icon_text_item_default_text_size"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vertical_icon_text_item_icon"
+        tools:text="新的关注" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,39 @@
+@charset "UTF-8";
+
+img{
+    border-radius:5px;
+}
+
+img:press{
+    opacity:0.5;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  overflow: scroll;
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  min-height:100%;
+}
+
+#editor {
+  display: table-cell;
+  outline: 0px solid transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+b,
+strong {
+   font-weight: bold;
+}
+
+#editor[placeholder]:empty:not(:focus):before {
+  content: attr(placeholder);
+  opacity: .5;
+}}

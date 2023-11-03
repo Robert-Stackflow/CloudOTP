@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/dp5">
+
+    <HorizontalScrollView
+        android:id="@+id/webview_more_operation_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/webview_more_operation_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.cloudchewie.ui.item.VerticalIconTextItem
+                android:id="@+id/webview_more_copy_url"
+                android:layout_width="@dimen/dp90"
+                android:layout_marginEnd="@dimen/dp10"
+                android:layout_height="match_parent"
+                android:minWidth="@dimen/dp90"
+                app:vertical_icon_text_item_background="@android:color/transparent"
+                app:vertical_icon_text_item_icon_background="@drawable/shape_round_dp10"
+                app:vertical_icon_text_item_icon_background_enable="true"
+                app:vertical_icon_text_item_icon_background_tint="@color/color_selector_entry"
+                app:vertical_icon_text_item_icon_size="@dimen/dp50"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/webview_more_refresh"
+                app:vertical_icon_text_item_padding_h="@dimen/dp10"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:vertical_icon_text_item_icon="@drawable/ic_light_link"
+                app:vertical_icon_text_item_padding_v="@dimen/dp10"
+                app:vertical_icon_text_item_spacing="@dimen/dp10"
+                app:vertical_icon_text_item_text="@string/copy_url" />
+
+            <com.cloudchewie.ui.item.VerticalIconTextItem
+                android:id="@+id/webview_more_refresh"
+                android:layout_width="@dimen/dp90"
+                android:layout_marginEnd="@dimen/dp10"
+                android:layout_height="match_parent"
+                android:minWidth="@dimen/dp90"
+                app:vertical_icon_text_item_background="@android:color/transparent"
+                app:vertical_icon_text_item_icon_background="@drawable/shape_round_dp10"
+                app:vertical_icon_text_item_icon_background_enable="true"
+                app:vertical_icon_text_item_icon_background_tint="@color/color_selector_entry"
+                app:vertical_icon_text_item_icon_size="@dimen/dp50"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/webview_more_browser"
+                app:layout_constraintStart_toEndOf="@id/webview_more_copy_url"
+                app:layout_constraintTop_toTopOf="parent"
+                app:vertical_icon_text_item_icon="@drawable/ic_light_refresh"
+                app:vertical_icon_text_item_padding_h="@dimen/dp10"
+                app:vertical_icon_text_item_padding_v="@dimen/dp10"
+                app:vertical_icon_text_item_spacing="@dimen/dp10"
+                app:vertical_icon_text_item_text="@string/refresh" />
+
+            <com.cloudchewie.ui.item.VerticalIconTextItem
+                android:id="@+id/webview_more_browser"
+                android:layout_width="@dimen/dp90"
+                android:layout_height="match_parent"
+                android:minWidth="@dimen/dp90"
+                app:vertical_icon_text_item_background="@android:color/transparent"
+                app:vertical_icon_text_item_icon_background="@drawable/shape_round_dp10"
+                app:vertical_icon_text_item_icon_background_enable="true"
+                app:vertical_icon_text_item_icon_background_tint="@color/color_selector_entry"
+                app:vertical_icon_text_item_icon_size="@dimen/dp50"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/webview_more_refresh"
+                app:layout_constraintTop_toTopOf="parent"
+                app:vertical_icon_text_item_padding_h="@dimen/dp10"
+                app:vertical_icon_text_item_icon="@drawable/ic_light_service"
+                app:vertical_icon_text_item_padding_v="@dimen/dp10"
+                app:vertical_icon_text_item_spacing="@dimen/dp10"
+                app:vertical_icon_text_item_text="@string/open_in_browser" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </HorizontalScrollView>
+
+    <View
+        android:id="@+id/webview_more_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/color_divider"
+        app:layout_constraintTop_toBottomOf="@id/webview_more_operation_scrollview" />
+
+    <TextView
+        android:id="@+id/webview_more_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_rect"
+        android:backgroundTint="@color/color_selector_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingTop="@dimen/dp15"
+        android:paddingBottom="@dimen/dp15"
+        android:text="@string/cancel"
+        android:textAlignment="center"
+        android:textColor="@color/text_color_red"
+        android:textSize="@dimen/sp14"
+        app:layout_constraintTop_toBottomOf="@id/webview_more_divider" />
+</androidx.constraintlayout.widget.ConstraintLayout>

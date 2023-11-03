@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_auth"
+        android:icon="@drawable/ic_nav_follow_fill"
+        android:title="@string/nav_auth" />
+    <item
+        android:id="@+id/menu_user"
+        android:icon="@drawable/ic_nav_user"
+        android:title="@string/nav_mine" />
+</menu>

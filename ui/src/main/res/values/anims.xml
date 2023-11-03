@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="UpDownAnimation">
+        <item name="android:windowEnterAnimation">@anim/anim_bottom_in</item>
+        <item name="android:windowExitAnimation">@anim/anim_bottom_out</item>
+    </style>
+
+    <style name="ShadeAnimation">
+        <item name="android:windowEnterAnimation">@anim/anim_shade_in</item>
+        <item name="android:windowExitAnimation">@anim/anim_shade_out</item>
+    </style>
+
+    <style name="FadeAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/anim_fade_in</item>
+        <!--        <item name="android:activityOpenExitAnimation">@anim/anim_fade_out</item>-->
+        <item name="android:activityCloseEnterAnimation">@anim/anim_fade_in</item>
+        <!--        <item name="android:activityCloseExitAnimation">@anim/anim_fade_out</item>-->
+        <item name="android:inAnimation">@anim/anim_fade_in</item>
+        <!--        <item name="android:outAnimation">@anim/anim_fade_out</item>-->
+        <item name="android:fragmentFadeEnterAnimation">@anim/anim_fade_in</item>
+        <!--        <item name="android:fragmentFadeExitAnimation">@anim/anim_fade_out</item>-->
+        <item name="android:fragmentCloseEnterAnimation">@anim/anim_fade_in</item>
+        <!--        <item name="android:fragmentCloseExitAnimation">@anim/anim_fade_out</item>-->
+        <item name="android:fragmentOpenEnterAnimation">@anim/anim_fade_in</item>
+        <!--        <item name="android:fragmentOpenExitAnimation">@anim/anim_fade_out</item>-->
+        <item name="android:windowEnterAnimation">@anim/anim_fade_in</item>
+        <!--        <item name="android:windowExitAnimation">@anim/anim_fade_out</item>-->
+    </style>
+
+    <style name="AnimActivity" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@style/FadeAnimation</item>
+    </style>
+
+    <style name="AnimLogin" parent="@android:style/Animation.Activity">
+        <item name="android:windowEnterAnimation">@anim/anim_bottom_in</item>
+        <item name="android:windowExitAnimation">@anim/anim_bottom_out</item>
+        <item name="android:activityOpenEnterAnimation">@anim/anim_bottom_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/anim_top_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/anim_top_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/anim_bottom_out</item>
+    </style>
+</resources>

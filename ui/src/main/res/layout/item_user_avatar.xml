@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/dp5">
+
+    <com.cloudchewie.ui.custom.CircleImageView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/dp50"
+        android:layout_height="@dimen/dp50"
+        android:src="@drawable/img_default_avatar"
+        app:civ_border_color="@color/color_light_gray"
+        app:civ_border_width="@dimen/px1" />
+
+    <TextView
+        android:id="@+id/username"
+        android:layout_width="@dimen/dp50"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/avatar"
+        android:layout_marginTop="@dimen/dp5"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:textColor="@color/color_accent"
+        android:textSize="@dimen/sp13"
+        tools:text="余湍" />
+</RelativeLayout>

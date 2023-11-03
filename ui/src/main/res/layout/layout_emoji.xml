@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="@dimen/dp100">
+
+    <com.cloudchewie.ui.emoji.widget.EmoticonsFuncView
+        android:id="@+id/view_epv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/view_eiv"
+        android:orientation="vertical" />
+
+    <com.cloudchewie.ui.emoji.widget.EmoticonsIndicatorView
+        android:id="@+id/view_eiv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/view_etv"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/indicator_margin" />
+
+    <com.cloudchewie.ui.emoji.widget.EmoticonsToolBarView
+        android:id="@+id/view_etv"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bar_height"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:visibility="visible" />
+</RelativeLayout>

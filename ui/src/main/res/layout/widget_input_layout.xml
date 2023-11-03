@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/input_layout_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/shape_round_dp10"
+    android:backgroundTint="@color/tag_background"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <ImageView
+        android:id="@+id/input_layout_left_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="10dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/cd_image" />
+
+    <EditText
+        android:id="@+id/input_layout_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@id/input_layout_right_icon"
+        android:layout_toEndOf="@id/input_layout_left_icon"
+        android:background="@null"
+        android:gravity="center_vertical"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:textColor="@color/color_accent"
+        android:textCursorDrawable="@drawable/shape_cursor"
+        android:textSize="@dimen/sp16"
+        tools:ignore="Autofill,LabelFor" />
+
+    <ImageButton
+        android:id="@+id/input_layout_right_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="10dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/cd_image"
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
+
+</RelativeLayout>
