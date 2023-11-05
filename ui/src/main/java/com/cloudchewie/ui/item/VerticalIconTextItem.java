@@ -64,9 +64,9 @@ public class VerticalIconTextItem extends ConstraintLayout {
         TypedArray attr = context.obtainStyledAttributes(attrs, R.styleable.VerticalIconTextItem);
         iconView.setOnClickListener(v -> this.performClick());
         if (attr != null) {
-            iconId = attr.getResourceId(R.styleable.VerticalIconTextItem_vertical_icon_text_item_icon, R.drawable.ic_light_map);
+            iconId = attr.getResourceId(R.styleable.VerticalIconTextItem_vertical_icon_text_item_icon, R.drawable.ic_bold_list);
             iconColor = attr.getColor(R.styleable.VerticalIconTextItem_vertical_icon_text_item_icon_color, getResources().getColor(R.color.color_icon, getResources().newTheme()));
-            checkedIconId = attr.getResourceId(R.styleable.VerticalIconTextItem_vertical_icon_text_item_checked_icon, R.drawable.ic_light_map_fill);
+            checkedIconId = attr.getResourceId(R.styleable.VerticalIconTextItem_vertical_icon_text_item_checked_icon, R.drawable.ic_bold_list);
             checkedIconColor = attr.getColor(R.styleable.VerticalIconTextItem_vertical_icon_text_item_checked_icon_color, ThemeUtil.getPrimaryColor(context));
             int iconSize = (int) attr.getDimension(R.styleable.VerticalIconTextItem_vertical_icon_text_item_icon_size, getResources().getDimension(R.dimen.vertical_icon_text_item_default_icon_size));
             String text = attr.getString(R.styleable.VerticalIconTextItem_vertical_icon_text_item_text);

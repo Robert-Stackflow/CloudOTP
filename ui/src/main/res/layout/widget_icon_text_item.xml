@@ -13,7 +13,6 @@
         android:layout_height="@dimen/horizontal_icon_text_item_default_icon_size"
         android:contentDescription="@string/cd_horizontal_icon_text_item_icon"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_light_map"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"

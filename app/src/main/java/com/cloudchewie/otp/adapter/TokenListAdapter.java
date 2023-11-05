@@ -67,8 +67,8 @@ public class TokenListAdapter extends RecyclerView.Adapter<TokenListAdapter.MyVi
         if (null == token) {
             return;
         }
-        ((TokenLayout) holder.mItemView).bind(token);
-        holder.mItemView.setOnClickListener(view -> {
+        holder.tokenView.bind(token);
+        holder.tokenView.setOnClickListener(view -> {
             TokenCode codes = new TokenCodeUtil().generateTokenCode(token);
             if (token.getTokenType() == OtpTokenType.HOTP) {
                 LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
@@ -78,9 +78,9 @@ public class TokenListAdapter extends RecyclerView.Adapter<TokenListAdapter.MyVi
                 IToast.showBottom(context, context.getString(R.string.copy_success));
             }
             tokenCodes.put(token.getId(), codes);
-            ((TokenLayout) holder.mItemView).start(token.getTokenType(), codes, true);
+            holder.tokenView.start(token.getTokenType(), codes, true);
         });
-        holder.mItemView.setOnLongClickListener(view -> {
+        holder.tokenView.setOnLongClickListener(view -> {
             if (SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.TOKEN_LONG_CLICK_COPY.getKey(), true)) {
                 TokenCode codes = new TokenCodeUtil().generateTokenCode(token);
                 if (token.getTokenType() == OtpTokenType.HOTP) {
@@ -97,7 +97,7 @@ public class TokenListAdapter extends RecyclerView.Adapter<TokenListAdapter.MyVi
                 LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
             }
             tokenCodes.put(token.getId(), codes);
-            ((TokenLayout) holder.mItemView).start(token.getTokenType(), codes, true);
+            holder.tokenView.start(token.getTokenType(), codes, true);
         }
     }
 
@@ -107,21 +107,21 @@ public class TokenListAdapter extends RecyclerView.Adapter<TokenListAdapter.MyVi
     }
 
     static class MyViewHolder extends RecyclerView.ViewHolder {
-        public View mItemView;
+        public View itemView;
+        public TokenLayout tokenView;
         public ImageView imageView;
-
         public TextView codeView;
         public TextView issuerView;
         public TextView accountView;
 
-
         public MyViewHolder(View view) {
             super(view);
-            mItemView = view;
-            imageView = mItemView.findViewById(R.id.item_token_image);
-            codeView = mItemView.findViewById(R.id.item_token_code);
-            issuerView = mItemView.findViewById(R.id.item_token_issuer);
-            accountView = mItemView.findViewById(R.id.item_token_account);
+            itemView = view;
+            tokenView = itemView.findViewById(R.id.item_token_main_layout);
+            imageView = itemView.findViewById(R.id.item_token_image);
+            codeView = itemView.findViewById(R.id.item_token_code);
+            issuerView = itemView.findViewById(R.id.item_token_issuer);
+            accountView = itemView.findViewById(R.id.item_token_account);
         }
     }
 }

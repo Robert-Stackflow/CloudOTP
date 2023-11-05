@@ -71,6 +71,60 @@
                     app:layout_constraintTop_toBottomOf="@id/switch_daynight" />
 
                 <com.cloudchewie.ui.item.CheckBoxItem
+                    android:id="@+id/entry_long_press_copy"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp10"
+                    android:textSize="18sp"
+                    app:checkbox_item_title="@string/entry_long_press_copy_code"
+                    app:checkbox_item_top_radius_enable="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_language" />
+
+                <com.cloudchewie.ui.item.CheckBoxItem
+                    android:id="@+id/entry_click_copy"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    app:checkbox_item_bottom_radius_enable="true"
+                    app:checkbox_item_title="@string/entry_click_copy_code"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_long_press_copy" />
+
+                <com.cloudchewie.ui.item.CheckBoxItem
+                    android:id="@+id/entry_disable_screenshot"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp10"
+                    android:textSize="18sp"
+                    app:checkbox_item_title="@string/entry_disable_screen_shot"
+                    app:checkbox_item_top_radius_enable="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_click_copy" />
+
+                <com.cloudchewie.ui.item.CheckBoxItem
+                    android:id="@+id/entry_need_auth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    app:checkbox_item_title="@string/entry_auth_to_show_code"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_disable_screenshot" />
+
+                <com.cloudchewie.ui.item.EntryItem
+                    android:id="@+id/entry_set_passcode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    app:entry_item_bottom_radius_enable="true"
+                    app:entry_item_left_icon_visibility="false"
+                    app:entry_item_title="@string/set_passcode"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_need_auth" />
+
+                <com.cloudchewie.ui.item.CheckBoxItem
                     android:id="@+id/entry_enable_web_cache"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -79,7 +133,7 @@
                     app:checkbox_item_title="@string/entry_enable_web_cache"
                     app:checkbox_item_top_radius_enable="true"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/entry_language" />
+                    app:layout_constraintTop_toBottomOf="@id/entry_set_passcode" />
 
                 <com.cloudchewie.ui.item.EntryItem
                     android:id="@+id/entry_clear_cache"
@@ -96,92 +150,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/entry_enable_web_cache" />
 
-                <com.cloudchewie.ui.item.CheckBoxItem
-                    android:id="@+id/activity_authenticator_settings_long_press_copy"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp10"
-                    android:textSize="18sp"
-                    app:checkbox_item_title="@string/entry_long_press_copy_code"
-                    app:checkbox_item_top_radius_enable="true"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/entry_clear_cache" />
-
-                <com.cloudchewie.ui.item.CheckBoxItem
-                    android:id="@+id/activity_authenticator_settings_click_copy"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    app:checkbox_item_bottom_radius_enable="true"
-                    app:checkbox_item_title="@string/entry_click_copy_code"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_settings_long_press_copy" />
-
-                <com.cloudchewie.ui.item.CheckBoxItem
-                    android:id="@+id/activity_authenticator_settings_need_auth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp10"
-                    android:textSize="18sp"
-                    app:checkbox_item_title="@string/entry_auth_to_show_code"
-                    app:checkbox_item_top_radius_enable="true"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_settings_click_copy" />
-
-                <com.cloudchewie.ui.item.CheckBoxItem
-                    android:id="@+id/activity_authenticator_settings_disable_screenshot"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    app:checkbox_item_bottom_radius_enable="true"
-                    app:checkbox_item_title="@string/entry_disable_screen_shot"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_settings_need_auth" />
-
-                <com.cloudchewie.ui.item.EntryItem
-                    android:id="@+id/activity_authenticator_settings_import_json"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp10"
-                    android:textSize="18sp"
-                    app:entry_item_left_icon_visibility="false"
-                    app:entry_item_title="@string/entry_import_json_token"
-                    app:entry_item_top_radius_enable="true"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_settings_disable_screenshot" />
-
-                <com.cloudchewie.ui.item.EntryItem
-                    android:id="@+id/activity_authenticator_settings_export_json"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    app:entry_item_left_icon_visibility="false"
-                    app:entry_item_title="@string/entry_export_json_token"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_settings_import_json" />
-
-                <com.cloudchewie.ui.item.EntryItem
-                    android:id="@+id/activity_authenticator_settings_import_uri"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    app:entry_item_left_icon_visibility="false"
-                    app:entry_item_title="@string/entry_import_uri_token"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_settings_export_json" />
-
-                <com.cloudchewie.ui.item.EntryItem
-                    android:id="@+id/activity_authenticator_settings_export_uri"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    app:entry_item_bottom_radius_enable="true"
-                    app:entry_item_left_icon_visibility="false"
-                    app:entry_item_title="@string/entry_export_uri_token"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_settings_import_uri" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>
     </com.scwang.smart.refresh.layout.SmartRefreshLayout>

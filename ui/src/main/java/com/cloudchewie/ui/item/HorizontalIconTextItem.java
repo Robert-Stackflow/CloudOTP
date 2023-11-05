@@ -70,11 +70,11 @@ public class HorizontalIconTextItem extends ConstraintLayout {
         textView = findViewById(R.id.horizontal_icon_text_item_text);
         TypedArray attr = context.obtainStyledAttributes(attrs, R.styleable.HorizontalIconTextItem);
         if (attr != null) {
-            iconId = attr.getResourceId(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_icon, R.drawable.ic_light_map);
+            iconId = attr.getResourceId(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_icon, R.drawable.ic_bold_list);
             iconColor = attr.getColor(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_icon_color, ThemeUtil.getPrimaryColor(context));
             rightIconId = attr.getResourceId(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_right_icon, R.drawable.ic_light_close);
             rightIconColor = attr.getColor(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_right_icon_color, ThemeUtil.getPrimaryColor(context));
-            checkedIconId = attr.getResourceId(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_checked_icon, R.drawable.ic_light_map_fill);
+            checkedIconId = attr.getResourceId(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_checked_icon, R.drawable.ic_bold_list);
             checkedIconColor = attr.getColor(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_checked_icon_color,ThemeUtil.getPrimaryColor(context));
             int textMaxLength = attr.getInt(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_text_max_length, getResources().getInteger(R.integer.horizontal_icon_text_item_text_max_length));
             int iconSize = (int) attr.getDimension(R.styleable.HorizontalIconTextItem_horizontal_icon_text_item_icon_size, getResources().getDimension(R.dimen.horizontal_icon_text_item_default_icon_size));

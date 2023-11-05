@@ -6,6 +6,7 @@ public enum EventBusCode {
     CHANGE_THEME("change_theme", "更改主题颜色"),
     CHANGE_AUTO_DAYNIGHT("change_auto_daynight", "更改深色模式是否跟随系统"),
     CHANGE_TOKEN("change_token", "令牌更新"),
+    CHANGE_PASSCODE("change_passcode", "密码更新"),
     CHANGE_PASSWORD_GROUP("change_password_group", "密码分组更新"),
     CHANGE_PASSWORD("change_password", "密码更新"),
     CHANGE_BOOKMARK("change_bookmark", "书签更新"),

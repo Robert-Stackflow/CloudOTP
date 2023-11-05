@@ -9,6 +9,7 @@ package com.cloudchewie.otp.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.View;
@@ -18,8 +19,8 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.blankj.utilcode.util.ActivityUtils;
 import com.cloudchewie.otp.R;
-import com.cloudchewie.otp.activity.BaseActivity;
 import com.cloudchewie.otp.adapter.ThemeListAdapter;
 import com.cloudchewie.otp.entity.ThemeItem;
 import com.cloudchewie.otp.util.decoration.SpacingItemDecoration;
@@ -103,6 +104,8 @@ public class ThemeActivity extends BaseActivity implements View.OnClickListener 
                     SharedPreferenceUtil.setThemeId(this, themeItem.themeId);
                     IToast.showBottom(this, getString(R.string.change_theme_success));
                     LiveEventBus.get(EventBusCode.CHANGE_THEME.getKey(), String.class).post("");
+                    ActivityUtils.finishAllActivities();
+                    ActivityUtils.startActivity(new Intent(this, MainActivity.class).setAction(Intent.ACTION_DEFAULT));
                 } else {
                     ColorStateList colorStateList = checkBox.getImageTintList();
                     checkBox.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_light_checkbox_unchecked));

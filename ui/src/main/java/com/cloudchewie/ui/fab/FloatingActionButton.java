@@ -43,17 +43,14 @@ import com.cloudchewie.ui.R;
 
 @SuppressLint("AppCompatCustomView")
 public class FloatingActionButton extends ImageButton {
-
     public static final int SIZE_NORMAL = 0;
     public static final int SIZE_MINI = 1;
-
     int mFabSize;
     boolean mShowShadow;
     int mShadowColor;
     int mShadowRadius = Util.dpToPx(getContext(), 4f);
     int mShadowXOffset = Util.dpToPx(getContext(), 1f);
     int mShadowYOffset = Util.dpToPx(getContext(), 3f);
-
     private static final Xfermode PORTER_DUFF_CLEAR = new PorterDuffXfermode(PorterDuff.Mode.CLEAR);
     private static final long PAUSE_GROWING_TIME = 200;
     private static final double BAR_SPIN_CYCLE_TIME = 500;
@@ -115,7 +112,6 @@ public class FloatingActionButton extends ImageButton {
         init(context, attrs, defStyleAttr);
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public FloatingActionButton(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(context, attrs, defStyleAttr);
@@ -168,6 +164,7 @@ public class FloatingActionButton extends ImageButton {
 
 //        updateBackground();
         setClickable(true);
+        setElevation(8.0F);
     }
 
     private void initShowAnimation(TypedArray attr) {

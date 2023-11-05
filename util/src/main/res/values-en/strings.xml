@@ -14,7 +14,7 @@
 	<string name="cancel">Cancel</string>
 	<string name="back">return</string>
 	<string name="more">more</string>
-	<string name="web_loading">Loading...</string>
+	<string name="web_loading">Loading…</string>
 	<string name="title_setting">Setting</string>
 	<string name="title_account">Account</string>
 	<string name="title_help">Help</string>
@@ -207,7 +207,7 @@
 	<string name="open_camera_fail">Delete token</string>
 	<string name="entry_long_press_copy_code">Long press to copy the code</string>
 	<string name="entry_click_copy_code">Click to copy the code</string>
-	<string name="entry_auth_to_show_code">Authentication required</string>
+	<string name="entry_auth_to_show_code">Enable password lock</string>
 	<string name="entry_disable_screen_shot">Disable screenshot</string>
 	<string name="entry_export_json_token">Export to JSON format</string>
 	<string name="entry_import_json_token">Import JSON format</string>
@@ -319,4 +319,18 @@
 	<string name="dialog_content_import_excel_password" formatted="true">Whether to import passwords from file %1$s</string>
 	<string name="title_settings_password">Password settings</string>
     <string name="web_pagefrom">From</string>
+    <string name="tap_to_use_biometrics">Click to use biometrics</string>
+	<string name="set_passcode">Set password</string>
+	<string name="change_passcode">Change password</string>
+	<string name="input_passcode">Enter password</string>
+	<string name="confirm_passcode">Enter password again</string>
+	<string name="mismatch_passcode">The passwords entered twice do not match</string>
+	<string name="input_old_passcode">Enter old password</string>
+	<string name="wrong_old_passcode">Wrong old password</string>
+	<string name="input_new_passcode">Enter new password</string>
+	<string name="wrong_passcode">Wrong password</string>
+	<string name="set_passcode_success">Password set successfully</string>
+	<string name="change_passcode_success">Password changed successfully</string>
+	<string name="dialog_title_none_passcode">No password set yet</string>
+	<string name="dialog_content_none_passcode" formatted="true">You have not set a password lock yet. Do you want to set it up? </string>
 </resources>

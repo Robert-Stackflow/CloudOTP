@@ -56,6 +56,7 @@
     <dimen name="sp23">23sp</dimen>
     <dimen name="sp24">24sp</dimen>
     <dimen name="sp25">25sp</dimen>
+    <dimen name="sp30">30sp</dimen>
     <dimen name="px1">1px</dimen>
     <!--默认-->
     <dimen name="icon_size">40dp</dimen>

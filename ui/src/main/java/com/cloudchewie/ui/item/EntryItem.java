@@ -146,6 +146,10 @@ public class EntryItem extends ConstraintLayout {
         titleView.setTextColor(titleColor);
     }
 
+    public void setTitle(String title) {
+        titleView.setText(title);
+    }
+
     public String getTitle() {
         return titleView.getText().toString();
     }

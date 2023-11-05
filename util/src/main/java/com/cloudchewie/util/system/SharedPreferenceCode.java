@@ -5,7 +5,8 @@ import org.jetbrains.annotations.Contract;
 public enum SharedPreferenceCode {
     APP_FIRST_START("app_first_start", "首次打开APP"),
     START_UP_APP_TIME("start_up_app_time", "打开APP时间"),
-    //系统设置
+    PASSCODE("passcode", "密码"),
+    DROPBOX_ACCESS_TOKEN("dropbox_access_token", "Dropbox Access Token"),
     THEME_ID("theme_id", "主题ID"),
     AUTO_DAYNIGHT("auto_daynight", "深色模式跟随系统"),
     IS_NIGHT("is_night", "是否为深色模式"),

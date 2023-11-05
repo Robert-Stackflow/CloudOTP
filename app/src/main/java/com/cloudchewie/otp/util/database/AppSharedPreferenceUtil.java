@@ -32,6 +32,31 @@ public class AppSharedPreferenceUtil {
         SharedPreferenceUtil.putInt(context, SharedPreferenceCode.VIEW_TYPE.getKey(), viewType.ordinal());
     }
 
+    public static void setPasscode(@NonNull Context context, String passcode) {
+        SharedPreferenceUtil.putString(context, SharedPreferenceCode.PASSCODE.getKey(), passcode);
+
+    }
+
+    public static boolean havePasscode(@NonNull Context context) {
+        return getPasscode(context) != null;
+    }
+
+    public static String getPasscode(@NonNull Context context) {
+        return SharedPreferenceUtil.getString(context, SharedPreferenceCode.PASSCODE.getKey(), null);
+    }
+
+    public static boolean haveDropxboxAccessToken(@NonNull Context context) {
+        return getDropxboxAccessToken(context) != null;
+    }
+
+    public static String getDropxboxAccessToken(@NonNull Context context) {
+        return SharedPreferenceUtil.getString(context, SharedPreferenceCode.DROPBOX_ACCESS_TOKEN.getKey(), null);
+    }
+
+    public static void setDropxboxAccessToken(@NonNull Context context, String token) {
+        SharedPreferenceUtil.putString(context, SharedPreferenceCode.DROPBOX_ACCESS_TOKEN.getKey(), token);
+    }
+
     public static boolean isNight(@NonNull Context context) {
         return SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.IS_NIGHT.getKey(), DarkModeUtil.isDarkMode(context));
     }

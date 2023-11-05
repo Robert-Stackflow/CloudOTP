@@ -56,7 +56,7 @@ public class BaseActivity extends AppCompatActivity {
         FontUtil.recreate(this);
     }
 
-    public void loadEnableScreenShot() {
+    public void initSafeMode() {
         if (SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_DISBALE_SCREENSHOT.getKey(), true)) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         } else {
@@ -76,8 +76,8 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setTheme(SharedPreferenceUtil.getThemeId(this, R.style.AppTheme_Color1));
-        loadEnableScreenShot();
-        LiveEventBus.get(EventBusCode.CHANGE_TOKEN_DISABLE_SCREENSHOT.getKey(), String.class).observe(this, s -> loadEnableScreenShot());
+        initSafeMode();
+        LiveEventBus.get(EventBusCode.CHANGE_TOKEN_DISABLE_SCREENSHOT.getKey(), String.class).observe(this, s -> initSafeMode());
         super.onCreate(savedInstanceState);
         mConfiguration = new Configuration(getResources().getConfiguration());
         StatusBarUtil.setStatusBarTransparent(this);

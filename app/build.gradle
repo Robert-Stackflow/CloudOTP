@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-android-extensions'
 }
 
 android {
@@ -85,9 +86,8 @@ dependencies {
     implementation "androidx.camera:camera-video:${camerax_version}"
     implementation "androidx.camera:camera-view:${camerax_version}"
     implementation "androidx.camera:camera-extensions:${camerax_version}"
-//    implementation 'com.github.bingoogolapple.BGABadgeView-Android:api:1.2.0'
-//    annotationProcessor 'com.github.bingoogolapple.BGABadgeView-Android:compiler:1.2.0'
     implementation "com.google.dagger:hilt-android:2.44"
     testImplementation "com.google.dagger:hilt-compiler:2.44"
     implementation 'com.github.uccmawei:FingerprintIdentify:1.2.6'
+    implementation group: 'com.dropbox.core', name: 'dropbox-core-sdk', version: '5.4.6'
 }

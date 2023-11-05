@@ -25,6 +25,16 @@
             <enum name="icon" value="1" />
         </attr>
     </declare-styleable>
+    <declare-styleable name="PassCodeView">
+        <attr name="digits" format="integer"/>
+        <attr name="filled_drawable" format="reference"/>
+        <attr name="empty_drawable" format="reference"/>
+        <attr name="digit_size" format="dimension"/>
+        <attr name="key_text_size" format="dimension"/>
+        <attr name="divider_visible" format="boolean"/>
+        <attr name="digit_spacing" format="dimension"/>
+        <attr name="digit_vertical_padding" format="dimension"/>
+    </declare-styleable>
     <declare-styleable name="EntryItem">
         <attr name="entry_item_simple_mode" format="boolean" />
         <attr name="entry_item_background" format="reference|integer" />

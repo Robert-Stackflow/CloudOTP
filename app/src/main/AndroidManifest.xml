@@ -55,42 +55,25 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.MainActivity" />
-        <!--设置-->
-        <activity android:name=".activity.settings.HelpActivity" />
-        <activity android:name=".activity.settings.LogActivity" />
-        <activity android:name=".activity.settings.FeedbackActivity" />
-        <activity android:name=".activity.AboutActivity" />
         <activity android:name=".activity.ThemeActivity" />
-        <activity android:name=".activity.settings.SettingsActivity" />
-        <!--账号-->
-        <activity android:name=".activity.user.InfoActivity" />
-        <activity android:name=".activity.user.ChangePasswordActivity" />
-        <activity
-            android:name=".activity.user.LoginActivity"
-            android:launchMode="singleTask"
-            android:theme="@style/AppTheme.Login" />
-        <activity
-            android:name=".activity.user.SignupActivity"
-            android:launchMode="singleTask" />
-        <!--通用-->
         <activity android:name=".activity.WebViewActivity" />
-        <activity android:name=".activity.application.BookmarkActivity" />
-        <activity android:name=".activity.passwordbox.PasswordboxActivity" />
-        <activity android:name=".activity.passwordbox.PasswordboxSettingsActivity" />
-        <activity android:name=".activity.passwordbox.PasswordGroupDetailActivity" />
-        <activity android:name=".activity.passwordbox.CommonPasswordDetailActivity" />
-        <activity android:name=".activity.passwordbox.AuthPasswordDetailActivity" />
-        <activity android:name=".activity.passwordbox.BackupPasswordDetailActivity" />
+        <activity android:name=".activity.PasscodeActivity" />
         <activity android:name=".activity.TokenDetailActivity" />
         <activity android:name=".activity.SettingsActivity" />
         <activity android:name=".activity.ScanActivity" />
+        <activity android:name=".activity.DropboxActivity" />
         <activity
-            android:name="com.yalantis.ucrop.UCropActivity"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.Full"
-            tools:ignore="LockedOrientationActivity" />
-
+            android:name="com.dropbox.core.android.AuthActivity"
+            android:configChanges="orientation|keyboard"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <data android:scheme="db-ljyx5bk2jq92esr" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <provider
             android:name=".util.database.MyFileProvider"
             android:authorities="${applicationId}.provider"

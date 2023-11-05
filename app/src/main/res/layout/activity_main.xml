@@ -25,8 +25,9 @@
                 android:layout_height="50dp"
                 android:background="@color/titlebar_background"
                 android:contentDescription="@string/cd_titlebar_left_button"
+                android:padding="@dimen/dp15"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_light_list"
+                android:src="@drawable/ic_light_drawer"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -38,6 +39,7 @@
                 android:layout_height="50dp"
                 android:background="@color/titlebar_background"
                 android:contentDescription="@string/cd_titlebar_left_button"
+                android:padding="@dimen/dp15"
                 android:scaleType="centerInside"
                 android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -54,8 +56,7 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@id/activity_main_open_drawer"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
@@ -64,26 +65,27 @@
                 android:layout_height="50dp"
                 android:background="@color/titlebar_background"
                 android:contentDescription="@string/cd_titlebar_right_button"
+                android:padding="@dimen/dp15"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_light_integral"
+                android:src="@drawable/ic_light_grid"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/activity_main_lock"
+                app:layout_constraintEnd_toStartOf="@id/activity_main_more"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="UsingOnClickInXml" />
 
             <ImageButton
-                android:id="@+id/activity_main_lock"
+                android:id="@+id/activity_main_more"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:background="@color/titlebar_background"
                 android:contentDescription="@string/cd_titlebar_right_button"
+                android:padding="@dimen/dp15"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_light_password"
+                android:src="@drawable/ic_light_import"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="UsingOnClickInXml" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.scwang.smart.refresh.layout.SmartRefreshLayout
@@ -92,18 +94,46 @@
             android:layout_height="match_parent"
             android:layout_below="@id/activity_main_titlebar">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/activity_main_recyclerview"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingHorizontal="@dimen/dp10" />
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/activity_main_recyclerview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="@dimen/dp10" />
+
+                <RelativeLayout
+                    android:id="@+id/activity_main_blank_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    android:visibility="gone">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/activity_main_go_to_import"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/shape_button_round"
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:gravity="center"
+                        android:paddingTop="@dimen/dp5"
+                        android:paddingBottom="@dimen/dp5"
+                        android:text="@string/null_code"
+                        android:textColor="@color/text_color_white"
+                        android:textSize="@dimen/sp15" />
+                </RelativeLayout>
+            </RelativeLayout>
         </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
         <RelativeLayout
             android:id="@+id/activity_main_lock_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true">
+            android:layout_centerInParent="true"
+            android:paddingVertical="@dimen/dp50">
 
             <ImageView
                 android:id="@+id/activity_main_lock_icon"
@@ -121,32 +151,38 @@
                 android:layout_below="@id/activity_main_lock_icon"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="@dimen/dp10"
+                android:layout_marginBottom="@dimen/dp30"
                 android:text="@string/unpin_to_show_code"
-                android:textColor="@color/color_icon" />
+                android:textColor="@color/color_icon"
+                android:textStyle="bold" />
 
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/activity_main_blank_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:gravity="center"
-            android:visibility="gone">
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/activity_main_go_to_import"
-                android:layout_width="wrap_content"
+            <com.cloudchewie.ui.passcode.PassCodeView
+                android:id="@+id/activity_main_passcode_view"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/shape_button_round"
-                android:backgroundTint="?attr/colorPrimary"
-                android:gravity="center"
-                android:paddingTop="@dimen/dp5"
-                android:paddingBottom="@dimen/dp5"
-                android:text="@string/null_code"
-                android:textColor="@color/text_color_white"
-                android:textSize="@dimen/sp15" />
+                android:layout_below="@id/activity_main_lock_text"
+                app:digit_size="30.0dp"
+                app:digits="4"
+                app:empty_drawable="@drawable/shape_empty_dot"
+                app:filled_drawable="@drawable/shape_filled_dot"
+                app:key_text_size="@dimen/sp30" />
         </RelativeLayout>
+
+        <com.cloudchewie.ui.fab.FloatingActionButton
+            android:id="@+id/activity_main_lock"
+            android:layout_width="@dimen/dp50"
+            android:layout_height="@dimen/dp50"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="@dimen/dp20"
+            android:layout_marginBottom="@dimen/dp20"
+            android:src="@drawable/ic_light_password"
+            android:tint="@color/text_color_white"
+            app:fab_colorNormal="?attr/colorPrimary"
+            app:fab_colorPressed="?attr/colorPrimary"
+            app:fab_label="@string/title_lock_token"
+            app:fab_showShadow="false"
+            app:fab_size="normal" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -195,10 +231,26 @@
             app:entry_item_title="@string/title_scan_token" />
 
         <com.cloudchewie.ui.item.EntryItem
-            android:id="@+id/activity_main_entry_theme"
+            android:id="@+id/activity_main_entry_dropbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/activity_main_entry_scan"
+            android:layout_marginTop="@dimen/dp10"
+            android:clickable="true"
+            android:focusable="true"
+            android:textSize="18sp"
+            android:visibility="gone"
+            app:entry_item_bottom_radius_enable="true"
+            app:entry_item_left_icon="@drawable/token_image_dropbox"
+            app:entry_item_left_icon_size="@dimen/dp10"
+            app:entry_item_title="Dropbox"
+            app:entry_item_top_radius_enable="true" />
+
+        <com.cloudchewie.ui.item.EntryItem
+            android:id="@+id/activity_main_entry_theme"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/activity_main_entry_dropbox"
             android:layout_marginTop="@dimen/dp10"
             android:clickable="true"
             android:focusable="true"
