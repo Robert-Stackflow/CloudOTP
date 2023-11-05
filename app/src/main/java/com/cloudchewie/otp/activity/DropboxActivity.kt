@@ -8,32 +8,31 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.blankj.utilcode.util.ThreadUtils
-import com.cloudchewie.otp.R
+import com.cloudchewie.otp.databinding.ActivityDropboxBinding
 import com.cloudchewie.otp.external.AESStringCypher
 import com.cloudchewie.otp.external.AccessTokenManager
 import com.cloudchewie.otp.external.DropboxAccountTask
 import com.cloudchewie.otp.external.DropboxClient
 import com.cloudchewie.otp.external.DropboxDownloadTask
 import com.cloudchewie.otp.external.DropboxFileTask
-import com.cloudchewie.otp.external.DropboxPasswordFragment
 import com.cloudchewie.otp.external.DropboxUploadTask
 import com.cloudchewie.otp.external.Utils
+import com.cloudchewie.otp.widget.SetSecretBottomSheet
 import com.cloudchewie.ui.custom.IToast
+import com.cloudchewie.util.ui.StatusBarUtil
 import com.dropbox.core.android.Auth
 import com.dropbox.core.v2.files.FileMetadata
 import com.dropbox.core.v2.files.SearchV2Result
 import com.dropbox.core.v2.users.FullAccount
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.android.synthetic.main.activity_dropbox.sign_in_button
-import kotlinx.android.synthetic.main.activity_dropbox.sync_token_button
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.security.GeneralSecurityException
 
-open class DropboxActivity : BaseActivity(), DropboxPasswordFragment.DropboxFilePasswordListener {
+open class DropboxActivity : BaseActivity(), SetSecretBottomSheet.OnConfirmListener {
 
     private var accessToken: String? = null
     private var accessTokenManager: AccessTokenManager? = null
@@ -41,20 +40,32 @@ open class DropboxActivity : BaseActivity(), DropboxPasswordFragment.DropboxFile
     private val dropboxClient: DropboxClient? = null
     private var mEncryptedFile: File? = null
     private var hasRemoteFile = false
+    private lateinit var binding: ActivityDropboxBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_dropbox)
+        binding = ActivityDropboxBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        StatusBarUtil.setStatusBarMarginTop(this)
+
+        binding.activityDropboxEmail.setDisabled(true)
+        binding.activityDropboxNickname.setDisabled(true)
+
         accessTokenManager = AccessTokenManager(applicationContext)
 
-        sync_token_button!!.setOnClickListener(mSyncButtonListener)
-        sync_token_button!!.visibility = View.INVISIBLE
+        binding.syncTokenButton.setOnClickListener(mSyncButtonListener)
+        binding.syncTokenButton.visibility = View.INVISIBLE
 
-        sign_in_button!!.setOnClickListener {
+        binding.signInButton.setOnClickListener {
             Auth.startOAuth2Authentication(
                 this, "ljyx5bk2jq92esr"
             )
         }
+
+        binding.activityDropboxSwipeRefresh.setEnableOverScrollDrag(true)
+        binding.activityDropboxSwipeRefresh.setEnableOverScrollBounce(true)
+        binding.activityDropboxSwipeRefresh.setEnableLoadMore(false)
+        binding.activityDropboxSwipeRefresh.setEnablePureScrollMode(true)
     }
 
     override fun onResume() {
@@ -63,15 +74,11 @@ open class DropboxActivity : BaseActivity(), DropboxPasswordFragment.DropboxFile
     }
 
     private val mSyncButtonListener = View.OnClickListener {
-        val dropboxPasswordFragment = DropboxPasswordFragment()
-        val bundle = Bundle()
-        bundle.putBoolean("hasRemoteFile", hasRemoteFile)
-        dropboxPasswordFragment.arguments = bundle
-        dropboxPasswordFragment.show(fragmentManager, "fragment_dropbox_password")
+        val bottomSheet = SetSecretBottomSheet(applicationContext, hasRemoteFile)
+        bottomSheet.show()
     }
 
     private fun getAccessToken() {
-        accessTokenManager!!.token = null
         if (accessTokenManager!!.haveToken()) {
             accessToken = accessTokenManager!!.token
             getAccount()
@@ -93,8 +100,9 @@ open class DropboxActivity : BaseActivity(), DropboxPasswordFragment.DropboxFile
                 object : DropboxAccountTask.TaskDelegate {
                     @SuppressLint("SetTextI18n")
                     override fun onAccountReceived(account: FullAccount) {
-                        IToast.showBottom(applicationContext, "欢迎${account.name.displayName}")
-                        sign_in_button!!.visibility = View.GONE
+                        binding.activityDropboxEmail.editText.setText(account.email)
+                        binding.activityDropboxNickname.editText.setText(account.name.displayName)
+                        binding.signInButton.visibility = View.GONE
                         locateFile()
                     }
 
@@ -119,7 +127,7 @@ open class DropboxActivity : BaseActivity(), DropboxPasswordFragment.DropboxFile
                         } else {
                             hasRemoteFile = false
                         }
-                        sync_token_button!!.visibility = View.VISIBLE
+                        binding.syncTokenButton.visibility = View.VISIBLE
                     }
 
                     override fun onError(error: Exception?) {
@@ -167,7 +175,7 @@ open class DropboxActivity : BaseActivity(), DropboxPasswordFragment.DropboxFile
         })
     }
 
-    override fun onFinishPasswordDialog(password: String) {
+    override fun onPasswordSet(password: String) {
         val gson = Gson()
         prefs = applicationContext.getSharedPreferences("tokens", Context.MODE_PRIVATE)
         if (hasRemoteFile) {

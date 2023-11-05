@@ -18,8 +18,14 @@ import java.util.List;
 public class SharedPreferenceUtil {
     private static final String NAME = "config";
 
-    public static int getThemeId(@NonNull Context context,int defaultId) {
-        return SharedPreferenceUtil.getInt(context, SharedPreferenceCode.THEME_ID.getKey(), defaultId);
+    public static int getThemeId(@NonNull Context context, int defaultId) {
+        int id = SharedPreferenceUtil.getInt(context, SharedPreferenceCode.THEME_ID.getKey(), -1);
+        if (id == -1) {
+            setThemeId(context, defaultId);
+            return defaultId;
+        } else {
+            return id;
+        }
     }
 
     public static void setThemeId(@NonNull Context context, @StyleRes int themeId) {

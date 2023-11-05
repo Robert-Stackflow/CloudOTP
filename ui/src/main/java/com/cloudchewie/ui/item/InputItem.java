@@ -82,6 +82,10 @@ public class InputItem extends ConstraintLayout {
         return editText;
     }
 
+    public void setDisabled(boolean disabled) {
+        getEditText().setEnabled(!disabled);
+    }
+
     private void setMode(int mode) {
         if (mode == 0) {
             editText.setInputType(InputType.TYPE_CLASS_TEXT);

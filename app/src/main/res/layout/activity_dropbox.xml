@@ -1,38 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="@dimen/dp10"
-    android:paddingTop="@dimen/dp10"
-    android:paddingRight="@dimen/dp10"
-    android:paddingBottom="@dimen/dp10">
+    android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/sign_in_button"
-        android:layout_width="fill_parent"
+    <com.cloudchewie.ui.custom.TitleBar
+        android:id="@+id/activity_dropbox_titlebar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="登入Dropbox" />
+        android:layout_alignParentTop="true"
+        app:left_button_icon="@drawable/ic_light_arrow_left"
+        app:right_button_icon="@drawable/ic_light_prompt"
+        app:right_button_visibility="true"
+        app:title="Dropbox" />
 
-    <Button
-        android:id="@+id/sync_token_button"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/sign_in_button"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="同步令牌" />
+    <com.scwang.smart.refresh.layout.SmartRefreshLayout
+        android:id="@+id/activity_dropbox_swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/activity_dropbox_titlebar">
 
-    <TextView
-        android:id="@+id/current_user_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="" />
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/dp15">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/current_user_label"
-        android:text="关于Dropbox" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/activity_dropbox_icon"
+                    android:layout_width="@dimen/dp80"
+                    android:layout_height="@dimen/dp80"
+                    android:layout_marginTop="@dimen/dp20"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/cd_logo"
+                    android:src="@drawable/token_image_dropbox"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.cloudchewie.ui.item.InputItem
+                    android:id="@+id/activity_dropbox_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp20"
+                    app:input_item_editable="false"
+                    app:input_item_single_line="true"
+                    app:input_item_title="邮箱"
+                    app:input_item_top_radius_enable="true"
+                    app:layout_constraintTop_toBottomOf="@id/activity_dropbox_icon" />
+
+                <com.cloudchewie.ui.item.InputItem
+                    android:id="@+id/activity_dropbox_nickname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:input_item_bottom_radius_enable="true"
+                    app:input_item_editable="false"
+                    app:input_item_single_line="true"
+                    app:input_item_title="昵称"
+                    app:layout_constraintTop_toBottomOf="@id/activity_dropbox_email" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/sign_in_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/dp10"
+                    android:layout_marginTop="@dimen/dp50"
+                    android:background="@drawable/shape_button_round"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:stateListAnimator="@null"
+                    android:text="登入Dropbox"
+                    android:textAlignment="center"
+                    android:textColor="@color/text_color_white"
+                    android:textSize="@dimen/sp16"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/activity_dropbox_nickname" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/sync_token_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/dp10"
+                    android:layout_marginTop="@dimen/dp50"
+                    android:background="@drawable/shape_button_round"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:stateListAnimator="@null"
+                    android:text="同步令牌"
+                    android:textAlignment="center"
+                    android:textColor="@color/text_color_white"
+                    android:textSize="@dimen/sp16"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/sign_in_button" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
+    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 </RelativeLayout>

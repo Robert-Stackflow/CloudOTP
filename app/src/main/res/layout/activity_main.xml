@@ -239,7 +239,6 @@
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
-            android:visibility="gone"
             app:entry_item_bottom_radius_enable="true"
             app:entry_item_left_icon="@drawable/token_image_dropbox"
             app:entry_item_left_icon_size="@dimen/dp10"
