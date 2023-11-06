@@ -38,6 +38,17 @@ public class UriUtil {
         return null;
     }
 
+    public static File getFileFromURI(Context context, Uri contentUri) {
+        File rootDataDir = context.getExternalFilesDir(null);
+        String fileName = getFileName(contentUri);
+        if (!TextUtils.isEmpty(fileName)) {
+            File copyFile = new File(rootDataDir + File.separator + fileName);
+            copyFile(context, contentUri, copyFile);
+            return copyFile;
+        }
+        return null;
+    }
+
     public static String getFileName(Uri uri) {
         if (uri == null) return null;
         String fileName = null;

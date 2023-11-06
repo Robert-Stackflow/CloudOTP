@@ -10,13 +10,11 @@ package com.cloudchewie.otp.activity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.annotation.Nullable;
 
 import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
-import com.cloudchewie.util.system.LanguageUtil;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
 import com.cloudchewie.util.ui.DarkModeUtil;
 
@@ -41,10 +39,6 @@ public class SplashActivity extends BaseActivity {
             DarkModeUtil.switchToAlwaysLightMode();
         } else if (isAutoDaynight) {
             DarkModeUtil.switchToAlwaysSystemMode();
-        }
-        if (LanguageUtil.getAppLanguage(SplashActivity.this).equals(getString(R.string.language_english))) {
-            findViewById(R.id.appsloganr).setVisibility(View.GONE);
-            findViewById(R.id.appsloganl).setVisibility(View.GONE);
         }
     }
 

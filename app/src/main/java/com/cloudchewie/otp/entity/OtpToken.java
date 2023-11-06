@@ -9,32 +9,29 @@ import com.cloudchewie.otp.util.enumeration.EncryptionType;
 import com.cloudchewie.otp.util.enumeration.OtpTokenType;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @Entity(tableName = "otp_tokens")
 public class OtpToken implements Serializable {
     @NonNull
     @Override
     public String toString() {
-        return "OtpToken{" +
-                "id=" + id +
-                ", ordinal=" + ordinal +
-                ", issuer='" + issuer + '\'' +
-                ", account='" + account + '\'' +
-                ", imagePath='" + imagePath + '\'' +
-                ", tokenType=" + tokenType +
-                ", algorithm='" + algorithm + '\'' +
-                ", secret='" + secret + '\'' +
-                ", digits=" + digits +
-                ", counter=" + counter +
-                ", period=" + period +
-                ", encryptionType=" + encryptionType +
-                '}';
+        return "OtpToken{" + "id=" + id + ", ordinal=" + ordinal + ", issuer='" + issuer + '\'' + ", account='" + account + '\'' + ", imagePath='" + imagePath + '\'' + ", tokenType=" + tokenType + ", algorithm='" + algorithm + '\'' + ", secret='" + secret + '\'' + ", digits=" + digits + ", counter=" + counter + ", period=" + period + ", encryptionType=" + encryptionType + '}';
     }
 
     @PrimaryKey(autoGenerate = true)
     Long id;
     Long ordinal;
     String issuer;
+    String secret;
+    String account;
+    String imagePath;
+    OtpTokenType tokenType;
+    String algorithm;
+    Integer digits;
+    Long counter;
+    Integer period;
+    EncryptionType encryptionType;
 
     public void setId(Long id) {
         this.id = id;
@@ -55,11 +52,6 @@ public class OtpToken implements Serializable {
         this.period = period;
         this.encryptionType = encryptionType;
     }
-
-    String account;
-    String imagePath;
-    OtpTokenType tokenType;
-    String algorithm;
 
     public OtpToken() {
     }
@@ -156,9 +148,11 @@ public class OtpToken implements Serializable {
         this.encryptionType = encryptionType;
     }
 
-    String secret;
-    Integer digits;
-    Long counter;
-    Integer period;
-    EncryptionType encryptionType;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OtpToken otpToken = (OtpToken) o;
+        return Objects.equals(issuer, otpToken.issuer) && Objects.equals(secret, otpToken.secret) && Objects.equals(account, otpToken.account);
+    }
 }

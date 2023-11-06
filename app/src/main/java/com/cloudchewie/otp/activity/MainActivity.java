@@ -41,11 +41,13 @@ import com.cloudchewie.otp.util.authenticator.ImportTokenUtil;
 import com.cloudchewie.otp.util.database.AppDatabase;
 import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
 import com.cloudchewie.otp.util.database.LocalStorage;
+import com.cloudchewie.otp.util.database.PrivacyManager;
 import com.cloudchewie.otp.util.decoration.SpacingItemDecoration;
 import com.cloudchewie.otp.util.enumeration.Direction;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.otp.util.enumeration.ViewType;
 import com.cloudchewie.otp.widget.ListBottomSheet;
+import com.cloudchewie.otp.widget.SecretBottomSheet;
 import com.cloudchewie.ui.ThemeUtil;
 import com.cloudchewie.ui.custom.IDialog;
 import com.cloudchewie.ui.custom.IToast;
@@ -63,16 +65,19 @@ import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
 import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public class MainActivity extends BaseActivity implements View.OnClickListener, BaseFingerprint.IdentifyListener, BaseFingerprint.ExceptionListener {
-    private static final int READ_JSON_REQUEST_CODE = 42;
-    private static final int WRITE_JSON_REQUEST_CODE = 43;
-    private static final int READ_KEY_URI_REQUEST_CODE = 44;
-    private static final int WRITE_KEY_URI_REQUEST_CODE = 45;
+public class MainActivity extends BaseActivity implements View.OnClickListener, BaseFingerprint.IdentifyListener, BaseFingerprint.ExceptionListener, SecretBottomSheet.OnConfirmListener {
+    private static final int IMPORT_ENCRYPT_REQUEST_CODE = 42;
+    private static final int IMPORT_URI_REQUEST_CODE = 43;
+    private static final int IMPORT_JSON_REQUEST_CODE = 44;
     private String EXPORT_PREFIX = "Token_";
+    private boolean redirectToEximport = false;
+    private Uri redirectUri;
     private DrawerLayout mDrawerLayout;
     private RelativeLayout mDrawer;
     RefreshLayout swipeRefreshLayout;
@@ -86,7 +91,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     RelativeLayout lockLayout;
     RelativeLayout blankLayout;
     EntryItem addEntry;
-    EntryItem qrcodeEntry;
+    EntryItem eximportEntry;
+    ImageButton scanEntry;
     EntryItem themeEntry;
     EntryItem settingEntry;
     EntryItem githubEntry;
@@ -110,6 +116,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         LocalStorage.init(AppDatabase.getInstance(getApplicationContext()));
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        PrivacyManager.init();
         initBiometrics();
         initView();
         initEvent();
@@ -130,7 +137,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         LiveEventBus.get(EventBusCode.CHANGE_PASSCODE.getKey()).observe(this, s -> lockButton.setOnClickListener(this::goToVerify));
         passCodeView.setOnTextChangeListener(text -> {
             if (text.length() == 4) {
-                if (text.equals(AppSharedPreferenceUtil.getPasscode(this))) {
+                if (text.equals(PrivacyManager.getPasscode())) {
                     isAuthed = true;
                     refreshAuthState();
                 } else {
@@ -146,7 +153,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     void goToVerify(View v) {
-        if (AppSharedPreferenceUtil.havePasscode(this)) {
+        if (PrivacyManager.havePasscode()) {
             isAuthed = false;
             refreshAuthState();
         } else {
@@ -164,11 +171,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 public void onNegtiveClick() {
 
                 }
-
-                @Override
-                public void onCloseClick() {
-
-                }
             });
             dialog.show();
         }
@@ -183,9 +185,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mDrawer = findViewById(R.id.activity_main_drawer);
         blankLayout = findViewById(R.id.activity_main_blank_layout);
         addEntry = findViewById(R.id.activity_main_entry_add);
-        qrcodeEntry = findViewById(R.id.activity_main_entry_scan);
+        scanEntry = findViewById(R.id.activity_main_scan);
         dropboxEntry = findViewById(R.id.activity_main_entry_dropbox);
         lockLayout = findViewById(R.id.activity_main_lock_layout);
+        eximportEntry = findViewById(R.id.activity_main_entry_eximport);
         openDrawerButton = findViewById(R.id.activity_main_open_drawer);
         settingEntry = findViewById(R.id.activity_main_entry_settings);
         lockButton = findViewById(R.id.activity_main_lock);
@@ -203,8 +206,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         dropboxEntry.setOnClickListener(this);
         exportImportbutton.setOnClickListener(this);
         goToImportButton.setOnClickListener(this);
+        eximportEntry.setOnClickListener(this);
         addEntry.setOnClickListener(this);
-        qrcodeEntry.setOnClickListener(this);
+        scanEntry.setOnClickListener(this);
         settingEntry.setOnClickListener(this);
         lockLayout.setOnClickListener(this);
         openDrawerButton.setOnClickListener(this);
@@ -296,7 +300,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     public void refreshAuthState() {
-        if (!AppSharedPreferenceUtil.havePasscode(this) || isAuthed) {
+        if (!PrivacyManager.havePasscode() || isAuthed) {
             refreshData();
             if (SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true))
                 lockButton.setVisibility(View.VISIBLE);
@@ -352,10 +356,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         if (view == addEntry) {
             Intent intent = new Intent(this, TokenDetailActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
+        } else if (view == eximportEntry) {
+            Intent intent = new Intent(this, EximportActivity.class).setAction(Intent.ACTION_DEFAULT);
+            startActivity(intent);
         } else if (view == settingEntry) {
             Intent intent = new Intent(this, SettingsActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
-        } else if (view == qrcodeEntry) {
+        } else if (view == scanEntry) {
             Intent intent = new Intent(this, ScanActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
         } else if (view == openDrawerButton) {
@@ -389,7 +396,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             Intent intent = new Intent(this, WebViewActivity.class).setAction(Intent.ACTION_DEFAULT);
             intent.putExtra("url", getString(R.string.url_home));
             startActivity(intent);
-        }else if (view == dropboxEntry) {
+        } else if (view == dropboxEntry) {
             Intent intent = new Intent(this, DropboxActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
         } else if (view == changeViewButton) {
@@ -399,14 +406,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             List<String> strings = Arrays.asList(getResources().getStringArray(R.array.export_import_operation));
             ListBottomSheet bottomSheet = new ListBottomSheet(this, ListBottomSheetBean.strToBean(strings));
             bottomSheet.setOnItemClickedListener(position -> {
-                if (position == 3) {
-                    ExploreUtil.createFile(this, "application/json", EXPORT_PREFIX, "json", WRITE_JSON_REQUEST_CODE, true);
-                } else if (position == 2) {
-                    ExploreUtil.createFile(this, "text/plain", EXPORT_PREFIX, "txt", WRITE_KEY_URI_REQUEST_CODE, true);
+                if (position == 0) {
+                    ExploreUtil.performFileSearch(this, IMPORT_ENCRYPT_REQUEST_CODE);
                 } else if (position == 1) {
-                    ExploreUtil.performFileSearch(this, READ_JSON_REQUEST_CODE);
-                } else if (position == 0) {
-                    ExploreUtil.performFileSearch(this, READ_KEY_URI_REQUEST_CODE);
+                    ExploreUtil.performFileSearch(this, IMPORT_URI_REQUEST_CODE);
+                } else if (position == 2) {
+                    ExploreUtil.performFileSearch(this, IMPORT_JSON_REQUEST_CODE);
                 }
                 bottomSheet.dismiss();
             });
@@ -476,11 +481,54 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         IDialog dialog = new IDialog(this);
         if (uri == null) return;
         switch (requestCode) {
-            case WRITE_JSON_REQUEST_CODE:
-                ExportTokenUtil.exportJsonFile(MainActivity.this, uri);
-                IToast.showBottom(this, getString(R.string.export_success));
+            case IMPORT_ENCRYPT_REQUEST_CODE:
+                dialog.setTitle(getString(R.string.dialog_title_import_encrypt_token));
+                dialog.setMessage(String.format(getString(R.string.dialog_content_import_encrypt_token), UriUtil.getFileAbsolutePath(this, uri)));
+                dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                    @Override
+                    public void onPositiveClick() {
+                        if (PrivacyManager.haveSecret()) {
+                            importEncryptFile(uri, PrivacyManager.getSecret());
+                        } else {
+                            redirectToEximport = true;
+                            redirectUri = uri;
+                            SecretBottomSheet bottomSheet = new SecretBottomSheet(MainActivity.this, SecretBottomSheet.MODE.PULL);
+                            bottomSheet.setOnConfirmListener(MainActivity.this);
+                            bottomSheet.show();
+                        }
+                    }
+
+                    @Override
+                    public void onNegtiveClick() {
+
+                    }
+
+                });
+                dialog.show();
                 break;
-            case READ_JSON_REQUEST_CODE:
+            case IMPORT_URI_REQUEST_CODE:
+                dialog.setTitle(getString(R.string.dialog_title_import_uri_token));
+                dialog.setMessage(String.format(getString(R.string.dialog_content_import_uri_token), UriUtil.getFileAbsolutePath(this, uri)));
+                dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                    @Override
+                    public void onPositiveClick() {
+                        try {
+                            ImportTokenUtil.importUriFile(MainActivity.this, uri);
+                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+                        } catch (Exception e) {
+                            IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
+                        }
+                    }
+
+                    @Override
+                    public void onNegtiveClick() {
+
+                    }
+
+                });
+                dialog.show();
+                break;
+            case IMPORT_JSON_REQUEST_CODE:
                 dialog.setTitle(getString(R.string.dialog_title_import_json_token));
                 dialog.setMessage(String.format(getString(R.string.dialog_content_import_json_token), UriUtil.getFileAbsolutePath(this, uri)));
                 dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
@@ -489,8 +537,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                         try {
                             ImportTokenUtil.importJsonFile(MainActivity.this, uri);
                             IToast.showBottom(MainActivity.this, getString(R.string.import_success));
-                            LiveEventBus.get(EventBusCode.CHANGE_TOKEN.getKey()).post("");
                         } catch (Exception e) {
+                            e.printStackTrace();
                             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
                         }
                     }
@@ -500,44 +548,97 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
                     }
 
-                    @Override
-                    public void onCloseClick() {
-
-                    }
                 });
                 dialog.show();
                 break;
-            case WRITE_KEY_URI_REQUEST_CODE:
-                ExportTokenUtil.exportKeyUriFile(MainActivity.this, uri);
-                IToast.showBottom(this, getString(R.string.export_success));
-                break;
-            case READ_KEY_URI_REQUEST_CODE:
-                dialog.setTitle(getString(R.string.dialog_title_import_uri_token));
-                dialog.setMessage(String.format(getString(R.string.dialog_content_import_uri_token), UriUtil.getFileAbsolutePath(this, uri)));
-                dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
-                    @Override
-                    public void onPositiveClick() {
-                        try {
-                            ImportTokenUtil.importKeyUriFile(MainActivity.this, uri);
-                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
-                            LiveEventBus.get(EventBusCode.CHANGE_TOKEN.getKey()).post("");
-                        } catch (Exception e) {
-                            IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
-                        }
-                    }
+        }
+    }
 
-                    @Override
-                    public void onNegtiveClick() {
+    void exportEncryptFile(Uri uri, String secret) {
+        try {
+            ExportTokenUtil.exportEncryptFile(MainActivity.this, uri, secret);
+            IToast.showBottom(this, getString(R.string.export_success));
+            askToSaveSecret(secret);
+        } catch (Exception e) {
+            IToast.showBottom(this, getString(R.string.export_fail));
+        }
+    }
 
-                    }
+    void importEncryptFile(Uri uri, String secret) {
+        try {
+            ImportTokenUtil.importEncryptFile(MainActivity.this, uri, secret);
+            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+            askToSaveSecret(secret);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+            askToRetry(uri);
+        } catch (Exception e) {
+            e.printStackTrace();
+            IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
+        }
+    }
 
-                    @Override
-                    public void onCloseClick() {
+    @Override
+    public void onPushConfirmed(String secret) {
+        if (redirectToEximport) {
+            exportEncryptFile(redirectUri, secret);
+            redirectUri = null;
+            redirectToEximport = false;
+        }
+    }
 
-                    }
-                });
-                dialog.show();
-                break;
+    @Override
+    public void onPullConfirmed(String secret) {
+        if (redirectToEximport) {
+            importEncryptFile(redirectUri, secret);
+            redirectUri = null;
+            redirectToEximport = false;
+        }
+    }
+
+    @Override
+    public void onSetSecretConfirmed(String secret) {
+    }
+
+    private void askToRetry(Uri uri) {
+        IDialog dialog = new IDialog(this);
+        dialog.setTitle("密钥错误");
+        dialog.setMessage("密钥错误，是否重新输入密钥？");
+        dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+            @Override
+            public void onPositiveClick() {
+                redirectToEximport = true;
+                redirectUri = uri;
+                SecretBottomSheet bottomSheet = new SecretBottomSheet(MainActivity.this, SecretBottomSheet.MODE.PULL);
+                bottomSheet.setOnConfirmListener(MainActivity.this);
+                bottomSheet.show();
+            }
+
+            @Override
+            public void onNegtiveClick() {
+
+            }
+        });
+        dialog.show();
+    }
+
+    private void askToSaveSecret(String secret) {
+        if (!PrivacyManager.haveSecret() || (!Objects.equals(PrivacyManager.getSecret(), secret))) {
+            IDialog dialog = new IDialog(this);
+            dialog.setTitle("保存统一密钥");
+            dialog.setMessage("是否保存为统一密钥？如果选择保存，你的密钥将被加密保存到本地数据库中。同时，下次进行导入或导出操作时，无需再次输入密钥。");
+            dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                @Override
+                public void onPositiveClick() {
+                    PrivacyManager.setSecret(secret);
+                }
+
+                @Override
+                public void onNegtiveClick() {
+
+                }
+            });
+            dialog.show();
         }
     }
 }

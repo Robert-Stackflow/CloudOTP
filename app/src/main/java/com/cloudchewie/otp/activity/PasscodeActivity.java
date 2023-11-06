@@ -7,7 +7,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.cloudchewie.otp.R;
-import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
+import com.cloudchewie.otp.util.database.PrivacyManager;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.ui.custom.IToast;
 import com.cloudchewie.ui.passcode.PassCodeView;
@@ -32,7 +32,7 @@ public class PasscodeActivity extends BaseActivity {
         iconView = findViewById(R.id.activity_passcode_lock_icon);
         textView = findViewById(R.id.activity_passcode_lock_text);
         passCodeView = findViewById(R.id.activity_passcode_passcode_view);
-        if (AppSharedPreferenceUtil.havePasscode(this)) {
+        if (PrivacyManager.havePasscode()) {
             mode = PasscodeMode.CHANGE;
             textView.setText(R.string.input_old_passcode);
             passCodeView.setOnTextChangeListener(this::changePasscodeListener);
@@ -54,7 +54,7 @@ public class PasscodeActivity extends BaseActivity {
                 textView.setText(R.string.mismatch_passcode);
                 textView.setTextColor(getColor(R.color.text_color_red));
             } else {
-                AppSharedPreferenceUtil.setPasscode(this, firstPasscode);
+                PrivacyManager.setPasscode(firstPasscode);
                 IToast.showBottom(this, getString(R.string.set_passcode_success));
                 LiveEventBus.get(EventBusCode.CHANGE_PASSCODE.getKey()).post("change");
                 finish();
@@ -68,7 +68,7 @@ public class PasscodeActivity extends BaseActivity {
     void changePasscodeListener(String text) {
         if (text.length() == 4) {
             if (!isVerified) {
-                if (text.equals(AppSharedPreferenceUtil.getPasscode(this))) {
+                if (text.equals(PrivacyManager.getPasscode())) {
                     isVerified = true;
                     passCodeView.reset();
                     textView.setText(R.string.input_new_passcode);
@@ -87,7 +87,7 @@ public class PasscodeActivity extends BaseActivity {
                     textView.setText(R.string.mismatch_passcode);
                     textView.setTextColor(getColor(R.color.text_color_red));
                 } else {
-                    AppSharedPreferenceUtil.setPasscode(this, firstPasscode);
+                    PrivacyManager.setPasscode(firstPasscode);
                     IToast.showBottom(this, getString(R.string.change_passcode_success));
                     finish();
                 }

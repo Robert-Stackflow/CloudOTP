@@ -143,10 +143,10 @@ public class ScanActivity extends BaseActivity implements ImageAnalysis.Analyzer
                             finish();
                         }
 
-                        @Override
-                        public void onCloseClick() {
-                            finish();
-                        }
+//                        @Override
+//                        public void onCloseClick() {
+//                            finish();
+//                        }
                     });
                     dialog.show();
                 } else {

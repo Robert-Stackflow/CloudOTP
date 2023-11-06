@@ -29,6 +29,9 @@ class TokenCodeUtil @Inject constructor() {
                     )
                 )
             }
+            null->{
+                return TokenCode(getHOTP(otpToken, otpToken.counter), cur, cur + otpToken.period * 1000)
+            }
         }
     }
 

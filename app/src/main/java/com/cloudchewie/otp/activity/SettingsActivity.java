@@ -14,6 +14,7 @@ import com.blankj.utilcode.util.SPUtils;
 import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.entity.ListBottomSheetBean;
 import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
+import com.cloudchewie.otp.util.database.PrivacyManager;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.otp.widget.ListBottomSheet;
 import com.cloudchewie.ui.custom.IDialog;
@@ -91,13 +92,13 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
             autoDaynightEntry.setChecked(AppSharedPreferenceUtil.isAutoDaynight(this));
         }, 100);
         enableWebCacheEntry.setChecked(SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.ENABLE_WEB_CACHE.getKey(), true));
-        if (AppSharedPreferenceUtil.havePasscode(this)) {
+        if (PrivacyManager.havePasscode()) {
             setPasscodeEntry.setTitle(getString(R.string.change_passcode));
         } else {
             setPasscodeEntry.setTitle(getString(R.string.set_passcode));
         }
         LiveEventBus.get(EventBusCode.CHANGE_PASSCODE.getKey()).observe(this, s -> {
-            if (AppSharedPreferenceUtil.havePasscode(this)) {
+            if (PrivacyManager.havePasscode()) {
                 setPasscodeEntry.setTitle(getString(R.string.change_passcode));
             } else {
                 setPasscodeEntry.setTitle(getString(R.string.set_passcode));
@@ -198,9 +199,6 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
                     public void onNegtiveClick() {
                     }
 
-                    @Override
-                    public void onCloseClick() {
-                    }
                 });
                 dialog.show();
             } else {

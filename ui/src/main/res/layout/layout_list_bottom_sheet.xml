@@ -10,13 +10,6 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent" />
 
-<!--    <View-->
-<!--        android:id="@+id/layout_list_bottom_sheet_divider"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="@dimen/px1"-->
-<!--        android:background="@color/background"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/layout_list_bottom_sheet_recyclerview" />-->
-
     <TextView
         android:id="@+id/layout_list_bottom_sheet_cancel"
         android:layout_width="match_parent"

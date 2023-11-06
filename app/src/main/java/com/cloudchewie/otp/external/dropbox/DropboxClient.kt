@@ -1,4 +1,4 @@
-package com.cloudchewie.otp.external
+package com.cloudchewie.otp.external.dropbox
 
 import com.dropbox.core.DbxRequestConfig
 import com.dropbox.core.v2.DbxClientV2

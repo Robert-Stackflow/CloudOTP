@@ -60,6 +60,20 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
+                android:id="@+id/activity_main_scan"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@color/titlebar_background"
+                android:contentDescription="@string/cd_titlebar_right_button"
+                android:padding="@dimen/dp10"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_light_scanning"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/activity_main_change_view"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="UsingOnClickInXml" />
+
+            <ImageButton
                 android:id="@+id/activity_main_change_view"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
@@ -79,9 +93,9 @@
                 android:layout_height="50dp"
                 android:background="@color/titlebar_background"
                 android:contentDescription="@string/cd_titlebar_right_button"
-                android:padding="@dimen/dp15"
+                android:padding="@dimen/dp12"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_light_import"
+                android:src="@drawable/ic_light_ellipsis_vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -209,32 +223,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/activity_main_logo"
-            android:layout_marginTop="@dimen/dp20"
+            android:layout_marginTop="@dimen/dp10"
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
-            app:entry_item_left_icon="@drawable/ic_light_add_account"
+            app:entry_item_left_icon="@drawable/ic_light_plus"
+            app:entry_item_left_icon_size="@dimen/dp10"
             app:entry_item_title="@string/title_add_token"
             app:entry_item_top_radius_enable="true" />
 
         <com.cloudchewie.ui.item.EntryItem
-            android:id="@+id/activity_main_entry_scan"
+            android:id="@+id/activity_main_entry_eximport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/activity_main_entry_add"
             android:clickable="true"
             android:focusable="true"
-            android:textSize="18sp"
             app:entry_item_bottom_radius_enable="true"
-            app:entry_item_left_icon="@drawable/ic_light_scanning"
+            android:textSize="18sp"
+            app:entry_item_left_icon="@drawable/ic_light_export"
             app:entry_item_left_icon_size="@dimen/dp10"
-            app:entry_item_title="@string/title_scan_token" />
+            app:entry_item_title="@string/title_eximport" />
 
         <com.cloudchewie.ui.item.EntryItem
             android:id="@+id/activity_main_entry_dropbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/activity_main_entry_scan"
+            android:layout_below="@id/activity_main_entry_eximport"
             android:layout_marginTop="@dimen/dp10"
             android:clickable="true"
             android:focusable="true"
@@ -242,7 +257,7 @@
             app:entry_item_bottom_radius_enable="true"
             app:entry_item_left_icon="@drawable/token_image_dropbox"
             app:entry_item_left_icon_size="@dimen/dp10"
-            app:entry_item_title="Dropbox"
+            app:entry_item_title="@string/title_dropbox"
             app:entry_item_top_radius_enable="true" />
 
         <com.cloudchewie.ui.item.EntryItem

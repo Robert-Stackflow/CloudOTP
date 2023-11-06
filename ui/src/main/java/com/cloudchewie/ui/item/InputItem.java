@@ -120,6 +120,9 @@ public class InputItem extends ConstraintLayout {
         editText.setHint(hint);
     }
 
+    public void setTitle(String hint) {
+        title_view.setText(hint);
+    }
     public String getText() {
         return editText.getText().toString();
     }

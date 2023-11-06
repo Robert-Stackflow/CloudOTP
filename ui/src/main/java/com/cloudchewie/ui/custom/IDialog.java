@@ -198,7 +198,6 @@ public class IDialog extends Dialog {
 
         void onNegtiveClick();
 
-        void onCloseClick();
     }
 
 }

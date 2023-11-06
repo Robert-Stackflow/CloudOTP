@@ -1,34 +1,9 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string-array name="edit_language">
         <item>@string/language_simplified_chinese</item>
         <item>@string/language_traditional_chinese</item>
         <item>@string/language_english</item>
         <item>@string/language_japanese</item>
-    </string-array>
-    <string-array name="edit_avatar">
-        <item>@string/array_avatar_detail</item>
-        <item>@string/array_choose_from_album</item>
-        <item>@string/array_shot</item>
-    </string-array>
-    <string-array name="edit_cover_without_preview">
-        <item>@string/array_choose_from_album</item>
-        <item>@string/array_shot</item>
-    </string-array>
-    <string-array name="creation_image_operation">
-        <item>@string/array_delete_image</item>
-        <item>@string/array_edit_image</item>
-        <item>@string/array_save_image</item>
-    </string-array>
-    <string-array name="feedback_type">
-        <item>@string/array_feeadback_account</item>
-        <item>@string/array_feeadback_layout</item>
-        <item>@string/array_feeadback_tool</item>
-        <item>@string/array_feeadback_other</item>
-    </string-array>
-    <string-array name="fragment_home_titles">
-        <item>@string/array_tab_memos</item>
-        <item>@string/array_tab_rss</item>
-        <item>@string/array_tab_AI</item>
     </string-array>
     <string-array name="auth_type">
         <item>TOTP</item>
@@ -42,49 +17,13 @@
     </string-array>
     <string-array name="auth_algorithms">
         <item>MD5</item>
-        <item>SHA1</item>
+        <item tools:ignore="Typos">SHA1</item>
         <item>SHA256</item>
         <item>SHA512</item>
     </string-array>
-    <string-array name="root_bookmark_group_operation">
-        <item>@string/rename</item>
-        <item>@string/delete_bookmark_group</item>
-        <item>@string/export_bookmark_group</item>
-        <item>@string/share_bookmark_group</item>
-    </string-array>
-    <string-array name="bookmark_group_operation">
-        <item>@string/rename</item>
-        <item>@string/delete_bookmark_group</item>
-        <item>@string/export_bookmark_group</item>
-        <item>@string/share_bookmark_group</item>
-        <item>@string/move_bookmark_group</item>
-        <item>@string/amount_operation</item>
-    </string-array>
-    <string-array name="bookmark_operation">
-        <item>@string/open</item>
-        <item>@string/edit_bookmark</item>
-        <item>@string/delete_bookmark</item>
-        <item>@string/copy_url</item>
-        <item>@string/share_bookmark</item>
-        <item>@string/move_bookmark</item>
-        <item>@string/amount_operation</item>
-    </string-array>
-    <string-array name="password_type">
-        <item>@string/common_password</item>
-        <item>@string/auth_password</item>
-        <item>@string/backup_password</item>
-    </string-array>
-    <string-array name="password_group_operation">
-        <item>@string/rename</item>
-        <item>@string/edit_password_group</item>
-        <item>@string/delete_password_group</item>
-        <item>@string/export_bookmark_group</item>
-        <item>@string/share_password_group</item>
-    </string-array>
     <string-array name="export_import_operation">
+        <item>@string/entry_import_encrypt_token</item>
         <item>@string/entry_import_uri_token</item>
         <item>@string/entry_import_json_token</item>
-        <item>@string/entry_export_uri_token</item>
-        <item>@string/entry_export_json_token</item>
     </string-array>
 </resources>

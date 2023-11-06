@@ -176,9 +176,6 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
                 public void onNegtiveClick() {
                 }
 
-                @Override
-                public void onCloseClick() {
-                }
             });
             dialog.show();
         }
