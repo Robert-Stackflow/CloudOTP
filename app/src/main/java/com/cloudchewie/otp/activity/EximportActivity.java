@@ -32,9 +32,6 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
     private static final int IMPORT_URI_REQUEST_CODE = 45;
     private static final int IMPORT_JSON_REQUEST_CODE = 46;
     private static final int EXPORT_JSON_REQUEST_CODE = 47;
-    private String EXPORT_PREFIX = "Token_";
-    private boolean redirectToEximport = false;
-    private Uri redirectUri;
     RefreshLayout swipeRefreshLayout;
     EntryItem setSecretEntry;
     EntryItem importEncryptEntry;
@@ -44,6 +41,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
     EntryItem exportUriEntry;
     EntryItem exportJsonEntry;
     LoadingDialog loadingDialog;
+    private String EXPORT_PREFIX = "Token_";
+    private boolean redirectToEximport = false;
+    private Uri redirectUri;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -95,11 +95,39 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                 bottomSheet.show();
             }
         } else if (view == exportJsonEntry) {
-            ExploreUtil.createFile(this, "application/json", EXPORT_PREFIX, "json", EXPORT_JSON_REQUEST_CODE, true);
+            IDialog dialog = new IDialog(this);
+            dialog.setTitle(getString(R.string.dialog_title_warning_text_export));
+            dialog.setMessage(getString(R.string.dialog_content_warning_text_export));
+            dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                @Override
+                public void onPositiveClick() {
+                    ExploreUtil.createFile(EximportActivity.this, "application/json", EXPORT_PREFIX, "json", EXPORT_JSON_REQUEST_CODE, true);
+                }
+
+                @Override
+                public void onNegtiveClick() {
+
+                }
+            });
+            dialog.show();
         } else if (view == exportEncryptEntry) {
             ExploreUtil.createFile(this, "application/octet-stream", EXPORT_PREFIX, "db", EXPORT_ENCRYPT_REQUEST_CODE, true);
         } else if (view == exportUriEntry) {
-            ExploreUtil.createFile(this, "text/plain", EXPORT_PREFIX, "txt", EXPORT_URI_REQUEST_CODE, true);
+            IDialog dialog = new IDialog(this);
+            dialog.setTitle(getString(R.string.dialog_title_warning_text_export));
+            dialog.setMessage(getString(R.string.dialog_content_warning_text_export));
+            dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                @Override
+                public void onPositiveClick() {
+                    ExploreUtil.createFile(EximportActivity.this, "text/plain", EXPORT_PREFIX, "txt", EXPORT_URI_REQUEST_CODE, true);
+                }
+
+                @Override
+                public void onNegtiveClick() {
+
+                }
+            });
+            dialog.show();
         } else if (view == importEncryptEntry) {
             ExploreUtil.performFileSearch(this, IMPORT_ENCRYPT_REQUEST_CODE);
         } else if (view == importUriEntry) {
@@ -166,9 +194,10 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                     loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
                     ExportTokenUtil.exportUriFile(EximportActivity.this, uri);
                     loadingDialog.close();
-                    IToast.showBottom(this, getString(R.string.export_success));
+                    IToast.showBottom(EximportActivity.this, getString(R.string.export_success));
                 } catch (Exception e) {
-                    IToast.showBottom(this, getString(R.string.export_fail));
+                    loadingDialog.close();
+                    IToast.showBottom(EximportActivity.this, getString(R.string.export_fail));
                 }
                 break;
             case IMPORT_URI_REQUEST_CODE:
@@ -183,6 +212,7 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                             loadingDialog.close();
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
+                            loadingDialog.close();
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_fail));
                         }
                     }
@@ -200,10 +230,11 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                     loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
                     ExportTokenUtil.exportJsonFile(EximportActivity.this, uri);
                     loadingDialog.close();
-                    IToast.showBottom(this, getString(R.string.export_success));
+                    IToast.showBottom(EximportActivity.this, getString(R.string.export_success));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    IToast.showBottom(this, getString(R.string.export_fail));
+                    loadingDialog.close();
+                    IToast.showBottom(EximportActivity.this, getString(R.string.export_fail));
                 }
                 break;
             case IMPORT_JSON_REQUEST_CODE:
@@ -219,6 +250,7 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
                             e.printStackTrace();
+                            loadingDialog.close();
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_fail));
                         }
                     }
@@ -242,6 +274,7 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
             IToast.showBottom(this, getString(R.string.export_success));
             askToSaveSecret(secret);
         } catch (Exception e) {
+            loadingDialog.close();
             IToast.showBottom(this, getString(R.string.export_fail));
         }
     }
@@ -255,9 +288,11 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
             askToSaveSecret(secret);
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
+            loadingDialog.close();
             askToRetry(uri);
         } catch (Exception e) {
             e.printStackTrace();
+            loadingDialog.close();
             IToast.showBottom(EximportActivity.this, getString(R.string.import_fail));
         }
     }

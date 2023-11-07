@@ -16,10 +16,6 @@ import com.cloudchewie.ui.item.InputItem;
 import java.util.Objects;
 
 public class SecretBottomSheet extends BottomSheet {
-    public enum MODE {
-        PULL, PUSH, SET_SECRET, CHANGE_SECRET
-    }
-
     OnConfirmListener onConfirmListener;
     InputItem firstPasswdEdit;
     InputItem secondPasswdEdit;
@@ -28,7 +24,6 @@ public class SecretBottomSheet extends BottomSheet {
     AppCompatButton confirmButton;
     MODE mode;
     String oldSecret;
-
     public SecretBottomSheet(@NonNull Context context, MODE mode) {
         super(context);
         this.mode = mode;
@@ -107,6 +102,10 @@ public class SecretBottomSheet extends BottomSheet {
                 }
                 break;
         }
+    }
+
+    public enum MODE {
+        PULL, PUSH, SET_SECRET, CHANGE_SECRET
     }
 
     public interface OnConfirmListener {

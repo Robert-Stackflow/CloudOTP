@@ -227,4 +227,16 @@
     <string name="loading_decrypt">Decrypting...</string>
     <string name="loading_export">Exporting...</string>
     <string name="loading_import">Importing...</string>
+    <string name="logout_fail">Exit failed</string>
+    <string name="fail_connect_dropbox">Unable to connect to Dropbox server</string>
+    <string name="dialog_title_warning_text_export">Clear text export warning</string>
+    <string name="dialog_content_warning_text_export">You are exporting the token to a text file (either JSON or URI format is a text file), and your token key will be exposed in the file in clear text. Unless you can ensure that the file will not be compromised, we recommend that you export as an encrypted file. </string>
+    <string name="issuer_blank">Application name cannot be empty</string>
+    <string name="account_blank">Account cannot be blank</string>
+    <string name="secret_blank">Key cannot be blank</string>
+    <string name="secret_illegal">Keys can only contain English letters or numbers</string>
+    <string name="secret_not_base32">The secret is not a Base32 encoded string</string>
+    <string name="interval_too_long">Refresh interval is too long</string>
+    <string name="counter_too_long">Counter too long</string>
+    <string name="counter_blank">Counter cannot be empty</string>
 </resources>

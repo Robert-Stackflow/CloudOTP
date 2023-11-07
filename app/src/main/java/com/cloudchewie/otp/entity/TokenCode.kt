@@ -50,11 +50,19 @@ class TokenCode(private val mCode: String, private val mStart: Long, private val
     private val last: TokenCode
         get() = if (mNext == null) this else this.mNext!!.last
 
-    constructor(prev: TokenCode, code: String, start: Long, until: Long) : this(code, start, until) {
+    constructor(prev: TokenCode, code: String, start: Long, until: Long) : this(
+        code,
+        start,
+        until
+    ) {
         prev.mNext = this
     }
 
-    constructor(code: String, start: Long, until: Long, next: TokenCode) : this(code, start, until) {
+    constructor(code: String, start: Long, until: Long, next: TokenCode) : this(
+        code,
+        start,
+        until
+    ) {
         mNext = next
     }
 

@@ -22,13 +22,17 @@ import com.scwang.smart.refresh.header.ClassicsHeader;
 import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 
 public class App extends Application {
+    @SuppressLint("StaticFieldLeak")
+    private static Context context;
+
     static {
         SmartRefreshLayout.setDefaultRefreshHeaderCreator((context, layout) -> new ClassicsHeader(context).setDrawableSize(10).setDrawableArrowSize(1).setDrawableProgressSize(10));
         SmartRefreshLayout.setDefaultRefreshFooterCreator((context, layout) -> new ClassicsFooter(context).setDrawableSize(10).setDrawableProgressSize(10).setDrawableArrowSize(10));
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private static Context context;
+    public static Context getContext() {
+        return context;
+    }
 
     @Override
     public void onCreate() {
@@ -43,9 +47,5 @@ public class App extends Application {
                     }
                 });
         context = getApplicationContext();
-    }
-
-    public static Context getContext() {
-        return context;
     }
 }

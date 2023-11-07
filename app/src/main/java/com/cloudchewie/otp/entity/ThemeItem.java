@@ -9,6 +9,14 @@ public class ThemeItem {
     public int layoutId;
     public int themeId;
 
+    public ThemeItem(String title, String description, int colorId, int layoutId, int themeId) {
+        this.title = title;
+        this.description = description;
+        this.colorId = colorId;
+        this.layoutId = layoutId;
+        this.themeId = themeId;
+    }
+
     public int getThemeId() {
         return themeId;
     }
@@ -23,14 +31,6 @@ public class ThemeItem {
 
     public void setLayoutId(int layoutId) {
         this.layoutId = layoutId;
-    }
-
-    public ThemeItem(String title, String description, int colorId, int layoutId, int themeId) {
-        this.title = title;
-        this.description = description;
-        this.colorId = colorId;
-        this.layoutId = layoutId;
-        this.themeId = themeId;
     }
 
     @NonNull

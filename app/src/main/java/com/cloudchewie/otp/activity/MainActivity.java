@@ -33,6 +33,7 @@ import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.adapter.AbstractTokenListAdapter;
 import com.cloudchewie.otp.adapter.SmallTokenListAdapter;
 import com.cloudchewie.otp.adapter.TokenListAdapter;
+import com.cloudchewie.otp.entity.ImportAnalysis;
 import com.cloudchewie.otp.entity.ListBottomSheetBean;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.util.ExploreUtil;
@@ -76,11 +77,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private static final int IMPORT_ENCRYPT_REQUEST_CODE = 42;
     private static final int IMPORT_URI_REQUEST_CODE = 43;
     private static final int IMPORT_JSON_REQUEST_CODE = 44;
-    private String EXPORT_PREFIX = "Token_";
-    private boolean redirectToEximport = false;
-    private Uri redirectUri;
-    private DrawerLayout mDrawerLayout;
-    private RelativeLayout mDrawer;
     RefreshLayout swipeRefreshLayout;
     PassCodeView passCodeView;
     FloatingActionButton lockButton;
@@ -110,6 +106,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     ImageView passcodeIconView;
     Integer passcodeTip;
     LoadingDialog loadingDialog;
+    private String EXPORT_PREFIX = "Token_";
+    private boolean redirectToEximport = false;
+    private Uri redirectUri;
+    private DrawerLayout mDrawerLayout;
+    private RelativeLayout mDrawer;
 
     @Override
     @SuppressLint("SourceLockedOrientationActivity")
@@ -517,10 +518,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     public void onPositiveClick() {
                         try {
                             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
-                            ImportTokenUtil.importUriFile(MainActivity.this, uri);
+                            ImportAnalysis importAnalysis = ImportTokenUtil.importUriFile(MainActivity.this, uri);
                             loadingDialog.close();
-                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+                            IToast.showBottom(MainActivity.this, importAnalysis.toString());
+//                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
+                            loadingDialog.close();
                             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
                         }
                     }
@@ -541,11 +544,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     public void onPositiveClick() {
                         try {
                             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
-                            ImportTokenUtil.importJsonFile(MainActivity.this, uri);
+                            ImportAnalysis importAnalysis = ImportTokenUtil.importJsonFile(MainActivity.this, uri);
                             loadingDialog.close();
-                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+                            IToast.showBottom(MainActivity.this, importAnalysis.toString());
+//                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
                             e.printStackTrace();
+                            loadingDialog.close();
                             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
                         }
                     }
@@ -563,10 +568,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     void exportEncryptFile(Uri uri, String secret) {
         try {
+            loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
             ExportTokenUtil.exportEncryptFile(MainActivity.this, uri, secret);
+            loadingDialog.close();
             IToast.showBottom(this, getString(R.string.export_success));
             askToSaveSecret(secret);
         } catch (Exception e) {
+            loadingDialog.close();
             IToast.showBottom(this, getString(R.string.export_fail));
         }
     }
@@ -574,15 +582,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     void importEncryptFile(Uri uri, String secret) {
         try {
             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
-            ImportTokenUtil.importEncryptFile(MainActivity.this, uri, secret);
+            ImportAnalysis importAnalysis = ImportTokenUtil.importEncryptFile(MainActivity.this, uri, secret);
             loadingDialog.close();
-            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+            IToast.showBottom(MainActivity.this, importAnalysis.toString());
+//            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
             askToSaveSecret(secret);
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
+            loadingDialog.close();
             askToRetry(uri);
         } catch (Exception e) {
             e.printStackTrace();
+            loadingDialog.close();
             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
         }
     }

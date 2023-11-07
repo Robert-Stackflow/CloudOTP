@@ -4,6 +4,7 @@ import android.content.Context
 import com.blankj.utilcode.util.ThreadUtils
 
 import com.dropbox.core.DbxException
+import com.dropbox.core.NetworkIOException
 import com.dropbox.core.v2.DbxClientV2
 import com.dropbox.core.v2.files.FileMetadata
 import com.dropbox.core.v2.files.WriteMode
@@ -32,22 +33,32 @@ class DropboxUploadTask(
             ex
         } catch (ex: IOException) {
             ex
+        } catch (ex: NetworkIOException) {
+            ex.printStackTrace()
+            ex
         }
-
         return null
     }
 
     override fun onSuccess(result: FileMetadata?) {
-        val ex = error
-        if (ex == null) {
-            result?.let { callback.onUploadcomplete(it) }
-        } else {
-            callback.onError(ex)
+        when (val err = error) {
+            null -> {
+                result?.let { callback.onUploadcomplete(it) }
+            }
+
+            is NetworkIOException -> {
+                callback.onNetworkError(err)
+            }
+
+            else -> {
+                callback.onError(err)
+            }
         }
     }
 
     interface Callback {
         fun onUploadcomplete(result: FileMetadata)
+        fun onNetworkError(error: NetworkIOException?)
         fun onError(ex: Exception?)
     }
 }

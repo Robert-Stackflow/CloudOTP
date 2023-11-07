@@ -237,4 +237,16 @@
     <string name="loading_decrypt">解密中...</string>
     <string name="loading_export">导出中...</string>
     <string name="loading_import">导入中...</string>
+    <string name="logout_fail">退出失败</string>
+    <string name="fail_connect_dropbox">无法连接到Dropbox服务器</string>
+    <string name="dialog_title_warning_text_export">明文导出警告</string>
+    <string name="dialog_content_warning_text_export">你正在将令牌导出为文本文件（JSON或URI格式均为文本文件），你的令牌密钥将以明文形式暴露在文件中。除非你能确保该文件不会泄露，否则我们建议你导出为加密文件。</string>
+    <string name="issuer_blank">应用名称不能为空</string>
+    <string name="account_blank">帐户不能为空</string>
+    <string name="secret_blank">密钥不能为空</string>
+    <string name="secret_illegal">密钥只能包含英文字母或数字</string>
+    <string name="secret_not_base32">密钥不是Base32编码的字符串</string>
+    <string name="interval_too_long">刷新间隔过长</string>
+    <string name="counter_too_long">计数器过长</string>
+    <string name="counter_blank">计数器不能为空</string>
 </resources>

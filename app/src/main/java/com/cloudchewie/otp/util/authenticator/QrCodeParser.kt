@@ -37,8 +37,9 @@ class QrCodeParser @Inject constructor(private val qrCodeReader: QRCodeReader) {
             y.buffer.get(imageData, 0, ySize)
 
             val ls = PlanarYUVLuminanceSource(
-                    imageData, rowStride, image.height,
-                    0, 0, rowStride, image.height, false)
+                imageData, rowStride, image.height,
+                0, 0, rowStride, image.height, false
+            )
 
             return try {
                 qrCodeReader.decode(BinaryBitmap(HybridBinarizer(ls))).text

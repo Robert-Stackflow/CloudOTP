@@ -69,8 +69,9 @@ public class EntryItem extends ConstraintLayout {
             setBackgroundResource(titleBarBackground);
             boolean leftButtonVisible = attr.getBoolean(R.styleable.EntryItem_entry_item_left_icon_visibility, true);
             int leftButtonIconId = attr.getResourceId(R.styleable.EntryItem_entry_item_left_icon, R.drawable.ic_light_settings);
+            float leftButtonIconPadding = attr.getDimension(R.styleable.EntryItem_entry_item_left_icon_padding, getResources().getDimension(R.dimen.dp0));
             int leftButtonBackgroundColor = attr.getColor(R.styleable.EntryItem_entry_item_left_icon_background, Color.TRANSPARENT);
-            setLeftButton(leftButtonVisible, leftButtonIconId, leftButtonBackgroundColor);
+            setLeftButton(leftButtonVisible, leftButtonIconId, leftButtonBackgroundColor, leftButtonIconPadding);
             boolean rightButtonVisible = attr.getBoolean(R.styleable.EntryItem_entry_item_right_icon_visibility, true);
             int rightButtonIconId = attr.getResourceId(R.styleable.EntryItem_entry_item_right_icon, R.drawable.ic_light_arrow_right);
             int rightButtonBackgroundColor = attr.getColor(R.styleable.EntryItem_entry_item_right_icon_background, Color.TRANSPARENT);
@@ -104,7 +105,7 @@ public class EntryItem extends ConstraintLayout {
         }
     }
 
-    private void setLeftButton(boolean visibility, int iconId, int backgroundColor) {
+    private void setLeftButton(boolean visibility, int iconId, int backgroundColor, float padding) {
         if (visibility)
             leftIcon.setVisibility(View.VISIBLE);
         else {
@@ -113,6 +114,7 @@ public class EntryItem extends ConstraintLayout {
         }
         leftIcon.setImageResource(iconId);
         leftIcon.setBackgroundColor(backgroundColor);
+        leftIcon.setPadding((int) padding, (int) padding, (int) padding, (int) padding);
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")

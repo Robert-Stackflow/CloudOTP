@@ -207,28 +207,26 @@
         android:background="@color/background"
         android:padding="@dimen/dp10">
 
-        <com.cloudchewie.ui.custom.CircleImageView
+        <ImageView
             android:id="@+id/activity_main_logo"
-            android:layout_width="@dimen/dp60"
-            android:layout_height="@dimen/dp60"
+            android:layout_width="@dimen/dp70"
+            android:layout_height="@dimen/dp70"
+            android:layout_marginTop="@dimen/dp20"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/cd_logo"
             android:layout_centerHorizontal="true"
-            android:clickable="true"
-            android:elevation="@dimen/dp1"
-            android:focusable="true"
-            android:src="@mipmap/ic_launcher"
-            app:civ_border_width="0dp" />
+            android:src="@mipmap/ic_launcher_round" />
 
         <com.cloudchewie.ui.item.EntryItem
             android:id="@+id/activity_main_entry_add"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/activity_main_logo"
-            android:layout_marginTop="@dimen/dp10"
+            android:layout_marginTop="@dimen/dp20"
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
             app:entry_item_left_icon="@drawable/ic_light_plus"
-            app:entry_item_left_icon_size="@dimen/dp10"
             app:entry_item_title="@string/title_add_token"
             app:entry_item_top_radius_enable="true" />
 
@@ -239,10 +237,9 @@
             android:layout_below="@id/activity_main_entry_add"
             android:clickable="true"
             android:focusable="true"
-            app:entry_item_bottom_radius_enable="true"
             android:textSize="18sp"
+            app:entry_item_left_icon_padding="@dimen/dp1"
             app:entry_item_left_icon="@drawable/ic_light_export"
-            app:entry_item_left_icon_size="@dimen/dp10"
             app:entry_item_title="@string/title_eximport" />
 
         <com.cloudchewie.ui.item.EntryItem
@@ -250,15 +247,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/activity_main_entry_eximport"
-            android:layout_marginTop="@dimen/dp10"
             android:clickable="true"
             android:focusable="true"
+            app:entry_item_left_icon_padding="@dimen/dp2"
             android:textSize="18sp"
             app:entry_item_bottom_radius_enable="true"
             app:entry_item_left_icon="@drawable/token_image_dropbox"
-            app:entry_item_left_icon_size="@dimen/dp10"
-            app:entry_item_title="@string/title_dropbox"
-            app:entry_item_top_radius_enable="true" />
+            app:entry_item_title="@string/title_dropbox" />
 
         <com.cloudchewie.ui.item.EntryItem
             android:id="@+id/activity_main_entry_theme"

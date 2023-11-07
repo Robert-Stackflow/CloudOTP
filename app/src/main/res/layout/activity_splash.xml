@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.cloudchewie.ui.custom.CircleImageView
+    <ImageView
         android:id="@+id/logo"
         android:layout_width="@dimen/dp80"
         android:layout_height="@dimen/dp80"
         android:layout_centerInParent="true"
-        android:layout_centerHorizontal="true"
-        android:clickable="true"
-        android:elevation="@dimen/dp1"
-        android:focusable="true"
-        android:src="@mipmap/ic_launcher"
-        app:civ_border_width="0dp" />
+        android:src="@mipmap/ic_launcher_round" />
 </RelativeLayout>

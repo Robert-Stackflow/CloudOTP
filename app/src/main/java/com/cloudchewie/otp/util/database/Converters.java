@@ -10,12 +10,10 @@ package com.cloudchewie.otp.util.database;
 import androidx.annotation.NonNull;
 import androidx.room.TypeConverter;
 
-import com.cloudchewie.util.basic.CalendarUtil;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -28,17 +26,6 @@ public class Converters {
     @TypeConverter
     public static Long dateToTimestamp(Date date) {
         return date == null ? null : date.getTime();
-    }
-
-    @TypeConverter
-    public static Calendar fromCalendar(String value) {
-        return CalendarUtil.parseToJavaCalendar(value);
-    }
-
-    @NonNull
-    @TypeConverter
-    public static String calendarTo(Calendar date) {
-        return CalendarUtil.calendarToString(date);
     }
 
     @NonNull

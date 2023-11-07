@@ -3,9 +3,11 @@ package com.cloudchewie.otp.widget
 import com.cloudchewie.otp.R
 import java.util.Locale
 
-enum class TokenImage(val resource: Int,
-                      val issuer: String? = null,
-                      val alsoMatchLabel: Boolean = false) {
+enum class TokenImage(
+    val resource: Int,
+    val issuer: String? = null,
+    val alsoMatchLabel: Boolean = false
+) {
     OneAndOne(R.drawable.token_image_1and1),
     OnePassword(R.drawable.token_image_1password),
     TwentyThreeAndMe(R.drawable.token_image_23andme),
@@ -268,11 +270,11 @@ fun TokenImage.matchToken(issuer: String?, label: String?): Boolean {
     val issuerToMatch = this.issuer ?: this.name
 
     val issuerMatched = issuer?.lowercase(Locale.getDefault())
-            ?.contains(issuerToMatch.lowercase(Locale.getDefault())) ?: false
+        ?.contains(issuerToMatch.lowercase(Locale.getDefault())) ?: false
 
     return if (!issuerMatched && this.alsoMatchLabel) {
         label?.lowercase(Locale.getDefault())
-                ?.contains(issuerToMatch.lowercase(Locale.getDefault())) ?: false
+            ?.contains(issuerToMatch.lowercase(Locale.getDefault())) ?: false
     } else {
         issuerMatched
     }

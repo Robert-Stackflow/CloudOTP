@@ -22,7 +22,6 @@
     <color name="dark_translucent_white">#55FFFFFF</color>
     <color name="nav_bar_scrim">@color/background</color>
     <color name="status_bar_scrim">@color/background</color>
-    <color name="ic_launcher_background">@color/background</color>
     <!--控件颜色-->
     <color name="toast_background">#AA000000</color>
     <color name="card_background">#FFFFFF</color>

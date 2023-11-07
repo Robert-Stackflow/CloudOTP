@@ -4,32 +4,30 @@ import com.blankj.utilcode.util.ThreadUtils
 import com.dropbox.core.DbxException
 import com.dropbox.core.NetworkIOException
 import com.dropbox.core.v2.DbxClientV2
-import com.dropbox.core.v2.files.SearchV2Result
 
-class DropboxFileTask(
+class DropboxLogoutTask(
     private val dbxClientV2: DbxClientV2,
     private val callback: Callback,
-    private val filename: String,
-) : ThreadUtils.SimpleTask<SearchV2Result>() {
+) : ThreadUtils.SimpleTask<String?>() {
     private var error: Exception? = null
 
-    override fun doInBackground(): SearchV2Result? {
-        error = try {
-            return dbxClientV2.files().searchV2(filename)
+    override fun doInBackground(): String? {
+        try {
+            dbxClientV2.auth().tokenRevoke()
         } catch (ex: DbxException) {
             ex.printStackTrace()
-            ex
+            error = ex
         } catch (ex: NetworkIOException) {
             ex.printStackTrace()
-            ex
+            error = ex
         }
         return null
     }
 
-    override fun onSuccess(list: SearchV2Result?) {
+    override fun onSuccess(account: String?) {
         when (val err = error) {
             null -> {
-                list?.let { callback.onGetListResults(it) }
+                callback.onLogout()
             }
 
             is NetworkIOException -> {
@@ -43,9 +41,8 @@ class DropboxFileTask(
     }
 
     interface Callback {
-        fun onGetListResults(list: SearchV2Result)
+        fun onLogout()
         fun onNetworkError(error: NetworkIOException?)
         fun onError(error: Exception?)
     }
-
 }

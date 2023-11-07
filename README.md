@@ -8,11 +8,13 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 
 - Support TOTP and HOTP
 - Support manual filling and QR code scanning to add tokens
-- Support import/export to JSON/URI format
+- Support import/export of JSON/URI file
+- Support import/export of encrypted files (using standard AES-256 algorithm)
+- Support backing up encrypted files to Dropbox
+- Support password lock and biometric identification
 - Support dark mode and switching theme colors
 - Support multiple languages: English, Simplified Chinese, Traditional Chinese, Japanese
 - Support two view styles: single column and double column
-- Support password lock and biometric identification
 
 ## Screenshots
 
@@ -22,5 +24,7 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 
 ## TODO
 
-- [ ] Cloud backup
-- [ ] Sharing a single token
+- [ ] Support Google Drive
+- [ ] Support WebDAV services such as Box
+- [ ] Support more encryption algorithms
+- [ ] Support encrypting local SQLite database

@@ -225,4 +225,16 @@
     <string name="loading_decrypt">復号化中...</string>
     <string name="loading_export">エクスポート中...</string>
     <string name="loading_import">インポート中...</string>
+    <string name="logout_fail">終了に失敗しました</string>
+    <string name="fail_connect_dropbox">Dropbox サーバーに接続できません</string>
+    <string name="dialog_title_warning_text_export">クリア テキスト エクスポートの警告</string>
+    <string name="dialog_content_warning_text_export">トークンをテキスト ファイル (JSON または URI 形式のいずれかがテキスト ファイル) にエクスポートすると、トークン キーがクリア テキストでファイルに公開されます。 ファイルが侵害されないことが保証できない場合は、暗号化されたファイルとしてエクスポートすることをお勧めします。 </string>
+    <string name="issuer_blank">アプリケーション名を空にすることはできません</string>
+    <string name="account_blank">アカウントを空白にすることはできません</string>
+    <string name="secret_blank">キーを空白にすることはできません</string>
+    <string name="secret_illegal">キーには英語の文字または数字のみを含めることができます</string>
+    <string name="secret_not_base32">シークレットは Base32 でエンコードされた文字列ではありません</string>
+    <string name="interval_too_long">更新間隔が長すぎます</string>
+    <string name="counter_too_long">カウンタが長すぎます</string>
+    <string name="counter_blank">カウンターを空にすることはできません</string>
 </resources>

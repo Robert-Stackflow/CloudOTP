@@ -64,7 +64,7 @@ public class ExportTokenUtil {
         return toencrypt.toString();
     }
 
-    public static void exportEncryptFile(Context context, Uri fileUri,String password) {
+    public static void exportEncryptFile(Context context, Uri fileUri, String password) {
         try {
             OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri, "w");
             PrintWriter printWriter = new PrintWriter(outputStream);

@@ -4,7 +4,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import com.blankj.utilcode.util.ThreadUtils
-import com.blankj.utilcode.util.ThreadUtils.SimpleTask
 import com.blankj.utilcode.util.TimeUtils
 import com.cloudchewie.otp.R
 import com.cloudchewie.otp.databinding.ActivityDropboxBinding
@@ -12,11 +11,12 @@ import com.cloudchewie.otp.entity.SyncConfig
 import com.cloudchewie.otp.external.AESStringCypher
 import com.cloudchewie.otp.external.SyncManager
 import com.cloudchewie.otp.external.SyncService
-import com.cloudchewie.otp.external.dropbox.DropboxAccountTask
 import com.cloudchewie.otp.external.dropbox.DropboxClient
 import com.cloudchewie.otp.external.dropbox.DropboxClient.getClient
 import com.cloudchewie.otp.external.dropbox.DropboxDownloadTask
 import com.cloudchewie.otp.external.dropbox.DropboxFileTask
+import com.cloudchewie.otp.external.dropbox.DropboxLogoutTask
+import com.cloudchewie.otp.external.dropbox.DropboxSigninTask
 import com.cloudchewie.otp.external.dropbox.DropboxUploadTask
 import com.cloudchewie.otp.util.authenticator.ExportTokenUtil
 import com.cloudchewie.otp.util.authenticator.ImportTokenUtil
@@ -29,6 +29,7 @@ import com.cloudchewie.ui.custom.IToast
 import com.cloudchewie.ui.loadingdialog.view.LoadingDialog
 import com.cloudchewie.util.basic.DateFormatUtil.FULL_FORMAT
 import com.cloudchewie.util.ui.StatusBarUtil
+import com.dropbox.core.NetworkIOException
 import com.dropbox.core.android.Auth
 import com.dropbox.core.v2.files.FileMetadata
 import com.dropbox.core.v2.files.SearchV2Result
@@ -57,6 +58,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     private var firstLogin: Boolean = false
     private var loadingDialog: LoadingDialog? = null
     private var fileMetadata: FileMetadata? = null
+    private var redirectToSignin: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,28 +114,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
             )
             dialog.setOnClickBottomListener(object : OnClickBottomListener {
                 override fun onPositiveClick() {
-                    loadingDialog!!.setLoadingText(getString(R.string.loading_logout)).show()
-                    ThreadUtils.executeBySingle(
-                        object : SimpleTask<String?>() {
-                            @Throws(Throwable::class)
-                            override fun doInBackground(): String? {
-                                getClient(dropboxSyncConfig.accessToken).auth().tokenRevoke()
-                                return null
-                            }
-
-                            override fun onSuccess(result: String?) {
-                                loadingDialog!!.close()
-                                dropboxSyncConfig = SyncConfig()
-                                syncManager!!.delete(SyncService.DROPBOX)
-                                IToast.showBottom(
-                                    applicationContext,
-                                    getString(R.string.logout_success)
-                                )
-                                dialog.dismiss()
-                                recreate()
-                            }
-                        }
-                    )
+                    logout()
                 }
 
                 override fun onNegtiveClick() {
@@ -164,6 +145,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
             binding.activityDropboxSigninButton.visibility = View.GONE
         }
         refreshState(true)
+        getAccessToken()
     }
 
     private fun refreshState(init: Boolean) {
@@ -183,34 +165,37 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
 
     override fun onResume() {
         super.onResume()
-        getAccessToken()
+        if (redirectToSignin)
+            getAccessToken()
     }
 
     private fun getAccessToken() {
         if (dropboxSyncConfig.accessToken == null) {
+            redirectToSignin = true
             val accessToken = Auth.getOAuth2Token()
+            redirectToSignin = false
             if (accessToken != null) {
                 dropboxSyncConfig.accessToken = accessToken
                 syncManager!!.update(dropboxSyncConfig)
-                getAccount()
+                signin()
             }
         } else {
-            getAccount()
+            signin()
         }
     }
 
-    private fun getAccount() {
+    private fun signin() {
         if (dropboxSyncConfig.accessToken == null) return
         loadingDialog!!.setLoadingText(getString(R.string.loading_signin)).show()
         ThreadUtils.executeBySingle(
-            DropboxAccountTask(
+            DropboxSigninTask(
                 getClient(dropboxSyncConfig.accessToken),
-                object : DropboxAccountTask.TaskDelegate {
-                    override fun onAccountReceived(account: FullAccount) {
+                object : DropboxSigninTask.Callback {
+                    override fun onSignin(account: FullAccount) {
                         loadingDialog!!.close()
                         if (firstLogin)
                             IToast.showBottom(
-                                applicationContext,
+                                this@DropboxActivity,
                                 getString(R.string.signin_success)
                             )
                         binding.activityDropboxEmail.editText.setText(account.email)
@@ -221,11 +206,55 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                         binding.activityDropboxLogoutButton.visibility = View.VISIBLE
                     }
 
+                    override fun onNetworkError(error: NetworkIOException?) {
+                        loadingDialog!!.close()
+                        IToast.showBottom(
+                            this@DropboxActivity,
+                            getString(R.string.fail_connect_dropbox)
+                        )
+                    }
+
                     override fun onError(error: Exception?) {
                         loadingDialog!!.close()
-                        IToast.showBottom(applicationContext, getString(R.string.outdated_login))
+                        IToast.showBottom(this@DropboxActivity, getString(R.string.outdated_login))
                         dropboxSyncConfig = SyncConfig()
                         syncManager!!.delete(SyncService.DROPBOX)
+                        recreate()
+                    }
+                },
+            )
+        )
+    }
+
+    private fun logout() {
+        if (dropboxSyncConfig.accessToken == null) return
+        loadingDialog!!.setLoadingText(getString(R.string.loading_logout)).show()
+        ThreadUtils.executeBySingle(
+            DropboxLogoutTask(
+                getClient(dropboxSyncConfig.accessToken),
+                object : DropboxLogoutTask.Callback {
+                    override fun onLogout() {
+                        loadingDialog!!.close()
+                        dropboxSyncConfig = SyncConfig()
+                        syncManager!!.delete(SyncService.DROPBOX)
+                        IToast.showBottom(
+                            this@DropboxActivity,
+                            getString(R.string.logout_success)
+                        )
+                        recreate()
+                    }
+
+                    override fun onNetworkError(error: NetworkIOException?) {
+                        loadingDialog!!.close()
+                        IToast.showBottom(
+                            this@DropboxActivity,
+                            getString(R.string.fail_connect_dropbox)
+                        )
+                    }
+
+                    override fun onError(error: Exception?) {
+                        loadingDialog!!.close()
+                        IToast.showBottom(this@DropboxActivity, getString(R.string.logout_fail))
                         recreate()
                     }
                 },
@@ -250,10 +279,18 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                             haveBackup = false
                             refreshState(false)
                             IToast.showBottom(
-                                applicationContext,
+                                this@DropboxActivity,
                                 getString(R.string.do_not_have_backup)
                             )
                         }
+                    }
+
+                    override fun onNetworkError(error: NetworkIOException?) {
+                        loadingDialog!!.close()
+                        IToast.showBottom(
+                            this@DropboxActivity,
+                            getString(R.string.fail_connect_dropbox)
+                        )
                     }
 
                     override fun onError(error: Exception?) {
@@ -274,10 +311,11 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                 object : DropboxDownloadTask.Callback {
                     override fun onDownloadComplete(result: File) {
                         mEncryptedFile = result
+                        loadingDialog!!.close()
                         if (haveBackup && !PrivacyManager.haveSecret()) {
                             val bottomSheet =
                                 SecretBottomSheet(
-                                    applicationContext,
+                                    this@DropboxActivity,
                                     SecretBottomSheet.MODE.PULL
                                 )
                             bottomSheet.setOnConfirmListener(this@DropboxActivity)
@@ -287,15 +325,23 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                         }
                     }
 
+                    override fun onNetworkError(error: NetworkIOException?) {
+                        loadingDialog!!.close()
+                        IToast.showBottom(
+                            this@DropboxActivity,
+                            getString(R.string.fail_connect_dropbox)
+                        )
+                    }
+
                     override fun onError(e: Exception?) {
                         loadingDialog!!.close()
                         IToast.showBottom(
-                            applicationContext,
+                            this@DropboxActivity,
                             getString(R.string.download_backup_fail)
                         )
                     }
                 },
-                this.applicationContext,
+                this@DropboxActivity,
                 fileMetadata
             )
         )
@@ -306,7 +352,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         loadingDialog!!.setLoadingText(getString(R.string.loading_bakup)).show()
         ThreadUtils.executeBySingle(
             DropboxUploadTask(
-                this.applicationContext,
+                this@DropboxActivity,
                 getClient(dropboxSyncConfig.accessToken),
                 object : DropboxUploadTask.Callback {
                     override fun onUploadcomplete(result: FileMetadata) {
@@ -314,13 +360,21 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                         dropboxSyncConfig.lastPushed = TimeUtils.getNowMills()
                         syncManager!!.update(dropboxSyncConfig)
                         haveBackup = true
-                        IToast.showBottom(applicationContext, getString(R.string.push_success))
+                        IToast.showBottom(this@DropboxActivity, getString(R.string.push_success))
                         refreshState(false)
+                    }
+
+                    override fun onNetworkError(error: NetworkIOException?) {
+                        loadingDialog!!.close()
+                        IToast.showBottom(
+                            this@DropboxActivity,
+                            getString(R.string.fail_connect_dropbox)
+                        )
                     }
 
                     override fun onError(ex: Exception?) {
                         loadingDialog!!.close()
-                        IToast.showBottom(applicationContext, getString(R.string.push_fail))
+                        IToast.showBottom(this@DropboxActivity, getString(R.string.push_fail))
                     }
                 }, mEncryptedFile!!
             )
@@ -342,7 +396,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                 )
             )
             loadingDialog!!.close()
-            IToast.showBottom(applicationContext, getString(R.string.pull_success))
+            IToast.showBottom(this@DropboxActivity, getString(R.string.pull_success))
             askToSaveSecret(secret)
         } catch (ex: GeneralSecurityException) {
             ex.printStackTrace()
@@ -350,7 +404,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
             askToRetry()
         } catch (ex: Exception) {
             loadingDialog!!.close()
-            IToast.showBottom(applicationContext, getString(R.string.pull_fail))
+            IToast.showBottom(this@DropboxActivity, getString(R.string.pull_fail))
             ex.printStackTrace()
         }
     }

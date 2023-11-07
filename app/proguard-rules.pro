@@ -26,8 +26,6 @@
 -dontwarn razerdp.basepopup.**
 -keep class razerdp.basepopup.**{*;}
 
--keep class com.zackratos.ultimatebarx.ultimatebarx.** { *; }
-
 -ignorewarnings
 
 # MeiZuFingerprint

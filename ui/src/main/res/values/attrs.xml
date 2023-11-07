@@ -43,7 +43,7 @@
         <attr name="entry_item_left_icon_background" format="reference|integer" />
         <attr name="entry_item_right_icon_background" format="reference|integer" />
         <attr name="entry_item_left_icon" format="reference" />
-        <attr name="entry_item_left_icon_size" format="dimension" />
+        <attr name="entry_item_left_icon_padding" format="dimension" />
         <attr name="entry_item_right_icon" format="reference" />
         <attr name="entry_item_tip" format="string" />
         <attr name="entry_item_tip_color" format="color" />

@@ -154,12 +154,12 @@ public class InputBottomSheet extends BottomSheet {
         KeyboardUtils.hideSoftInput((Activity) context);
     }
 
-    public interface OnConfirmClickedListener {
-        void OnConfirmClicked(String content);
-    }
-
     public void setHint(String hint) {
         this.hint = hint;
         this.editText.setHint(hint);
+    }
+
+    public interface OnConfirmClickedListener {
+        void OnConfirmClicked(String content);
     }
 }

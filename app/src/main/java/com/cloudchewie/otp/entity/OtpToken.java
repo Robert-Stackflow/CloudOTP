@@ -13,12 +13,6 @@ import java.util.Objects;
 
 @Entity(tableName = "otp_tokens")
 public class OtpToken implements Serializable {
-    @NonNull
-    @Override
-    public String toString() {
-        return "OtpToken{" + "id=" + id + ", ordinal=" + ordinal + ", issuer='" + issuer + '\'' + ", account='" + account + '\'' + ", imagePath='" + imagePath + '\'' + ", tokenType=" + tokenType + ", algorithm='" + algorithm + '\'' + ", secret='" + secret + '\'' + ", digits=" + digits + ", counter=" + counter + ", period=" + period + ", encryptionType=" + encryptionType + '}';
-    }
-
     @PrimaryKey(autoGenerate = true)
     Long id;
     Long ordinal;
@@ -32,11 +26,6 @@ public class OtpToken implements Serializable {
     Long counter;
     Integer period;
     EncryptionType encryptionType;
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     @Ignore
     public OtpToken(Long id, Long ordinal, String issuer, String account, String imagePath, OtpTokenType tokenType, String algorithm, String secret, Integer digits, Long counter, Integer period, EncryptionType encryptionType) {
         this.id = id;
@@ -56,8 +45,18 @@ public class OtpToken implements Serializable {
     public OtpToken() {
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return "OtpToken{" + "id=" + id + ", ordinal=" + ordinal + ", issuer='" + issuer + '\'' + ", account='" + account + '\'' + ", imagePath='" + imagePath + '\'' + ", tokenType=" + tokenType + ", algorithm='" + algorithm + '\'' + ", secret='" + secret + '\'' + ", digits=" + digits + ", counter=" + counter + ", period=" + period + ", encryptionType=" + encryptionType + '}';
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Long getOrdinal() {

@@ -128,7 +128,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/dp10"
-                    android:layout_marginTop="@dimen/dp50"
+                    android:layout_marginTop="@dimen/dp30"
                     android:background="@drawable/shape_button_round"
                     android:backgroundTint="@color/color_red"
                     android:stateListAnimator="@null"
@@ -138,6 +138,11 @@
                     android:textSize="@dimen/sp16"
                     android:textStyle="bold"
                     app:layout_constraintTop_toBottomOf="@id/activity_authenticator_detail_counter" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp30"
+                    app:layout_constraintTop_toBottomOf="@id/activity_authenticator_detail_delete" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>

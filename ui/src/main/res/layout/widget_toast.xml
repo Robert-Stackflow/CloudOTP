@@ -14,7 +14,7 @@
         android:layout_centerInParent="true"
         android:gravity="center"
         android:textAlignment="center"
-        android:textColor="@color/background"
+        android:textColor="@color/text_color_white"
         android:textSize="15sp"
         tools:text="占位符" />
 </RelativeLayout>

@@ -13,6 +13,12 @@ public class PrivacyManager {
         return LocalStorage.getAppDatabase().privacyDao().getPasscode();
     }
 
+    public static void setPasscode(String passcode) {
+        Privacy privacy = LocalStorage.getAppDatabase().privacyDao().get();
+        privacy.setPasscode(passcode);
+        LocalStorage.getAppDatabase().privacyDao().update(privacy);
+    }
+
     public static boolean havePasscode() {
         String passcode = getPasscode();
         return passcode != null && !passcode.isEmpty();
@@ -22,20 +28,14 @@ public class PrivacyManager {
         return LocalStorage.getAppDatabase().privacyDao().getSecret();
     }
 
-    public static boolean haveSecret() {
-        String secret = getSecret();
-        return secret != null && !secret.isEmpty();
-    }
-
-    public static void setPasscode(String passcode) {
-        Privacy privacy = LocalStorage.getAppDatabase().privacyDao().get();
-        privacy.setPasscode(passcode);
-        LocalStorage.getAppDatabase().privacyDao().update(privacy);
-    }
-
     public static void setSecret(String secret) {
         Privacy privacy = LocalStorage.getAppDatabase().privacyDao().get();
         privacy.setSecret(secret);
         LocalStorage.getAppDatabase().privacyDao().update(privacy);
+    }
+
+    public static boolean haveSecret() {
+        String secret = getSecret();
+        return secret != null && !secret.isEmpty();
     }
 }

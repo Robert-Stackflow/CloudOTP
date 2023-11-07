@@ -1,11 +1,17 @@
 package com.cloudchewie.otp.activity;
 
+import static com.cloudchewie.otp.util.authenticator.CheckTokenUtil.isCounterTooLong;
+import static com.cloudchewie.otp.util.authenticator.CheckTokenUtil.isIntervalTooLong;
+import static com.cloudchewie.otp.util.authenticator.CheckTokenUtil.isSecretBase32;
+import static com.cloudchewie.otp.util.authenticator.CheckTokenUtil.isSecretLegal;
+
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -13,6 +19,7 @@ import androidx.appcompat.widget.AppCompatButton;
 
 import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.entity.OtpToken;
+import com.cloudchewie.otp.util.authenticator.ImportTokenUtil;
 import com.cloudchewie.otp.util.authenticator.OtpTokenParser;
 import com.cloudchewie.otp.util.authenticator.TokenImageUtil;
 import com.cloudchewie.otp.util.database.LocalStorage;
@@ -33,6 +40,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 public class TokenDetailActivity extends BaseActivity implements View.OnClickListener, TextWatcher {
+    public static String EXTRA_TOKEN_ID = "token_id";
     RefreshLayout swipeRefreshLayout;
     ImageView logoView;
     InputItem issuerItem;
@@ -46,7 +54,6 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
     String imageUrl;
     OtpToken paramToken;
     AppCompatButton deleteButton;
-    public static String EXTRA_TOKEN_ID = "token_id";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +72,9 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
         algorithmItem = findViewById(R.id.activity_authenticator_detail_algorithm);
         counterItem = findViewById(R.id.activity_authenticator_detail_counter);
         deleteButton = findViewById(R.id.activity_authenticator_detail_delete);
+        issuerItem.getEditText().setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        accountItem.getEditText().setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        secretItem.getEditText().setImeOptions(EditorInfo.IME_ACTION_DONE);
         deleteButton.setOnClickListener(this);
         initSwipeRefresh();
         paramToken = LocalStorage.getAppDatabase().otpTokenDao().get(getIntent().getLongExtra(EXTRA_TOKEN_ID, 0L));
@@ -92,12 +102,14 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
             secretItem.getEditText().setText(paramToken.getSecret());
             intervalItem.getEditText().setText(String.valueOf(paramToken.getPeriod()));
             typeItem.setSelectedIndex(paramToken.getTokenType() == OtpTokenType.TOTP ? 0 : 1);
+            counterItem.getEditText().setText(String.valueOf(paramToken.getCounter()));
             digitsItem.setSelectedIndex(paramToken.getDigits() - 5);
             algorithmItem.setSelectedIndex(Arrays.asList(getResources().getStringArray(R.array.auth_algorithms)).indexOf(paramToken.getAlgorithm()));
             typeItem.setEnabled(false);
             digitsItem.setEnabled(false);
             algorithmItem.setEnabled(false);
             intervalItem.getEditText().setEnabled(false);
+            counterItem.getEditText().setEnabled(false);
             TokenImageUtil.setTokenImage(logoView, paramToken);
             ((TitleBar) findViewById(R.id.activity_authenticator_detail_titlebar)).setTitle(getString(R.string.title_detail_token));
         } else {
@@ -108,6 +120,8 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void confirm() {
+        if (!verifyParams())
+            return;
         if (paramToken != null) {
             paramToken.setIssuer(Uri.decode(issuerItem.getText()));
             paramToken.setAccount(Uri.decode(accountItem.getText()));
@@ -120,16 +134,15 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
             String issuer = Uri.decode(issuerItem.getText());
             String account = Uri.decode(accountItem.getText());
             String secret = Uri.decode(secretItem.getText());
-            Integer interval = Integer.parseInt(Uri.decode(intervalItem.getText()));
+            Integer interval = intervalItem.getText().isEmpty() ? 30 : Integer.parseInt(Uri.decode(intervalItem.getText()));
             String algorithm = (String) getResources().getTextArray(R.array.auth_algorithms)[algorithmItem.getSelectedIndex()];
             Integer digits = Integer.parseInt((String) getResources().getTextArray(R.array.auth_digits)[digitsItem.getSelectedIndex()]);
-            boolean isHotp = Boolean.parseBoolean((String) getResources().getTextArray(R.array.auth_type)[typeItem.getSelectedIndex()]);
             String uri = String.format(Locale.US,
                     "otpauth://%sotp/%s:%s?secret=%s&algorithm=%s&digits=%d&period=%d",
-                    isHotp ? "h" : "t", issuer, account,
+                    isHotp() ? "h" : "t", issuer, account,
                     secret, algorithm, digits, interval);
-            if (isHotp) {
-                Integer counter = Integer.parseInt(counterItem.getText());
+            if (isHotp()) {
+                Long counter = Long.parseLong(counterItem.getText());
                 uri += String.format(Locale.US, "&counter=%d", counter);
             }
             if (imageUrl != null) {
@@ -140,11 +153,45 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
                     e.printStackTrace();
                 }
             }
-            LocalStorage.getAppDatabase().otpTokenDao().insert(OtpTokenParser.createFromUri(Uri.parse(uri)));
+            IToast.showBottom(this, getString(R.string.add_token_success));
+            ImportTokenUtil.mergeToken(OtpTokenParser.createFromUri(Uri.parse(uri)));
             setResult(Activity.RESULT_OK);
             LiveEventBus.get(EventBusCode.CHANGE_TOKEN.getKey()).post("");
             finish();
         }
+    }
+
+    boolean isHotp() {
+        return typeItem.getSelectedIndex() == 1;
+    }
+
+    boolean verifyParams() {
+        if (issuerItem.getText() == null || issuerItem.getText().isEmpty()) {
+            IToast.showBottom(this, getString(R.string.issuer_blank));
+            return false;
+        } else if (accountItem.getText() == null || accountItem.getText().isEmpty()) {
+            IToast.showBottom(this, getString(R.string.account_blank));
+            return false;
+        } else if (secretItem.getText() == null || secretItem.getText().isEmpty()) {
+            IToast.showBottom(this, getString(R.string.secret_blank));
+            return false;
+        } else if (!isSecretLegal(secretItem.getText())) {
+            IToast.showBottom(TokenDetailActivity.this, getString(R.string.secret_illegal));
+            return false;
+        } else if (!isSecretBase32(secretItem.getText())) {
+            IToast.showBottom(TokenDetailActivity.this, getString(R.string.secret_not_base32));
+            return false;
+        } else if (!intervalItem.getText().isEmpty()&&isIntervalTooLong(intervalItem.getText())) {
+            IToast.showBottom(this, getString(R.string.interval_too_long));
+            return false;
+        } else if (isHotp() && counterItem.getText().isEmpty()) {
+            IToast.showBottom(this, getString(R.string.counter_blank));
+            return false;
+        } else if (isHotp() && isCounterTooLong(counterItem.getText())) {
+            IToast.showBottom(this, getString(R.string.counter_too_long));
+            return false;
+        }
+        return true;
     }
 
     void initSwipeRefresh() {

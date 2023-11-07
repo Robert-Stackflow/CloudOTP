@@ -3,6 +3,7 @@ package com.cloudchewie.otp.external.dropbox
 import android.content.Context
 import com.blankj.utilcode.util.ThreadUtils
 import com.dropbox.core.DbxException
+import com.dropbox.core.NetworkIOException
 import com.dropbox.core.v2.DbxClientV2
 import com.dropbox.core.v2.files.FileMetadata
 import java.io.File
@@ -29,21 +30,32 @@ class DropboxDownloadTask(
             ex
         } catch (ex: IOException) {
             ex
+        } catch (ex: NetworkIOException) {
+            ex.printStackTrace()
+            ex
         }
         return null
     }
 
     override fun onSuccess(result: File?) {
-        val err = error
-        if (err == null) {
-            result?.let { callback.onDownloadComplete(it) }
-        } else {
-            callback.onError(err)
+        when (val err = error) {
+            null -> {
+                result?.let { callback.onDownloadComplete(it) }
+            }
+
+            is NetworkIOException -> {
+                callback.onNetworkError(err)
+            }
+
+            else -> {
+                callback.onError(err)
+            }
         }
     }
 
     interface Callback {
         fun onDownloadComplete(result: File)
+        fun onNetworkError(error: NetworkIOException?)
         fun onError(e: Exception?)
     }
 }

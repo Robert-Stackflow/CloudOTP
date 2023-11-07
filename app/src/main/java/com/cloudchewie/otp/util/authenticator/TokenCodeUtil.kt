@@ -1,5 +1,6 @@
 package com.cloudchewie.otp.util.authenticator
 
+import android.util.Log
 import com.cloudchewie.otp.entity.OtpToken
 import com.cloudchewie.otp.entity.TokenCode
 import com.cloudchewie.otp.util.enumeration.OtpTokenType
@@ -15,9 +16,15 @@ class TokenCodeUtil @Inject constructor() {
         val cur = System.currentTimeMillis()
         when (otpToken.tokenType) {
             OtpTokenType.HOTP ->
-                return TokenCode(getHOTP(otpToken, otpToken.counter), cur, cur + otpToken.period * 1000)
+                return TokenCode(
+                    getHOTP(otpToken, otpToken.counter),
+                    cur,
+                    cur + otpToken.period * 1000
+                )
+
             OtpTokenType.TOTP -> {
                 val counter: Long = cur / 1000 / otpToken.period
+                Log.d("xuruida", counter.toString())
                 return TokenCode(
                     getHOTP(otpToken, counter + 0),
                     (counter + 0) * otpToken.period * 1000,
@@ -29,8 +36,13 @@ class TokenCodeUtil @Inject constructor() {
                     )
                 )
             }
-            null->{
-                return TokenCode(getHOTP(otpToken, otpToken.counter), cur, cur + otpToken.period * 1000)
+
+            null -> {
+                return TokenCode(
+                    getHOTP(otpToken, otpToken.counter),
+                    cur,
+                    cur + otpToken.period * 1000
+                )
             }
         }
     }
@@ -42,7 +54,12 @@ class TokenCodeUtil @Inject constructor() {
         for (i in otpToken.digits downTo 1) div *= 10
         try {
             val mac = Mac.getInstance("Hmac${otpToken.algorithm}")
-            mac.init(SecretKeySpec(Base32String.decode(otpToken.secret), "Hmac${otpToken.algorithm}"))
+            mac.init(
+                SecretKeySpec(
+                    Base32String.decode(otpToken.secret),
+                    "Hmac${otpToken.algorithm}"
+                )
+            )
             val digest = mac.doFinal(bb.array())
             var binary: Int
             val off = digest[digest.size - 1].toInt() and 0xf

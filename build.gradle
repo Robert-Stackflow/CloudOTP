@@ -5,10 +5,10 @@ buildscript {
             'compileSdk': 33
     ]
     repositories {
-        google()
-        mavenCentral()
         maven { url 'https://maven.aliyun.com/repository/google' }
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        google()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
         maven { url "https://maven.google.com" }
     }
@@ -21,11 +21,12 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
-        mavenCentral()
         maven { url 'https://maven.aliyun.com/repository/google' }
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        google()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
+        maven { url "https://maven.google.com" }
     }
 }
 
