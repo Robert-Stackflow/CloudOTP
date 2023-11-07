@@ -54,6 +54,7 @@ import com.cloudchewie.ui.custom.IToast;
 import com.cloudchewie.ui.fab.FloatingActionButton;
 import com.cloudchewie.ui.general.BottomSheet;
 import com.cloudchewie.ui.item.EntryItem;
+import com.cloudchewie.ui.loadingdialog.view.LoadingDialog;
 import com.cloudchewie.ui.passcode.PassCodeView;
 import com.cloudchewie.util.system.SharedPreferenceCode;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
@@ -108,6 +109,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     TextView passcodeTipView;
     ImageView passcodeIconView;
     Integer passcodeTip;
+    LoadingDialog loadingDialog;
 
     @Override
     @SuppressLint("SourceLockedOrientationActivity")
@@ -220,6 +222,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         passcodeIconView.setOnClickListener(this);
         passcodeTipView.setOnClickListener(this);
         lockButton.setOnClickListener(this::goToVerify);
+        loadingDialog = new LoadingDialog(this);
         isAuthed = LocalStorage.getAppDatabase().otpTokenDao().count() <= 0 || !SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true);
         lockButton.setVisibility(SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true) ? View.VISIBLE : View.GONE);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -513,7 +516,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     @Override
                     public void onPositiveClick() {
                         try {
+                            loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
                             ImportTokenUtil.importUriFile(MainActivity.this, uri);
+                            loadingDialog.close();
                             IToast.showBottom(MainActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
                             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
@@ -535,7 +540,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     @Override
                     public void onPositiveClick() {
                         try {
+                            loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
                             ImportTokenUtil.importJsonFile(MainActivity.this, uri);
+                            loadingDialog.close();
                             IToast.showBottom(MainActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -566,7 +573,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     void importEncryptFile(Uri uri, String secret) {
         try {
+            loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
             ImportTokenUtil.importEncryptFile(MainActivity.this, uri, secret);
+            loadingDialog.close();
             IToast.showBottom(MainActivity.this, getString(R.string.import_success));
             askToSaveSecret(secret);
         } catch (GeneralSecurityException e) {
@@ -602,8 +611,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     private void askToRetry(Uri uri) {
         IDialog dialog = new IDialog(this);
-        dialog.setTitle("密钥错误");
-        dialog.setMessage("密钥错误，是否重新输入密钥？");
+        dialog.setTitle(getString(R.string.dialog_title_wrong_secret));
+        dialog.setMessage(getString(R.string.dialog_content_wrong_secret));
         dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
             @Override
             public void onPositiveClick() {
@@ -625,8 +634,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private void askToSaveSecret(String secret) {
         if (!PrivacyManager.haveSecret() || (!Objects.equals(PrivacyManager.getSecret(), secret))) {
             IDialog dialog = new IDialog(this);
-            dialog.setTitle("保存统一密钥");
-            dialog.setMessage("是否保存为统一密钥？如果选择保存，你的密钥将被加密保存到本地数据库中。同时，下次进行导入或导出操作时，无需再次输入密钥。");
+            dialog.setTitle(getString(R.string.dialog_title_save_secret));
+            dialog.setMessage(getString(R.string.dialog_content_save_secret));
             dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
                 @Override
                 public void onPositiveClick() {

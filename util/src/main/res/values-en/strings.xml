@@ -179,13 +179,10 @@
     <string name="cannot_be_null">Cannot be empty</string>
     <string name="old_secret">Old secret</string>
     <string name="secret">Secret</string>
-    <string name="clear_secret">Clear local secret</string>
-    <string name="set_secret">Set local secret</string>
-    <string name="change_secret">Modify local secret</string>
     <string name="new_secret">New secret</string>
     <string name="secret_again">Confirm Secret</string>
     <string name="email">Email</string>
-    <string name="nickname">nickname</string>
+    <string name="nickname">Nickname</string>
     <string name="last_pushed">Last backup time</string>
     <string name="have_not_pushed">Not backed up</string>
     <string name="do_not_have_backup">No backup yet</string>
@@ -202,20 +199,32 @@
     <string name="wrong_secret">Wrong secret</string>
     <string name="unknow_wrong">Unknown error</string>
     <string name="outdated_login">Login expired, please try to log in again</string>
-    <string name="mismatch_secret_with_local">The key of the backup file is inconsistent with the local secret, please try to modify the local secret</string>
-    <string name="dialog_title_clear_local_secret">Clear local secret</string>
-    <string name="dialog_content_clear_local_secret">After clearing the local secret, it cannot be recovered. Please make sure you have properly saved the secret. </string>
     <string name="dialog_title_logout">Log out</string>
     <string name="dialog_content_logout" formatted="true">Confirm to log out of your account? After logging out, you can authorize yourself to log in to the %1$s account again. </string>
     <string name="dialog_title_save_secret">Save Secret Locally</string>
-    <string name="dialog_content_save_secret">Save the secret locally? If you choose to save, your key will be encrypted and saved to the local database. Also, there is no need to enter the secret again the next time you perform a pull or backup operation. </string>
+    <string name="dialog_content_save_secret">Save the secret locally? If you choose to save, your secret will be encrypted and saved to the local database. Also, there is no need to enter the secret again the next time you perform a pull or backup operation. </string>
     <string name="dialog_title_sync_info" formatted="true">About %1$s synchronization service</string>
     <string name="dialog_content_sync_info" formatted="true">You can choose to use the %1$s account sync token. If you use this service, your tokens will be encrypted using the standard AES-256 algorithm. You enter the secret when encrypting it yourself. You need to keep the secret properly and you can only use it to decrypt the files you store in %2$s. %3$s does not save your password anywhere. </string>
     <string name="wrong_old_secret">Wrong old secret</string>
     <string name="mismatch_secret">The secrets entered twice are inconsistent</string>
-    <string name="change_secret_success">Local secret modified successfully</string>
-    <string name="set_secret_success">Local secret set successfully</string>
     <string name="entry_export_encrypt_token">Export as encrypted file</string>
     <string name="entry_import_encrypt_token">Import encrypted files</string>
     <string name="title_eximport">Import and export</string>
+    <string name="pull_fail">Pull failed</string>
+    <string name="dialog_title_import_encrypt_token">Import encrypted files</string>
+    <string name="dialog_content_import_encrypt_token" formatted="true">Whether to import the token from file %1$s</string>
+    <string name="set_unified_secret">Set unified secret</string>
+    <string name="change_unified_secret">Modify unified secret</string>
+    <string name="dialog_title_unified_secret_info">About the unified secret</string>
+    <string name="dialog_content_unified_secret_info">The unified secret is used to import and export encrypted files and cloud services. The encryption algorithm is the standard AES-256 algorithm. When importing an encrypted file or pulling it from the cloud, if the local unified secret is inconsistent with its secret, you will be prompted to manually enter the correct secret. </string>
+    <string name="dialog_title_wrong_secret">Wrong Secret</string>
+    <string name="dialog_content_wrong_secret">The secret is wrong. Do you want to re-enter the secret? </string>
+    <string name="loading_logout">Exiting...</string>
+    <string name="loading_signin">Logging in...</string>
+    <string name="loading_searchBackup">Query backup...</string>
+    <string name="loading_download">Downloading...</string>
+    <string name="loading_bakup">Backing up...</string>
+    <string name="loading_decrypt">Decrypting...</string>
+    <string name="loading_export">Exporting...</string>
+    <string name="loading_import">Importing...</string>
 </resources>

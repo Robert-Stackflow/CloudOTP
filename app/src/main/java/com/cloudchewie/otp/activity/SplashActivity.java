@@ -15,6 +15,8 @@ import androidx.annotation.Nullable;
 
 import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
+import com.cloudchewie.ui.loadingdialog.manager.StyleManager;
+import com.cloudchewie.ui.loadingdialog.view.LoadingDialog;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
 import com.cloudchewie.util.ui.DarkModeUtil;
 
@@ -40,6 +42,9 @@ public class SplashActivity extends BaseActivity {
         } else if (isAutoDaynight) {
             DarkModeUtil.switchToAlwaysSystemMode();
         }
+        StyleManager s = new StyleManager();
+        s.Anim(true).repeatTime(0).contentSize(-1).intercept(true);
+        LoadingDialog.initStyle(s);
     }
 
     void jumpToMainActivity() {

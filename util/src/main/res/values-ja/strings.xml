@@ -177,18 +177,15 @@
     <string name="cannot_be_null">空にすることはできません</string>
     <string name="old_secret">古いシークレット</string>
     <string name="secret">キー</string>
-    <string name="clear_secret">ローカル シークレットをクリア</string>
-    <string name="set_secret">ローカル シークレットを設定する</string>
-    <string name="change_secret">ローカルキーを変更する</string>
     <string name="new_secret">新しいシークレット</string>
     <string name="secret_again">キーを確認</string>
     <string name="email">メール</string>
     <string name="nickname">ニックネーム</string>
     <string name="last_pushed">最終バックアップ時刻</string>
     <string name="have_not_pushed">バックアップされていません</string>
-    <string name="do_not_have_backup">まだバックアップがありません</string>
+    <string name="do_not_have_backup">バックアップなし</string>
     <string name="pull">クラウドからプル</string>
-    <string name="push">クラウドへのバックアップ</string>
+    <string name="push">バックアップ</string>
     <string name="logout">アカウントからログアウト</string>
     <string name="signin_dropbox">Dropbox にログイン</string>
     <string name="push_success">バックアップが成功しました</string>
@@ -200,9 +197,6 @@
     <string name="wrong_secret">間違ったシークレット</string>
     <string name="unknow_wrong">不明なエラー</string>
     <string name="outdated_login">ログインの有効期限が切れました。もう一度ログインしてください。</string>
-    <string name="mismatch_secret_with_local">バックアップ ファイルのキーがローカル キーと一致しません。ローカル キーを変更してみてください。</string>
-    <string name="dialog_title_clear_local_secret">ローカル シークレットをクリア</string>
-    <string name="dialog_content_clear_local_secret">ローカル キーをクリアした後は、復元できません。キーが適切に保存されていることを確認してください。 </string>
     <string name="dialog_title_logout">ログアウト</string>
     <string name="dialog_content_logout" formatted="true">アカウントからのログアウトを確認しますか? ログアウトした後、%1$s アカウントに再度ログインすることを承認できます。 </string>
     <string name="dialog_title_save_secret">キーをローカルに保存する</string>
@@ -211,9 +205,24 @@
     <string name="dialog_content_sync_info" formatted="true">%1$s アカウント同期トークンの使用を選択できます。 このサービスを使用すると、トークンは標準の AES-256 アルゴリズムを使用して暗号化されます。 自分で暗号化する場合はキーを入力します。キーは適切に保管する必要があり、%2$s に保存したファイルを復号化する場合にのみ使用できます。 %3$s はパスワードをどこにも保存しません。 </string>
     <string name="wrong_old_secret">古いシークレット シークレット</string>
     <string name="mismatch_secret">2 回入力されたキーに一貫性がありません</string>
-    <string name="change_secret_success">ローカルキーが正常に変更されました</string>
-    <string name="set_secret_success">ローカルキーが正常に設定されました</string>
     <string name="entry_export_encrypt_token">暗号化ファイルとしてエクスポート</string>
     <string name="entry_import_encrypt_token">暗号化されたファイルをインポートする</string>
     <string name="title_eximport">インポートとエクスポート</string>
+    <string name="pull_fail">プルに失敗しました</string>
+    <string name="dialog_title_import_encrypt_token">暗号化されたファイルをインポートする</string>
+    <string name="dialog_content_import_encrypt_token" formatted="true">ファイル %1$s からトークンをインポートするかどうか</string>
+    <string name="set_unified_secret">統合シークレットを設定する</string>
+    <string name="change_unified_secret">統合シークレットを変更する</string>
+    <string name="dialog_title_unified_secret_info">統合キーについて</string>
+    <string name="dialog_content_unified_secret_info">統一キーは、暗号化されたファイルとクラウド サービスのインポートとエクスポートに使用されます。暗号化アルゴリズムは標準の AES-256 アルゴリズムです。 暗号化されたファイルをインポートするとき、またはクラウドからプルするときに、ローカルの統一キーがそのキーと一致しない場合は、正しいキーを手動で入力するように求められます。 </string>
+    <string name="dialog_title_wrong_secret">キーエラー</string>
+    <string name="dialog_content_wrong_secret">キーが間違っています。キーを再入力しますか? </string>
+    <string name="loading_logout">終了中...</string>
+    <string name="loading_signin">ログイン中...</string>
+    <string name="loading_searchBackup">バックアップのクエリ...</string>
+    <string name="loading_download">ダウンロード中...</string>
+    <string name="loading_bakup">バックアップ中...</string>
+    <string name="loading_decrypt">復号化中...</string>
+    <string name="loading_export">エクスポート中...</string>
+    <string name="loading_import">インポート中...</string>
 </resources>

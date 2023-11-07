@@ -26,6 +26,7 @@ import com.cloudchewie.otp.widget.SecretBottomSheet
 import com.cloudchewie.ui.custom.IDialog
 import com.cloudchewie.ui.custom.IDialog.OnClickBottomListener
 import com.cloudchewie.ui.custom.IToast
+import com.cloudchewie.ui.loadingdialog.view.LoadingDialog
 import com.cloudchewie.util.basic.DateFormatUtil.FULL_FORMAT
 import com.cloudchewie.util.ui.StatusBarUtil
 import com.dropbox.core.android.Auth
@@ -38,6 +39,7 @@ import java.security.GeneralSecurityException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener {
     companion object {
@@ -53,6 +55,8 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     private lateinit var binding: ActivityDropboxBinding
     private var dropboxSyncConfig: SyncConfig = SyncConfig()
     private var firstLogin: Boolean = false
+    private var loadingDialog: LoadingDialog? = null
+    private var fileMetadata: FileMetadata? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,17 +91,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         }
 
         binding.activityDropboxPullButton.setOnClickListener {
-            if (haveBackup && !PrivacyManager.haveSecret()) {
-                val bottomSheet =
-                    SecretBottomSheet(
-                        this,
-                        SecretBottomSheet.MODE.PULL
-                    )
-                bottomSheet.setOnConfirmListener(this)
-                bottomSheet.show()
-            } else {
-                onPullConfirmed(PrivacyManager.getSecret())
-            }
+            getFile()
         }
 
         binding.activityDropboxSigninButton.setOnClickListener {
@@ -118,6 +112,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
             )
             dialog.setOnClickBottomListener(object : OnClickBottomListener {
                 override fun onPositiveClick() {
+                    loadingDialog!!.setLoadingText(getString(R.string.loading_logout)).show()
                     ThreadUtils.executeBySingle(
                         object : SimpleTask<String?>() {
                             @Throws(Throwable::class)
@@ -127,6 +122,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                             }
 
                             override fun onSuccess(result: String?) {
+                                loadingDialog!!.close()
                                 dropboxSyncConfig = SyncConfig()
                                 syncManager!!.delete(SyncService.DROPBOX)
                                 IToast.showBottom(
@@ -147,6 +143,8 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
             dialog.show()
         }
 
+        loadingDialog = LoadingDialog(this)
+
         loadConfig()
     }
 
@@ -165,10 +163,10 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         } else {
             binding.activityDropboxSigninButton.visibility = View.GONE
         }
-        refreshState()
+        refreshState(true)
     }
 
-    private fun refreshState() {
+    private fun refreshState(init: Boolean) {
         if (dropboxSyncConfig.lastPushed != null) {
             val simpleDateFormat = SimpleDateFormat(FULL_FORMAT, Locale.getDefault())
             binding.activityDropboxLastPushed.editText.setText(
@@ -177,7 +175,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         } else {
             binding.activityDropboxLastPushed.editText.setText(getString(R.string.have_not_pushed))
         }
-        if (haveBackup)
+        if (haveBackup || init)
             binding.activityDropboxPullButton.text = getString(R.string.pull)
         else
             binding.activityDropboxPullButton.text = getString(R.string.do_not_have_backup)
@@ -203,11 +201,13 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
 
     private fun getAccount() {
         if (dropboxSyncConfig.accessToken == null) return
+        loadingDialog!!.setLoadingText(getString(R.string.loading_signin)).show()
         ThreadUtils.executeBySingle(
             DropboxAccountTask(
                 getClient(dropboxSyncConfig.accessToken),
                 object : DropboxAccountTask.TaskDelegate {
                     override fun onAccountReceived(account: FullAccount) {
+                        loadingDialog!!.close()
                         if (firstLogin)
                             IToast.showBottom(
                                 applicationContext,
@@ -219,10 +219,10 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                         binding.activityDropboxPushPullLayout.visibility = View.VISIBLE
                         binding.activityDropboxInfoLayout.visibility = View.VISIBLE
                         binding.activityDropboxLogoutButton.visibility = View.VISIBLE
-                        getFile()
                     }
 
                     override fun onError(error: Exception?) {
+                        loadingDialog!!.close()
                         IToast.showBottom(applicationContext, getString(R.string.outdated_login))
                         dropboxSyncConfig = SyncConfig()
                         syncManager!!.delete(SyncService.DROPBOX)
@@ -234,25 +234,31 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     }
 
     private fun getFile() {
+        loadingDialog!!.setLoadingText(getString(R.string.loading_searchBackup)).show()
         ThreadUtils.executeBySingle(
             DropboxFileTask(
                 getClient(dropboxSyncConfig.accessToken),
                 object : DropboxFileTask.Callback {
                     override fun onGetListResults(list: SearchV2Result) {
                         if (list.matches.size > 0) {
-                            val fileMetadata =
+                            fileMetadata =
                                 list.matches[0].metadata.metadataValue as FileMetadata
                             haveBackup = true
-                            refreshState()
-                            downloadFile(fileMetadata)
+                            refreshState(false)
+                            downloadFile(fileMetadata!!)
                         } else {
                             haveBackup = false
-                            refreshState()
+                            refreshState(false)
+                            IToast.showBottom(
+                                applicationContext,
+                                getString(R.string.do_not_have_backup)
+                            )
                         }
                     }
 
                     override fun onError(error: Exception?) {
                         error?.printStackTrace()
+                        loadingDialog!!.close()
                     }
                 },
                 FILENAME
@@ -261,15 +267,28 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     }
 
     private fun downloadFile(fileMetadata: FileMetadata) {
+        loadingDialog!!.setLoadingText(getString(R.string.loading_download)).show()
         ThreadUtils.executeBySingle(
             DropboxDownloadTask(
                 getClient(dropboxSyncConfig.accessToken),
                 object : DropboxDownloadTask.Callback {
                     override fun onDownloadComplete(result: File) {
                         mEncryptedFile = result
+                        if (haveBackup && !PrivacyManager.haveSecret()) {
+                            val bottomSheet =
+                                SecretBottomSheet(
+                                    applicationContext,
+                                    SecretBottomSheet.MODE.PULL
+                                )
+                            bottomSheet.setOnConfirmListener(this@DropboxActivity)
+                            bottomSheet.show()
+                        } else {
+                            onPullConfirmed(PrivacyManager.getSecret())
+                        }
                     }
 
                     override fun onError(e: Exception?) {
+                        loadingDialog!!.close()
                         IToast.showBottom(
                             applicationContext,
                             getString(R.string.download_backup_fail)
@@ -284,20 +303,23 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
 
     private fun uploadFile() {
         if (mEncryptedFile == null) return
+        loadingDialog!!.setLoadingText(getString(R.string.loading_bakup)).show()
         ThreadUtils.executeBySingle(
             DropboxUploadTask(
                 this.applicationContext,
                 getClient(dropboxSyncConfig.accessToken),
                 object : DropboxUploadTask.Callback {
                     override fun onUploadcomplete(result: FileMetadata) {
+                        loadingDialog!!.close()
                         dropboxSyncConfig.lastPushed = TimeUtils.getNowMills()
                         syncManager!!.update(dropboxSyncConfig)
-                        IToast.showBottom(applicationContext, getString(R.string.push_success))
                         haveBackup = true
-                        refreshState()
+                        IToast.showBottom(applicationContext, getString(R.string.push_success))
+                        refreshState(false)
                     }
 
                     override fun onError(ex: Exception?) {
+                        loadingDialog!!.close()
                         IToast.showBottom(applicationContext, getString(R.string.push_fail))
                     }
                 }, mEncryptedFile!!
@@ -307,6 +329,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
 
     override fun onPullConfirmed(secret: String) {
         if (mEncryptedFile == null) return
+        loadingDialog!!.setLoadingText(getString(R.string.loading_decrypt)).show()
         val bytes = ByteArray(mEncryptedFile!!.length().toInt())
         try {
             FileInputStream(mEncryptedFile).read(bytes)
@@ -318,14 +341,17 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                     )
                 )
             )
-            IToast.showBottom(this, getString(R.string.pull_success))
+            loadingDialog!!.close()
+            IToast.showBottom(applicationContext, getString(R.string.pull_success))
             askToSaveSecret(secret)
         } catch (ex: GeneralSecurityException) {
             ex.printStackTrace()
+            loadingDialog!!.close()
             askToRetry()
         } catch (ex: Exception) {
+            loadingDialog!!.close()
+            IToast.showBottom(applicationContext, getString(R.string.pull_fail))
             ex.printStackTrace()
-            IToast.showBottom(this, getString(R.string.unknow_wrong))
         }
     }
 
@@ -347,13 +373,13 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     override fun onSetSecretConfirmed(secret: String?) {
         PrivacyManager.setSecret(secret)
         syncManager!!.update(dropboxSyncConfig)
-        refreshState()
+        refreshState(false)
     }
 
     private fun askToRetry() {
         val dialog = IDialog(this)
-        dialog.setTitle("密钥错误")
-        dialog.setMessage("密钥错误，是否重新输入密钥？")
+        dialog.setTitle(getString(R.string.dialog_title_wrong_secret))
+        dialog.setMessage(getString(R.string.dialog_content_wrong_secret))
         dialog.setOnClickBottomListener(object : OnClickBottomListener {
             override fun onPositiveClick() {
                 val bottomSheet =
@@ -370,12 +396,12 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     private fun askToSaveSecret(secret: String) {
         if (!PrivacyManager.haveSecret() || (PrivacyManager.getSecret() != secret)) {
             val dialog = IDialog(this)
-            dialog.setTitle("保存统一密钥")
-            dialog.setMessage("是否保存为统一密钥？如果选择保存，你的密钥将被加密保存到本地数据库中。同时，下次进行导入或导出操作时，无需再次输入密钥。")
+            dialog.setTitle(getString(R.string.dialog_title_save_secret))
+            dialog.setMessage(getString(R.string.dialog_content_save_secret))
             dialog.setOnClickBottomListener(object : OnClickBottomListener {
                 override fun onPositiveClick() {
                     PrivacyManager.setSecret(secret)
-                    refreshState()
+                    refreshState(false)
                     dialog.dismiss()
                 }
 

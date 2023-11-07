@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!--软件-->
     <string name="app_name">CloudOTP</string>
     <string name="default_copyright">Copyright © 2023-XXXX Cloudchewie</string>
@@ -14,7 +14,7 @@
     <string name="rename">重命名</string>
     <string name="more">更多</string>
     <string name="web_pagefrom">网页来源于</string>
-    <string name="web_loading">加载中...</string>
+    <string name="web_loading" tools:ignore="TypographyEllipsis">加载中...</string>
     <!--标题-->
     <string name="title_setting"> 设置 </string>
     <string name="title_account">帐号安全</string>
@@ -46,8 +46,6 @@
     <string name="dialog_content_import_json_token" formatted="true">是否从文件%1$s中导入令牌</string>
     <string name="dialog_title_import_uri_token">导入URI格式</string>
     <string name="dialog_content_import_uri_token" formatted="true">是否从文件%1$s中导入令牌</string>
-    <string name="dialog_title_import_encrypt_token">导入加密文件</string>
-    <string name="dialog_content_import_encrypt_token" formatted="true">是否从文件%1$s中导入令牌</string>
     <string name="dialog_title_none_passcode">暂未设置密码</string>
     <string name="dialog_content_none_passcode" formatted="true">你还没有设置密码锁，是否前去设置？</string>
     <!--账号安全-->
@@ -190,21 +188,14 @@
     <string name="default_interval">30</string>
     <string name="verify_finger_error">验证失败，请再次尝试</string>
     <!--dropbox-->
-    <string name="set_unified_secret">设置统一密钥</string>
-    <string name="change_unified_secret">修改统一密钥</string>
     <string name="title_dropbox">Dropbox</string>
     <string name="cannot_be_null">不能为空</string>
-    <string name="old_secret">旧密钥</string>
     <string name="secret">密钥</string>
-    <string name="clear_secret">清除本地密钥</string>
-    <string name="wrong_old_secret">旧密钥错误</string>
-    <string name="mismatch_secret">两次输入的密钥不一致</string>
-    <string name="change_secret_success">本地密钥修改成功</string>
-    <string name="set_secret_success">本地密钥设置成功</string>
-    <string name="set_secret">设置本地密钥</string>
-    <string name="change_secret">修改本地密钥</string>
+    <string name="old_secret">旧密钥</string>
     <string name="new_secret">新密钥</string>
     <string name="secret_again">确认密钥</string>
+    <string name="wrong_old_secret">旧密钥错误</string>
+    <string name="mismatch_secret">两次输入的密钥不一致</string>
     <string name="email">邮箱</string>
     <string name="nickname">昵称</string>
     <string name="last_pushed">上次备份时间</string>
@@ -223,13 +214,27 @@
     <string name="wrong_secret">密钥错误</string>
     <string name="unknow_wrong">未知错误</string>
     <string name="outdated_login">登录过期，请尝试重新登录</string>
-    <string name="mismatch_secret_with_local">备份文件的密钥与本地密钥不一致，请尝试修改本地密钥</string>
-    <string name="dialog_title_clear_local_secret">清除本地密钥</string>
-    <string name="dialog_content_clear_local_secret">清除本地密钥后将无法恢复，请确认你已经妥善保存密钥。</string>
     <string name="dialog_title_logout">退出帐户</string>
     <string name="dialog_content_logout" formatted="true">确认退出帐户？退出后，你还可以再次授权登录%1$s帐户。</string>
-    <string name="dialog_title_save_secret">在本地保存密钥</string>
-    <string name="dialog_content_save_secret">是否将密钥保存到本地？如果选择保存，你的密钥将被加密保存到本地数据库中。同时，下次进行拉取或备份操作时，无需再次输入密钥。</string>
     <string name="dialog_title_sync_info" formatted="true">关于%1$s同步服务</string>
     <string name="dialog_content_sync_info" formatted="true">你可以选择可以使用%1$s帐户同步令牌。如果你使用该服务，那么你的令牌将使用标准AES-256算法进行加密。加密时的密钥由你自己输入，你需要妥善保存该密钥，同时只能使用该密钥解密你存储在%2$s的文件。%3$s不会在任何地方保存你的密码。</string>
+    <string name="dialog_title_save_secret">保存统一密钥</string>
+    <string name="dialog_content_save_secret">是否保存为统一密钥？如果选择保存，你的密钥将被加密保存到本地数据库中。同时，下次进行导入或导出操作时，无需再次输入密钥。</string>
+    <string name="pull_fail">拉取失败</string>
+    <string name="dialog_title_import_encrypt_token">导入加密文件</string>
+    <string name="dialog_content_import_encrypt_token" formatted="true">是否从文件%1$s中导入令牌</string>
+    <string name="set_unified_secret">设置统一密钥</string>
+    <string name="change_unified_secret">修改统一密钥</string>
+    <string name="dialog_title_unified_secret_info">关于统一密钥</string>
+    <string name="dialog_content_unified_secret_info">统一密钥用于导入导出加密文件和云端服务，加密算法为标准AES-256算法。当导入加密文件或从云端拉取时，如果本地的统一密钥与其密钥不一致，将提醒你手动输入正确的密钥。</string>
+    <string name="dialog_title_wrong_secret">密钥错误</string>
+    <string name="dialog_content_wrong_secret">密钥错误，是否重新输入密钥？</string>
+    <string name="loading_logout">退出中...</string>
+    <string name="loading_signin">登录中...</string>
+    <string name="loading_searchBackup">查询备份...</string>
+    <string name="loading_download">下载中...</string>
+    <string name="loading_bakup">备份中...</string>
+    <string name="loading_decrypt">解密中...</string>
+    <string name="loading_export">导出中...</string>
+    <string name="loading_import">导入中...</string>
 </resources>

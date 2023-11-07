@@ -17,6 +17,7 @@ import com.cloudchewie.ui.custom.IDialog;
 import com.cloudchewie.ui.custom.IToast;
 import com.cloudchewie.ui.custom.TitleBar;
 import com.cloudchewie.ui.item.EntryItem;
+import com.cloudchewie.ui.loadingdialog.view.LoadingDialog;
 import com.cloudchewie.util.system.UriUtil;
 import com.cloudchewie.util.ui.StatusBarUtil;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -42,6 +43,7 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
     EntryItem exportEncryptEntry;
     EntryItem exportUriEntry;
     EntryItem exportJsonEntry;
+    LoadingDialog loadingDialog;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -52,9 +54,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
         ((TitleBar) findViewById(R.id.activity_eximport_titlebar)).setLeftButtonClickListener(v -> finishAfterTransition());
         ((TitleBar) findViewById(R.id.activity_eximport_titlebar)).setRightButtonClickListener(v -> {
             IDialog dialog = new IDialog(this);
-            dialog.setTitle("关于统一密钥");
+            dialog.setTitle(getString(R.string.dialog_title_unified_secret_info));
             dialog.setSingle(true);
-            dialog.setMessage("统一密钥用于导出加密文件和其他云端服务。在云端服务中，你可以选择使用统一密钥或单独设置密钥。");
+            dialog.setMessage(getString(R.string.dialog_content_unified_secret_info));
             dialog.show();
         });
         exportJsonEntry = findViewById(R.id.entry_export_json);
@@ -76,6 +78,7 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
         swipeRefreshLayout.setEnableOverScrollBounce(true);
         swipeRefreshLayout.setEnableLoadMore(false);
         swipeRefreshLayout.setEnablePureScrollMode(true);
+        loadingDialog = new LoadingDialog(this);
         refreshState();
     }
 
@@ -160,7 +163,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                 break;
             case EXPORT_URI_REQUEST_CODE:
                 try {
+                    loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
                     ExportTokenUtil.exportUriFile(EximportActivity.this, uri);
+                    loadingDialog.close();
                     IToast.showBottom(this, getString(R.string.export_success));
                 } catch (Exception e) {
                     IToast.showBottom(this, getString(R.string.export_fail));
@@ -173,7 +178,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                     @Override
                     public void onPositiveClick() {
                         try {
+                            loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
                             ImportTokenUtil.importUriFile(EximportActivity.this, uri);
+                            loadingDialog.close();
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_fail));
@@ -190,7 +197,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                 break;
             case EXPORT_JSON_REQUEST_CODE:
                 try {
+                    loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
                     ExportTokenUtil.exportJsonFile(EximportActivity.this, uri);
+                    loadingDialog.close();
                     IToast.showBottom(this, getString(R.string.export_success));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -204,7 +213,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                     @Override
                     public void onPositiveClick() {
                         try {
+                            loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
                             ImportTokenUtil.importJsonFile(EximportActivity.this, uri);
+                            loadingDialog.close();
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -225,7 +236,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
 
     void exportEncryptFile(Uri uri, String secret) {
         try {
+            loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
             ExportTokenUtil.exportEncryptFile(EximportActivity.this, uri, secret);
+            loadingDialog.close();
             IToast.showBottom(this, getString(R.string.export_success));
             askToSaveSecret(secret);
         } catch (Exception e) {
@@ -235,7 +248,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
 
     void importEncryptFile(Uri uri, String secret) {
         try {
+            loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
             ImportTokenUtil.importEncryptFile(EximportActivity.this, uri, secret);
+            loadingDialog.close();
             IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
             askToSaveSecret(secret);
         } catch (GeneralSecurityException e) {
@@ -273,8 +288,8 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
 
     private void askToRetry(Uri uri) {
         IDialog dialog = new IDialog(this);
-        dialog.setTitle("密钥错误");
-        dialog.setMessage("密钥错误，是否重新输入密钥？");
+        dialog.setTitle(getString(R.string.dialog_title_wrong_secret));
+        dialog.setMessage(getString(R.string.dialog_content_wrong_secret));
         dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
             @Override
             public void onPositiveClick() {
@@ -296,8 +311,8 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
     private void askToSaveSecret(String secret) {
         if (!PrivacyManager.haveSecret() || (!Objects.equals(PrivacyManager.getSecret(), secret))) {
             IDialog dialog = new IDialog(this);
-            dialog.setTitle("保存统一密钥");
-            dialog.setMessage("是否保存为统一密钥？如果选择保存，你的密钥将被加密保存到本地数据库中。同时，下次进行导入或导出操作时，无需再次输入密钥。");
+            dialog.setTitle(getString(R.string.dialog_title_save_secret));
+            dialog.setMessage(getString(R.string.dialog_content_save_secret));
             dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
                 @Override
                 public void onPositiveClick() {

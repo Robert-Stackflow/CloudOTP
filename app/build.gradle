@@ -9,8 +9,8 @@ android {
         applicationId "com.cloudchewie.otp"
         minSdkVersion buildConfig.minSdk
         targetSdkVersion buildConfig.targetSdk
-        versionCode 2
-        versionName "0.2"
+        versionCode 3
+        versionName "0.3"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]

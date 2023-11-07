@@ -180,9 +180,6 @@
 	<string name="cannot_be_null">不能為空</string>
 	<string name="old_secret">舊金鑰</string>
 	<string name="secret">密鑰</string>
-	<string name="clear_secret">清除本機金鑰</string>
-	<string name="set_secret">設定本機金鑰</string>
-	<string name="change_secret">修改本機金鑰</string>
 	<string name="new_secret">新密鑰</string>
 	<string name="secret_again">確認金鑰</string>
 	<string name="email">郵箱</string>
@@ -203,9 +200,6 @@
 	<string name="wrong_secret">密鑰錯誤</string>
 	<string name="unknow_wrong">未知錯誤</string>
 	<string name="outdated_login">登入過期，請嘗試重新登入</string>
-	<string name="mismatch_secret_with_local">備份檔案的金鑰與本機金鑰不一致，請嘗試修改本機金鑰</string>
-	<string name="dialog_title_clear_local_secret">清除本機金鑰</string>
-	<string name="dialog_content_clear_local_secret">清除本機金鑰後將無法恢復，請確認你已經妥善保存金鑰。 </string>
 	<string name="dialog_title_logout">退出帳號</string>
 	<string name="dialog_content_logout" formatted="true">確認退出帳號？ 登出後，你還可以再次授權登入%1$s帳號。 </string>
 	<string name="dialog_title_save_secret">在本機上儲存金鑰</string>
@@ -214,9 +208,24 @@
 	<string name="dialog_content_sync_info" formatted="true">你可以選擇可以使用%1$s帳號同步令牌。 如果你使用該服務，那麼你的令牌將使用標準AES-256演算法進行加密。 加密時的金鑰由你自己輸入，你需要妥善保存該金鑰，同時只能使用該金鑰解密你儲存在%2$s的檔案。 %3$s不會在任何地方保存你的密碼。 </string>
 	<string name="wrong_old_secret">舊密鑰錯誤</string>
 	<string name="mismatch_secret">兩次輸入的密鑰不一致</string>
-	<string name="change_secret_success">本地密鑰修改成功</string>
-	<string name="set_secret_success">本地密鑰設定成功</string>
 	<string name="entry_export_encrypt_token">匯出為加密檔案</string>
 	<string name="entry_import_encrypt_token">導入加密檔案</string>
 	<string name="title_eximport">導入與匯出</string>
+	<string name="pull_fail">拉取失敗</string>
+	<string name="dialog_title_import_encrypt_token">匯入加密檔案</string>
+	<string name="dialog_content_import_encrypt_token" formatted="true">是否從檔案%1$s匯入令牌</string>
+	<string name="set_unified_secret">設定統一密鑰</string>
+	<string name="change_unified_secret">修改統一金鑰</string>
+	<string name="dialog_title_unified_secret_info">關於統一金鑰</string>
+	<string name="dialog_content_unified_secret_info">統一金鑰用於匯入匯出加密檔案和雲端服務，加密演算法為標準AES-256演算法。 當匯入加密檔案或從雲端拉取時，如果本地的統一金鑰與其金鑰不一致，將提醒你手動輸入正確的金鑰。 </string>
+	<string name="dialog_title_wrong_secret">密鑰錯誤</string>
+	<string name="dialog_content_wrong_secret">密鑰錯誤，是否重新輸入密鑰？ </string>
+	<string name="loading_logout">退出...</string>
+	<string name="loading_signin">登入中...</string>
+	<string name="loading_searchBackup">查詢備份...</string>
+	<string name="loading_download">下載中...</string>
+	<string name="loading_bakup">備份中...</string>
+	<string name="loading_decrypt">解密中...</string>
+	<string name="loading_export">匯出中...</string>
+	<string name="loading_import">導入中...</string>
 </resources>
