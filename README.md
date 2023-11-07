@@ -19,11 +19,17 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 
 <img src="art/lightmode.jpg" alt="Light Mode" style="zoom: 25%;" /><img src="art/darkmode.jpg" alt="Dark Mode" style="zoom: 25%;" /><img src="art/addtoken.jpg" alt="Add Token" style="zoom: 25%;" />
 
-<img src="art/setting.jpg" alt="Setting" style="zoom: 25%;" /><img src="art/theme.jpg" alt="Theme" style="zoom: 25%;" />
+<img src="art/setting.jpg" alt="Setting" style="zoom: 25%;" /><img src="art/theme.jpg" alt="Theme" style="zoom: 25%;" /><img src="art/lock.jpg" alt="Lock" style="zoom: 25%;" />
 
+<img src="art/export_import.jpg" alt="Export and  Import" style="zoom: 25%;" /><img src="art/dropbox.jpg" alt="Dropbox" style="zoom: 25%;" />
 ## TODO
 
 - [ ] Support Google Drive
 - [ ] Support WebDAV services such as Box
 - [ ] Support more encryption algorithms
 - [ ] Support encrypting local SQLite database
+
+### Known Bugs
+
+- [ ] When exporting a file, if you overwrite an existing file, the original article content cannot be cleared.
+- [ ] When importing an encrypted file, if the file name is illegal (such as containing spaces), the import will fail.

@@ -145,7 +145,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         } else {
             binding.activityDropboxSigninButton.visibility = View.GONE
         }
-        refreshState(init)
+        refreshState(true)
         if (init)
             getAccessToken()
     }
