@@ -1,6 +1,6 @@
 ## Introduction
 
-This is a local two-factor authenticator for Android (may support cloud backup in the future).
+This is a awesome two-factor authenticator for Android which supports dropbox.
 
 The algorithm part comes from https://github.com/freeotp/freeotp-android.
 
@@ -14,7 +14,6 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 - Support password lock and biometric identification
 - Support dark mode and switching theme colors
 - Support multiple languages: English, Simplified Chinese, Traditional Chinese, Japanese
-- Support two view styles: single column and double column
 
 ## Screenshots
 

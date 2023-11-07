@@ -249,4 +249,6 @@
     <string name="interval_too_long">刷新间隔过长</string>
     <string name="counter_too_long">计数器过长</string>
     <string name="counter_blank">计数器不能为空</string>
+    <string name="import_success_info">导入成功，共发现%1$d个令牌，实际导入%2$d个令牌</string>
+    <string name="pull_success_info">拉取成功，共发现%1$d个令牌，实际导入%2$d个令牌</string>
 </resources>

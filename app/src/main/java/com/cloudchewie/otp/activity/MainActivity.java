@@ -520,8 +520,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
                             ImportAnalysis importAnalysis = ImportTokenUtil.importUriFile(MainActivity.this, uri);
                             loadingDialog.close();
-                            IToast.showBottom(MainActivity.this, importAnalysis.toString());
-//                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+                            IToast.showBottom(MainActivity.this, importAnalysis.toToast(MainActivity.this));
                         } catch (Exception e) {
                             loadingDialog.close();
                             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
@@ -546,8 +545,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
                             ImportAnalysis importAnalysis = ImportTokenUtil.importJsonFile(MainActivity.this, uri);
                             loadingDialog.close();
-                            IToast.showBottom(MainActivity.this, importAnalysis.toString());
-//                            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+                            IToast.showBottom(MainActivity.this, importAnalysis.toToast(MainActivity.this));
                         } catch (Exception e) {
                             e.printStackTrace();
                             loadingDialog.close();
@@ -584,8 +582,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
             ImportAnalysis importAnalysis = ImportTokenUtil.importEncryptFile(MainActivity.this, uri, secret);
             loadingDialog.close();
-            IToast.showBottom(MainActivity.this, importAnalysis.toString());
-//            IToast.showBottom(MainActivity.this, getString(R.string.import_success));
+            IToast.showBottom(MainActivity.this, importAnalysis.toToast(this));
             askToSaveSecret(secret);
         } catch (GeneralSecurityException e) {
             e.printStackTrace();

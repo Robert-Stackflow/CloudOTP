@@ -240,4 +240,6 @@
 	<string name="interval_too_long">刷新間隔過長</string>
 	<string name="counter_too_long">計數器過長</string>
 	<string name="counter_blank">計數器不能為空</string>
+	<string name="import_success_info">導入成功，共發現%1$d個令牌，實際導入%2$d個令牌</string>
+	<string name="pull_success_info">拉取成功，共發現%1$d個令牌，實際導入%2$d個令牌</string>
 </resources>

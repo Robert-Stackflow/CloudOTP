@@ -133,6 +133,7 @@
                         android:background="@drawable/shape_button_round"
                         android:backgroundTint="?attr/colorPrimary"
                         android:gravity="center"
+                        android:stateListAnimator="@null"
                         android:paddingTop="@dimen/dp5"
                         android:paddingBottom="@dimen/dp5"
                         android:text="@string/null_code"

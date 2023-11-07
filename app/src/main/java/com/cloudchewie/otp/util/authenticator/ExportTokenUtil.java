@@ -14,16 +14,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
 public class ExportTokenUtil {
     public static void exportJsonFile(Context context, Uri fileUri) {
         try {
-            OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri, "w");
+            OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri);
             List<OtpToken> tokens = LocalStorage.getAppDatabase().otpTokenDao().getAll();
-            outputStream.write(new Gson().toJson(tokens.toArray()).getBytes(StandardCharsets.UTF_8));
+            PrintWriter printWriter = new PrintWriter(outputStream);
+            printWriter.write(new Gson().toJson(tokens));
+            printWriter.flush();
+            outputStream.flush();
+            printWriter.close();
             outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -32,12 +35,13 @@ public class ExportTokenUtil {
 
     public static void exportUriFile(Context context, Uri fileUri) {
         try {
-            OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri, "w");
+            OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri);
             PrintWriter printWriter = new PrintWriter(outputStream);
             List<OtpToken> tokens = LocalStorage.getAppDatabase().otpTokenDao().getAll();
             for (OtpToken token : tokens)
                 printWriter.println(OtpTokenParser.toUri(token).toString());
             printWriter.flush();
+            outputStream.flush();
             printWriter.close();
             outputStream.close();
         } catch (IOException e) {
@@ -66,10 +70,11 @@ public class ExportTokenUtil {
 
     public static void exportEncryptFile(Context context, Uri fileUri, String password) {
         try {
-            OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri, "w");
+            OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri);
             PrintWriter printWriter = new PrintWriter(outputStream);
             printWriter.write(getEncryptedData(password));
             printWriter.flush();
+            outputStream.flush();
             printWriter.close();
             outputStream.close();
         } catch (IOException | GeneralSecurityException e) {

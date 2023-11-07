@@ -27,7 +27,7 @@ public class ExploreUtil {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         String fullName = fileName;
         if (appendTimestamp) {
-            fullName += DateFormatUtil.getSimpleDateFormat(DateFormatUtil.FULL_FORMAT).format(new Date());
+            fullName += DateFormatUtil.getSimpleDateFormat(DateFormatUtil.FILE_FORMAT).format(new Date());
         }
         fullName += ".";
         fullName += fileExtension;

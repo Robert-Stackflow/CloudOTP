@@ -237,4 +237,6 @@
     <string name="interval_too_long">更新間隔が長すぎます</string>
     <string name="counter_too_long">カウンタが長すぎます</string>
     <string name="counter_blank">カウンターを空にすることはできません</string>
+    <string name="import_success_info">インポートは成功し、合計 %1$d 個のトークンが見つかり、%2$d 個のトークンが実際にインポートされました</string>
+    <string name="pull_success_info">プルは成功し、合計 %1$d トークンが見つかり、%2$d トークンが実際にインポートされました</string>
 </resources>

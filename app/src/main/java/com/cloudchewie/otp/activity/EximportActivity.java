@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.cloudchewie.otp.R;
+import com.cloudchewie.otp.entity.ImportAnalysis;
 import com.cloudchewie.otp.util.ExploreUtil;
 import com.cloudchewie.otp.util.authenticator.ExportTokenUtil;
 import com.cloudchewie.otp.util.authenticator.ImportTokenUtil;
@@ -208,9 +209,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                     public void onPositiveClick() {
                         try {
                             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
-                            ImportTokenUtil.importUriFile(EximportActivity.this, uri);
+                            ImportAnalysis importAnalysis = ImportTokenUtil.importUriFile(EximportActivity.this, uri);
                             loadingDialog.close();
-                            IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
+                            IToast.showBottom(EximportActivity.this, importAnalysis.toToast(EximportActivity.this));
                         } catch (Exception e) {
                             loadingDialog.close();
                             IToast.showBottom(EximportActivity.this, getString(R.string.import_fail));
@@ -245,9 +246,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
                     public void onPositiveClick() {
                         try {
                             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
-                            ImportTokenUtil.importJsonFile(EximportActivity.this, uri);
+                            ImportAnalysis importAnalysis = ImportTokenUtil.importJsonFile(EximportActivity.this, uri);
                             loadingDialog.close();
-                            IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
+                            IToast.showBottom(EximportActivity.this, importAnalysis.toToast(EximportActivity.this));
                         } catch (Exception e) {
                             e.printStackTrace();
                             loadingDialog.close();
@@ -282,9 +283,9 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
     void importEncryptFile(Uri uri, String secret) {
         try {
             loadingDialog.setLoadingText(getString(R.string.loading_import)).show();
-            ImportTokenUtil.importEncryptFile(EximportActivity.this, uri, secret);
+            ImportAnalysis importAnalysis = ImportTokenUtil.importEncryptFile(EximportActivity.this, uri, secret);
             loadingDialog.close();
-            IToast.showBottom(EximportActivity.this, getString(R.string.import_success));
+            IToast.showBottom(EximportActivity.this, importAnalysis.toToast(EximportActivity.this));
             askToSaveSecret(secret);
         } catch (GeneralSecurityException e) {
             e.printStackTrace();

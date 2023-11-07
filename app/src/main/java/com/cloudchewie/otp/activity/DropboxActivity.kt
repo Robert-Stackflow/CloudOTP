@@ -7,6 +7,7 @@ import com.blankj.utilcode.util.ThreadUtils
 import com.blankj.utilcode.util.TimeUtils
 import com.cloudchewie.otp.R
 import com.cloudchewie.otp.databinding.ActivityDropboxBinding
+import com.cloudchewie.otp.entity.ImportAnalysis
 import com.cloudchewie.otp.entity.SyncConfig
 import com.cloudchewie.otp.external.AESStringCypher
 import com.cloudchewie.otp.external.SyncManager
@@ -55,7 +56,6 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     private var haveBackup = false
     private lateinit var binding: ActivityDropboxBinding
     private var dropboxSyncConfig: SyncConfig = SyncConfig()
-    private var firstLogin: Boolean = false
     private var loadingDialog: LoadingDialog? = null
     private var fileMetadata: FileMetadata? = null
     private var redirectToSignin: Boolean = false
@@ -97,7 +97,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         }
 
         binding.activityDropboxSigninButton.setOnClickListener {
-            firstLogin = true
+            redirectToSignin = true
             Auth.startOAuth2Authentication(this, APPKEY)
         }
 
@@ -126,10 +126,10 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
 
         loadingDialog = LoadingDialog(this)
 
-        loadConfig()
+        loadConfig(true)
     }
 
-    private fun loadConfig() {
+    private fun loadConfig(init: Boolean) {
         val temp = LocalStorage.getAppDatabase().syncConfigDao().get(SyncService.DROPBOX.key)
         if (temp != null && temp.name.isNotEmpty()) {
             dropboxSyncConfig = temp
@@ -141,11 +141,13 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
             binding.activityDropboxInfoLayout.visibility = View.GONE
             binding.activityDropboxPushPullLayout.visibility = View.GONE
             binding.activityDropboxLogoutButton.visibility = View.GONE
+            binding.activityDropboxSigninButton.visibility = View.VISIBLE
         } else {
             binding.activityDropboxSigninButton.visibility = View.GONE
         }
-        refreshState(true)
-        getAccessToken()
+        refreshState(init)
+        if (init)
+            getAccessToken()
     }
 
     private fun refreshState(init: Boolean) {
@@ -170,16 +172,14 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
     }
 
     private fun getAccessToken() {
-        if (dropboxSyncConfig.accessToken == null) {
-            redirectToSignin = true
+        if (dropboxSyncConfig.accessToken == null && redirectToSignin) {
             val accessToken = Auth.getOAuth2Token()
-            redirectToSignin = false
             if (accessToken != null) {
                 dropboxSyncConfig.accessToken = accessToken
                 syncManager!!.update(dropboxSyncConfig)
                 signin()
             }
-        } else {
+        } else if (dropboxSyncConfig.accessToken != null) {
             signin()
         }
     }
@@ -193,11 +193,12 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                 object : DropboxSigninTask.Callback {
                     override fun onSignin(account: FullAccount) {
                         loadingDialog!!.close()
-                        if (firstLogin)
+                        if (redirectToSignin)
                             IToast.showBottom(
                                 this@DropboxActivity,
                                 getString(R.string.signin_success)
                             )
+                        redirectToSignin = false
                         binding.activityDropboxEmail.editText.setText(account.email)
                         binding.activityDropboxNickname.editText.setText(account.name.displayName)
                         binding.activityDropboxSigninButton.visibility = View.GONE
@@ -207,6 +208,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                     }
 
                     override fun onNetworkError(error: NetworkIOException?) {
+                        redirectToSignin = false
                         loadingDialog!!.close()
                         IToast.showBottom(
                             this@DropboxActivity,
@@ -215,11 +217,12 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                     }
 
                     override fun onError(error: Exception?) {
+                        redirectToSignin = false
                         loadingDialog!!.close()
                         IToast.showBottom(this@DropboxActivity, getString(R.string.outdated_login))
                         dropboxSyncConfig = SyncConfig()
                         syncManager!!.delete(SyncService.DROPBOX)
-                        recreate()
+                        loadConfig(false)
                     }
                 },
             )
@@ -241,7 +244,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
                             this@DropboxActivity,
                             getString(R.string.logout_success)
                         )
-                        recreate()
+                        loadConfig(false)
                     }
 
                     override fun onNetworkError(error: NetworkIOException?) {
@@ -387,16 +390,20 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         val bytes = ByteArray(mEncryptedFile!!.length().toInt())
         try {
             FileInputStream(mEncryptedFile).read(bytes)
-            ImportTokenUtil.mergeTokens(
-                ImportTokenUtil.jsonToTokenList(
-                    AESStringCypher.decryptString(
-                        AESStringCypher.CipherTextIvMac(String(bytes)),
-                        AESStringCypher.generateKeyFromPassword(secret, secret)
-                    )
+            val importAnalysis = ImportAnalysis()
+            val tokens = ImportTokenUtil.jsonToTokenList(
+                AESStringCypher.decryptString(
+                    AESStringCypher.CipherTextIvMac(String(bytes)),
+                    AESStringCypher.generateKeyFromPassword(secret, secret)
                 )
             )
+            importAnalysis.foundTokenCount = tokens.size
+            importAnalysis.realAddTokenCount = ImportTokenUtil.mergeTokens(tokens)
             loadingDialog!!.close()
-            IToast.showBottom(this@DropboxActivity, getString(R.string.pull_success))
+            IToast.showBottom(
+                this@DropboxActivity,
+                importAnalysis.toPullToast(this@DropboxActivity)
+            )
             askToSaveSecret(secret)
         } catch (ex: GeneralSecurityException) {
             ex.printStackTrace()

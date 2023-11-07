@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class ImportTokenUtil {
             String line;
             while ((line = bufferedReader.readLine()) != null)
                 content.append(line.trim());
-            List<OtpToken> otpTokens = jsonToTokenList(content.toString());
+            List<OtpToken> otpTokens = Arrays.asList(new Gson().fromJson(content.toString(), OtpToken[].class));
             bufferedReader.close();
             inputStream.close();
             importAnalysis.setFoundTokenCount(otpTokens.size());

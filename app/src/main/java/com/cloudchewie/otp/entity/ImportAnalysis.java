@@ -1,6 +1,10 @@
 package com.cloudchewie.otp.entity;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
+
+import com.cloudchewie.otp.R;
 
 public class ImportAnalysis {
     int skipLineCount;
@@ -14,6 +18,14 @@ public class ImportAnalysis {
         this.skipLineCount = skipLineCount;
         this.foundTokenCount = foundTokenCount;
         this.realAddTokenCount = realAddTokenCount;
+    }
+
+    public String toToast(Context context) {
+        return String.format(context.getString(R.string.import_success_info), foundTokenCount, realAddTokenCount);
+    }
+
+    public String toPullToast(Context context) {
+        return String.format(context.getString(R.string.pull_success_info), foundTokenCount, realAddTokenCount);
     }
 
     @NonNull

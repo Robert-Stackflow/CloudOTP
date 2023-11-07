@@ -24,7 +24,6 @@ class TokenCodeUtil @Inject constructor() {
 
             OtpTokenType.TOTP -> {
                 val counter: Long = cur / 1000 / otpToken.period
-                Log.d("xuruida", counter.toString())
                 return TokenCode(
                     getHOTP(otpToken, counter + 0),
                     (counter + 0) * otpToken.period * 1000,
