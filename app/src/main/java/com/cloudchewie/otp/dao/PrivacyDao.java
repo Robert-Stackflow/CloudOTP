@@ -16,6 +16,9 @@ public interface PrivacyDao {
     @Query("select secret from privacy")
     String getSecret();
 
+    @Query("select verified from privacy")
+    Boolean getVerified();
+
     @Query("select passcode from privacy")
     String getPasscode();
 

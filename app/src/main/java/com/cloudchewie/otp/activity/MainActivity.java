@@ -1,10 +1,3 @@
-/*
- * Project Name: Worthy
- * Author: Ruida
- * Last Modified: 2022/12/18 13:13:37
- * Copyright(c) 2022 Ruida https://cloudchewie.com
- */
-
 package com.cloudchewie.otp.activity;
 
 import android.annotation.SuppressLint;
@@ -13,15 +6,14 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,16 +25,17 @@ import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.adapter.AbstractTokenListAdapter;
 import com.cloudchewie.otp.adapter.SmallTokenListAdapter;
 import com.cloudchewie.otp.adapter.TokenListAdapter;
+import com.cloudchewie.otp.appwidget.SimpleRemoteViewsManager;
+import com.cloudchewie.otp.database.AppSharedPreferenceUtil;
+import com.cloudchewie.otp.database.LocalStorage;
+import com.cloudchewie.otp.database.OtpTokenManager;
+import com.cloudchewie.otp.database.PrivacyManager;
 import com.cloudchewie.otp.entity.ImportAnalysis;
 import com.cloudchewie.otp.entity.ListBottomSheetBean;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.util.ExploreUtil;
 import com.cloudchewie.otp.util.authenticator.ExportTokenUtil;
 import com.cloudchewie.otp.util.authenticator.ImportTokenUtil;
-import com.cloudchewie.otp.util.database.AppDatabase;
-import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
-import com.cloudchewie.otp.util.database.LocalStorage;
-import com.cloudchewie.otp.util.database.PrivacyManager;
 import com.cloudchewie.otp.util.decoration.SpacingItemDecoration;
 import com.cloudchewie.otp.util.enumeration.Direction;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
@@ -53,10 +46,8 @@ import com.cloudchewie.ui.ThemeUtil;
 import com.cloudchewie.ui.custom.IDialog;
 import com.cloudchewie.ui.custom.IToast;
 import com.cloudchewie.ui.fab.FloatingActionButton;
-import com.cloudchewie.ui.general.BottomSheet;
 import com.cloudchewie.ui.item.EntryItem;
 import com.cloudchewie.ui.loadingdialog.view.LoadingDialog;
-import com.cloudchewie.ui.passcode.PassCodeView;
 import com.cloudchewie.util.system.SharedPreferenceCode;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
 import com.cloudchewie.util.system.UriUtil;
@@ -64,29 +55,31 @@ import com.cloudchewie.util.ui.StatusBarUtil;
 import com.jeremyliao.liveeventbus.LiveEventBus;
 import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
-import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
-import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends BaseActivity implements View.OnClickListener, BaseFingerprint.IdentifyListener, BaseFingerprint.ExceptionListener, SecretBottomSheet.OnConfirmListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener, SecretBottomSheet.OnConfirmListener, View.OnLongClickListener {
     private static final int IMPORT_ENCRYPT_REQUEST_CODE = 42;
     private static final int IMPORT_URI_REQUEST_CODE = 43;
     private static final int IMPORT_JSON_REQUEST_CODE = 44;
     RefreshLayout swipeRefreshLayout;
-    PassCodeView passCodeView;
     FloatingActionButton lockButton;
+    ImageButton operationDoneButton;
+    ImageButton operationDeleteButton;
+    ImageButton operationExportButton;
+    ImageButton operationSelectAllButton;
+    TextView selectCountTextView;
     ImageButton openDrawerButton;
     ImageButton changeViewButton;
     ImageButton exportImportbutton;
     RecyclerView recyclerView;
     AbstractTokenListAdapter adapter;
-    RelativeLayout lockLayout;
     RelativeLayout blankLayout;
+    ConstraintLayout operationBar;
+    ConstraintLayout titlebar;
     EntryItem addEntry;
     EntryItem eximportEntry;
     ImageButton scanEntry;
@@ -94,103 +87,65 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     EntryItem settingEntry;
     EntryItem githubEntry;
     EntryItem blogEntry;
-    EntryItem homeEntry;
     EntryItem dropboxEntry;
-    boolean isAuthed = false;
-    FingerprintIdentify mFingerprintIdentify;
-    BottomSheet bottomSheet;
     SpacingItemDecoration bottomSpacing;
     SpacingItemDecoration rightSpacing;
     AppCompatButton goToImportButton;
-    TextView passcodeTipView;
-    ImageView passcodeIconView;
-    Integer passcodeTip;
     LoadingDialog loadingDialog;
     private String EXPORT_PREFIX = "Token_";
     private boolean redirectToEximport = false;
     private Uri redirectUri;
     private DrawerLayout mDrawerLayout;
     private RelativeLayout mDrawer;
+    private boolean isEditing = false;
 
     @Override
     @SuppressLint("SourceLockedOrientationActivity")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LocalStorage.init(AppDatabase.getInstance(getApplicationContext()));
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        PrivacyManager.init();
-        initBiometrics();
         initView();
         initEvent();
-        initSafeMode();
         initSwipeRefresh();
-        refreshAuthState();
+        refresh();
+        SimpleRemoteViewsManager.refresh(this);
+        goToVerify();
     }
 
     void initEvent() {
         LiveEventBus.get(EventBusCode.CHANGE_THEME.getKey(), String.class).observe(this, s -> recreate());
-        LiveEventBus.get(EventBusCode.CHANGE_VIEW_TYPE.getKey(), String.class).observe(this, s -> setRecyclerViewData(LocalStorage.getAppDatabase().otpTokenDao().getAll()));
+        LiveEventBus.get(EventBusCode.CHANGE_VIEW_TYPE.getKey(), String.class).observe(this, s -> setRecyclerViewData(OtpTokenManager.getTokens()));
         LiveEventBus.get(EventBusCode.CHANGE_TOKEN.getKey()).observe(this, s -> swipeRefreshLayout.autoRefresh());
         LiveEventBus.get(EventBusCode.CHANGE_TOKEN_NEED_AUTH.getKey()).observe(this, s -> {
-            isAuthed = !SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true);
             lockButton.setVisibility(SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true) ? View.VISIBLE : View.GONE);
-            refreshAuthState();
+            refresh();
         });
-        LiveEventBus.get(EventBusCode.CHANGE_PASSCODE.getKey()).observe(this, s -> lockButton.setOnClickListener(this::goToVerify));
-        passCodeView.setOnTextChangeListener(text -> {
-            if (text.length() == 4) {
-                if (text.equals(PrivacyManager.getPasscode())) {
-                    isAuthed = true;
-                    refreshAuthState();
-                } else {
-                    passCodeView.setError(true);
-                    passcodeTipView.setText(R.string.wrong_passcode);
-                    passcodeTipView.setTextColor(getColor(R.color.text_color_red));
-                }
-            } else if (text.length() > 0) {
-                passcodeTipView.setText(passcodeTip);
-                passcodeTipView.setTextColor(getColor(R.color.color_accent));
-            }
-        });
-    }
-
-    void goToVerify(View v) {
-        if (PrivacyManager.havePasscode()) {
-            isAuthed = false;
-            refreshAuthState();
-        } else {
-            IDialog dialog = new IDialog(this);
-            dialog.setTitle(getString(R.string.dialog_title_none_passcode));
-            dialog.setMessage(getString(R.string.dialog_content_none_passcode));
-            dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
-                @Override
-                public void onPositiveClick() {
-                    Intent intent = new Intent(MainActivity.this, PasscodeActivity.class).setAction(Intent.ACTION_DEFAULT);
-                    startActivity(intent);
-                }
-
-                @Override
-                public void onNegtiveClick() {
-
-                }
-            });
-            dialog.show();
-        }
+        LiveEventBus.get(EventBusCode.CHANGE_PASSCODE.getKey()).observe(this, s -> lockButton.setOnClickListener(view -> {
+            PrivacyManager.lock();
+            goToVerify(true);
+        }));
     }
 
     void initView() {
         bottomSpacing = new SpacingItemDecoration(this, (int) getResources().getDimension(R.dimen.dp3), Direction.BOTTOM);
         rightSpacing = new SpacingItemDecoration(this, (int) getResources().getDimension(R.dimen.dp3), Direction.RIGHT);
         StatusBarUtil.setStatusBarMarginTop(findViewById(R.id.activity_main_logo), 0, StatusBarUtil.getStatusBarHeight(this), 0, 0);
-        StatusBarUtil.setStatusBarMarginTop(findViewById(R.id.activity_main_titlebar), 0, StatusBarUtil.getStatusBarHeight(this), 0, 0);
+        StatusBarUtil.setStatusBarMarginTop(findViewById(R.id.activity_main_bar_layout), 0, StatusBarUtil.getStatusBarHeight(this), 0, 0);
         mDrawerLayout = findViewById(R.id.activity_main);
         mDrawer = findViewById(R.id.activity_main_drawer);
+        operationBar = findViewById(R.id.activity_main_operation_bar);
+        titlebar = findViewById(R.id.activity_main_titlebar);
+        operationSelectAllButton = findViewById(R.id.activity_main_operation_select_all);
+        operationExportButton = findViewById(R.id.activity_main_operation_export);
+        operationDeleteButton = findViewById(R.id.activity_main_operation_delete);
+        operationDoneButton = findViewById(R.id.activity_main_operation_done);
+        selectCountTextView = findViewById(R.id.activity_main_select_count);
+        operationBar.setVisibility(View.GONE);
         blankLayout = findViewById(R.id.activity_main_blank_layout);
         addEntry = findViewById(R.id.activity_main_entry_add);
         scanEntry = findViewById(R.id.activity_main_scan);
         dropboxEntry = findViewById(R.id.activity_main_entry_dropbox);
-        lockLayout = findViewById(R.id.activity_main_lock_layout);
         eximportEntry = findViewById(R.id.activity_main_entry_eximport);
         openDrawerButton = findViewById(R.id.activity_main_open_drawer);
         settingEntry = findViewById(R.id.activity_main_entry_settings);
@@ -202,10 +157,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         themeEntry = findViewById(R.id.activity_main_entry_theme);
         githubEntry = findViewById(R.id.activity_main_entry_github);
         blogEntry = findViewById(R.id.activity_main_entry_blog);
-        homeEntry = findViewById(R.id.activity_main_entry_home);
-        passCodeView = findViewById(R.id.activity_main_passcode_view);
-        passcodeIconView = findViewById(R.id.activity_main_lock_icon);
-        passcodeTipView = findViewById(R.id.activity_main_lock_text);
         dropboxEntry.setOnClickListener(this);
         exportImportbutton.setOnClickListener(this);
         goToImportButton.setOnClickListener(this);
@@ -213,18 +164,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         addEntry.setOnClickListener(this);
         scanEntry.setOnClickListener(this);
         settingEntry.setOnClickListener(this);
-        lockLayout.setOnClickListener(this);
         openDrawerButton.setOnClickListener(this);
         changeViewButton.setOnClickListener(this);
         themeEntry.setOnClickListener(this);
         githubEntry.setOnClickListener(this);
         blogEntry.setOnClickListener(this);
-        homeEntry.setOnClickListener(this);
-        passcodeIconView.setOnClickListener(this);
-        passcodeTipView.setOnClickListener(this);
-        lockButton.setOnClickListener(this::goToVerify);
+        lockButton.setOnClickListener(view -> {
+            PrivacyManager.lock();
+            goToVerify(true);
+        });
         loadingDialog = new LoadingDialog(this);
-        isAuthed = LocalStorage.getAppDatabase().otpTokenDao().count() <= 0 || !SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true);
         lockButton.setVisibility(SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true) ? View.VISIBLE : View.GONE);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -260,6 +209,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         switch (AppSharedPreferenceUtil.getViewType(this)) {
             case singleColumn:
                 adapter = new TokenListAdapter(this, tokenList);
+                ((TokenListAdapter) adapter).setOnItemLongClickListener(this);
                 recyclerView.setAdapter((TokenListAdapter) adapter);
                 recyclerView.setLayoutManager(new LinearLayoutManager(this));
                 recyclerView.removeItemDecoration(bottomSpacing);
@@ -289,7 +239,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         ThreadUtils.executeBySingle(new ThreadUtils.SimpleTask<List<OtpToken>>() {
             @Override
             public List<OtpToken> doInBackground() {
-                return LocalStorage.getAppDatabase().otpTokenDao().getAll();
+                return OtpTokenManager.getTokens();
             }
 
             @Override
@@ -303,30 +253,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         });
     }
 
-    public void refreshAuthState() {
-        if (!PrivacyManager.havePasscode() || isAuthed) {
-            refreshData();
-            if (SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true))
-                lockButton.setVisibility(View.VISIBLE);
-            lockLayout.setVisibility(View.GONE);
-            findViewById(R.id.activity_main_titlebar).setVisibility(View.VISIBLE);
-            ((View) swipeRefreshLayout).setVisibility(View.VISIBLE);
-            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-            if (LocalStorage.getAppDatabase().otpTokenDao().count() <= 0) {
-                blankLayout.setVisibility(View.VISIBLE);
-                changeViewButton.setVisibility(View.GONE);
-            } else {
-                blankLayout.setVisibility(View.GONE);
-                changeViewButton.setVisibility(View.VISIBLE);
-            }
+    public void refresh() {
+        refreshData();
+        if (SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true))
+            lockButton.setVisibility(View.VISIBLE);
+        findViewById(R.id.activity_main_titlebar).setVisibility(View.VISIBLE);
+        ((View) swipeRefreshLayout).setVisibility(View.VISIBLE);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        if (LocalStorage.getAppDatabase().otpTokenDao().count() <= 0) {
+            blankLayout.setVisibility(View.VISIBLE);
+            changeViewButton.setVisibility(View.GONE);
         } else {
-            setRecyclerViewData(new ArrayList<>());
-            findViewById(R.id.activity_main_titlebar).setVisibility(View.INVISIBLE);
-            lockButton.setVisibility(View.GONE);
-            lockLayout.setVisibility(View.VISIBLE);
-            ((View) swipeRefreshLayout).setVisibility(View.GONE);
-            passCodeView.reset();
-            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            blankLayout.setVisibility(View.GONE);
+            changeViewButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -338,21 +277,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         swipeRefreshLayout.setEnableLoadMore(false);
         swipeRefreshLayout.setOnRefreshListener(v -> {
             swipeRefreshLayout.finishRefresh();
-            setRecyclerViewData(LocalStorage.getAppDatabase().otpTokenDao().getAll());
+            SimpleRemoteViewsManager.refresh(MainActivity.this);
+            setRecyclerViewData(OtpTokenManager.getTokens());
         });
-    }
-
-    public void initBiometrics() {
-        mFingerprintIdentify = new FingerprintIdentify(this);
-        mFingerprintIdentify.setSupportAndroidL(true);
-        mFingerprintIdentify.setExceptionListener(this);
-        mFingerprintIdentify.init();
-        if (mFingerprintIdentify.isFingerprintEnable()) {
-            passcodeTip = R.string.tap_to_use_biometrics;
-        } else {
-            passcodeTip = R.string.unpin_to_show_code;
-        }
-        ((TextView) findViewById(R.id.activity_main_lock_text)).setText(passcodeTip);
     }
 
     @Override
@@ -371,20 +298,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             startActivity(intent);
         } else if (view == openDrawerButton) {
             mDrawerLayout.openDrawer(GravityCompat.START);
-        } else if (view == passcodeTipView || view == passcodeIconView) {
-            if (mFingerprintIdentify.isFingerprintEnable()) {
-                bottomSheet = new BottomSheet(this);
-                bottomSheet.setTitle(getString(R.string.verify_finger));
-                bottomSheet.setDragBarVisible(false);
-                bottomSheet.setLeftButtonVisible(false);
-                bottomSheet.setRightButtonVisible(false);
-                bottomSheet.setBackgroundColor(getColor(R.color.card_background));
-                bottomSheet.setMainLayout(R.layout.layout_fingerprint);
-                bottomSheet.show();
-                bottomSheet.setOnCancelListener(dialogInterface -> mFingerprintIdentify.cancelIdentify());
-                mFingerprintIdentify.resumeIdentify();
-                mFingerprintIdentify.startIdentify(5, this);
-            }
         } else if (view == themeEntry) {
             Intent intent = new Intent(this, ThemeActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
@@ -395,10 +308,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         } else if (view == blogEntry) {
             Intent intent = new Intent(this, WebViewActivity.class).setAction(Intent.ACTION_DEFAULT);
             intent.putExtra("url", getString(R.string.url_blog));
-            startActivity(intent);
-        } else if (view == homeEntry) {
-            Intent intent = new Intent(this, WebViewActivity.class).setAction(Intent.ACTION_DEFAULT);
-            intent.putExtra("url", getString(R.string.url_home));
             startActivity(intent);
         } else if (view == dropboxEntry) {
             Intent intent = new Intent(this, DropboxActivity.class).setAction(Intent.ACTION_DEFAULT);
@@ -421,60 +330,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             });
             bottomSheet.show();
         }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mFingerprintIdentify.cancelIdentify();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        mFingerprintIdentify.cancelIdentify();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mFingerprintIdentify != null) mFingerprintIdentify.cancelIdentify();
-    }
-
-    @Override
-    public void onCatchException(Throwable exception) {
-
-    }
-
-    @Override
-    public void onSucceed() {
-        if (mFingerprintIdentify != null) mFingerprintIdentify.cancelIdentify();
-        if (bottomSheet != null) bottomSheet.cancel();
-        isAuthed = true;
-        refreshAuthState();
-    }
-
-    @Override
-    public void onNotMatch(int availableTimes) {
-        bottomSheet.setTitle(getString(R.string.verify_finger_fail));
-        bottomSheet.setDragBarVisible(false);
-        bottomSheet.setTitleColor(getColor(R.color.text_color_red));
-        new Handler().postDelayed(() -> {
-            bottomSheet.setTitle(getString(R.string.verify_finger));
-            bottomSheet.setDragBarVisible(false);
-            bottomSheet.setTitleColor(getColor(R.color.color_accent));
-        }, 500);
-    }
-
-    @Override
-    public void onFailed(boolean isDeviceLocked) {
-        IToast.showBottom(this, getString(R.string.verify_finger_error));
-        if (bottomSheet != null) bottomSheet.cancel();
-    }
-
-    @Override
-    public void onStartFailedByDeviceLocked() {
-
     }
 
     @Override
@@ -657,5 +512,50 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             });
             dialog.show();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isEditing) {
+            isEditing = false;
+            refreshEditState();
+        } else super.onBackPressed();
+    }
+
+    private void refreshEditState() {
+        if (isEditing) {
+            titlebar.setVisibility(View.GONE);
+            operationBar.setVisibility(View.VISIBLE);
+            lockButton.setVisibility(View.GONE);
+            selectCountTextView.setText(String.format(getString(R.string.select_count), 0));
+            swipeRefreshLayout.setEnableRefresh(false);
+            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            if (adapter instanceof TokenListAdapter) {
+                ((TokenListAdapter) adapter).setEditing(true);
+                ((TokenListAdapter) adapter).setOnStateChangeListener(new TokenListAdapter.OnStateChangeListener() {
+                    @Override
+                    public void onSelectStateChanged(int selectedCount) {
+                        selectCountTextView.setText(String.format(getString(R.string.select_count), selectedCount));
+                    }
+                });
+            }
+        } else {
+            titlebar.setVisibility(View.VISIBLE);
+            operationBar.setVisibility(View.GONE);
+            lockButton.setVisibility(SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true) ? View.VISIBLE : View.GONE);
+            selectCountTextView.setText(String.format(getString(R.string.select_count), 0));
+            swipeRefreshLayout.setEnableRefresh(true);
+            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            if (adapter instanceof TokenListAdapter) {
+                ((TokenListAdapter) adapter).setEditing(false);
+            }
+        }
+    }
+
+    @Override
+    public boolean onLongClick(View view) {
+//        isEditing = true;
+//        refreshEditState();
+        return false;
     }
 }

@@ -68,7 +68,7 @@
             android:clickable="true"
             android:contentDescription="@string/cd_image"
             android:focusable="true"
-            android:src="@drawable/ic_light_checkbox_unchecked"
+            android:src="@drawable/ic_material_checkbox_unchecked"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

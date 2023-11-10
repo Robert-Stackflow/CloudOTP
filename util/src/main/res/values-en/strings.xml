@@ -241,4 +241,8 @@
     <string name="counter_blank">Counter cannot be empty</string>
     <string name="import_success_info">Import successfully, a total of %1$d tokens were found, and %2$d tokens were actually imported</string>
     <string name="pull_success_info">Pull successfully, a total of %1$d tokens were found, and %2$d tokens were actually imported</string>
+    <string name="title_widget_setting">Widget settings</string>
+    <string name="widget_info">Show small card</string>
+    <string name="entry_dynamic_color">Dynamic background</string>
+    <string name="select_count" formatted="true">%1$d item selected</string>
 </resources>

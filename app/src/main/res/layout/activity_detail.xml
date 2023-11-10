@@ -10,8 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        app:left_button_icon="@drawable/ic_light_arrow_left"
-        app:right_button_icon="@drawable/ic_light_right"
+        app:left_button_icon="@drawable/ic_material_close"
+        app:right_button_icon="@drawable/ic_material_done"
         app:right_button_visibility="true"
         app:title="@string/title_detail_token" />
 

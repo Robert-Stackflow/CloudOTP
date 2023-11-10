@@ -64,8 +64,8 @@ public class ExpandableList extends RelativeLayout {
         TypedArray attr = context.obtainStyledAttributes(attrs, R.styleable.ExpandableList);
         if (attr != null) {
             boolean iconVisible = attr.getBoolean(R.styleable.ExpandableList_expandable_list_icon_visibility, true);
-            iconId = attr.getResourceId(R.styleable.ExpandableList_expandable_list_icon, R.drawable.ic_light_arrow_down);
-            expandIconId = attr.getResourceId(R.styleable.ExpandableList_expandable_list_expand_icon, R.drawable.ic_light_arrow_up);
+            iconId = attr.getResourceId(R.styleable.ExpandableList_expandable_list_icon, R.drawable.ic_material_arrow_down);
+            expandIconId = attr.getResourceId(R.styleable.ExpandableList_expandable_list_expand_icon, R.drawable.ic_material_arrow_up);
             int iconBackgroundColor = attr.getColor(R.styleable.ExpandableList_expandable_list_icon_background, Color.TRANSPARENT);
             setIcon(iconId);
             setIconBackground(iconBackgroundColor);

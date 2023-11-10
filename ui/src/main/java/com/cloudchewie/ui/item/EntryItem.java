@@ -68,12 +68,12 @@ public class EntryItem extends ConstraintLayout {
             int titleBarBackground = attr.getResourceId(R.styleable.EntryItem_entry_item_background, Color.TRANSPARENT);
             setBackgroundResource(titleBarBackground);
             boolean leftButtonVisible = attr.getBoolean(R.styleable.EntryItem_entry_item_left_icon_visibility, true);
-            int leftButtonIconId = attr.getResourceId(R.styleable.EntryItem_entry_item_left_icon, R.drawable.ic_light_settings);
-            float leftButtonIconPadding = attr.getDimension(R.styleable.EntryItem_entry_item_left_icon_padding, getResources().getDimension(R.dimen.dp0));
+            int leftButtonIconId = attr.getResourceId(R.styleable.EntryItem_entry_item_left_icon, R.drawable.ic_material_settings);
+            float leftButtonIconPadding = attr.getDimension(R.styleable.EntryItem_entry_item_left_icon_padding, getResources().getDimension(R.dimen.dp1));
             int leftButtonBackgroundColor = attr.getColor(R.styleable.EntryItem_entry_item_left_icon_background, Color.TRANSPARENT);
             setLeftButton(leftButtonVisible, leftButtonIconId, leftButtonBackgroundColor, leftButtonIconPadding);
             boolean rightButtonVisible = attr.getBoolean(R.styleable.EntryItem_entry_item_right_icon_visibility, true);
-            int rightButtonIconId = attr.getResourceId(R.styleable.EntryItem_entry_item_right_icon, R.drawable.ic_light_arrow_right);
+            int rightButtonIconId = attr.getResourceId(R.styleable.EntryItem_entry_item_right_icon, R.drawable.ic_material_arrow_right);
             int rightButtonBackgroundColor = attr.getColor(R.styleable.EntryItem_entry_item_right_icon_background, Color.TRANSPARENT);
             setRightButton(rightButtonVisible, rightButtonIconId, rightButtonBackgroundColor);
             String title = attr.getString(R.styleable.EntryItem_entry_item_title);

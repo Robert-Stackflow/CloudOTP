@@ -54,7 +54,7 @@
             android:id="@+id/widget_expandable_list_icon"
             android:layout_width="@dimen/dp20"
             android:layout_height="@dimen/dp20"
-            android:src="@drawable/ic_light_arrow_down"
+            android:src="@drawable/ic_material_arrow_down"
             app:layout_constraintBottom_toBottomOf="@id/widget_expandable_list_title"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/widget_expandable_list_title"

@@ -64,8 +64,8 @@ public class ExpandableItem extends ConstraintLayout {
         TypedArray attr = context.obtainStyledAttributes(attrs, R.styleable.ExpandableItem);
         if (attr != null) {
             boolean iconVisible = attr.getBoolean(R.styleable.ExpandableItem_expandable_item_icon_visibility, true);
-            iconId = attr.getResourceId(R.styleable.ExpandableItem_expandable_item_icon, R.drawable.ic_light_arrow_down);
-            expandIconId = attr.getResourceId(R.styleable.ExpandableItem_expandable_item_expand_icon, R.drawable.ic_light_arrow_up);
+            iconId = attr.getResourceId(R.styleable.ExpandableItem_expandable_item_icon, R.drawable.ic_material_arrow_down);
+            expandIconId = attr.getResourceId(R.styleable.ExpandableItem_expandable_item_expand_icon, R.drawable.ic_material_arrow_up);
             int iconBackgroundColor = attr.getColor(R.styleable.ExpandableItem_expandable_item_icon_background, Color.TRANSPARENT);
             setIcon(iconId);
             setIconBackground(iconBackgroundColor);

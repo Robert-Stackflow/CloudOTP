@@ -15,7 +15,7 @@ import java.util.Objects;
 public class OtpToken implements Serializable {
     @PrimaryKey(autoGenerate = true)
     Long id;
-    Long ordinal;
+    Integer ordinal;
     String issuer;
     String secret;
     String account;
@@ -26,8 +26,13 @@ public class OtpToken implements Serializable {
     Long counter;
     Integer period;
     EncryptionType encryptionType;
+    boolean pinned;
+
     @Ignore
-    public OtpToken(Long id, Long ordinal, String issuer, String account, String imagePath, OtpTokenType tokenType, String algorithm, String secret, Integer digits, Long counter, Integer period, EncryptionType encryptionType) {
+    boolean seleted;
+
+    @Ignore
+    public OtpToken(Long id, Integer ordinal, String issuer, String account, String imagePath, OtpTokenType tokenType, String algorithm, String secret, Integer digits, Long counter, Integer period, EncryptionType encryptionType) {
         this.id = id;
         this.ordinal = ordinal;
         this.issuer = issuer;
@@ -59,11 +64,11 @@ public class OtpToken implements Serializable {
         this.id = id;
     }
 
-    public Long getOrdinal() {
+    public Integer getOrdinal() {
         return ordinal;
     }
 
-    public void setOrdinal(Long ordinal) {
+    public void setOrdinal(Integer ordinal) {
         this.ordinal = ordinal;
     }
 
@@ -153,5 +158,21 @@ public class OtpToken implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         OtpToken otpToken = (OtpToken) o;
         return Objects.equals(issuer, otpToken.issuer) && Objects.equals(secret, otpToken.secret) && Objects.equals(account, otpToken.account);
+    }
+
+    public boolean isPinned() {
+        return pinned;
+    }
+
+    public boolean isSeleted() {
+        return seleted;
+    }
+
+    public void setSeleted(boolean seleted) {
+        this.seleted = seleted;
+    }
+
+    public void setPinned(boolean pinned) {
+        this.pinned = pinned;
     }
 }

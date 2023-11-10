@@ -6,10 +6,10 @@
     android:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/titlebar_main_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:id="@+id/titlebar_main_layout"
         android:background="@color/titlebar_background">
 
         <ImageButton
@@ -18,8 +18,9 @@
             android:layout_height="50dp"
             android:background="@color/titlebar_background"
             android:contentDescription="@string/cd_titlebar_left_button"
+            android:padding="@dimen/dp15"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_light_arrow_left"
+            android:src="@drawable/ic_material_arrow_left"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -43,8 +44,9 @@
             android:layout_height="50dp"
             android:background="@color/titlebar_background"
             android:contentDescription="@string/cd_titlebar_right_button"
+            android:padding="@dimen/dp15"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_light_ellipsis"
+            android:src="@drawable/ic_material_more_vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:transitionName="shareElement"
-        app:right_button_icon="@drawable/ic_light_prompt"
+        app:right_button_icon="@drawable/ic_material_info"
         app:right_button_visibility="true"
         app:title="@string/title_eximport" />
 

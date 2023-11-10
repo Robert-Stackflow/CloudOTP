@@ -138,7 +138,7 @@ class SearchList : LinearLayout {
                 if (mHistoryClearIcon === null) {
                     //设置小图标
                     mHistoryClearIcon =
-                        ContextCompat.getDrawable(mContext!!, R.drawable.ic_light_delete)
+                        ContextCompat.getDrawable(mContext!!, R.drawable.ic_material_delete)
                 }
 
                 mHistoryClearIcon?.setBounds(

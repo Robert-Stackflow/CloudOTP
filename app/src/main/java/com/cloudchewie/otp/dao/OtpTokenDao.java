@@ -32,7 +32,7 @@ public interface OtpTokenDao {
     OtpToken get(String issuer, String account);
 
     @Query("select ordinal from otp_tokens order by ordinal desc limit 1")
-    Long getLastOrdinal();
+    Integer getLastOrdinal();
 
     @Query("delete from otp_tokens where id = :id")
     void deleteById(Long id);
@@ -47,7 +47,7 @@ public interface OtpTokenDao {
     void update(OtpToken otpToken);
 
     @Query("update otp_tokens set ordinal = :ordinal where id = :id")
-    void updateOrdinal(Long id, Long ordinal);
+    void updateOrdinal(Long id, Integer ordinal);
 
     default void incrementCounter(Long id) {
         incrementCounterRaw(new SimpleSQLiteQuery("update otp_tokens set counter = counter + 1 where id = ?", new Long[]{id}));

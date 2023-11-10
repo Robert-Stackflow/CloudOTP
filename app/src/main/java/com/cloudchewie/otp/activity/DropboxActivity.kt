@@ -21,8 +21,8 @@ import com.cloudchewie.otp.external.dropbox.DropboxSigninTask
 import com.cloudchewie.otp.external.dropbox.DropboxUploadTask
 import com.cloudchewie.otp.util.authenticator.ExportTokenUtil
 import com.cloudchewie.otp.util.authenticator.ImportTokenUtil
-import com.cloudchewie.otp.util.database.LocalStorage
-import com.cloudchewie.otp.util.database.PrivacyManager
+import com.cloudchewie.otp.database.LocalStorage
+import com.cloudchewie.otp.database.PrivacyManager
 import com.cloudchewie.otp.widget.SecretBottomSheet
 import com.cloudchewie.ui.custom.IDialog
 import com.cloudchewie.ui.custom.IDialog.OnClickBottomListener
@@ -127,6 +127,7 @@ open class DropboxActivity : BaseActivity(), SecretBottomSheet.OnConfirmListener
         loadingDialog = LoadingDialog(this)
 
         loadConfig(true)
+        goToVerify()
     }
 
     private fun loadConfig(init: Boolean) {

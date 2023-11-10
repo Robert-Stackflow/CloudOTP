@@ -11,7 +11,6 @@ public enum SharedPreferenceCode {
     IS_NIGHT("is_night", "是否为深色模式"),
     ENABLE_WEB_CACHE("enable_web_cache", "是否允许网站缓存"),
     TOKEN_CLICK_COPY("token_click_copy", "点击卡片复制令牌"),
-    TOKEN_LONG_CLICK_COPY("token_long_click_copy", "长按卡片复制令牌"),
     TOKEN_NEED_AUTH("token_need_auth", "需要身份验证"),
     VIEW_TYPE("view_type", "视图"),
     TOKEN_DISBALE_SCREENSHOT("token_disable_screenshot", "禁止屏幕截图");

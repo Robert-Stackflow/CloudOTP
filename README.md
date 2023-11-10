@@ -28,6 +28,7 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 - [ ] Support WebDAV services such as Box
 - [ ] Support more encryption algorithms
 - [ ] Support encrypting local SQLite database
+- [ ] Support desktop widgets
 
 ### Known Bugs
 

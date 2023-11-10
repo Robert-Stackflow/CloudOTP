@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <RelativeLayout
@@ -9,31 +9,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:background="@color/background"
-        android:paddingVertical="5dp">
+        android:background="@color/background">
 
         <ImageButton
-            android:contentDescription="@string/cd_image"
             android:id="@+id/activity_webview_back"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:background="@color/titlebar_background"
+            android:contentDescription="@string/cd_image"
+            android:padding="@dimen/dp15"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_light_arrow_left"
+            android:src="@drawable/ic_material_arrow_left"
             android:visibility="gone" />
 
         <ImageButton
-            android:contentDescription="@string/cd_image"
             android:id="@+id/activity_webview_close"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_centerVertical="true"
             android:layout_toEndOf="@id/activity_webview_back"
             android:background="@color/titlebar_background"
+            android:contentDescription="@string/cd_image"
+            android:padding="@dimen/dp15"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_light_close" />
+            android:src="@drawable/ic_material_close" />
 
         <TextView
             android:id="@+id/activity_webview_title"
@@ -49,15 +50,16 @@
             android:textStyle="bold" />
 
         <ImageButton
-            android:contentDescription="@string/cd_image"
             android:id="@+id/activity_webview_more"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:background="@color/titlebar_background"
+            android:contentDescription="@string/cd_image"
+            android:padding="@dimen/dp15"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_light_ellipsis" />
+            android:src="@drawable/ic_material_more_vertical" />
     </RelativeLayout>
 
     <com.cloudchewie.ui.general.SlidingLayout

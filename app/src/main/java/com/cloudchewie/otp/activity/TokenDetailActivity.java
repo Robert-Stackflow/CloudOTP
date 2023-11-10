@@ -22,7 +22,7 @@ import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.util.authenticator.ImportTokenUtil;
 import com.cloudchewie.otp.util.authenticator.OtpTokenParser;
 import com.cloudchewie.otp.util.authenticator.TokenImageUtil;
-import com.cloudchewie.otp.util.database.LocalStorage;
+import com.cloudchewie.otp.database.LocalStorage;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.otp.util.enumeration.OtpTokenType;
 import com.cloudchewie.ui.custom.IDialog;
@@ -83,6 +83,7 @@ public class TokenDetailActivity extends BaseActivity implements View.OnClickLis
         typeItem.setOnIndexChangedListener((radioButton, index) -> changeCounterVisibility());
         issuerItem.getEditText().addTextChangedListener(this);
         accountItem.getEditText().addTextChangedListener(this);
+        goToVerify();
     }
 
     void changeCounterVisibility() {

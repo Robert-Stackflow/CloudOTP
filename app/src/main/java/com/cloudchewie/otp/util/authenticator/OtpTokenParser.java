@@ -107,6 +107,6 @@ public class OtpTokenParser {
             throw new IllegalArgumentException("Secret is null");
         }
         String image = uri.getQueryParameter("image");
-        return new OtpToken(null, -System.currentTimeMillis(), issuer, label, image, type, algo, secret, digits, counter, period, EncryptionType.PLAIN_TEXT);
+        return new OtpToken(null, 0, issuer, label, image, type, algo, secret, digits, counter, period, EncryptionType.PLAIN_TEXT);
     }
 }

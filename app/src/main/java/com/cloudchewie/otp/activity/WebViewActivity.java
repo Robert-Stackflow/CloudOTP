@@ -62,6 +62,7 @@ public class WebViewActivity extends BaseActivity implements View.OnClickListene
         closeButton.setOnClickListener(this);
         moreButton.setOnClickListener(this);
         initWebview();
+        goToVerify();
     }
 
     @SuppressLint("SetJavaScriptEnabled")

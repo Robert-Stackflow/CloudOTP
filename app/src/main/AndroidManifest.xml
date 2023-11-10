@@ -55,6 +55,13 @@
         <activity android:name=".activity.PasscodeActivity" />
         <activity android:name=".activity.TokenDetailActivity" />
         <activity android:name=".activity.SettingsActivity" />
+        <activity
+            android:name=".activity.WidgetSettingsActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
         <activity android:name=".activity.ScanActivity" />
         <activity android:name=".activity.EximportActivity" />
         <activity android:name=".activity.DropboxActivity" />
@@ -73,7 +80,7 @@
         </activity>
 
         <provider
-            android:name=".util.database.MyFileProvider"
+            android:name=".database.MyFileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -82,6 +89,45 @@
                 android:resource="@xml/provider_paths"
                 tools:replace="android:resource" />
         </provider>
+
+        <!--        <receiver-->
+        <!--            android:name=".appwidget.MiniWidgetProvider"-->
+        <!--            android:exported="true">-->
+        <!--            <intent-filter>-->
+        <!--                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />-->
+        <!--                <action android:name="com.cloudchewie.otp.click" />-->
+        <!--            </intent-filter>-->
+        <!--            <meta-data-->
+        <!--                android:name="android.appwidget.provider"-->
+        <!--                android:resource="@xml/app_widget_mini" />-->
+        <!--        </receiver>-->
+        <receiver
+            android:name=".appwidget.MiddleWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.cloudchewie.otp.click" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_widget_middle" />
+        </receiver>
+        <!--        <receiver-->
+        <!--            android:name=".appwidget.LargeWidgetProvider"-->
+        <!--            android:exported="true">-->
+        <!--            <intent-filter>-->
+        <!--                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />-->
+        <!--                <action android:name="com.cloudchewie.otp.click" />-->
+        <!--            </intent-filter>-->
+        <!--            <meta-data-->
+        <!--                android:name="android.appwidget.provider"-->
+        <!--                android:resource="@xml/app_widget_large" />-->
+        <!--        </receiver>-->
+
+        <service
+            android:name=".appwidget.SimpleRemoteViewsService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
     <queries>
         <package android:name="com.dropbox.android" />

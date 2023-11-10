@@ -56,11 +56,11 @@ public class TitleBar extends ConstraintLayout implements View.OnClickListener {
             int titleBarBackground = attr.getColor(R.styleable.TitleBar_titlebar_background, Color.TRANSPARENT);
             findViewById(R.id.titlebar_main_layout).setBackgroundColor(titleBarBackground);
             boolean leftButtonVisible = attr.getBoolean(R.styleable.TitleBar_left_button_visibility, true);
-            int leftButtonIconId = attr.getResourceId(R.styleable.TitleBar_left_button_icon, R.drawable.ic_light_arrow_left);
+            int leftButtonIconId = attr.getResourceId(R.styleable.TitleBar_left_button_icon, R.drawable.ic_material_arrow_left);
             int leftButtonBackgroundColor = attr.getColor(R.styleable.TitleBar_left_button_background, Color.TRANSPARENT);
             setLeftButton(leftButtonVisible, leftButtonIconId, leftButtonBackgroundColor);
             boolean rightButtonVisible = attr.getBoolean(R.styleable.TitleBar_right_button_visibility, true);
-            int rightButtonIconId = attr.getResourceId(R.styleable.TitleBar_right_button_icon, R.drawable.ic_light_ellipsis);
+            int rightButtonIconId = attr.getResourceId(R.styleable.TitleBar_right_button_icon, R.drawable.ic_material_more_vertical);
             int rightButtonBackgroundColor = attr.getColor(R.styleable.TitleBar_right_button_background, Color.TRANSPARENT);
             setRightButton(rightButtonVisible, rightButtonIconId, rightButtonBackgroundColor);
             String title = attr.getString(R.styleable.TitleBar_title);

@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
 
 import com.cloudchewie.otp.R;
-import com.cloudchewie.otp.util.database.PrivacyManager;
+import com.cloudchewie.otp.database.PrivacyManager;
 import com.cloudchewie.ui.custom.IToast;
 import com.cloudchewie.ui.general.BottomSheet;
 import com.cloudchewie.ui.item.InputItem;

@@ -11,102 +11,172 @@
         android:layout_height="match_parent"
         android:background="@color/background">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/activity_main_titlebar"
+        <RelativeLayout
+            android:id="@+id/activity_main_bar_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center"
-            android:background="@color/titlebar_background">
+            android:layout_height="wrap_content">
 
-            <ImageButton
-                android:id="@+id/activity_main_open_drawer"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/activity_main_titlebar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="center"
+                android:background="@color/titlebar_background">
+
+                <ImageButton
+                    android:id="@+id/activity_main_open_drawer"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_left_button"
+                    android:padding="@dimen/dp15"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_menu"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
+
+                <TextView
+                    android:id="@+id/titlebar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="@string/app_name"
+                    android:textColor="@color/color_accent"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/activity_main_open_drawer"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/activity_main_scan"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_right_button"
+                    android:padding="@dimen/dp10"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_scanner"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/activity_main_change_view"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
+
+                <ImageButton
+                    android:id="@+id/activity_main_change_view"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_right_button"
+                    android:padding="@dimen/dp10"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_grid"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/activity_main_more"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
+
+                <ImageButton
+                    android:id="@+id/activity_main_more"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_right_button"
+                    android:padding="@dimen/dp10"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_more_vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/activity_main_operation_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="center"
                 android:background="@color/titlebar_background"
-                android:contentDescription="@string/cd_titlebar_left_button"
-                android:padding="@dimen/dp15"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_light_drawer"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="UsingOnClickInXml" />
+                android:visibility="gone">
 
-            <ImageButton
-                android:id="@+id/activity_main_zhanwei"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@color/titlebar_background"
-                android:contentDescription="@string/cd_titlebar_left_button"
-                android:padding="@dimen/dp15"
-                android:scaleType="centerInside"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/activity_main_open_drawer"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="UsingOnClickInXml" />
+                <ImageButton
+                    android:id="@+id/activity_main_operation_select_all"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_left_button"
+                    android:padding="@dimen/dp15"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_checkbox_unchecked"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
 
-            <TextView
-                android:id="@+id/titlebar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="@string/app_name"
-                android:textColor="@color/color_accent"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/activity_main_open_drawer"
-                app:layout_constraintTop_toTopOf="parent" />
+                <TextView
+                    android:id="@+id/activity_main_select_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="@string/app_name"
+                    android:textColor="@color/color_accent"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/activity_main_operation_select_all"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageButton
-                android:id="@+id/activity_main_scan"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@color/titlebar_background"
-                android:contentDescription="@string/cd_titlebar_right_button"
-                android:padding="@dimen/dp10"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_light_scanning"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/activity_main_change_view"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="UsingOnClickInXml" />
+                <ImageButton
+                    android:id="@+id/activity_main_operation_delete"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_right_button"
+                    android:padding="@dimen/dp10"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_delete"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/activity_main_operation_export"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
 
-            <ImageButton
-                android:id="@+id/activity_main_change_view"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@color/titlebar_background"
-                android:contentDescription="@string/cd_titlebar_right_button"
-                android:padding="@dimen/dp15"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_light_grid"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/activity_main_more"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="UsingOnClickInXml" />
+                <ImageButton
+                    android:id="@+id/activity_main_operation_export"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_right_button"
+                    android:padding="@dimen/dp10"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_eximport"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/activity_main_operation_done"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
 
-            <ImageButton
-                android:id="@+id/activity_main_more"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:background="@color/titlebar_background"
-                android:contentDescription="@string/cd_titlebar_right_button"
-                android:padding="@dimen/dp12"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_light_ellipsis_vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="UsingOnClickInXml" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <ImageButton
+                    android:id="@+id/activity_main_operation_done"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@color/titlebar_background"
+                    android:contentDescription="@string/cd_titlebar_right_button"
+                    android:padding="@dimen/dp10"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_material_done"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="UsingOnClickInXml" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </RelativeLayout>
 
         <com.scwang.smart.refresh.layout.SmartRefreshLayout
             android:id="@+id/activity_main_swipe_refresh"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/activity_main_titlebar">
+            android:layout_below="@id/activity_main_bar_layout">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -133,55 +203,15 @@
                         android:background="@drawable/shape_button_round"
                         android:backgroundTint="?attr/colorPrimary"
                         android:gravity="center"
-                        android:stateListAnimator="@null"
                         android:paddingTop="@dimen/dp5"
                         android:paddingBottom="@dimen/dp5"
+                        android:stateListAnimator="@null"
                         android:text="@string/null_code"
                         android:textColor="@color/text_color_white"
                         android:textSize="@dimen/sp15" />
                 </RelativeLayout>
             </RelativeLayout>
         </com.scwang.smart.refresh.layout.SmartRefreshLayout>
-
-        <RelativeLayout
-            android:id="@+id/activity_main_lock_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:paddingVertical="@dimen/dp50">
-
-            <ImageView
-                android:id="@+id/activity_main_lock_icon"
-                android:layout_width="@dimen/dp40"
-                android:layout_height="@dimen/dp40"
-                android:layout_centerHorizontal="true"
-                android:contentDescription="@string/cd_image"
-                android:src="@drawable/ic_light_password"
-                app:tint="@color/color_icon" />
-
-            <TextView
-                android:id="@+id/activity_main_lock_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/activity_main_lock_icon"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="@dimen/dp10"
-                android:layout_marginBottom="@dimen/dp30"
-                android:text="@string/unpin_to_show_code"
-                android:textColor="@color/color_icon"
-                android:textStyle="bold" />
-
-            <com.cloudchewie.ui.passcode.PassCodeView
-                android:id="@+id/activity_main_passcode_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/activity_main_lock_text"
-                app:digit_size="30.0dp"
-                app:digits="4"
-                app:empty_drawable="@drawable/shape_empty_dot"
-                app:filled_drawable="@drawable/shape_filled_dot"
-                app:key_text_size="@dimen/sp30" />
-        </RelativeLayout>
 
         <com.cloudchewie.ui.fab.FloatingActionButton
             android:id="@+id/activity_main_lock"
@@ -191,7 +221,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginEnd="@dimen/dp20"
             android:layout_marginBottom="@dimen/dp20"
-            android:src="@drawable/ic_light_password"
+            android:src="@drawable/ic_material_lock"
             android:tint="@color/text_color_white"
             app:fab_colorNormal="?attr/colorPrimary"
             app:fab_colorPressed="?attr/colorPrimary"
@@ -212,10 +242,10 @@
             android:id="@+id/activity_main_logo"
             android:layout_width="@dimen/dp70"
             android:layout_height="@dimen/dp70"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/dp20"
             android:background="@android:color/transparent"
             android:contentDescription="@string/cd_logo"
-            android:layout_centerHorizontal="true"
             android:src="@mipmap/ic_launcher_round" />
 
         <com.cloudchewie.ui.item.EntryItem
@@ -227,7 +257,7 @@
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
-            app:entry_item_left_icon="@drawable/ic_light_plus"
+            app:entry_item_left_icon="@drawable/ic_material_add"
             app:entry_item_title="@string/title_add_token"
             app:entry_item_top_radius_enable="true" />
 
@@ -239,8 +269,7 @@
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
-            app:entry_item_left_icon_padding="@dimen/dp1"
-            app:entry_item_left_icon="@drawable/ic_light_export"
+            app:entry_item_left_icon="@drawable/ic_material_eximport"
             app:entry_item_title="@string/title_eximport" />
 
         <com.cloudchewie.ui.item.EntryItem
@@ -250,10 +279,10 @@
             android:layout_below="@id/activity_main_entry_eximport"
             android:clickable="true"
             android:focusable="true"
-            app:entry_item_left_icon_padding="@dimen/dp2"
             android:textSize="18sp"
             app:entry_item_bottom_radius_enable="true"
             app:entry_item_left_icon="@drawable/token_image_dropbox"
+            app:entry_item_left_icon_padding="@dimen/dp3"
             app:entry_item_title="@string/title_dropbox" />
 
         <com.cloudchewie.ui.item.EntryItem
@@ -265,7 +294,8 @@
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
-            app:entry_item_left_icon="@drawable/ic_light_color"
+            app:entry_item_left_icon="@drawable/ic_material_color"
+            app:entry_item_left_icon_padding="@dimen/dp2"
             app:entry_item_title="@string/title_theme"
             app:entry_item_top_radius_enable="true" />
 
@@ -278,7 +308,8 @@
             android:focusable="true"
             android:textSize="18sp"
             app:entry_item_bottom_radius_enable="true"
-            app:entry_item_left_icon="@drawable/ic_light_settings"
+            app:entry_item_left_icon="@drawable/ic_material_settings"
+            app:entry_item_left_icon_padding="@dimen/dp2"
             app:entry_item_title="@string/title_setting" />
 
         <com.cloudchewie.ui.item.EntryItem
@@ -290,31 +321,20 @@
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
-            app:entry_item_left_icon="@drawable/ic_light_github"
+            app:entry_item_left_icon="@drawable/ic_material_github"
             app:entry_item_title="@string/title_github"
             app:entry_item_top_radius_enable="true" />
 
         <com.cloudchewie.ui.item.EntryItem
-            android:id="@+id/activity_main_entry_home"
+            android:id="@+id/activity_main_entry_blog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/activity_main_entry_github"
             android:clickable="true"
             android:focusable="true"
             android:textSize="18sp"
-            app:entry_item_left_icon="@drawable/ic_light_home"
-            app:entry_item_title="@string/title_home" />
-
-        <com.cloudchewie.ui.item.EntryItem
-            android:id="@+id/activity_main_entry_blog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/activity_main_entry_home"
-            android:clickable="true"
-            android:focusable="true"
-            android:textSize="18sp"
             app:entry_item_bottom_radius_enable="true"
-            app:entry_item_left_icon="@drawable/ic_light_link"
+            app:entry_item_left_icon="@drawable/ic_material_me"
             app:entry_item_title="@string/title_blog" />
     </RelativeLayout>
 </androidx.drawerlayout.widget.DrawerLayout>

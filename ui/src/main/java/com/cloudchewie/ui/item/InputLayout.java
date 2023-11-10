@@ -62,9 +62,9 @@ public class InputLayout extends RelativeLayout {
             int mode = attr.getInt(R.styleable.InputLayout_input_layout_mode, 0);
             boolean editable = attr.getBoolean(R.styleable.InputLayout_input_layout_editable, true);
             boolean leftIconVisibility = attr.getBoolean(R.styleable.InputLayout_input_layout_left_icon_visibility, false);
-            int leftIconId = attr.getResourceId(R.styleable.InputLayout_input_layout_left_icon, R.drawable.ic_light_search);
+            int leftIconId = attr.getResourceId(R.styleable.InputLayout_input_layout_left_icon, R.drawable.ic_material_search);
             boolean rightIconVisibility = attr.getBoolean(R.styleable.InputLayout_input_layout_right_icon_visibility, false);
-            int rightIconId = attr.getResourceId(R.styleable.InputLayout_input_layout_right_icon, R.drawable.ic_light_delete);
+            int rightIconId = attr.getResourceId(R.styleable.InputLayout_input_layout_right_icon, R.drawable.ic_material_delete);
             int maxLines = attr.getInt(R.styleable.InputLayout_input_layout_max_lines, 20);
             boolean isSingleLine = attr.getBoolean(R.styleable.InputLayout_input_layout_single_line, false);
             int textSize = attr.getDimensionPixelSize(R.styleable.InputLayout_input_layout_text_size, getResources().getDimensionPixelSize(R.dimen.sp15));
@@ -105,17 +105,17 @@ public class InputLayout extends RelativeLayout {
             rightIcon.setFocusable(true);
             rightIcon.setClickable(true);
             rightIcon.setSelected(false);
-            setRightButton(true, R.drawable.ic_light_invisible);
+            setRightButton(true, R.drawable.ic_material_invisible);
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             rightIcon.setOnClickListener(v -> {
                 if (rightIcon.isSelected()) {
                     rightIcon.setSelected(false);
                     editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                    setRightButton(true, R.drawable.ic_light_invisible);
+                    setRightButton(true, R.drawable.ic_material_invisible);
                 } else {
                     rightIcon.setSelected(true);
                     editText.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                    setRightButton(true, R.drawable.ic_light_visible);
+                    setRightButton(true, R.drawable.ic_material_visible);
                 }
             });
             editText.setImeOptions(EditorInfo.IME_ACTION_NEXT);

@@ -12,7 +12,7 @@ import com.cloudchewie.otp.entity.ImportAnalysis;
 import com.cloudchewie.otp.util.ExploreUtil;
 import com.cloudchewie.otp.util.authenticator.ExportTokenUtil;
 import com.cloudchewie.otp.util.authenticator.ImportTokenUtil;
-import com.cloudchewie.otp.util.database.PrivacyManager;
+import com.cloudchewie.otp.database.PrivacyManager;
 import com.cloudchewie.otp.widget.SecretBottomSheet;
 import com.cloudchewie.ui.custom.IDialog;
 import com.cloudchewie.ui.custom.IToast;
@@ -81,6 +81,7 @@ public class EximportActivity extends BaseActivity implements View.OnClickListen
         swipeRefreshLayout.setEnablePureScrollMode(true);
         loadingDialog = new LoadingDialog(this);
         refreshState();
+        goToVerify();
     }
 
     @Override

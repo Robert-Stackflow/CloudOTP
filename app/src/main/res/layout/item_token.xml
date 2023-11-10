@@ -12,12 +12,24 @@
     android:paddingVertical="@dimen/dp8">
 
     <ImageView
+        android:id="@+id/item_token_select"
+        android:layout_width="@dimen/dp40"
+        android:layout_height="@dimen/dp40"
+        android:layout_centerVertical="true"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/cd_image"
+        android:padding="@dimen/dp10"
+        android:src="@drawable/ic_material_checkbox_unchecked"
+        android:visibility="gone"
+        app:tint="@color/color_selector_icon" />
+
+    <ImageView
         android:id="@+id/item_token_image"
         android:layout_width="@dimen/dp55"
         android:layout_height="@dimen/dp55"
-        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_gravity="start"
+        android:layout_toEndOf="@id/item_token_select"
         android:background="@android:color/transparent"
         android:contentDescription="@string/cd_image"
         android:padding="@dimen/dp12"
@@ -98,7 +110,7 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:orientation="vertical">
@@ -109,7 +121,7 @@
             android:layout_height="@dimen/dp40"
             android:contentDescription="@string/cd_image"
             android:padding="@dimen/dp10"
-            android:src="@drawable/ic_light_qrcode"
+            android:src="@drawable/ic_material_qrcode"
             app:tint="@color/color_selector_icon" />
 
         <ImageView
@@ -118,7 +130,17 @@
             android:layout_height="@dimen/dp40"
             android:contentDescription="@string/cd_image"
             android:padding="@dimen/dp10"
-            android:src="@drawable/ic_light_todo"
+            android:src="@drawable/ic_material_edit"
+            app:tint="@color/color_selector_icon" />
+
+        <ImageView
+            android:id="@+id/item_token_handle"
+            android:layout_width="@dimen/dp40"
+            android:layout_height="@dimen/dp40"
+            android:contentDescription="@string/cd_image"
+            android:padding="@dimen/dp10"
+            android:src="@drawable/ic_material_menu"
+            android:visibility="gone"
             app:tint="@color/color_selector_icon" />
     </LinearLayout>
 </com.cloudchewie.otp.widget.TokenLayout>

@@ -8,14 +8,19 @@
 package com.cloudchewie.otp;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkRequest;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.cloudchewie.otp.activity.MainActivity;
+import com.cloudchewie.otp.database.PrivacyManager;
 import com.cloudchewie.util.system.LanguageUtil;
 import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.ClassicsHeader;
@@ -47,5 +52,41 @@ public class App extends Application {
                     }
                 });
         context = getApplicationContext();
+        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle bundle) {
+
+            }
+
+            @Override
+            public void onActivityStarted(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityResumed(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityPaused(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityStopped(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle bundle) {
+            }
+
+            @Override
+            public void onActivityDestroyed(@NonNull Activity activity) {
+                if (activity instanceof MainActivity)
+                    PrivacyManager.lock();
+            }
+        });
     }
 }

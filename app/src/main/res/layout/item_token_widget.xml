@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_token_widget_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/shape_round_dp10"
+    android:backgroundTint="@color/color_selector_card"
+    android:paddingVertical="@dimen/dp5">
+
+    <ImageView
+        android:id="@+id/item_token_widget_image"
+        android:layout_width="@dimen/dp40"
+        android:layout_height="@dimen/dp40"
+        android:layout_gravity="start"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/cd_image"
+        android:padding="@dimen/dp10"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/item_token_widget_issuer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/item_token_widget_image"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@id/item_token_widget_image"
+        android:ellipsize="end"
+        android:gravity="start|center"
+        android:singleLine="true"
+        android:textColor="@color/color_accent"
+        android:textSize="@dimen/sp15"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/item_token_widget_code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/item_token_widget_image"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:letterSpacing="0.2"
+        android:textColor="@color/color_accent"
+        android:textSize="@dimen/sp21"
+        android:textStyle="bold" />
+
+</RelativeLayout>

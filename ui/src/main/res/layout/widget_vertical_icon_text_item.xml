@@ -15,7 +15,7 @@
         android:contentDescription="@string/cd_vertical_icon_text_item_icon"
         android:focusable="false"
         android:scaleType="centerInside"
-        android:src="@drawable/ic_light_visible"
+        android:src="@drawable/ic_material_visible"
         app:layout_constraintEnd_toEndOf="@id/vertical_icon_text_item_text"
         app:layout_constraintStart_toStartOf="@id/vertical_icon_text_item_text"
         app:layout_constraintTop_toTopOf="parent" />

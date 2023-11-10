@@ -39,7 +39,7 @@
         android:layout_marginStart="3dp"
         android:contentDescription="@string/cd_horizontal_icon_text_item_icon"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_light_close"
+        android:src="@drawable/ic_material_close"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/horizontal_icon_text_item_text"

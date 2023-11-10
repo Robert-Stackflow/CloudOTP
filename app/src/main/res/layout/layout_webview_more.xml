@@ -36,7 +36,7 @@
                 app:vertical_icon_text_item_padding_h="@dimen/dp10"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:vertical_icon_text_item_icon="@drawable/ic_light_link"
+                app:vertical_icon_text_item_icon="@drawable/ic_material_link"
                 app:vertical_icon_text_item_padding_v="@dimen/dp10"
                 app:vertical_icon_text_item_spacing="@dimen/dp10"
                 app:vertical_icon_text_item_text="@string/copy_url" />
@@ -58,7 +58,7 @@
                 app:layout_constraintEnd_toStartOf="@id/webview_more_browser"
                 app:layout_constraintStart_toEndOf="@id/webview_more_copy_url"
                 app:layout_constraintTop_toTopOf="parent"
-                app:vertical_icon_text_item_icon="@drawable/ic_light_refresh"
+                app:vertical_icon_text_item_icon="@drawable/ic_material_refresh"
                 app:vertical_icon_text_item_padding_h="@dimen/dp10"
                 app:vertical_icon_text_item_padding_v="@dimen/dp10"
                 app:vertical_icon_text_item_spacing="@dimen/dp10"
@@ -79,7 +79,7 @@
                 app:layout_constraintStart_toEndOf="@id/webview_more_refresh"
                 app:layout_constraintTop_toTopOf="parent"
                 app:vertical_icon_text_item_padding_h="@dimen/dp10"
-                app:vertical_icon_text_item_icon="@drawable/ic_light_service"
+                app:vertical_icon_text_item_icon="@drawable/ic_material_open_in_browser"
                 app:vertical_icon_text_item_padding_v="@dimen/dp10"
                 app:vertical_icon_text_item_spacing="@dimen/dp10"
                 app:vertical_icon_text_item_text="@string/open_in_browser" />

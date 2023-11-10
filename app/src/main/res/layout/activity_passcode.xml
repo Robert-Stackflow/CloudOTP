@@ -14,7 +14,7 @@
         android:layout_height="@dimen/dp40"
         android:layout_centerHorizontal="true"
         android:contentDescription="@string/cd_image"
-        android:src="@drawable/ic_light_password"
+        android:src="@drawable/ic_material_lock"
         app:tint="@color/color_icon" />
 
     <TextView

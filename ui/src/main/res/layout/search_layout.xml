@@ -20,7 +20,7 @@
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
             android:contentDescription="搜索"
-            android:src="@drawable/ic_light_search"
+            android:src="@drawable/ic_material_search"
             app:tint="@color/color_gray" />
 
         <EditText
@@ -50,7 +50,7 @@
             android:layout_centerVertical="true"
             android:layout_marginRight="10dp"
             android:contentDescription="清除输入"
-            android:src="@drawable/ic_light_close_circle"
+            android:src="@drawable/ic_material_close_circle"
             android:visibility="gone" />
 
     </RelativeLayout>

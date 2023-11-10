@@ -23,7 +23,6 @@ import com.cloudchewie.ui.custom.ImageDialog
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 
-
 class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
     private val tag = TokenLayout::class.java.simpleName
     private lateinit var mProgressInner: ProgressCircle
@@ -35,11 +34,20 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
     private lateinit var mAccount: TextView
     private lateinit var mDetail: ImageView
     private lateinit var mQrcode: ImageView
+    private lateinit var mHandle: ImageView
+    private lateinit var mSelect: ImageView
 
+    private lateinit var mToken: OtpToken
     private var mCodes: TokenCode? = null
     private var mType: OtpTokenType? = null
     private var mPlaceholder: String? = null
     private var mStartTime: Long = 0
+
+    public var onStateChangeListener: OnStateChangeListener? = null
+
+    interface OnStateChangeListener {
+        fun onSelectStateChanged(selected: Boolean)
+    }
 
     constructor(context: Context) : super(context)
 
@@ -59,9 +67,41 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
         mAccount = findViewById<View>(R.id.item_token_account) as TextView
         mDetail = findViewById<View>(R.id.item_token_detail) as ImageView
         mQrcode = findViewById<View>(R.id.item_token_qrcode) as ImageView
+        mSelect = findViewById<View>(R.id.item_token_select) as ImageView
+        mHandle = findViewById<View>(R.id.item_token_handle) as ImageView
+        setEditing(true)
+        mSelect.setOnClickListener {
+            this.mToken.isSeleted = !this.mToken.isSeleted
+            if (this.mToken.isSeleted) mSelect.setImageResource(R.drawable.ic_material_checkbox_checked)
+            else mSelect.setImageResource(R.drawable.ic_material_checkbox_unchecked)
+            if (onStateChangeListener != null) onStateChangeListener!!.onSelectStateChanged(
+                this.mToken.isSeleted
+            )
+        }
+    }
+
+    override fun setSelected(selected: Boolean) {
+        this.mToken.isSeleted = selected
+        if (this.mToken.isSeleted) mSelect.setImageResource(R.drawable.ic_material_checkbox_checked)
+        else mSelect.setImageResource(R.drawable.ic_material_checkbox_unchecked)
+    }
+
+    fun setEditing(editing: Boolean) {
+        if (editing) {
+            mHandle.visibility = View.VISIBLE
+            mSelect.visibility = View.VISIBLE
+            mQrcode.visibility = View.GONE
+            mDetail.visibility = View.GONE
+        } else {
+            mHandle.visibility = View.GONE
+            mSelect.visibility = View.GONE
+            mQrcode.visibility = View.VISIBLE
+            mDetail.visibility = View.VISIBLE
+        }
     }
 
     fun bind(token: OtpToken) {
+        this.mToken = token
         mCodes = null
 
         // Cancel all active animations.
@@ -93,8 +133,7 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
 
         mDetail.setOnClickListener {
             val intent = Intent(
-                context,
-                TokenDetailActivity::class.java
+                context, TokenDetailActivity::class.java
             ).setAction(Intent.ACTION_DEFAULT)
             intent.putExtra(TokenDetailActivity.EXTRA_TOKEN_ID, token.id)
             startActivity(context, intent, null)
@@ -113,10 +152,7 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
         val qrcodeWriter = QRCodeWriter()
         val qrCodeSize = resources.getDimensionPixelSize(R.dimen.dp250)
         val encoded = qrcodeWriter.encode(
-            OtpTokenParser.toUri(token).toString(),
-            BarcodeFormat.QR_CODE,
-            qrCodeSize,
-            qrCodeSize
+            OtpTokenParser.toUri(token).toString(), BarcodeFormat.QR_CODE, qrCodeSize, qrCodeSize
         )
         val pixels = IntArray(qrCodeSize * qrCodeSize)
         for (x in 0 until qrCodeSize) {

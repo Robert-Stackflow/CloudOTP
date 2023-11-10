@@ -67,7 +67,7 @@ public class ThemeListAdapter extends RecyclerView.Adapter<ThemeListAdapter.MyVi
         holder.checkboxView.setOnClickListener(listener);
         if (SharedPreferenceUtil.getThemeId(context, R.style.AppTheme) == themeItem.themeId) {
             ColorStateList colorStateList = holder.checkboxView.getImageTintList();
-            holder.checkboxView.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_light_checkbox_checked));
+            holder.checkboxView.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_material_checkbox_checked));
             holder.checkboxView.setImageTintList(colorStateList);
         }
     }

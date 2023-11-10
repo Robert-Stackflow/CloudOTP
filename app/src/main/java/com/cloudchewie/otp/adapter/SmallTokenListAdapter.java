@@ -16,7 +16,7 @@ import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.entity.TokenCode;
 import com.cloudchewie.otp.util.authenticator.TokenCodeUtil;
-import com.cloudchewie.otp.util.database.LocalStorage;
+import com.cloudchewie.otp.database.LocalStorage;
 import com.cloudchewie.otp.util.enumeration.OtpTokenType;
 import com.cloudchewie.otp.widget.SmallTokenLayout;
 import com.cloudchewie.ui.custom.IToast;
@@ -79,17 +79,6 @@ public class SmallTokenListAdapter extends RecyclerView.Adapter<SmallTokenListAd
             }
             tokenCodes.put(token.getId(), codes);
             ((SmallTokenLayout) holder.mItemView).start(token.getTokenType(), codes);
-        });
-        holder.mItemView.setOnLongClickListener(view -> {
-            if (SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.TOKEN_LONG_CLICK_COPY.getKey(), true)) {
-                TokenCode codes = new TokenCodeUtil().generateTokenCode(token);
-                if (token.getTokenType() == OtpTokenType.HOTP) {
-                    LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
-                }
-                ClipBoardUtil.copy(codes.getCurrentCode());
-                IToast.showBottom(context, context.getString(R.string.copy_success));
-            }
-            return false;
         });
         {
             TokenCode codes = new TokenCodeUtil().generateTokenCode(token);

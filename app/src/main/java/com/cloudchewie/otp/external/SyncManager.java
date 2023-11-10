@@ -3,7 +3,7 @@ package com.cloudchewie.otp.external;
 import android.content.Context;
 
 import com.cloudchewie.otp.entity.SyncConfig;
-import com.cloudchewie.otp.util.database.LocalStorage;
+import com.cloudchewie.otp.database.LocalStorage;
 
 public class SyncManager {
     private Context mContext;

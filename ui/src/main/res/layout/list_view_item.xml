@@ -10,7 +10,7 @@
         android:layout_height="@dimen/dp20"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:src="@drawable/ic_light_right"
+        android:src="@drawable/ic_material_done"
         android:visibility="invisible"
         app:tint="?attr/colorPrimary" />
 
@@ -32,7 +32,7 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/dp10"
-        android:src="@drawable/ic_light_right"
+        android:src="@drawable/ic_material_done"
         android:visibility="invisible"
         app:tint="?attr/colorPrimary" />
 </RelativeLayout>

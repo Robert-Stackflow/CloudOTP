@@ -83,7 +83,7 @@ public class SharedPreferenceUtil {
         putString(context, key, JSON.toJSONString(objects));
     }
 
-    public static List<Object> getArray(@NonNull Context context, String key, Class clazz) {
+    public static List<Object> getArray(@NonNull Context context, String key, Class<Object> clazz) {
         return JSON.parseArray(getString(context, key, ""), clazz);
     }
 

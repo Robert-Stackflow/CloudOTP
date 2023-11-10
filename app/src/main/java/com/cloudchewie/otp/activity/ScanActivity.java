@@ -24,7 +24,7 @@ import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.util.authenticator.OtpTokenParser;
 import com.cloudchewie.otp.util.authenticator.QrCodeParser;
-import com.cloudchewie.otp.util.database.LocalStorage;
+import com.cloudchewie.otp.database.LocalStorage;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.ui.custom.IDialog;
 import com.cloudchewie.ui.custom.IToast;
@@ -61,6 +61,7 @@ public class ScanActivity extends BaseActivity implements ImageAnalysis.Analyzer
         } else {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
+        goToVerify();
     }
 
     private void startCamera() {

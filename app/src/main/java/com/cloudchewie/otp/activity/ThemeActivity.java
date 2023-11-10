@@ -9,7 +9,6 @@ package com.cloudchewie.otp.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.View;
@@ -19,7 +18,6 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.blankj.utilcode.util.ActivityUtils;
 import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.adapter.ThemeListAdapter;
 import com.cloudchewie.otp.entity.ThemeItem;
@@ -67,6 +65,7 @@ public class ThemeActivity extends BaseActivity implements View.OnClickListener 
         recyclerView = findViewById(R.id.activity_theme_recycler_view);
         loadThemes();
         initSwipeRefresh();
+        goToVerify();
     }
 
     void initSwipeRefresh() {
@@ -99,16 +98,14 @@ public class ThemeActivity extends BaseActivity implements View.OnClickListener 
                 ImageView checkBox = childView.findViewById(R.id.item_theme_checkbox);
                 if (childView.getId() == themeItem.layoutId) {
                     ColorStateList colorStateList = checkBox.getImageTintList();
-                    checkBox.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_light_checkbox_checked));
+                    checkBox.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_material_checkbox_checked));
                     checkBox.setImageTintList(colorStateList);
                     SharedPreferenceUtil.setThemeId(this, themeItem.themeId);
                     IToast.showBottom(this, getString(R.string.change_theme_success));
                     LiveEventBus.get(EventBusCode.CHANGE_THEME.getKey(), String.class).post("");
-                    ActivityUtils.finishAllActivities();
-                    ActivityUtils.startActivity(new Intent(this, MainActivity.class).setAction(Intent.ACTION_DEFAULT));
                 } else {
                     ColorStateList colorStateList = checkBox.getImageTintList();
-                    checkBox.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_light_checkbox_unchecked));
+                    checkBox.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_material_checkbox_unchecked));
                     checkBox.setImageTintList(colorStateList);
                 }
             }

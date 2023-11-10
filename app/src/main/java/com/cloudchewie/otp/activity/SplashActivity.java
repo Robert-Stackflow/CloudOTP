@@ -14,7 +14,8 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 
 import com.cloudchewie.otp.R;
-import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
+import com.cloudchewie.otp.util.ShortcutUtil;
+import com.cloudchewie.otp.database.AppSharedPreferenceUtil;
 import com.cloudchewie.ui.loadingdialog.manager.StyleManager;
 import com.cloudchewie.ui.loadingdialog.view.LoadingDialog;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
@@ -45,6 +46,7 @@ public class SplashActivity extends BaseActivity {
         StyleManager s = new StyleManager();
         s.Anim(true).repeatTime(0).contentSize(-1).intercept(true);
         LoadingDialog.initStyle(s);
+        ShortcutUtil.init(this);
     }
 
     void jumpToMainActivity() {
@@ -53,8 +55,7 @@ public class SplashActivity extends BaseActivity {
             public void run() {
                 try {
                     sleep(1000);
-                    @SuppressLint("IntentWithNullActionLaunch") Intent it = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(it);
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class).setAction(Intent.ACTION_DEFAULT));
                     finish();
                 } catch (Exception e) {
                     e.printStackTrace();

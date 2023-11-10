@@ -23,8 +23,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.cloudchewie.otp.R;
-import com.cloudchewie.otp.util.NetWorkStateReceiver;
+import com.cloudchewie.otp.appwidget.SimpleRemoteViewsManager;
+import com.cloudchewie.otp.database.AppDatabase;
+import com.cloudchewie.otp.database.LocalStorage;
+import com.cloudchewie.otp.database.PrivacyManager;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
+import com.cloudchewie.otp.util.enumeration.PasscodeMode;
+import com.cloudchewie.ui.custom.IDialog;
 import com.cloudchewie.util.system.SharedPreferenceCode;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
 import com.cloudchewie.util.ui.DarkModeUtil;
@@ -37,7 +42,6 @@ import java.util.Objects;
 public class BaseActivity extends AppCompatActivity {
     static float fontScale = 1f;
     BroadcastReceiver broadcastReceiver;
-    NetWorkStateReceiver netWorkStateReceiver;
     private Configuration mConfiguration;
 
     @Override
@@ -61,6 +65,37 @@ public class BaseActivity extends AppCompatActivity {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        }
+    }
+
+    void goToVerify() {
+        goToVerify(false);
+    }
+
+    void goToVerify(boolean showDialog) {
+        if (!SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true) || PrivacyManager.isVerified())
+            return;
+        if (PrivacyManager.havePasscode()) {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("mode", PasscodeMode.VERIFY.ordinal());
+            startActivity(new Intent(this, PasscodeActivity.class).setAction(Intent.ACTION_DEFAULT).putExtras(bundle));
+        } else if (showDialog) {
+            IDialog dialog = new IDialog(this);
+            dialog.setTitle(getString(R.string.dialog_title_none_passcode));
+            dialog.setMessage(getString(R.string.dialog_content_none_passcode));
+            dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                @Override
+                public void onPositiveClick() {
+                    Intent intent = new Intent(BaseActivity.this, PasscodeActivity.class).setAction(Intent.ACTION_DEFAULT);
+                    startActivity(intent);
+                }
+
+                @Override
+                public void onNegtiveClick() {
+
+                }
+            });
+            dialog.show();
         }
     }
 
@@ -90,20 +125,19 @@ public class BaseActivity extends AppCompatActivity {
                 }
             }
         };
+        LocalStorage.init(AppDatabase.getInstance(getApplicationContext()));
+        PrivacyManager.init();
+        LiveEventBus.get(EventBusCode.CHANGE_PASSCODE.getKey()).observe(this, s -> SimpleRemoteViewsManager.refresh(this));
+        LiveEventBus.get(EventBusCode.CHANGE_TOKEN_NEED_AUTH.getKey()).observe(this, s -> SimpleRemoteViewsManager.refresh(this));
+        LiveEventBus.get(EventBusCode.CHANGE_VERIFY_STATE.getKey()).observe(this, s -> SimpleRemoteViewsManager.refresh(this));
+        LiveEventBus.get(EventBusCode.CHANGE_TOKEN.getKey()).observe(this, s -> SimpleRemoteViewsManager.refresh(this));
     }
 
     @Override
     protected void onResume() {
-        if (netWorkStateReceiver == null) netWorkStateReceiver = new NetWorkStateReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(netWorkStateReceiver, filter);
         super.onResume();
     }
-
-    @Override
-    protected void onPause() {
-        unregisterReceiver(netWorkStateReceiver);
-        super.onPause();
-    }
 }
+

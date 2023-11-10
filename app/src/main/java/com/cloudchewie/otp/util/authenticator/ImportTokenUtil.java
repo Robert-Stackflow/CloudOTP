@@ -3,10 +3,11 @@ package com.cloudchewie.otp.util.authenticator;
 import android.content.Context;
 import android.net.Uri;
 
+import com.cloudchewie.otp.database.LocalStorage;
+import com.cloudchewie.otp.database.OtpTokenManager;
 import com.cloudchewie.otp.entity.ImportAnalysis;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.external.AESStringCypher;
-import com.cloudchewie.otp.util.database.LocalStorage;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.util.system.UriUtil;
 import com.google.gson.Gson;
@@ -98,7 +99,7 @@ public class ImportTokenUtil {
     }
 
     public static int mergeTokens(List<OtpToken> tokenList) {
-        List<OtpToken> already = LocalStorage.getAppDatabase().otpTokenDao().getAll();
+        List<OtpToken> already = OtpTokenManager.getTokens();
         List<OtpToken> newTokenList = new ArrayList<>();
         for (OtpToken otpToken : tokenList) {
             if (!already.contains(otpToken) && !newTokenList.contains(otpToken)) {

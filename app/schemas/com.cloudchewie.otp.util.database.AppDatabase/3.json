@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "0208deaa31d6563987c96d349e6e0f15",
+    "identityHash": "62b8e502f1846d1b319e81fbd1819feb",
     "entities": [
       {
         "tableName": "otp_tokens",
@@ -92,7 +92,7 @@
       },
       {
         "tableName": "sync_config",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `accessToken` TEXT, `lastPushed` INTEGER, `secret` TEXT, `useUniSecret` INTEGER NOT NULL, PRIMARY KEY(`name`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `accessToken` TEXT, `lastPushed` INTEGER, PRIMARY KEY(`name`))",
         "fields": [
           {
             "fieldPath": "name",
@@ -111,18 +111,6 @@
             "columnName": "lastPushed",
             "affinity": "INTEGER",
             "notNull": false
-          },
-          {
-            "fieldPath": "secret",
-            "columnName": "secret",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "useUniSecret",
-            "columnName": "useUniSecret",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
@@ -136,7 +124,7 @@
       },
       {
         "tableName": "privacy",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER, `passcode` TEXT, `secret` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER, `passcode` TEXT, `secret` TEXT, `verified` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -155,6 +143,12 @@
             "columnName": "secret",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "verified",
+            "columnName": "verified",
+            "affinity": "INTEGER",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -170,7 +164,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0208deaa31d6563987c96d349e6e0f15')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '62b8e502f1846d1b319e81fbd1819feb')"
     ]
   }
 }

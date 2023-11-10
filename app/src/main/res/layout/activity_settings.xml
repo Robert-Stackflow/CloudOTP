@@ -71,27 +71,17 @@
                     app:layout_constraintTop_toBottomOf="@id/switch_daynight" />
 
                 <com.cloudchewie.ui.item.CheckBoxItem
-                    android:id="@+id/entry_long_press_copy"
+                    android:id="@+id/entry_click_copy"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dp10"
                     android:textSize="18sp"
-                    app:checkbox_item_title="@string/entry_long_press_copy_code"
+                    app:checkbox_item_bottom_radius_enable="true"
+                    app:checkbox_item_title="@string/entry_click_copy_code"
                     app:checkbox_item_top_radius_enable="true"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/entry_language" />
-
-                <com.cloudchewie.ui.item.CheckBoxItem
-                    android:id="@+id/entry_click_copy"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    app:checkbox_item_bottom_radius_enable="true"
-                    app:checkbox_item_title="@string/entry_click_copy_code"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/entry_long_press_copy" />
 
                 <com.cloudchewie.ui.item.CheckBoxItem
                     android:id="@+id/entry_disable_screenshot"

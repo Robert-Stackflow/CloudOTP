@@ -13,9 +13,10 @@ import com.cloudchewie.ui.textdrawable.TextDrawable;
 import java.util.Locale;
 
 public class TokenImageUtil {
+
     public static void setTokenImage(ImageView imageView, OtpToken token) {
         if (token.getImagePath() != null) {
-            Glide.with(imageView).load(token.getImagePath()).placeholder(R.drawable.ic_light_qrcode).into(imageView);
+            Glide.with(imageView).load(token.getImagePath()).placeholder(R.mipmap.ic_launcher_round).into(imageView);
         } else if (!TextUtils.isEmpty(token.getIssuer())) {
             Integer integer = matchIssuerWithTokenThumbnail(token);
             if (integer != null) {
@@ -27,7 +28,7 @@ public class TokenImageUtil {
                 imageView.setImageDrawable(tokenTextDrawable);
             }
         } else {
-            imageView.setImageResource(R.drawable.ic_light_qrcode);
+            imageView.setImageResource(R.mipmap.ic_launcher_round);
         }
     }
 

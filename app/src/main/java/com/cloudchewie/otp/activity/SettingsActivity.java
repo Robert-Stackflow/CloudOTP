@@ -13,8 +13,8 @@ import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.cloudchewie.otp.R;
 import com.cloudchewie.otp.entity.ListBottomSheetBean;
-import com.cloudchewie.otp.util.database.AppSharedPreferenceUtil;
-import com.cloudchewie.otp.util.database.PrivacyManager;
+import com.cloudchewie.otp.database.AppSharedPreferenceUtil;
+import com.cloudchewie.otp.database.PrivacyManager;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.otp.widget.ListBottomSheet;
 import com.cloudchewie.ui.custom.IDialog;
@@ -37,7 +37,6 @@ import java.util.Objects;
 
 public class SettingsActivity extends BaseActivity implements View.OnClickListener {
     RefreshLayout swipeRefreshLayout;
-    CheckBoxItem longPressItem;
     CheckBoxItem clickItem;
     CheckBoxItem authItem;
     CheckBoxItem screenShotItem;
@@ -55,7 +54,6 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
         StatusBarUtil.setStatusBarMarginTop(this);
         setContentView(R.layout.activity_settings);
         ((TitleBar) findViewById(R.id.authenticator_settings_titlebar)).setLeftButtonClickListener(v -> finishAfterTransition());
-        longPressItem = findViewById(R.id.entry_long_press_copy);
         clickItem = findViewById(R.id.entry_click_copy);
         authItem = findViewById(R.id.entry_need_auth);
         screenShotItem = findViewById(R.id.entry_disable_screenshot);
@@ -71,10 +69,10 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
         loadSettings();
         bindEvent();
         initSwipeRefresh();
+        goToVerify();
     }
 
     void loadSettings() {
-        longPressItem.setChecked(SharedPreferenceUtil.getBoolean(SettingsActivity.this, SharedPreferenceCode.TOKEN_LONG_CLICK_COPY.getKey(), true));
         clickItem.setChecked(SharedPreferenceUtil.getBoolean(SettingsActivity.this, SharedPreferenceCode.TOKEN_CLICK_COPY.getKey(), false));
         authItem.setChecked(SharedPreferenceUtil.getBoolean(SettingsActivity.this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true));
         screenShotItem.setChecked(SharedPreferenceUtil.getBoolean(SettingsActivity.this, SharedPreferenceCode.TOKEN_DISBALE_SCREENSHOT.getKey(), true));
@@ -132,7 +130,6 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
             }
         });
         enableWebCacheEntry.setOnCheckedChangedListener((buttonView, isChecked) -> SharedPreferenceUtil.putBoolean(this, SharedPreferenceCode.ENABLE_WEB_CACHE.getKey(), isChecked));
-        longPressItem.setOnCheckedChangedListener((buttonView, isChecked) -> SharedPreferenceUtil.putBoolean(SettingsActivity.this, SharedPreferenceCode.TOKEN_LONG_CLICK_COPY.getKey(), isChecked));
         clickItem.setOnCheckedChangedListener((buttonView, isChecked) -> SharedPreferenceUtil.putBoolean(SettingsActivity.this, SharedPreferenceCode.TOKEN_CLICK_COPY.getKey(), isChecked));
         authItem.setOnCheckedChangedListener((buttonView, isChecked) -> {
             SharedPreferenceUtil.putBoolean(SettingsActivity.this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), isChecked);

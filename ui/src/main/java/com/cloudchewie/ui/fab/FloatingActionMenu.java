@@ -161,7 +161,7 @@ public class FloatingActionMenu extends ViewGroup {
         mAnimationDelayPerItem = attr.getInt(R.styleable.FloatingActionMenu_menu_animationDelayPerItem, 50);
         mIcon = attr.getDrawable(R.styleable.FloatingActionMenu_menu_icon);
         if (mIcon == null) {
-            mIcon = AppCompatResources.getDrawable(getContext(), R.drawable.ic_light_plus);
+            mIcon = AppCompatResources.getDrawable(getContext(), R.drawable.ic_material_add);
         }
         mLabelsSingleLine = attr.getBoolean(R.styleable.FloatingActionMenu_menu_labels_singleLine, false);
         mLabelsEllipsize = attr.getInt(R.styleable.FloatingActionMenu_menu_labels_ellipsize, 0);

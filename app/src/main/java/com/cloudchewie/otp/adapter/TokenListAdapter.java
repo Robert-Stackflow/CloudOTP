@@ -13,10 +13,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.cloudchewie.otp.R;
+import com.cloudchewie.otp.database.LocalStorage;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.entity.TokenCode;
 import com.cloudchewie.otp.util.authenticator.TokenCodeUtil;
-import com.cloudchewie.otp.util.database.LocalStorage;
 import com.cloudchewie.otp.util.enumeration.OtpTokenType;
 import com.cloudchewie.otp.widget.TokenLayout;
 import com.cloudchewie.ui.custom.IToast;
@@ -31,6 +31,21 @@ public class TokenListAdapter extends RecyclerView.Adapter<TokenListAdapter.MyVi
     private final Context context;
     private List<OtpToken> contentList;
     private Map<Long, TokenCode> tokenCodes;
+    private View.OnLongClickListener onItemLongClickListener;
+    private OnStateChangeListener onStateChangeListener;
+    private boolean editing = false;
+
+    public interface OnStateChangeListener {
+        void onSelectStateChanged(int selectedCount);
+    }
+
+    public void setOnItemLongClickListener(View.OnLongClickListener onItemLongClickListener) {
+        this.onItemLongClickListener = onItemLongClickListener;
+    }
+
+    public void setOnStateChangeListener(OnStateChangeListener onStateChangeListener) {
+        this.onStateChangeListener = onStateChangeListener;
+    }
 
     public TokenListAdapter(Context context, List<OtpToken> contentList) {
         this.contentList = contentList;
@@ -52,6 +67,12 @@ public class TokenListAdapter extends RecyclerView.Adapter<TokenListAdapter.MyVi
         notifyDataSetChanged();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    public void setEditing(boolean editing) {
+        this.editing = editing;
+        notifyDataSetChanged();
+    }
+
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         if (null == contentList) {
@@ -68,36 +89,39 @@ public class TokenListAdapter extends RecyclerView.Adapter<TokenListAdapter.MyVi
             return;
         }
         holder.tokenView.bind(token);
-        holder.tokenView.setOnClickListener(view -> {
-            TokenCode codes = new TokenCodeUtil().generateTokenCode(token);
-            if (token.getTokenType() == OtpTokenType.HOTP) {
-                LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
-            }
-            if (SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.TOKEN_CLICK_COPY.getKey(), false)) {
-                ClipBoardUtil.copy(codes.getCurrentCode());
-                IToast.showBottom(context, context.getString(R.string.copy_success));
-            }
-            tokenCodes.put(token.getId(), codes);
-            holder.tokenView.start(token.getTokenType(), codes, true);
-        });
-        holder.tokenView.setOnLongClickListener(view -> {
-            if (SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.TOKEN_LONG_CLICK_COPY.getKey(), true)) {
+        holder.tokenView.setEditing(editing);
+        if (!editing) {
+            holder.tokenView.setOnClickListener(view -> {
                 TokenCode codes = new TokenCodeUtil().generateTokenCode(token);
                 if (token.getTokenType() == OtpTokenType.HOTP) {
                     LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
                 }
-                ClipBoardUtil.copy(codes.getCurrentCode());
-                IToast.showBottom(context, context.getString(R.string.copy_success));
+                if (SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.TOKEN_CLICK_COPY.getKey(), false)) {
+                    ClipBoardUtil.copy(codes.getCurrentCode());
+                    IToast.showBottom(context, context.getString(R.string.copy_success));
+                }
+                tokenCodes.put(token.getId(), codes);
+                holder.tokenView.start(token.getTokenType(), codes, true);
+            });
+            holder.tokenView.setOnLongClickListener(onItemLongClickListener);
+            {
+                TokenCode codes = new TokenCodeUtil().generateTokenCode(token);
+                if (token.getTokenType() == OtpTokenType.HOTP) {
+                    LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
+                }
+                tokenCodes.put(token.getId(), codes);
+                holder.tokenView.start(token.getTokenType(), codes, true);
             }
-            return false;
-        });
-        {
-            TokenCode codes = new TokenCodeUtil().generateTokenCode(token);
-            if (token.getTokenType() == OtpTokenType.HOTP) {
-                LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
-            }
-            tokenCodes.put(token.getId(), codes);
-            holder.tokenView.start(token.getTokenType(), codes, true);
+        } else {
+            holder.tokenView.setClickable(false);
+            holder.tokenView.setOnStateChangeListener(selected -> {
+                int selectedCount = 0;
+                for (OtpToken otpToken : contentList) {
+                    if (otpToken.isSeleted()) selectedCount++;
+                }
+                if (onStateChangeListener != null)
+                    onStateChangeListener.onSelectStateChanged(selectedCount);
+            });
         }
     }
 

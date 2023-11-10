@@ -3,9 +3,9 @@ package com.cloudchewie.otp.util.authenticator;
 import android.content.Context;
 import android.net.Uri;
 
+import com.cloudchewie.otp.database.OtpTokenManager;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.external.AESStringCypher;
-import com.cloudchewie.otp.util.database.LocalStorage;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -21,7 +21,7 @@ public class ExportTokenUtil {
     public static void exportJsonFile(Context context, Uri fileUri) {
         try {
             OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri);
-            List<OtpToken> tokens = LocalStorage.getAppDatabase().otpTokenDao().getAll();
+            List<OtpToken> tokens = OtpTokenManager.getTokens();
             PrintWriter printWriter = new PrintWriter(outputStream);
             printWriter.write(new Gson().toJson(tokens));
             printWriter.flush();
@@ -37,7 +37,7 @@ public class ExportTokenUtil {
         try {
             OutputStream outputStream = context.getContentResolver().openOutputStream(fileUri);
             PrintWriter printWriter = new PrintWriter(outputStream);
-            List<OtpToken> tokens = LocalStorage.getAppDatabase().otpTokenDao().getAll();
+            List<OtpToken> tokens = OtpTokenManager.getTokens();
             for (OtpToken token : tokens)
                 printWriter.println(OtpTokenParser.toUri(token).toString());
             printWriter.flush();
@@ -62,7 +62,7 @@ public class ExportTokenUtil {
     }
 
     public static String getEncryptedData(String password) throws GeneralSecurityException, UnsupportedEncodingException {
-        String json = new Gson().toJson(LocalStorage.getAppDatabase().otpTokenDao().getAll());
+        String json = new Gson().toJson(OtpTokenManager.getTokens());
         AESStringCypher.SecretKeys keys = AESStringCypher.generateKeyFromPassword(password, password);
         AESStringCypher.CipherTextIvMac toencrypt = AESStringCypher.encrypt(json, keys);
         return toencrypt.toString();
