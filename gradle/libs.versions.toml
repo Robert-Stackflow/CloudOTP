@@ -3,7 +3,7 @@
 kotlin = "1.7.0"
 kotlin-stdlib = "1.7.10"
 benchmark = "1.0.0"
-camera-view = "1.2.3"
+camera-view = "1.2.1"
 
 [libraries]
 
