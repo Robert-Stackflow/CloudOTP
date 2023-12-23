@@ -305,7 +305,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             Intent intent = new Intent(this, TokenDetailActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
         } else if (view == eximportEntry) {
-            Intent intent = new Intent(this, MainActivity.class).setAction(Intent.ACTION_DEFAULT);
+            Intent intent = new Intent(this, EximportActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
         } else if (view == settingEntry) {
             Intent intent = new Intent(this, SettingsActivity.class).setAction(Intent.ACTION_DEFAULT);
