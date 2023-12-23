@@ -1,5 +1,7 @@
 package com.cloudchewie.otp.adapter;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,7 +20,7 @@ public class CustomItemHelpCallBack extends ItemTouchHelper.Callback {
 
     @Override
     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-        int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+        int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.START | ItemTouchHelper.END;
         int swipeFlags = ItemTouchHelper.LEFT;
         return makeMovementFlags(dragFlags, swipeFlags);
     }

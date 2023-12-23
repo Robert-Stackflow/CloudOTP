@@ -45,6 +45,11 @@ public abstract class CustomTokenListAdapter<T extends RecyclerView.ViewHolder> 
     public void onMove(int fromPosition, int toPosition) {
         notifyItemMoved(fromPosition, toPosition);
         Collections.swap(otpTokens, fromPosition, toPosition);
+        if (toPosition - fromPosition == 2) {
+            Collections.swap(otpTokens, fromPosition, fromPosition + 1);
+        } else if (fromPosition - toPosition == 2) {
+            Collections.swap(otpTokens, fromPosition, fromPosition - 1);
+        }
         int ordinal = 0;
         for (OtpToken otpToken : otpTokens) {
             otpToken.setOrdinal(ordinal);

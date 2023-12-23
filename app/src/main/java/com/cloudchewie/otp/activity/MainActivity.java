@@ -107,6 +107,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private RelativeLayout mDrawer;
     private boolean isInSelectionMode = false;
     private boolean isAllSelected = false;
+    private ItemTouchHelper itemTouchHelper;
 
     @Override
     @SuppressLint("SourceLockedOrientationActivity")
@@ -220,6 +221,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     void setRecyclerViewData(List<OtpToken> tokenList) {
         otpTokens = tokenList;
+        if (itemTouchHelper != null) {
+            itemTouchHelper.attachToRecyclerView(null);
+        }
         switch (AppSharedPreferenceUtil.getViewType(this)) {
             case singleColumn:
                 adapter = new SingleColumnTokenListAdapter(this, tokenList);
@@ -229,7 +233,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 recyclerView.removeItemDecoration(bottomSpacing);
                 recyclerView.addItemDecoration(bottomSpacing);
                 recyclerView.setItemViewCacheSize(500);
-                new ItemTouchHelper(new CustomItemHelpCallBack(adapter)).attachToRecyclerView(recyclerView);
+                itemTouchHelper = new ItemTouchHelper(new CustomItemHelpCallBack(adapter));
                 break;
             case doubleColumn:
                 adapter = new DoubleColumnTokenListAdapter(this, tokenList);
@@ -240,6 +244,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 recyclerView.addItemDecoration(bottomSpacing);
                 recyclerView.addItemDecoration(rightSpacing);
                 recyclerView.setItemViewCacheSize(500);
+                itemTouchHelper = new ItemTouchHelper(new CustomItemHelpCallBack(adapter));
+                itemTouchHelper.attachToRecyclerView(recyclerView);
                 recyclerView.setPadding((int) getResources().getDimension(R.dimen.dp10), 0, (int) getResources().getDimension(R.dimen.dp4), 0);
                 break;
         }
@@ -664,12 +670,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     private void refreshSelectionState(boolean subjective) {
-        if(selectedOtpTokens.size()==0){
+        if (selectedOtpTokens.size() == 0) {
             operationExportButton.setEnabled(false);
             operationDeleteButton.setEnabled(false);
             operationExportButton.setActivated(false);
             operationDeleteButton.setActivated(false);
-        }else{
+        } else {
             operationExportButton.setEnabled(true);
             operationDeleteButton.setEnabled(true);
             operationExportButton.setActivated(true);
@@ -683,6 +689,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             swipeRefreshLayout.setEnableRefresh(false);
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
             adapter.setInSelectionMode(true, subjective);
+            if (AppSharedPreferenceUtil.getViewType(this) == ViewType.singleColumn && itemTouchHelper != null) {
+                itemTouchHelper.attachToRecyclerView(recyclerView);
+            }
         } else {
             titlebar.setVisibility(View.VISIBLE);
             operationBar.setVisibility(View.GONE);
@@ -691,6 +700,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
             adapter.setInSelectionMode(false, subjective);
             selectedOtpTokens = new ArrayList<>();
+            if (AppSharedPreferenceUtil.getViewType(this) == ViewType.singleColumn && itemTouchHelper != null) {
+                itemTouchHelper.attachToRecyclerView(null);
+            }
         }
     }
 
