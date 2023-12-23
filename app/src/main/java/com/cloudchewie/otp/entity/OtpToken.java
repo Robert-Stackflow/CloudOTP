@@ -29,7 +29,7 @@ public class OtpToken implements Serializable {
     boolean pinned;
 
     @Ignore
-    boolean seleted;
+    boolean selected = false;
 
     @Ignore
     public OtpToken(Long id, Integer ordinal, String issuer, String account, String imagePath, OtpTokenType tokenType, String algorithm, String secret, Integer digits, Long counter, Integer period, EncryptionType encryptionType) {
@@ -164,12 +164,12 @@ public class OtpToken implements Serializable {
         return pinned;
     }
 
-    public boolean isSeleted() {
-        return seleted;
+    public boolean isSelected() {
+        return selected;
     }
 
-    public void setSeleted(boolean seleted) {
-        this.seleted = seleted;
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
     public void setPinned(boolean pinned) {

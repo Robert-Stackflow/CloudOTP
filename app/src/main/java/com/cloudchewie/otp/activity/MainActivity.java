@@ -16,15 +16,17 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.blankj.utilcode.util.ThreadUtils;
 import com.cloudchewie.otp.R;
-import com.cloudchewie.otp.adapter.AbstractTokenListAdapter;
-import com.cloudchewie.otp.adapter.SmallTokenListAdapter;
-import com.cloudchewie.otp.adapter.TokenListAdapter;
+import com.cloudchewie.otp.adapter.CustomItemHelpCallBack;
+import com.cloudchewie.otp.adapter.CustomTokenListAdapter;
+import com.cloudchewie.otp.adapter.DoubleColumnTokenListAdapter;
+import com.cloudchewie.otp.adapter.SingleColumnTokenListAdapter;
 import com.cloudchewie.otp.appwidget.SimpleRemoteViewsManager;
 import com.cloudchewie.otp.database.AppSharedPreferenceUtil;
 import com.cloudchewie.otp.database.LocalStorage;
@@ -57,14 +59,18 @@ import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends BaseActivity implements View.OnClickListener, SecretBottomSheet.OnConfirmListener, View.OnLongClickListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener, SecretBottomSheet.OnConfirmListener, CustomTokenListAdapter.ItemOperationListener {
     private static final int IMPORT_ENCRYPT_REQUEST_CODE = 42;
-    private static final int IMPORT_URI_REQUEST_CODE = 43;
-    private static final int IMPORT_JSON_REQUEST_CODE = 44;
+    private static final int EXPORT_ENCRYPT_REQUEST_CODE = 43;
+    private static final int EXPORT_URI_REQUEST_CODE = 44;
+    private static final int IMPORT_URI_REQUEST_CODE = 45;
+    private static final int IMPORT_JSON_REQUEST_CODE = 46;
+    private static final int EXPORT_JSON_REQUEST_CODE = 47;
     RefreshLayout swipeRefreshLayout;
     FloatingActionButton lockButton;
     ImageButton operationDoneButton;
@@ -76,7 +82,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     ImageButton changeViewButton;
     ImageButton exportImportbutton;
     RecyclerView recyclerView;
-    AbstractTokenListAdapter adapter;
+    CustomTokenListAdapter<? extends RecyclerView.ViewHolder> adapter;
     RelativeLayout blankLayout;
     ConstraintLayout operationBar;
     ConstraintLayout titlebar;
@@ -92,12 +98,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     SpacingItemDecoration rightSpacing;
     AppCompatButton goToImportButton;
     LoadingDialog loadingDialog;
+    List<OtpToken> otpTokens = new ArrayList<>();
+    List<OtpToken> selectedOtpTokens = new ArrayList<>();
     private String EXPORT_PREFIX = "Token_";
     private boolean redirectToEximport = false;
     private Uri redirectUri;
     private DrawerLayout mDrawerLayout;
     private RelativeLayout mDrawer;
-    private boolean isEditing = false;
+    private boolean isInSelectionMode = false;
+    private boolean isAllSelected = false;
 
     @Override
     @SuppressLint("SourceLockedOrientationActivity")
@@ -157,6 +166,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         themeEntry = findViewById(R.id.activity_main_entry_theme);
         githubEntry = findViewById(R.id.activity_main_entry_github);
         blogEntry = findViewById(R.id.activity_main_entry_blog);
+        operationSelectAllButton.setOnClickListener(this);
+        operationDeleteButton.setOnClickListener(this);
+        operationExportButton.setOnClickListener(this);
+        operationDoneButton.setOnClickListener(this);
         dropboxEntry.setOnClickListener(this);
         exportImportbutton.setOnClickListener(this);
         goToImportButton.setOnClickListener(this);
@@ -182,7 +195,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     if (dy > 0 || dy < 0 && lockButton.isShown()) {
                         lockButton.hide(true);
                     }
-                    if (isSlideToBottom(recyclerView) && adapter instanceof TokenListAdapter) {
+                    if (isSlideToBottom(recyclerView) && adapter instanceof SingleColumnTokenListAdapter) {
                         lockButton.hide(true);
                     }
                 }
@@ -191,7 +204,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 if (SharedPreferenceUtil.getBoolean(MainActivity.this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true)) {
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE && !(isSlideToBottom(recyclerView) && adapter instanceof TokenListAdapter)) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE && !(isSlideToBottom(recyclerView) && adapter instanceof SingleColumnTokenListAdapter)) {
                         lockButton.show(true);
                     }
                 }
@@ -206,23 +219,27 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     void setRecyclerViewData(List<OtpToken> tokenList) {
+        otpTokens = tokenList;
         switch (AppSharedPreferenceUtil.getViewType(this)) {
             case singleColumn:
-                adapter = new TokenListAdapter(this, tokenList);
-                ((TokenListAdapter) adapter).setOnItemLongClickListener(this);
-                recyclerView.setAdapter((TokenListAdapter) adapter);
+                adapter = new SingleColumnTokenListAdapter(this, tokenList);
+                adapter.setItemOperationListener(this);
+                recyclerView.setAdapter(adapter);
                 recyclerView.setLayoutManager(new LinearLayoutManager(this));
                 recyclerView.removeItemDecoration(bottomSpacing);
                 recyclerView.addItemDecoration(bottomSpacing);
+                recyclerView.setItemViewCacheSize(500);
+                new ItemTouchHelper(new CustomItemHelpCallBack(adapter)).attachToRecyclerView(recyclerView);
                 break;
             case doubleColumn:
-                adapter = new SmallTokenListAdapter(this, tokenList);
-                recyclerView.setAdapter((SmallTokenListAdapter) adapter);
+                adapter = new DoubleColumnTokenListAdapter(this, tokenList);
+                recyclerView.setAdapter(adapter);
                 recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, RecyclerView.VERTICAL));
                 recyclerView.removeItemDecoration(bottomSpacing);
                 recyclerView.removeItemDecoration(rightSpacing);
                 recyclerView.addItemDecoration(bottomSpacing);
                 recyclerView.addItemDecoration(rightSpacing);
+                recyclerView.setItemViewCacheSize(500);
                 recyclerView.setPadding((int) getResources().getDimension(R.dimen.dp10), 0, (int) getResources().getDimension(R.dimen.dp4), 0);
                 break;
         }
@@ -288,7 +305,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             Intent intent = new Intent(this, TokenDetailActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
         } else if (view == eximportEntry) {
-            Intent intent = new Intent(this, EximportActivity.class).setAction(Intent.ACTION_DEFAULT);
+            Intent intent = new Intent(this, MainActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
         } else if (view == settingEntry) {
             Intent intent = new Intent(this, SettingsActivity.class).setAction(Intent.ACTION_DEFAULT);
@@ -316,7 +333,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             AppSharedPreferenceUtil.setViewType(this, ViewType.values()[(AppSharedPreferenceUtil.getViewType(this).ordinal() + 1) % ViewType.values().length]);
             LiveEventBus.get(EventBusCode.CHANGE_VIEW_TYPE.getKey()).post("");
         } else if (view == exportImportbutton || view == goToImportButton) {
-            List<String> strings = Arrays.asList(getResources().getStringArray(R.array.export_import_operation));
+            List<String> strings = Arrays.asList(getResources().getStringArray(R.array.import_operation));
             ListBottomSheet bottomSheet = new ListBottomSheet(this, ListBottomSheetBean.strToBean(strings));
             bottomSheet.setOnItemClickedListener(position -> {
                 if (position == 0) {
@@ -329,6 +346,80 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 bottomSheet.dismiss();
             });
             bottomSheet.show();
+        } else if (view == operationSelectAllButton) {
+            isAllSelected = !isAllSelected;
+            refreshSelectAllState(true);
+        } else if (view == operationExportButton) {
+            List<String> strings = Arrays.asList(getResources().getStringArray(R.array.export_operation));
+            ListBottomSheet bottomSheet = new ListBottomSheet(this, ListBottomSheetBean.strToBean(strings));
+            bottomSheet.setOnItemClickedListener(position -> {
+                if (position == 0) {
+                    ExploreUtil.createFile(this, "application/octet-stream", EXPORT_PREFIX, "db", EXPORT_ENCRYPT_REQUEST_CODE, true);
+                } else if (position == 1) {
+                    IDialog dialog = new IDialog(this);
+                    dialog.setTitle(getString(R.string.dialog_title_warning_text_export));
+                    dialog.setMessage(getString(R.string.dialog_content_warning_text_export));
+                    dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                        @Override
+                        public void onPositiveClick() {
+                            ExploreUtil.createFile(MainActivity.this, "text/plain", EXPORT_PREFIX, "txt", EXPORT_URI_REQUEST_CODE, true);
+                        }
+
+                        @Override
+                        public void onNegtiveClick() {
+
+                        }
+                    });
+                    dialog.show();
+                } else if (position == 2) {
+                    IDialog dialog = new IDialog(this);
+                    dialog.setTitle(getString(R.string.dialog_title_warning_text_export));
+                    dialog.setMessage(getString(R.string.dialog_content_warning_text_export));
+                    dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                        @Override
+                        public void onPositiveClick() {
+                            ExploreUtil.createFile(MainActivity.this, "application/json", EXPORT_PREFIX, "json", EXPORT_JSON_REQUEST_CODE, true);
+                        }
+
+                        @Override
+                        public void onNegtiveClick() {
+
+                        }
+                    });
+                    dialog.show();
+                }
+                bottomSheet.dismiss();
+            });
+            bottomSheet.show();
+        } else if (view == operationDeleteButton) {
+            IDialog dialog = new IDialog(this);
+            dialog.setTitle(getString(R.string.dialog_title_delete_token));
+            dialog.setMessage(getString(R.string.dialog_content_delete_token));
+            dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                @Override
+                public void onPositiveClick() {
+                    adapter.delete();
+                    if (isAllSelected) {
+                        isInSelectionMode = false;
+                        isAllSelected = false;
+                        refreshSelectAllState(false);
+                        refresh();
+                    }
+                    IToast.showBottom(MainActivity.this, getString(R.string.delete_token_success));
+                    refreshSelectionState(true);
+                }
+
+                @Override
+                public void onNegtiveClick() {
+                }
+
+            });
+            dialog.show();
+        } else if (view == operationDoneButton) {
+            isInSelectionMode = false;
+            isAllSelected = false;
+            refreshSelectAllState(false);
+            refreshSelectionState(true);
         }
     }
 
@@ -340,6 +431,40 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         IDialog dialog = new IDialog(this);
         if (uri == null) return;
         switch (requestCode) {
+            case EXPORT_ENCRYPT_REQUEST_CODE:
+                if (PrivacyManager.haveSecret()) {
+                    exportEncryptFile(uri, PrivacyManager.getSecret());
+                } else {
+                    redirectToEximport = true;
+                    redirectUri = uri;
+                    SecretBottomSheet bottomSheet = new SecretBottomSheet(this, SecretBottomSheet.MODE.PUSH);
+                    bottomSheet.setOnConfirmListener(this);
+                    bottomSheet.show();
+                }
+                break;
+            case EXPORT_URI_REQUEST_CODE:
+                try {
+                    loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
+                    ExportTokenUtil.exportUriFile(MainActivity.this, uri, selectedOtpTokens);
+                    loadingDialog.close();
+                    IToast.showBottom(MainActivity.this, getString(R.string.export_success));
+                } catch (Exception e) {
+                    loadingDialog.close();
+                    IToast.showBottom(MainActivity.this, getString(R.string.export_fail));
+                }
+                break;
+            case EXPORT_JSON_REQUEST_CODE:
+                try {
+                    loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
+                    ExportTokenUtil.exportJsonFile(MainActivity.this, uri, selectedOtpTokens);
+                    loadingDialog.close();
+                    IToast.showBottom(MainActivity.this, getString(R.string.export_success));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    loadingDialog.close();
+                    IToast.showBottom(MainActivity.this, getString(R.string.export_fail));
+                }
+                break;
             case IMPORT_ENCRYPT_REQUEST_CODE:
                 dialog.setTitle(getString(R.string.dialog_title_import_encrypt_token));
                 dialog.setMessage(String.format(getString(R.string.dialog_content_import_encrypt_token), UriUtil.getFileAbsolutePath(this, uri)));
@@ -422,7 +547,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     void exportEncryptFile(Uri uri, String secret) {
         try {
             loadingDialog.setLoadingText(getString(R.string.loading_export)).show();
-            ExportTokenUtil.exportEncryptFile(MainActivity.this, uri, secret);
+            if (isInSelectionMode) {
+                ExportTokenUtil.exportEncryptFile(MainActivity.this, uri, secret, selectedOtpTokens);
+            } else {
+                ExportTokenUtil.exportEncryptFile(MainActivity.this, uri, secret);
+            }
             loadingDialog.close();
             IToast.showBottom(this, getString(R.string.export_success));
             askToSaveSecret(secret);
@@ -516,46 +645,73 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public void onBackPressed() {
-        if (isEditing) {
-            isEditing = false;
-            refreshEditState();
+        if (isInSelectionMode) {
+            isInSelectionMode = false;
+            isAllSelected = false;
+            refreshSelectAllState(false);
+            refreshSelectionState(true);
         } else super.onBackPressed();
     }
 
-    private void refreshEditState() {
-        if (isEditing) {
+    private void refreshSelectAllState(boolean subjective) {
+        if (isAllSelected) {
+            if (subjective && adapter != null) adapter.selectAll();
+            operationSelectAllButton.setImageResource(R.drawable.ic_material_checkbox_checked);
+        } else {
+            if (subjective && adapter != null) adapter.unSelectAll();
+            operationSelectAllButton.setImageResource(R.drawable.ic_material_checkbox_unchecked);
+        }
+    }
+
+    private void refreshSelectionState(boolean subjective) {
+        if(selectedOtpTokens.size()==0){
+            operationExportButton.setEnabled(false);
+            operationDeleteButton.setEnabled(false);
+            operationExportButton.setActivated(false);
+            operationDeleteButton.setActivated(false);
+        }else{
+            operationExportButton.setEnabled(true);
+            operationDeleteButton.setEnabled(true);
+            operationExportButton.setActivated(true);
+            operationDeleteButton.setActivated(true);
+        }
+        if (isInSelectionMode) {
             titlebar.setVisibility(View.GONE);
             operationBar.setVisibility(View.VISIBLE);
             lockButton.setVisibility(View.GONE);
-            selectCountTextView.setText(String.format(getString(R.string.select_count), 0));
+            selectCountTextView.setText(String.format(getString(R.string.select_count), selectedOtpTokens.size()));
             swipeRefreshLayout.setEnableRefresh(false);
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-            if (adapter instanceof TokenListAdapter) {
-                ((TokenListAdapter) adapter).setEditing(true);
-                ((TokenListAdapter) adapter).setOnStateChangeListener(new TokenListAdapter.OnStateChangeListener() {
-                    @Override
-                    public void onSelectStateChanged(int selectedCount) {
-                        selectCountTextView.setText(String.format(getString(R.string.select_count), selectedCount));
-                    }
-                });
-            }
+            adapter.setInSelectionMode(true, subjective);
         } else {
             titlebar.setVisibility(View.VISIBLE);
             operationBar.setVisibility(View.GONE);
             lockButton.setVisibility(SharedPreferenceUtil.getBoolean(this, SharedPreferenceCode.TOKEN_NEED_AUTH.getKey(), true) ? View.VISIBLE : View.GONE);
-            selectCountTextView.setText(String.format(getString(R.string.select_count), 0));
             swipeRefreshLayout.setEnableRefresh(true);
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-            if (adapter instanceof TokenListAdapter) {
-                ((TokenListAdapter) adapter).setEditing(false);
-            }
+            adapter.setInSelectionMode(false, subjective);
+            selectedOtpTokens = new ArrayList<>();
         }
     }
 
     @Override
-    public boolean onLongClick(View view) {
-//        isEditing = true;
-//        refreshEditState();
-        return false;
+    public void onItemLongCick(OtpToken otpToken) {
+        if (!isInSelectionMode) {
+            isInSelectionMode = true;
+            refreshSelectionState(true);
+        }
     }
+
+    @Override
+    public void onItemSelectStateChanged() {
+        selectedOtpTokens = new ArrayList<>();
+        for (OtpToken otpToken : otpTokens) {
+            if (otpToken.isSelected())
+                selectedOtpTokens.add(otpToken);
+        }
+        isAllSelected = selectedOtpTokens.size() == otpTokens.size();
+        refreshSelectAllState(false);
+        refreshSelectionState(false);
+    }
+
 }

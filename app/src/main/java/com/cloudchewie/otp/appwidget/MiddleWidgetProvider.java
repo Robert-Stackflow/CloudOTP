@@ -26,7 +26,6 @@ public class MiddleWidgetProvider extends AppWidgetProvider {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         ComponentName componentName = new ComponentName(context, MiddleWidgetProvider.class);
         if (intent.getAction().equals(AppWidgetManager.ACTION_APPWIDGET_UPDATE) || intent.getAction().equals(CLICK_ACTION)) {
-            Log.d("xuruida", "click");
             for (int appWidgetId : appWidgetManager.getAppWidgetIds(componentName)) {
 //                updateWidget(context, appWidgetManager, appWidgetId);
                 appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.layout_widget_grid_view);

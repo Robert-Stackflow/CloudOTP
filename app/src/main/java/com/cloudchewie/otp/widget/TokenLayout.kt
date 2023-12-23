@@ -43,10 +43,11 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
     private var mPlaceholder: String? = null
     private var mStartTime: Long = 0
 
-    public var onStateChangeListener: OnStateChangeListener? = null
+    private var inSelectionMode: Boolean = false
+    var onSelectStateChangeListener: OnSelectStateChangeListener? = null
 
-    interface OnStateChangeListener {
-        fun onSelectStateChanged(selected: Boolean)
+    interface OnSelectStateChangeListener {
+        fun onSelectedChanged(token: OtpToken)
     }
 
     constructor(context: Context) : super(context)
@@ -69,34 +70,32 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
         mQrcode = findViewById<View>(R.id.item_token_qrcode) as ImageView
         mSelect = findViewById<View>(R.id.item_token_select) as ImageView
         mHandle = findViewById<View>(R.id.item_token_handle) as ImageView
-        setEditing(true)
-        mSelect.setOnClickListener {
-            this.mToken.isSeleted = !this.mToken.isSeleted
-            if (this.mToken.isSeleted) mSelect.setImageResource(R.drawable.ic_material_checkbox_checked)
-            else mSelect.setImageResource(R.drawable.ic_material_checkbox_unchecked)
-            if (onStateChangeListener != null) onStateChangeListener!!.onSelectStateChanged(
-                this.mToken.isSeleted
-            )
+        setSelectionMode(false)
+    }
+
+    fun setSelectionMode(inSelectionMode: Boolean) {
+        this.inSelectionMode = inSelectionMode
+        if (inSelectionMode) {
+//            mHandle.visibility = VISIBLE
+            mSelect.visibility = VISIBLE
+            mQrcode.visibility = GONE
+            mDetail.visibility = GONE
+        } else {
+            mHandle.visibility = GONE
+            mSelect.visibility = GONE
+            mQrcode.visibility = VISIBLE
+            mDetail.visibility = VISIBLE
         }
     }
 
-    override fun setSelected(selected: Boolean) {
-        this.mToken.isSeleted = selected
-        if (this.mToken.isSeleted) mSelect.setImageResource(R.drawable.ic_material_checkbox_checked)
-        else mSelect.setImageResource(R.drawable.ic_material_checkbox_unchecked)
-    }
-
-    fun setEditing(editing: Boolean) {
-        if (editing) {
-            mHandle.visibility = View.VISIBLE
-            mSelect.visibility = View.VISIBLE
-            mQrcode.visibility = View.GONE
-            mDetail.visibility = View.GONE
-        } else {
-            mHandle.visibility = View.GONE
-            mSelect.visibility = View.GONE
-            mQrcode.visibility = View.VISIBLE
-            mDetail.visibility = View.VISIBLE
+    fun toggleSelected() {
+        if (inSelectionMode) {
+            this.mToken.isSelected = !this.mToken.isSelected
+            if (this.mToken.isSelected) mSelect.setImageResource(R.drawable.ic_material_checkbox_checked)
+            else mSelect.setImageResource(R.drawable.ic_material_checkbox_unchecked)
+            if (onSelectStateChangeListener != null) onSelectStateChangeListener!!.onSelectedChanged(
+                this.mToken
+            )
         }
     }
 
@@ -146,6 +145,8 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
             dialog.tipTv.visibility = GONE
             dialog.imageView.setImageBitmap(generateQrCode(token))
         }
+        if (this.mToken.isSelected) mSelect.setImageResource(R.drawable.ic_material_checkbox_checked)
+        else mSelect.setImageResource(R.drawable.ic_material_checkbox_unchecked)
     }
 
     private fun generateQrCode(token: OtpToken): Bitmap? {

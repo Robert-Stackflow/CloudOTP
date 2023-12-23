@@ -54,7 +54,6 @@ public class SplashActivity extends BaseActivity {
             @Override
             public void run() {
                 try {
-                    sleep(1000);
                     startActivity(new Intent(getApplicationContext(), MainActivity.class).setAction(Intent.ACTION_DEFAULT));
                     finish();
                 } catch (Exception e) {

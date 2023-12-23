@@ -106,6 +106,7 @@
                     android:id="@+id/activity_main_operation_select_all"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
+                    android:layout_marginStart="5.2dp"
                     android:background="@color/titlebar_background"
                     android:contentDescription="@string/cd_titlebar_left_button"
                     android:padding="@dimen/dp15"
@@ -114,6 +115,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/color_selector_icon"
                     tools:ignore="UsingOnClickInXml" />
 
                 <TextView
@@ -154,6 +156,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/activity_main_operation_done"
                     app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/color_selector_icon"
                     tools:ignore="UsingOnClickInXml" />
 
                 <ImageButton

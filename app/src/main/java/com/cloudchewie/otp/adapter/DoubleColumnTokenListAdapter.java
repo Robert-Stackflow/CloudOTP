@@ -1,6 +1,5 @@
 package com.cloudchewie.otp.adapter;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.ArrayMap;
 import android.view.LayoutInflater;
@@ -13,10 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.cloudchewie.otp.R;
+import com.cloudchewie.otp.database.LocalStorage;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.entity.TokenCode;
 import com.cloudchewie.otp.util.authenticator.TokenCodeUtil;
-import com.cloudchewie.otp.database.LocalStorage;
 import com.cloudchewie.otp.util.enumeration.OtpTokenType;
 import com.cloudchewie.otp.widget.SmallTokenLayout;
 import com.cloudchewie.ui.custom.IToast;
@@ -25,45 +24,34 @@ import com.cloudchewie.util.system.SharedPreferenceCode;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
 
 import java.util.List;
-import java.util.Map;
 
-public class SmallTokenListAdapter extends RecyclerView.Adapter<SmallTokenListAdapter.MyViewHolder> implements AbstractTokenListAdapter {
-    private final Context context;
-    private List<OtpToken> contentList;
-    private Map<Long, TokenCode> tokenCodes;
+public class DoubleColumnTokenListAdapter extends CustomTokenListAdapter<DoubleColumnTokenListAdapter.DoubleColumnTokenViewHolder> {
 
-    public SmallTokenListAdapter(Context context, List<OtpToken> contentList) {
-        this.contentList = contentList;
+    public DoubleColumnTokenListAdapter(Context context, List<OtpToken> contentList) {
+        this.otpTokens = contentList;
         this.context = context;
-        tokenCodes = new ArrayMap<>();
+        idToTokenCodeMap = new ArrayMap<>();
     }
 
     @NonNull
     @Override
-    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public DoubleColumnTokenViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_token_small, parent, false);
-        return new MyViewHolder(view);
+        return new DoubleColumnTokenViewHolder(view);
     }
 
     @Override
-    @SuppressLint("NotifyDataSetChanged")
-    public void setData(List<OtpToken> contentList) {
-        this.contentList = contentList;
-        notifyDataSetChanged();
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        if (null == contentList) {
+    public void onBindViewHolder(@NonNull DoubleColumnTokenViewHolder holder, int position) {
+        if (null == otpTokens) {
             return;
         }
-        if (position < 0 || position >= contentList.size()) {
+        if (position < 0 || position >= otpTokens.size()) {
             return;
         }
         if (null == holder) {
             return;
         }
-        final OtpToken token = contentList.get(position);
+        final OtpToken token = otpTokens.get(position);
         if (null == token) {
             return;
         }
@@ -77,7 +65,7 @@ public class SmallTokenListAdapter extends RecyclerView.Adapter<SmallTokenListAd
                 ClipBoardUtil.copy(codes.getCurrentCode());
                 IToast.showBottom(context, context.getString(R.string.copy_success));
             }
-            tokenCodes.put(token.getId(), codes);
+            idToTokenCodeMap.put(token.getId(), codes);
             ((SmallTokenLayout) holder.mItemView).start(token.getTokenType(), codes);
         });
         {
@@ -85,25 +73,24 @@ public class SmallTokenListAdapter extends RecyclerView.Adapter<SmallTokenListAd
             if (token.getTokenType() == OtpTokenType.HOTP) {
                 LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
             }
-            tokenCodes.put(token.getId(), codes);
+            idToTokenCodeMap.put(token.getId(), codes);
             ((SmallTokenLayout) holder.mItemView).start(token.getTokenType(), codes);
         }
     }
 
     @Override
     public int getItemCount() {
-        return contentList == null ? 0 : contentList.size();
+        return otpTokens == null ? 0 : otpTokens.size();
     }
 
-    static class MyViewHolder extends RecyclerView.ViewHolder {
+    static class DoubleColumnTokenViewHolder extends RecyclerView.ViewHolder {
         public View mItemView;
         public ImageView imageView;
         public TextView codeView;
         public TextView issuerView;
         public TextView accountView;
 
-
-        public MyViewHolder(View view) {
+        public DoubleColumnTokenViewHolder(View view) {
             super(view);
             mItemView = view;
             imageView = mItemView.findViewById(R.id.item_token_small_image);

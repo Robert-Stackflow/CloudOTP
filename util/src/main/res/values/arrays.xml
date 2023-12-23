@@ -21,9 +21,14 @@
         <item>SHA256</item>
         <item>SHA512</item>
     </string-array>
-    <string-array name="export_import_operation">
+    <string-array name="import_operation">
         <item>@string/entry_import_encrypt_token</item>
         <item>@string/entry_import_uri_token</item>
         <item>@string/entry_import_json_token</item>
+    </string-array>
+    <string-array name="export_operation">
+        <item>@string/entry_export_encrypt_token</item>
+        <item>@string/entry_export_uri_token</item>
+        <item>@string/entry_export_json_token</item>
     </string-array>
 </resources>
