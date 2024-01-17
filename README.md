@@ -13,6 +13,7 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 - Support backing up encrypted files to Dropbox
 - Support password lock and biometric identification
 - Support dark mode and switching theme colors
+- Support sort;batch export;batch delete
 - Support multiple languages: English, Simplified Chinese, Traditional Chinese, Japanese
 
 ## Screenshots
@@ -28,7 +29,7 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 - [ ] Support WebDAV services such as Box
 - [ ] Support more encryption algorithms
 - [ ] Support encrypting local SQLite database
-- [ ] Support desktop widgets
+- [ ] ~~Support desktop widgets(No longer implemented due to security considerations)~~
 
 ### Known Bugs
 

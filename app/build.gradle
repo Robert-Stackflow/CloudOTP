@@ -76,4 +76,6 @@ dependencies {
     implementation "androidx.camera:camera-extensions:${camerax_version}"
     implementation 'com.github.uccmawei:FingerprintIdentify:1.2.6'
     implementation group: 'com.dropbox.core', name: 'dropbox-core-sdk', version: '5.4.6'
+    implementation "net.zetetic:android-database-sqlcipher:4.5.3"
+    implementation "androidx.sqlite:sqlite:2.1.0"
 }
