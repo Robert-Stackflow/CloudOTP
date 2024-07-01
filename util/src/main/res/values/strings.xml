@@ -27,7 +27,6 @@
     <string name="title_theme">主题颜色</string>
     <string name="title_home">我的主页</string>
     <string name="title_passwordbox">密码箱</string>
-    <string name="title_blog">博客地址</string>
     <string name="title_bookmark">书签</string>
     <string name="title_add_token">添加令牌</string>
     <string name="title_scan_token">扫码添加</string>
@@ -48,6 +47,8 @@
     <string name="dialog_content_import_uri_token" formatted="true">是否从文件%1$s中导入令牌</string>
     <string name="dialog_title_none_passcode">暂未设置密码</string>
     <string name="dialog_content_none_passcode" formatted="true">你还没有设置密码锁，是否前去设置？</string>
+    <string name="dialog_title_new_version" formatted="true">发现新版本%1$s</string>
+    <string name="dialog_content_new_version" formatted="true">是否立即更新？更新日志：%1$s</string>
     <!--账号安全-->
     <string name="entry_tap_to_login">点击登录</string>
     <string name="entry_change_password">修改密码</string>
@@ -65,6 +66,12 @@
     <string name="entry_language">语言</string>
     <string name="entry_enable_web_cache">允许网站缓存</string>
     <string name="entry_clear_cache">清除缓存</string>
+    <string name="jump_to_update">前往更新</string>
+    <string name="not_update">暂不更新</string>
+    <string name="entry_auto_checkUpdate">自动检查更新</string>
+    <string name="check_update_failed">检查更新失败</string>
+    <string name="already_latest">已经是最新版本</string>
+    <string name="get_new_version" formatted="true">发现新版本：%1$s</string>
     <string name="entry_version">当前版本</string>
     <string name="entry_update_log">@string/title_update_log</string>
     <string name="entry_privacy_policy">隐私政策</string>
@@ -106,7 +113,7 @@
     <string name="theme_content_9">令人觉得可靠、安全</string>
     <!--网址-->
     <string name="url_home">https://www.cloudchewie.com</string>
-    <string name="url_blog">https://blog.cloudchewie.com</string>
+    <string name="url_blog">https://apps.cloudchewie.com/cloudotp</string>
     <string name="url_github">https://github.com/Robert-Stackflow/CloudOTP</string>
     <string name="url_privacy">https://blog.cloudchewie.com/term</string>
     <string name="url_term">https://blog.cloudchewie.com/term</string>
@@ -174,6 +181,8 @@
     <string name="open_camera_fail">删除令牌</string>
     <string name="entry_long_press_copy_code">长按卡片复制令牌</string>
     <string name="entry_click_copy_code">点击卡片复制令牌</string>
+    <string name="entry_auto_copy_next">自动复制下一个令牌（当前令牌快过期时）</string>
+    <string name="entry_show_next">显示下一个令牌（仅在双栏模式下）</string>
     <string name="entry_auth_to_show_code">启用密码锁</string>
     <string name="entry_disable_screen_shot">禁止屏幕截图</string>
     <string name="entry_export_json_token">导出为JSON格式</string>
@@ -255,4 +264,5 @@
     <string name="widget_info">显示小卡片</string>
     <string name="entry_dynamic_color">动态背景</string>
     <string name="select_count" formatted="true">已选择%1$d项</string>
+    <string name="title_blog">官方网站</string>
 </resources>

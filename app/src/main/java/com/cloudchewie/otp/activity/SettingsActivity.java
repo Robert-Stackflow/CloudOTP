@@ -4,17 +4,22 @@ import static com.cloudchewie.util.system.LanguageUtil.SP_LANGUAGE;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.cloudchewie.otp.R;
-import com.cloudchewie.otp.entity.ListBottomSheetBean;
 import com.cloudchewie.otp.database.AppSharedPreferenceUtil;
 import com.cloudchewie.otp.database.PrivacyManager;
+import com.cloudchewie.otp.entity.ListBottomSheetBean;
+import com.cloudchewie.otp.entity.ReleaseItem;
+import com.cloudchewie.otp.util.GithubUtil;
 import com.cloudchewie.otp.util.enumeration.EventBusCode;
 import com.cloudchewie.otp.widget.ListBottomSheet;
 import com.cloudchewie.ui.custom.IDialog;
@@ -22,18 +27,25 @@ import com.cloudchewie.ui.custom.IToast;
 import com.cloudchewie.ui.custom.TitleBar;
 import com.cloudchewie.ui.item.CheckBoxItem;
 import com.cloudchewie.ui.item.EntryItem;
+import com.cloudchewie.util.system.AppInfoUtil;
 import com.cloudchewie.util.system.CacheUtil;
 import com.cloudchewie.util.system.LanguageUtil;
 import com.cloudchewie.util.system.SharedPreferenceCode;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
 import com.cloudchewie.util.ui.DarkModeUtil;
 import com.cloudchewie.util.ui.StatusBarUtil;
+import com.google.gson.Gson;
 import com.jeremyliao.liveeventbus.LiveEventBus;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class SettingsActivity extends BaseActivity implements View.OnClickListener {
     RefreshLayout swipeRefreshLayout;
@@ -45,7 +57,11 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
     CheckBoxItem autoDaynightEntry;
     CheckBoxItem switchDaynightEntry;
     CheckBoxItem enableWebCacheEntry;
+    CheckBoxItem enableAutoCheckUpdateEntry;
+    CheckBoxItem enableAutoCopyNextEntry;
+    CheckBoxItem enableShowNextEntry;
     EntryItem setPasscodeEntry;
+    EntryItem versionEntry;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -66,10 +82,80 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
         autoDaynightEntry = findViewById(R.id.switch_auto_daynight);
         switchDaynightEntry = findViewById(R.id.switch_daynight);
         enableWebCacheEntry = findViewById(R.id.entry_enable_web_cache);
+        enableAutoCheckUpdateEntry = findViewById(R.id.entry_enable_auto_check_update);
+        enableAutoCopyNextEntry = findViewById(R.id.entry_enable_auto_copy_next);
+        enableShowNextEntry = findViewById(R.id.entry_enable_show_next);
+        versionEntry = findViewById(R.id.entry_version);
         loadSettings();
         bindEvent();
         initSwipeRefresh();
         goToVerify();
+        checkUpdate(false);
+    }
+
+    void checkUpdate(boolean showTip) {
+        GithubUtil.getReleases("Robert-Stackflow", "CloudOTP", new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (showTip) {
+                    runOnUiThread(() -> IToast.makeTextBottom(SettingsActivity.this, getString(R.string.check_update_failed), Toast.LENGTH_SHORT).show());
+                }
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try {
+                    if (!response.isSuccessful()) {
+                        if (showTip) {
+                            runOnUiThread(() -> IToast.makeTextBottom(SettingsActivity.this, getString(R.string.check_update_failed), Toast.LENGTH_SHORT).show());
+                        }
+                    }
+                    String responseBody = response.body().string();
+                    ReleaseItem[] releases = new Gson().fromJson(responseBody, ReleaseItem[].class);
+                    Arrays.sort(releases, (o1, o2) -> o2.getVersion().compareTo(o1.getVersion()));
+                    String currentVersion = AppInfoUtil.getAppVersionName();
+                    if (releases.length == 0) return;
+                    if (releases[0].getVersion().compareTo(currentVersion) <= 0) {
+                        runOnUiThread(() -> versionEntry.setTip(currentVersion, getColor(R.color.color_gray)));
+                        if (showTip) {
+                            runOnUiThread(() -> IToast.makeTextBottom(SettingsActivity.this, getString(R.string.already_latest), Toast.LENGTH_SHORT).show());
+                        }
+                        return;
+                    } else {
+                        runOnUiThread(() -> versionEntry.setTip(String.format(getString(R.string.get_new_version), releases[0].getVersion()), Color.RED));
+                        if (showTip) {
+                            runOnUiThread(() -> {
+                                IDialog dialog = new IDialog(SettingsActivity.this);
+                                dialog.setTitle(String.format(getString(R.string.dialog_title_new_version), releases[0].getVersion()));
+                                dialog.setMessage(String.format(getString(R.string.dialog_content_new_version), releases[0].getBody()));
+                                dialog.setNegtive(getString(R.string.not_update));
+                                dialog.setPositive(getString(R.string.jump_to_update));
+                                dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                                    @Override
+                                    public void onPositiveClick() {
+                                        Intent intent = new Intent(SettingsActivity.this, WebViewActivity.class).setAction(Intent.ACTION_DEFAULT);
+                                        intent.putExtra("url", releases[0].getHtmlUrl());
+                                        startActivity(intent);
+                                        dialog.dismiss();
+                                    }
+
+                                    @Override
+                                    public void onNegtiveClick() {
+                                        dialog.dismiss();
+                                    }
+                                });
+                                dialog.show();
+                            });
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (showTip) {
+                        runOnUiThread(() -> IToast.makeTextBottom(SettingsActivity.this, getString(R.string.check_update_failed), Toast.LENGTH_SHORT).show());
+                    }
+                }
+            }
+        });
     }
 
     void loadSettings() {
@@ -84,6 +170,9 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
             AppSharedPreferenceUtil.setNight(this, DarkModeUtil.isDarkMode(this));
         }
         autoDaynightEntry.setRadiusEnbale(true, AppSharedPreferenceUtil.isAutoDaynight(this));
+        enableAutoCheckUpdateEntry.setChecked(AppSharedPreferenceUtil.isAutoCheckUpdate(this));
+        enableAutoCopyNextEntry.setChecked(AppSharedPreferenceUtil.isAutoCopyNext(this));
+        enableShowNextEntry.setChecked(AppSharedPreferenceUtil.isShowNext(this));
         switchDaynightEntry.setVisibility(AppSharedPreferenceUtil.isAutoDaynight(this) ? View.GONE : View.VISIBLE);
         new Handler().postDelayed(() -> {
             switchDaynightEntry.setChecked(AppSharedPreferenceUtil.isNight(this));
@@ -102,6 +191,7 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
                 setPasscodeEntry.setTitle(getString(R.string.set_passcode));
             }
         });
+        versionEntry.setTipText(AppInfoUtil.getAppVersionName());
     }
 
     void bindEvent() {
@@ -150,6 +240,10 @@ public class SettingsActivity extends BaseActivity implements View.OnClickListen
             Intent intent = new Intent(SettingsActivity.this, PasscodeActivity.class).setAction(Intent.ACTION_DEFAULT);
             startActivity(intent);
         });
+        enableAutoCheckUpdateEntry.setOnCheckedChangedListener((buttonView, isChecked) -> SharedPreferenceUtil.putBoolean(this, SharedPreferenceCode.AUTO_CHECK_UPDATE.getKey(), isChecked));
+        versionEntry.setOnClickListener(view -> checkUpdate(true));
+        enableAutoCopyNextEntry.setOnCheckedChangedListener((buttonView, isChecked) -> SharedPreferenceUtil.putBoolean(this, SharedPreferenceCode.AUTO_COPY_NEXT.getKey(), isChecked));
+        enableShowNextEntry.setOnCheckedChangedListener((buttonView, isChecked) -> SharedPreferenceUtil.putBoolean(this, SharedPreferenceCode.SHOW_NEXT.getKey(), isChecked));
     }
 
     void initSwipeRefresh() {

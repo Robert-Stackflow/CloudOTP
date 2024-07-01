@@ -23,6 +23,18 @@ public class AppSharedPreferenceUtil {
         return SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.AUTO_DAYNIGHT.getKey(), true);
     }
 
+    public static boolean isAutoCheckUpdate(@NonNull Context context) {
+        return SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.AUTO_CHECK_UPDATE.getKey(), true);
+    }
+
+    public static boolean isAutoCopyNext(@NonNull Context context) {
+        return SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.AUTO_COPY_NEXT.getKey(), true);
+    }
+
+    public static boolean isShowNext(@NonNull Context context) {
+        return SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.SHOW_NEXT.getKey(), true);
+    }
+
     public static ViewType getViewType(@NonNull Context context) {
         SharedPreferences sp = context.getSharedPreferences(NAME, Context.MODE_PRIVATE);
         return ViewType.values()[min(ViewType.values().length, max(sp.getInt(SharedPreferenceCode.VIEW_TYPE.getKey(), 0), 0))];

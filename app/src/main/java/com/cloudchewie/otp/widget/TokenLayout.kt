@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat.startActivity
 import com.cloudchewie.otp.R
 import com.cloudchewie.otp.activity.TokenDetailActivity
+import com.cloudchewie.otp.database.AppSharedPreferenceUtil
 import com.cloudchewie.otp.entity.OtpToken
 import com.cloudchewie.otp.entity.TokenCode
 import com.cloudchewie.otp.util.authenticator.OtpTokenParser
@@ -30,6 +31,7 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
 
     private lateinit var mImage: ImageView
     private lateinit var mCode: TextView
+    private lateinit var mNextCode: TextView
     private lateinit var mIssuer: TextView
     private lateinit var mAccount: TextView
     private lateinit var mDetail: ImageView
@@ -64,12 +66,18 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
         mProgressOuter = findViewById<View>(R.id.item_token_progress_outer) as ProgressCircle
         mImage = findViewById<View>(R.id.item_token_image) as ImageView
         mCode = findViewById<View>(R.id.item_token_code) as TextView
+        mNextCode = findViewById<View>(R.id.item_next_token_code) as TextView
         mIssuer = findViewById<View>(R.id.item_token_issuer) as TextView
         mAccount = findViewById<View>(R.id.item_token_account) as TextView
         mDetail = findViewById<View>(R.id.item_token_detail) as ImageView
         mQrcode = findViewById<View>(R.id.item_token_qrcode) as ImageView
         mSelect = findViewById<View>(R.id.item_token_select) as ImageView
         mHandle = findViewById<View>(R.id.item_token_handle) as ImageView
+        if (AppSharedPreferenceUtil.isShowNext(context)) {
+            mNextCode.visibility = VISIBLE
+        } else {
+            mNextCode.visibility = GONE
+        }
         setSelectionMode(false)
     }
 
@@ -123,6 +131,7 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
         mAccount.text = token.account
         mIssuer.text = token.issuer
         mCode.text = mPlaceholder
+        mNextCode.text = mPlaceholder
         if (mIssuer.text.isEmpty()) {
             mIssuer.text = token.account
             mAccount.visibility = View.GONE
@@ -200,6 +209,7 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
     override fun run() {
         val code = mCodes?.currentCode ?: run {
             mCode.text = mPlaceholder
+            mNextCode.text = mPlaceholder
             mProgressInner.visibility = View.GONE
             mProgressOuter.visibility = View.GONE
             return
@@ -218,6 +228,7 @@ class TokenLayout : RelativeLayout, View.OnClickListener, Runnable {
         if (!isEnabled) isEnabled = System.currentTimeMillis() - mStartTime > 5000
 
         mCode.text = code
+        mNextCode.text = mCodes?.nextCode ?: mPlaceholder
         mProgressInner.setProgress(currentProgress)
         if (mType != OtpTokenType.HOTP) mProgressOuter.setProgress(totalProgress)
 

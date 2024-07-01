@@ -188,4 +188,8 @@ public class EntryItem extends ConstraintLayout {
     public void setTipText(String tip) {
         tipView.setText(tip);
     }
+
+    public void setTipColor(int color) {
+        tipView.setTextColor(color);
+    }
 }

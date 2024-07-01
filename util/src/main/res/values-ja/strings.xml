@@ -77,7 +77,7 @@
     <string name="theme_title_9">青を知る</string>
     <string name="theme_content_9">信頼性、安全性を感じさせる</string>
     <string name="url_home">https://www.cloudchewie.com</string>
-    <string name="url_blog">https://blog.cloudchewie.com</string>
+    <string name="url_blog">https://apps.cloudchewie.com/cloudotp</string>
     <string name="url_github">https://github.com/Robert-Stackflow/CloudOTP</string>
     <string name="url_privacy">https://blog.cloudchewie.com/term</string>
     <string name="url_term">https://blog.cloudchewie.com/term</string>

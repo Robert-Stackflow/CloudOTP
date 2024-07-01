@@ -35,7 +35,9 @@ import com.cloudchewie.otp.database.PrivacyManager;
 import com.cloudchewie.otp.entity.ImportAnalysis;
 import com.cloudchewie.otp.entity.ListBottomSheetBean;
 import com.cloudchewie.otp.entity.OtpToken;
+import com.cloudchewie.otp.entity.ReleaseItem;
 import com.cloudchewie.otp.util.ExploreUtil;
+import com.cloudchewie.otp.util.GithubUtil;
 import com.cloudchewie.otp.util.authenticator.ExportTokenUtil;
 import com.cloudchewie.otp.util.authenticator.ImportTokenUtil;
 import com.cloudchewie.otp.util.decoration.SpacingItemDecoration;
@@ -50,19 +52,26 @@ import com.cloudchewie.ui.custom.IToast;
 import com.cloudchewie.ui.fab.FloatingActionButton;
 import com.cloudchewie.ui.item.EntryItem;
 import com.cloudchewie.ui.loadingdialog.view.LoadingDialog;
+import com.cloudchewie.util.system.AppInfoUtil;
 import com.cloudchewie.util.system.SharedPreferenceCode;
 import com.cloudchewie.util.system.SharedPreferenceUtil;
 import com.cloudchewie.util.system.UriUtil;
 import com.cloudchewie.util.ui.StatusBarUtil;
+import com.google.gson.Gson;
 import com.jeremyliao.liveeventbus.LiveEventBus;
 import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener, SecretBottomSheet.OnConfirmListener, CustomTokenListAdapter.ItemOperationListener {
     private static final int IMPORT_ENCRYPT_REQUEST_CODE = 42;
@@ -121,6 +130,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         refresh();
         SimpleRemoteViewsManager.refresh(this);
         goToVerify();
+        if (AppSharedPreferenceUtil.isAutoCheckUpdate(this)) {
+            checkUpdate();
+        }
     }
 
     void initEvent() {
@@ -305,6 +317,50 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         });
     }
 
+    void checkUpdate() {
+        GithubUtil.getReleases("Robert-Stackflow", "CloudOTP", new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try {
+                    String responseBody = response.body().string();
+                    ReleaseItem[] releases = new Gson().fromJson(responseBody, ReleaseItem[].class);
+                    Arrays.sort(releases, (o1, o2) -> o2.getVersion().compareTo(o1.getVersion()));
+                    String currentVersion = AppInfoUtil.getAppVersionName();
+                    if (releases.length == 0) return;
+                    if (releases[0].getVersion().compareTo(currentVersion) > 0) {
+                        runOnUiThread(() -> {
+                            IDialog dialog = new IDialog(MainActivity.this);
+                            dialog.setTitle(String.format(getString(R.string.dialog_title_new_version), releases[0].getVersion()));
+                            dialog.setMessage(String.format(getString(R.string.dialog_content_new_version), releases[0].getBody()));
+                            dialog.setNegtive(getString(R.string.not_update));
+                            dialog.setPositive(getString(R.string.jump_to_update));
+                            dialog.setOnClickBottomListener(new IDialog.OnClickBottomListener() {
+                                @Override
+                                public void onPositiveClick() {
+                                    Intent intent = new Intent(MainActivity.this, WebViewActivity.class).setAction(Intent.ACTION_DEFAULT);
+                                    intent.putExtra("url", releases[0].getHtmlUrl());
+                                    startActivity(intent);
+                                    dialog.dismiss();
+                                }
+
+                                @Override
+                                public void onNegtiveClick() {
+                                    dialog.dismiss();
+                                }
+                            });
+                            dialog.show();
+                        });
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        });
+    }
+
     @Override
     public void onClick(View view) {
         if (view == addEntry) {
@@ -466,7 +522,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     loadingDialog.close();
                     IToast.showBottom(MainActivity.this, getString(R.string.export_success));
                 } catch (Exception e) {
-                    e.printStackTrace();
                     loadingDialog.close();
                     IToast.showBottom(MainActivity.this, getString(R.string.export_fail));
                 }
@@ -533,7 +588,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                             loadingDialog.close();
                             IToast.showBottom(MainActivity.this, importAnalysis.toToast(MainActivity.this));
                         } catch (Exception e) {
-                            e.printStackTrace();
                             loadingDialog.close();
                             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
                         }
@@ -575,11 +629,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             IToast.showBottom(MainActivity.this, importAnalysis.toToast(this));
             askToSaveSecret(secret);
         } catch (GeneralSecurityException e) {
-            e.printStackTrace();
             loadingDialog.close();
             askToRetry(uri);
         } catch (Exception e) {
-            e.printStackTrace();
             loadingDialog.close();
             IToast.showBottom(MainActivity.this, getString(R.string.import_fail));
         }
@@ -670,7 +722,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     private void refreshSelectionState(boolean subjective) {
-        if (selectedOtpTokens.size() == 0) {
+        if (selectedOtpTokens.isEmpty()) {
             operationExportButton.setEnabled(false);
             operationDeleteButton.setEnabled(false);
             operationExportButton.setActivated(false);

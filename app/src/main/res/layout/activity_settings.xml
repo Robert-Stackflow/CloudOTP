@@ -77,11 +77,31 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dp10"
                     android:textSize="18sp"
-                    app:checkbox_item_bottom_radius_enable="true"
                     app:checkbox_item_title="@string/entry_click_copy_code"
                     app:checkbox_item_top_radius_enable="true"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/entry_language" />
+
+                <com.cloudchewie.ui.item.CheckBoxItem
+                    android:id="@+id/entry_enable_show_next"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    app:checkbox_item_title="@string/entry_show_next"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_click_copy" />
+
+                <com.cloudchewie.ui.item.CheckBoxItem
+                    android:id="@+id/entry_enable_auto_copy_next"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    app:checkbox_item_bottom_radius_enable="true"
+                    app:checkbox_item_title="@string/entry_auto_copy_next"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_enable_show_next" />
 
                 <com.cloudchewie.ui.item.CheckBoxItem
                     android:id="@+id/entry_disable_screenshot"
@@ -92,7 +112,7 @@
                     app:checkbox_item_title="@string/entry_disable_screen_shot"
                     app:checkbox_item_top_radius_enable="true"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/entry_click_copy" />
+                    app:layout_constraintTop_toBottomOf="@id/entry_enable_auto_copy_next" />
 
                 <com.cloudchewie.ui.item.CheckBoxItem
                     android:id="@+id/entry_need_auth"
@@ -139,6 +159,32 @@
                     app:entry_item_title="@string/entry_clear_cache"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/entry_enable_web_cache" />
+
+                <com.cloudchewie.ui.item.CheckBoxItem
+                    android:id="@+id/entry_enable_auto_check_update"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp10"
+                    android:textSize="18sp"
+                    app:checkbox_item_title="@string/entry_auto_checkUpdate"
+                    app:checkbox_item_top_radius_enable="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_clear_cache" />
+
+                <com.cloudchewie.ui.item.EntryItem
+                    android:id="@+id/entry_version"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingBottom="@dimen/dp5"
+                    android:textSize="18sp"
+                    app:entry_item_bottom_radius_enable="true"
+                    app:entry_item_left_icon_visibility="false"
+                    app:entry_item_tip_color="@color/color_gray"
+                    app:entry_item_title="@string/entry_version"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/entry_enable_auto_check_update" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>

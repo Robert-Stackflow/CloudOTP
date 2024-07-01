@@ -76,17 +76,40 @@
         android:layout_toEndOf="@id/item_token_image"
         android:gravity="center">
 
-        <TextView
-            android:id="@+id/item_token_code"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/dp10"
-            android:gravity="start|center"
-            android:letterSpacing="0.25"
-            android:textColor="?attr/colorPrimary"
-            android:textSize="@dimen/sp25"
-            android:textStyle="bold"
-            tool:text="01234567" />
+            android:layout_marginStart="-5dp"
+            android:gravity="start"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/item_token_code"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/dp10"
+                android:paddingStart="@dimen/dp4"
+                android:gravity="start|center"
+                android:letterSpacing="0.25"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/sp25"
+                android:textStyle="bold"
+                tool:text="01234567"
+                tool:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/item_next_token_code"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="start|center"
+                android:letterSpacing="0.25"
+                android:paddingStart="@dimen/dp4"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/sp20"
+                android:textStyle="bold"
+                tool:text="01234567"
+                tool:ignore="RtlSymmetry" />
+        </LinearLayout>
 
         <RelativeLayout
             android:layout_width="wrap_content"

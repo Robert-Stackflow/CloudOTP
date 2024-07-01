@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.cloudchewie.otp.R;
+import com.cloudchewie.otp.database.AppSharedPreferenceUtil;
 import com.cloudchewie.otp.database.LocalStorage;
 import com.cloudchewie.otp.entity.OtpToken;
 import com.cloudchewie.otp.entity.TokenCode;
@@ -62,7 +63,11 @@ public class DoubleColumnTokenListAdapter extends CustomTokenListAdapter<DoubleC
                 LocalStorage.getAppDatabase().otpTokenDao().incrementCounter(token.getId());
             }
             if (SharedPreferenceUtil.getBoolean(context, SharedPreferenceCode.TOKEN_CLICK_COPY.getKey(), false)) {
-                ClipBoardUtil.copy(codes.getCurrentCode());
+                if (AppSharedPreferenceUtil.isAutoCopyNext(context) && codes.getCurrentProgress() < 90) {
+                    ClipBoardUtil.copy(codes.getNextCode());
+                } else {
+                    ClipBoardUtil.copy(codes.getCurrentCode());
+                }
                 IToast.showBottom(context, context.getString(R.string.copy_success));
             }
             idToTokenCodeMap.put(token.getId(), codes);

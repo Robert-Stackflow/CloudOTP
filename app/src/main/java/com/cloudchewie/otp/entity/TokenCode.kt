@@ -29,6 +29,14 @@ class TokenCode(private val mCode: String, private val mStart: Long, private val
             return active.mCode
         }
 
+    val nextCode: String?
+        get() {
+            return if (System.currentTimeMillis() in mStart until mUntil && this.mNext!=null)
+                this.mNext!!.mCode
+            else
+                null
+        }
+
     val totalProgress: Int
         get() {
             val cur = System.currentTimeMillis()
