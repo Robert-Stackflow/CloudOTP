@@ -9,8 +9,8 @@ android {
         applicationId "com.cloudchewie.otp"
         minSdkVersion buildConfig.minSdk
         targetSdkVersion buildConfig.targetSdk
-        versionCode 6
-        versionName "1.2.0"
+        versionCode 7
+        versionName "1.3.0"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -77,6 +77,5 @@ dependencies {
     implementation "androidx.camera:camera-extensions:${camerax_version}"
     implementation 'com.github.uccmawei:FingerprintIdentify:1.2.6'
     implementation group: 'com.dropbox.core', name: 'dropbox-core-sdk', version: '5.4.6'
-    implementation "net.zetetic:android-database-sqlcipher:4.5.3"
     implementation "androidx.sqlite:sqlite:2.1.0"
 }
