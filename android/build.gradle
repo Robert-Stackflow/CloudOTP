@@ -1,0 +1,27 @@
+allprojects {
+    repositories {
+//        maven { url 'https://maven.aliyun.com/repository/google' }
+//        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        google()
+        mavenCentral()
+//        maven { url 'https://jitpack.io' }
+//        maven { url "https://maven.google.com" }
+//        maven { url 'https://maven.aliyun.com/repository/public' }
+//        maven { url 'https://maven.aliyun.com/repository/central' }
+//        maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
+//        maven { url 'https://maven.aliyun.com/repository/flutter-plugin' }
+//        maven { url "https://download.flutter.io" }
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

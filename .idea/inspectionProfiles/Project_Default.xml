@@ -1,46 +1,10 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
-    <inspection_tool class="AutoCloseableResource" enabled="false" level="WARNING" enabled_by_default="false">
-      <option name="METHOD_MATCHER_CONFIG" value="java.util.Formatter,format,java.io.Writer,append,com.google.common.base.Preconditions,checkNotNull,org.hibernate.Session,close,java.io.PrintWriter,printf,java.io.PrintStream,printf,android.content.Context,obtainStyledAttributes" />
-    </inspection_tool>
-    <inspection_tool class="CommentedOutCode" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="ConstantValue" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="DataFlowIssue" enabled="false" level="WARNING" enabled_by_default="false">
-      <option name="SUGGEST_NULLABLE_ANNOTATIONS" value="false" />
-      <option name="DONT_REPORT_TRUE_ASSERT_STATEMENTS" value="false" />
-    </inspection_tool>
-    <inspection_tool class="DuplicateBranchesInSwitch" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="FieldCanBeLocal" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="FieldMayBeFinal" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="IOStreamConstructor" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="InnerClassMayBeStatic" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="JavadocLinkAsPlainText" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="RedundantLengthCheck" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="RegExpDuplicateCharacterInClass" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="RegExpRedundantEscape" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="SameParameterValue" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">
       <option name="processCode" value="true" />
       <option name="processLiterals" value="true" />
       <option name="processComments" value="true" />
-    </inspection_tool>
-    <inspection_tool class="UNCHECKED_WARNING" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="UnnecessaryReturn" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="UnnecessaryUnicodeEscape" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="UnusedReturnValue" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="UnusedSymbol" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="unused" enabled="false" level="WARNING" enabled_by_default="false" checkParameterExcludingHierarchy="false">
-      <option name="LOCAL_VARIABLE" value="true" />
-      <option name="FIELD" value="true" />
-      <option name="METHOD" value="true" />
-      <option name="CLASS" value="true" />
-      <option name="PARAMETER" value="true" />
-      <option name="REPORT_PARAMETER_FOR_PUBLIC_METHODS" value="true" />
-      <option name="ADD_MAINS_TO_ENTRIES" value="true" />
-      <option name="ADD_APPLET_TO_ENTRIES" value="true" />
-      <option name="ADD_SERVLET_TO_ENTRIES" value="true" />
-      <option name="ADD_NONJAVA_TO_ENTRIES" value="true" />
     </inspection_tool>
   </profile>
 </component>

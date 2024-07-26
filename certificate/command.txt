@@ -1,0 +1,4 @@
+openssl genrsa -des3 -out cloudotp.key 2048
+openssl req -new -key cloudotp.key -out cloudotp.csr -config "D:\Program Files\Git\usr\ssl\openssl.cnf"
+openssl x509 -in cloudotp.csr -out cloudotp.crt -req -signkey cloudotp.key -days 9999 -config "D:\Program Files\Git\usr\ssl\openssl.cnf"
+openssl pkcs12 -export -out cloudotp.pfx -inkey cloudotp.key -in cloudotp.crt

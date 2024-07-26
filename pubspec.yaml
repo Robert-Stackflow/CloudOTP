@@ -1,0 +1,133 @@
+name: cloudotp
+version: 2.0.0
+description: An awesome two-factor authenticator which supports dropbox
+
+environment:
+  sdk: '>=3.1.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # 控件
+  lottie: ^3.1.2
+  animations: ^2.0.11 # 动画
+  fluttertoast: ^8.2.6 # 吐司
+  waterfall_flow: ^3.0.3 # 瀑布流
+  flutter_widget_from_html: ^0.15.0 # 将HTML渲染成组件
+  modal_bottom_sheet: ^3.0.0 # 底部弹窗
+  group_button:
+    path: third-party/group_button
+  pretty_qr_code: ^3.3.0
+  path_drawing: ^1.0.1 # 路径绘制
+#  video_player_media_kit: ^1.0.5 # 视频播放
+#  media_kit_libs_windows_video: ^1.0.9
+  custom_sliding_segmented_control: ^1.8.3 # 分段控制器
+  flutter_inappwebview: ^6.0.0 # Webview
+  extended_nested_scroll_view: ^6.2.1 # 嵌套滚动
+  flutter_any_logo: ^1.1.1 # Logo
+  # 系统
+  provider: ^6.0.5 # 状态管理
+  local_auth: ^2.2.0 # 指纹验证
+  local_auth_android: ^1.0.42 # 指纹验证
+  package_info_plus: ^8.0.0 # 应用信息
+  device_info_plus: ^10.1.0 # 设备信息
+  flutter_windowmanager: ^0.2.0 # 窗口管理
+  share_plus: ^9.0.0 # 分享
+  url_launcher: ^6.3.0 # URL跳转
+  app_links: ^6.1.4 # 应用URI
+  flutter_displaymode: ^0.6.0 # 设置刷新率
+  permission_handler: ^11.3.1 # 权限管理
+  install_plugin: ^2.1.0 # 安装APP
+  hotkey_manager: ^0.2.3 # 热键
+  flutter_local_notifications: ^17.2.1+2
+  # 存储/网络
+  path:
+  http: ^1.2.1
+  dio: ^5.4.3+1 # 网络请求
+  hive: ^4.0.0-dev.2 # 轻量存储
+  isar_flutter_libs: ^4.0.0-dev.13
+  path_provider: ^2.0.12
+  sqflite: ^2.3.3+1 # SQLite数据库
+  file_picker: ^8.0.6 # 文件选择
+  dio_cache_interceptor: ^3.5.0 # dio缓存
+  dio_cookie_manager: ^3.1.1 # dio cookie管理
+  cached_network_image: ^3.2.1 # 网络图片缓存
+  flutter_cache_manager: ^3.3.1 # 缓存管理
+  process_run: ^1.0.0+1 # 运行
+  context_menus:
+    path: third-party/context_menus
+  # 工具
+  intl:
+  html: ^0.15.0
+  otp: ^3.1.4
+  steam_totp: ^0.0.1
+  base32: ^2.1.3
+  tuple: ^2.0.0 # 元组
+  crypto: ^3.0.3 # 加密
+  encrypt: ^5.0.3 # 加密
+  flutter_native_splash: ^2.4.1 # Splash屏
+  palette_generator: ^0.3.3+3 # 获取主色调
+  vector_math: ^2.1.4
+  restart_app: ^1.2.1 # 重启APP
+  # 平台适配
+  responsive_builder: ^0.7.1 # 响应式布局
+  tray_manager: ^0.2.3 # 托盘图标
+  flutter_resizable_container: ^2.0.0 # 可调整大小的容器
+  window_manager: ^0.3.9 # 窗口管理
+
+dependency_overrides:
+  webview_flutter_android: 3.16.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.11
+  flutter_lints: ^4.0.0
+  json_serializable: ^6.7.1
+  msix: ^3.16.7
+  sqflite_common_ffi: ^2.3.3
+
+msix_config:
+  display_name: CloudOTP
+  publisher_display_name: Cloudchewie
+  identity_name: com.cloudchewie.cloudotp
+  msix_version: 1.8.0.0
+  logo_path: D:\Repositories\CloudOTP\assets\logo-transparent.ico
+#  trim_logo: false
+  output_path: D:\Ruida\Downloads
+  output_name: CloudOTP
+  build_windows: false
+  capabilities: internetClient
+  certificate_path: D:\Repositories\CloudOTP\certificate\cloudotp.pfx
+  certificate_password: CLOUDCHEWIEcloudotp@123
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  color_dark: "#121212"
+  image: "assets/logo-transparent.png"
+  android: true
+  ios: true
+
+  android_12:
+    image: assets/logo-transparent.png
+    icon_background_color: "#FFFFFF"
+    image_dark: assets/logo-transparent.png
+    icon_background_color_dark: "#121212"
+
+flutter_intl:
+  enabled: true
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/lottie/
+    - assets/icon/
+    - assets/mess/
+    - assets/mess/
+    - assets/avatar.png
+    - assets/logo.png
+    - assets/logo.svg
+    - assets/logo-transparent.png
+    - assets/logo-transparent.svg
