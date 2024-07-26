@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:app_links/app_links.dart';
 import 'package:cloudotp/Resources/colors.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
-import 'package:cloudotp/Screens/Token/import_token_screen.dart';
+import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/constant.dart';
@@ -324,25 +324,15 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ItemBuilder.buildIconTextButton(
                   context,
-                  text: "导入",
+                  text: "导入导出",
                   fontSizeDelta: -2,
                   showText: false,
                   direction: Axis.vertical,
                   icon: const Icon(Icons.import_export_rounded),
                   onTap: () async {
                     DialogBuilder.showPageDialog(context,
-                        child: const ImportTokenScreen(), showClose: false);
+                        child: const ImportExportTokenScreen(), showClose: false);
                   },
-                ),
-                const SizedBox(height: 4),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  text: "导出",
-                  fontSizeDelta: -2,
-                  showText: false,
-                  direction: Axis.vertical,
-                  icon: const Icon(Icons.save_alt_rounded),
-                  onTap: () async {},
                 ),
                 const Spacer(),
                 const SizedBox(height: 8),
