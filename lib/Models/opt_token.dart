@@ -201,6 +201,8 @@ class OtpToken {
   int lastCopyTimeStamp;
   String pin;
 
+  int get pinnedInt => pinned ? 1 : 0;
+
   int get counter => int.tryParse(counterString) ?? 0;
 
   int get period => int.tryParse(periodString) ?? 30;
@@ -291,6 +293,29 @@ class OtpToken {
       copyTimes: map['copy_times'],
       lastCopyTimeStamp: map['last_copy_time_stamp'],
       pin: map['pin'],
+    );
+  }
+
+  clone() {
+    return OtpToken(
+      id: id,
+      seq: seq,
+      issuer: issuer,
+      secret: secret,
+      account: account,
+      imagePath: imagePath,
+      tokenType: tokenType,
+      algorithm: algorithm,
+      digits: digits,
+      counterString: counterString,
+      periodString: periodString,
+      pinned: pinned,
+      createTimeStamp: createTimeStamp,
+      editTimeStamp: editTimeStamp,
+      remark: Map<String, dynamic>.from(remark),
+      copyTimes: copyTimes,
+      lastCopyTimeStamp: lastCopyTimeStamp,
+      pin: pin,
     );
   }
 }

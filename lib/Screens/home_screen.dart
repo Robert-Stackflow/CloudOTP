@@ -1,5 +1,4 @@
 import 'package:cloudotp/Database/category_dao.dart';
-import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
@@ -44,13 +43,15 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Category> categories = [];
   late TabController _tabController;
   List<Tab> tabList = [];
+  int _currentTabIndex = 0;
+  Key sliverPersistentHeaderKey = ValueKey(Utils.getRandomString());
 
   @override
   void initState() {
     super.initState();
     initAppName();
     initTab();
-    getCategories();
+    refresh();
   }
 
   initAppName() {
@@ -61,13 +62,25 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  refresh() {
+  refresh() async {
+    await getCategories();
     getTokens();
-    getCategories();
+  }
+
+  int get currentCategoryId {
+    if (_currentTabIndex == 0) {
+      return -1;
+    } else {
+      if (_currentTabIndex - 1 < 0 ||
+          _currentTabIndex - 1 >= categories.length) {
+        return -1;
+      }
+      return categories[_currentTabIndex - 1].id;
+    }
   }
 
   getTokens() async {
-    await TokenDao.listTokens().then((value) {
+    await CategoryDao.getTokensByCategoryId(currentCategoryId).then((value) {
       setState(() {
         tokens = value;
       });
@@ -75,28 +88,31 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   getCategories() async {
+    int oldId = currentCategoryId;
     await CategoryDao.listCategories().then((value) {
       setState(() {
         categories = value;
+        List<int> ids = categories.map((e) => e.id).toList();
+        if (!ids.contains(oldId)) {
+          _currentTabIndex = 0;
+        } else {
+          _currentTabIndex = ids.indexOf(oldId) + 1;
+        }
+        initTab();
       });
     });
   }
 
   initTab() {
     tabList.clear();
-    tabList.add(
-      const Tab(
-        text: "全部",
-      ),
-    );
+    tabList.add(const Tab(text: "全部"));
     for (var category in categories) {
-      tabList.add(
-        Tab(
-          text: category.title,
-        ),
-      );
+      tabList.add(Tab(text: category.title));
     }
     _tabController = TabController(length: tabList.length, vsync: this);
+    _tabController.index = _currentTabIndex;
+    sliverPersistentHeaderKey = ValueKey(Utils.getRandomString());
+    setState(() {});
   }
 
   @override
@@ -157,6 +173,14 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  @override
+  didChangeDependencies() {
+    super.didChangeDependencies();
+    if (Utils.isDark(context) != Theme.of(context).brightness) {
+      sliverPersistentHeaderKey = ValueKey(Utils.getRandomString());
+    }
+  }
+
   _buildBody() {
     late double maxCrossAxisExtent;
     switch (layoutType) {
@@ -170,7 +194,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return CustomScrollView(
       slivers: [
         SliverPersistentHeader(
-          key: ValueKey(Utils.getRandomString()),
+          key: sliverPersistentHeaderKey,
           pinned: true,
           delegate: SliverHeaderDelegate.fixedHeight(
             height: 54,
@@ -189,7 +213,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             refreshOnStart: true,
             child: WaterfallFlow.extent(
               maxCrossAxisExtent: maxCrossAxisExtent,
-              padding: const EdgeInsets.only(left: 10, right: 10,top: 10, bottom: 30),
+              padding: const EdgeInsets.only(
+                  left: 10, right: 10, top: 10, bottom: 30),
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
               children: [
@@ -223,6 +248,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       indicator: CustomTabIndicator(
         borderColor: Theme.of(context).primaryColor,
       ),
+      onTap: (index) {
+        setState(() {
+          _currentTabIndex = index;
+          getTokens();
+        });
+      },
     );
   }
 

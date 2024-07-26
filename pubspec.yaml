@@ -124,9 +124,7 @@ flutter:
   assets:
     - assets/lottie/
     - assets/icon/
-    - assets/mess/
-    - assets/mess/
-    - assets/avatar.png
+    - assets/brand/
     - assets/logo.png
     - assets/logo.svg
     - assets/logo-transparent.png

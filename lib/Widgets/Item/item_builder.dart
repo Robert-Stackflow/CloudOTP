@@ -6,7 +6,6 @@ import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Utils/lottie_util.dart';
 import 'package:cloudotp/Widgets/Selectable/my_context_menu_item.dart';
 import 'package:context_menus/context_menus.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -230,17 +229,18 @@ class ItemBuilder {
     GroupButtonController? controller,
     bool enableDeselect = false,
     bool disabled = false,
+    bool isRadio = true,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return GroupButton(
-      isRadio: true,
+      isRadio: isRadio,
       enableDeselect: enableDeselect,
       options: const GroupButtonOptions(
         mainGroupAlignment: MainGroupAlignment.start,
       ),
       disabled: disabled,
       onSelected: onSelected,
-      maxSelected: 1,
+      maxSelected: isRadio ? 1 : buttons.length,
       controller: controller,
       buttons: buttons,
       buttonBuilder: (selected, label, context, onTap, disabled) {
@@ -259,6 +259,45 @@ class ItemBuilder {
             textStyle: Theme.of(context).textTheme.titleSmall?.apply(
                 fontSizeDelta: 1, color: selected ? Colors.white : null),
           ),
+        );
+      },
+    );
+  }
+
+  static buildGroupTokenButtons({
+    required List<OtpToken> tokens,
+    GroupButtonController? controller,
+    bool enableDeselect = true,
+    bool disabled = false,
+    bool isRadio = false,
+    Function(dynamic value, int index, bool isSelected)? onSelected,
+  }) {
+    return GroupButton(
+      isRadio: isRadio,
+      enableDeselect: enableDeselect,
+      options: const GroupButtonOptions(
+        mainGroupAlignment: MainGroupAlignment.start,
+      ),
+      disabled: disabled,
+      onSelected: onSelected,
+      controller: controller,
+      buttons: tokens,
+      buttonBuilder: (selected, token, context, onTap, disabled) {
+        return ItemBuilder.buildRoundButton(
+          context,
+          icon: ItemBuilder.buildTokenImage(token, size: 12),
+          text: token.issuer,
+          onTap: onTap,
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+          background: selected
+              ? disabled
+                  ? Theme.of(context).primaryColor.withAlpha(80)
+                  : Theme.of(context).primaryColor
+              : null,
+          textStyle: Theme.of(context)
+              .textTheme
+              .titleSmall
+              ?.apply(fontSizeDelta: 1, color: selected ? Colors.white : null),
         );
       },
     );
@@ -1201,12 +1240,8 @@ class ItemBuilder {
 
   static buildTokenImage(OtpToken token, {double size = 80}) {
     if (Utils.isNotEmpty(token.imagePath)) {
-      return Image.asset(
-        token.imagePath,
-        height: size,
-        width: size,
-        fit: BoxFit.contain,
-      );
+      return AssetUtil.loadBrand(token.imagePath,
+          width: size, height: size, fit: BoxFit.contain);
     } else {
       return TextDrawable(
         text: token.issuer,
@@ -1360,14 +1395,29 @@ class ItemBuilder {
     String? text,
     Function()? onTap,
     Color? background,
-    Icon? icon,
+    Widget? icon,
     EdgeInsets? padding,
     double radius = 50,
     Color? color,
     double fontSizeDelta = 0,
     TextStyle? textStyle,
     double? width,
+    bool align = false,
   }) {
+    Widget titleWidget = Text(
+      text ?? "",
+      style: textStyle ??
+          Theme.of(context).textTheme.titleSmall?.apply(
+                color: color ??
+                    (background != null
+                        ? Colors.white
+                        : Theme.of(context).textTheme.titleSmall?.color),
+                fontWeightDelta: 2,
+                fontSizeDelta: fontSizeDelta,
+              ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
     return Material(
       color: background ?? Theme.of(context).cardColor,
       borderRadius: BorderRadius.circular(radius),
@@ -1387,23 +1437,15 @@ class ItemBuilder {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (icon != null) icon,
-                Text(
-                  text ?? "",
-                  style: textStyle ??
-                      Theme.of(context).textTheme.titleSmall?.apply(
-                            color: color ??
-                                (background != null
-                                    ? Colors.white
-                                    : Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.color),
-                            fontWeightDelta: 2,
-                            fontSizeDelta: fontSizeDelta,
-                          ),
-                ),
+                if (icon != null) const SizedBox(width: 5),
+                align ? Expanded(flex: 100, child: titleWidget) : titleWidget,
+                if (align)
+                  const Spacer(
+                    flex: 1,
+                  ),
               ],
             ),
           ),

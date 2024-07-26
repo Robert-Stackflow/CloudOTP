@@ -1,5 +1,7 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cloudotp/TokenUtils/token_image_util.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:flutter/cupertino.dart';
 
 class AssetUtil {
   static const String collectionDarkIcon = "assets/icon/collection_dark.png";
@@ -74,6 +76,36 @@ class AssetUtil {
       width: width ?? size,
       height: height ?? size,
     );
+  }
+
+  static loadBrand(
+    String path, {
+    double size = 24,
+    double? width,
+    double? height,
+    BoxFit? fit,
+  }) {
+    String darkPath = path.replaceAll(".png", "_dark.png");
+    bool hasDark = TokenImageUtil.darkBrandLogos.contains(darkPath);
+    if (hasDark) {
+      return loadDouble(
+        rootContext,
+        'assets/brand/$path',
+        'assets/brand/$darkPath',
+        size: size,
+        width: width,
+        height: height,
+        fit: fit,
+      );
+    } else {
+      return load(
+        'assets/brand/$path',
+        size: size,
+        width: width,
+        height: height,
+        fit: fit,
+      );
+    }
   }
 
   static loadDouble(

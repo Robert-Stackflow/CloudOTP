@@ -89,9 +89,10 @@ class TextDrawableState extends State<TextDrawable> {
         widget.text.isNotEmpty ? widget.text[0].toUpperCase() : 'A',
         style: widget.textStyle?.copyWith(
               color: contrast > 1.8 ? Colors.white : Colors.black,
+              fontSize: widget.height * 0.5,
             ) ??
             TextStyle(
-              fontSize: 18,
+              fontSize: widget.height * 0.5,
               color: contrast > 1.8 ? Colors.white : Colors.black,
             ),
       ),

@@ -35,9 +35,9 @@ class CheckTokenUtil {
     if (token.secret.isEmpty) {
       return CheckTokenError.SECRET_EMPTY;
     }
-    if (!isSecretBase32(token.secret)) {
-      return CheckTokenError.SECRET_BASE32_ERROR;
-    }
+    // if (!isSecretBase32(token.secret)) {
+    //   return CheckTokenError.SECRET_BASE32_ERROR;
+    // }
     if (!isIntervalValid(token.periodString)) {
       return CheckTokenError.period_ERROR;
     }

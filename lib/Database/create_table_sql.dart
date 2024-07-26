@@ -32,6 +32,7 @@ enum Sql {
         create_time_stamp INTEGER NOT NULL,
         edit_time_stamp INTEGER NOT NULL,
         pinned INTEGER NOT NULL,
+        token_ids TEXT NOT NULL,
         remark TEXT NOT NULL
       );
     ''');

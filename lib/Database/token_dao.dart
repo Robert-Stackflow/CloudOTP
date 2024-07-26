@@ -1,5 +1,6 @@
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
 
 class TokenDao {
@@ -50,6 +51,7 @@ class TokenDao {
   }
 
   static Future<int> updateToken(OtpToken token) async {
+    token.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
     final db = await DatabaseManager.getDataBase();
     int id = await db.update(
       tableName,
@@ -63,6 +65,20 @@ class TokenDao {
   static Future<int> updateTokenPinned(OtpToken token, bool pinned) async {
     final db = await DatabaseManager.getDataBase();
     token.pinned = pinned;
+    token.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
+    int id = await db.update(
+      tableName,
+      token.toMap(),
+      where: 'id = ?',
+      whereArgs: [token.id],
+    );
+    return id;
+  }
+
+  static Future<int> incTokenCopyTimes(OtpToken token) async {
+    final db = await DatabaseManager.getDataBase();
+    token.copyTimes += 1;
+    token.lastCopyTimeStamp = DateTime.now().millisecondsSinceEpoch;
     int id = await db.update(
       tableName,
       token.toMap(),
@@ -84,9 +100,22 @@ class TokenDao {
 
   static Future<List<OtpToken>> listTokens() async {
     final db = await DatabaseManager.getDataBase();
-    final List<Map<String, dynamic>> maps = await db.query(tableName);
+    final List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      orderBy: "pinned DESC",
+    );
     return List.generate(maps.length, (i) {
       return OtpToken.fromMap(maps[i]);
     });
+  }
+
+  static Future<OtpToken> getTokenById(int id) async {
+    final db = await DatabaseManager.getDataBase();
+    List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return OtpToken.fromMap(maps[0]);
   }
 }

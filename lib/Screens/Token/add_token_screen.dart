@@ -3,6 +3,7 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
@@ -11,8 +12,8 @@ import 'package:group_button/group_button.dart';
 
 import '../../TokenUtils/check_token_util.dart';
 import '../../TokenUtils/token_image_util.dart';
-import '../../Utils/iprint.dart';
 import '../../Utils/utils.dart';
+import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 
 class AddTokenScreen extends StatefulWidget {
   const AddTokenScreen({
@@ -40,12 +41,13 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   final GroupButtonController _algorithmController = GroupButtonController();
   late OtpToken _otpToken;
   bool _isEditing = false;
+  bool customedImage = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.token != null) {
-      _otpToken = widget.token!;
+      _otpToken = widget.token!.clone();
       setState(() {
         _isEditing = true;
       });
@@ -62,9 +64,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     _algorithmController.selectIndex(_otpToken.algorithm.index);
     _issuerController.addListener(() {
       _otpToken.issuer = _issuerController.text;
-      setState(() {
-        _otpToken.imagePath = TokenImageUtil.matchBrandLogo(_otpToken) ?? "";
-      });
+      if (!_isEditing && !customedImage) {
+        setState(() {
+          _otpToken.imagePath = TokenImageUtil.matchBrandLogo(_otpToken) ?? "";
+        });
+      }
     });
     _accountController.addListener(() {
       _otpToken.account = _accountController.text;
@@ -106,7 +110,10 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         actions: [
           ItemBuilder.buildIconButton(
             context: context,
-            icon: const Icon(Icons.done_rounded),
+            icon: Icon(
+              Icons.done_rounded,
+              color: Theme.of(context).iconTheme.color,
+            ),
             onTap: () {
               processDone();
             },
@@ -129,9 +136,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           await TokenDao.insertToken(_otpToken);
         }
         success = true;
-      } catch (e, t) {
-        IPrint.debug(e);
-        IPrint.debug(t);
+      } catch (e) {
         IToast.showTop("保存失败");
       } finally {
         homeScreenState?.refresh();
@@ -152,31 +157,76 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     return EasyRefresh(
       child: ListView(
         shrinkWrap: true,
-        padding: EdgeInsets.symmetric(
-            horizontal: ResponsiveUtil.isLandscape() ? 20 : 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         children: [
           Column(
             children: [
-              Utils.isEmpty(_otpToken.issuer)
-                  ? Container(
-                      constraints: const BoxConstraints(maxWidth: 82),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: Colors.grey.withOpacity(0.1), width: 0.5),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Utils.isEmpty(_otpToken.imagePath) &&
+                          Utils.isEmpty(_otpToken.issuer)
+                      ? Container(
+                          constraints: const BoxConstraints(maxWidth: 82),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: Colors.grey.withOpacity(0.1),
+                                width: 0.5),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              'assets/logo.png',
+                              height: 80,
+                              width: 80,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        )
+                      : ItemBuilder.buildTokenImage(_otpToken),
+                  const SizedBox(width: 10),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ItemBuilder.buildIconButton(
+                        context: context,
+                        icon: const Icon(Icons.auto_awesome_outlined, size: 20),
+                        onTap: () async {
+                          setState(() {
+                            customedImage = false;
+                            _otpToken.imagePath =
+                                TokenImageUtil.matchBrandLogo(_otpToken) ?? "";
+                          });
+                        },
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
-                          'assets/logo.png',
-                          height: 80,
-                          width: 80,
-                          fit: BoxFit.contain,
-                        ),
+                      const SizedBox(height: 5),
+                      ItemBuilder.buildIconButton(
+                        context: context,
+                        icon: const Icon(Icons.image_search_rounded, size: 20),
+                        onTap: () async {
+                          BottomSheetBuilder.showBottomSheet(
+                            context,
+                            responsive: true,
+                            preferMinWidth: 500,
+                            (context) => SelectIconBottomSheet(
+                              token: _otpToken,
+                              onSelected: (path) {
+                                customedImage = true;
+                                _otpToken.imagePath = path;
+                                setState(() {});
+                              },
+                            ),
+                          );
+                        },
                       ),
-                    )
-                  : ItemBuilder.buildTokenImage(_otpToken),
+                    ],
+                  )
+                ],
+              ),
               const SizedBox(height: 20),
               ItemBuilder.buildContainerItem(
                 context: context,

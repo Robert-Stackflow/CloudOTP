@@ -57,10 +57,12 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               ?.apply(fontWeightDelta: 2),
         ),
         center: true,
-        actions: [
-          ItemBuilder.buildBlankIconButton(context),
-          const SizedBox(width: 5),
-        ],
+        actions: ResponsiveUtil.isLandscape()
+            ? []
+            : [
+                ItemBuilder.buildBlankIconButton(context),
+                const SizedBox(width: 5),
+              ],
       ),
       body: _buildBody(),
     );
@@ -69,8 +71,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
   _buildBody() {
     return EasyRefresh(
       child: ListView(
-        padding: EdgeInsets.symmetric(
-            horizontal: ResponsiveUtil.isLandscape() ? 20 : 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         children: [
           ItemBuilder.buildCaptionItem(context: context, title: "导入"),
           ItemBuilder.buildEntryItem(

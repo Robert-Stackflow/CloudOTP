@@ -188,7 +188,7 @@ class Utils {
     return mainColors;
   }
 
-  static List<T> deepCopy<T>(List<T> list) {
+  static List<T> deepCopyList<T>(List<T> list) {
     return List<T>.from(list);
   }
 

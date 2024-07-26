@@ -4,6 +4,7 @@ import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
+import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
@@ -17,6 +18,8 @@ import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/utils.dart';
+import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 
 class TokenLayout extends StatefulWidget {
   const TokenLayout({
@@ -92,12 +95,14 @@ class TokenLayoutState extends State<TokenLayout>
             "复制令牌",
             onPressed: () {
               Utils.copy(context, getCurrentCode());
+              TokenDao.incTokenCopyTimes(widget.token);
             },
           ),
           ContextMenuButtonConfig(
             "复制下一个令牌",
             onPressed: () {
               Utils.copy(context, getNextCode());
+              TokenDao.incTokenCopyTimes(widget.token);
             },
           ),
           ContextMenuButtonConfig.divider(),
@@ -126,12 +131,27 @@ class TokenLayoutState extends State<TokenLayout>
           ContextMenuButtonConfig(
             "更改图标",
             onPressed: () {
-              homeScreenState?.refresh();
+              BottomSheetBuilder.showBottomSheet(
+                context,
+                responsive: true,
+                preferMinWidth: 500,
+                (context) => SelectIconBottomSheet(
+                  token: widget.token,
+                  onSelected: (path) => {},
+                  doUpdate: true,
+                ),
+              );
             },
           ),
           ContextMenuButtonConfig(
             "更改分类",
             onPressed: () {
+              BottomSheetBuilder.showBottomSheet(
+                context,
+                responsive: true,
+                preferMinWidth: 300,
+                (context) => SelectCategoryBottomSheet(token: widget.token),
+              );
               homeScreenState?.refresh();
             },
           ),
@@ -208,7 +228,9 @@ class TokenLayoutState extends State<TokenLayout>
   _buildSimpleLayout() {
     return ItemBuilder.buildClickItem(
       Material(
-        color: Theme.of(context).canvasColor,
+        color: widget.token.pinned
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : Theme.of(context).canvasColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
