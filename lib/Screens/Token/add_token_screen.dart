@@ -224,7 +224,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       title: "类型",
                       disabled: _isEditing,
                       controller: _typeController,
-                      buttons: OtpTokenType.TOTP.strings,
+                      buttons: OtpTokenType.labels(),
                       onSelected: (value, index, isSelected) {
                         _otpToken.tokenType = index.otpTokenType;
                         setState(() {});

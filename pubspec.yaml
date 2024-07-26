@@ -59,7 +59,7 @@ dependencies:
   context_menus:
     path: third-party/context_menus
   # 工具
-  intl:
+  intl_utils: ^2.8.7
   html: ^0.15.0
   otp: ^3.1.4
   steam_totp: ^0.0.1

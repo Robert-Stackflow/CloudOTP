@@ -236,6 +236,11 @@ class Utils {
     return str.trim().replaceAll(RegExp(r"\s+"), keepOne ? " " : "");
   }
 
+  static Future<String?> getClipboardData() async {
+    ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    return data?.text;
+  }
+
   static void copy(
     BuildContext context,
     dynamic data, {

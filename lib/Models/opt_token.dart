@@ -48,6 +48,12 @@ enum OtpTokenType {
         return OtpTokenType.TOTP;
     }
   }
+
+  static List<String> labels({bool toLowerCase = false}) {
+    return OtpTokenType.values
+        .map((e) => toLowerCase ? e.label.toLowerCase() : e.label)
+        .toList();
+  }
 }
 
 enum OtpDigits {
@@ -100,12 +106,6 @@ enum OtpAlgorithm {
       default:
         return OtpAlgorithm.SHA1;
     }
-  }
-}
-
-extension OtpTokenTypeExtension on OtpTokenType {
-  List<String> get strings {
-    return OtpTokenType.values.map((e) => e.label.toLowerCase()).toList();
   }
 }
 

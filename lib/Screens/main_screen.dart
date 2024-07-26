@@ -36,6 +36,7 @@ import '../Widgets/Scaffold/my_scaffold.dart';
 import '../Widgets/Window/window_button.dart';
 import 'Lock/pin_verify_screen.dart';
 import 'Setting/setting_screen.dart';
+import 'Token/category_screen.dart';
 
 const borderColor = Color(0xFF805306);
 const backgroundStartColor = Color(0xFFFFD500);
@@ -330,8 +331,23 @@ class MainScreenState extends State<MainScreen>
                   direction: Axis.vertical,
                   icon: const Icon(Icons.import_export_rounded),
                   onTap: () async {
+                    DialogBuilder.showPageDialog(
+                      context,
+                      child: const ImportExportTokenScreen(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  text: "分类",
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.category_outlined),
+                  onTap: () async {
                     DialogBuilder.showPageDialog(context,
-                        child: const ImportExportTokenScreen(), showClose: false);
+                        child: const CategoryScreen(), showClose: false);
                   },
                 ),
                 const Spacer(),

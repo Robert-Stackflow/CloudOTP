@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/utils.dart';
 
 class ImportExportTokenScreen extends StatefulWidget {
   const ImportExportTokenScreen({
@@ -40,7 +41,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
       appBar: ItemBuilder.buildAppBar(
         context: context,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        forceShowClose: true,
         leading: Icons.close_rounded,
         onLeadingTap: () {
           if (ResponsiveUtil.isLandscape()) {
@@ -72,51 +72,75 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         padding: EdgeInsets.symmetric(
             horizontal: ResponsiveUtil.isLandscape() ? 20 : 16, vertical: 10),
         children: [
-          const SizedBox(height: 10),
           ItemBuilder.buildCaptionItem(context: context, title: "导入"),
           ItemBuilder.buildEntryItem(
             context: context,
+            title: "导入加密文件",
+            description: "导入加密的二进制文件，仅适用于$appName",
+            onTap: () async {
+              FilePickerResult? result = await FilePicker.platform.pickFiles(
+                dialogTitle: "选择加密文件",
+                type: FileType.custom,
+                allowedExtensions: ['bin'],
+                lockParentWindow: true,
+              );
+              if (result != null) {
+                ImportTokenUtil.importEncryptFile(result.files.single.path!);
+              }
+            },
+          ),
+          ItemBuilder.buildEntryItem(
+            context: context,
             title: "导入URI格式",
-            bottomRadius: true,
             description: "导入纯文本格式的OTPAuth URI列表，每行对应一个令牌",
             onTap: () async {
               FilePickerResult? result = await FilePicker.platform.pickFiles(
-                dialogTitle: "选择文件",
+                dialogTitle: "选择文本文件",
                 type: FileType.any,
                 lockParentWindow: true,
               );
               if (result != null) {
                 ImportTokenUtil.importUriFile(result.files.single.path!);
               }
+            },
+          ),
+          ItemBuilder.buildEntryItem(
+            context: context,
+            title: "从剪切板导入URI格式",
+            bottomRadius: true,
+            description: "从剪切板中导入纯文本格式的OTPAuth URI列表，每行对应一个令牌",
+            onTap: () async {
+              String? content = await Utils.getClipboardData();
+              ImportTokenUtil.importText(content ?? "", emptyTip: "剪切板内容为空");
             },
           ),
           const SizedBox(height: 10),
           ItemBuilder.buildCaptionItem(context: context, title: "导出"),
           ItemBuilder.buildEntryItem(
             context: context,
-            title: "导出加密文件",
+            title: "导出为加密文件",
             description: "将令牌信息及其分类和图标导出到加密的二进制文件中，仅适用于$appName",
             onTap: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(
-                dialogTitle: "选择文件",
-                type: FileType.any,
-                allowedExtensions: ['txt'],
+              String? result = await FilePicker.platform.saveFile(
+                dialogTitle: "导出加密文件",
+                type: FileType.custom,
+                allowedExtensions: ['bin'],
                 lockParentWindow: true,
               );
               if (result != null) {
-                ImportTokenUtil.importUriFile(result.files.single.path!);
+                ExportTokenUtil.exportEncryptFile(result);
               }
             },
           ),
           ItemBuilder.buildEntryItem(
             context: context,
-            title: "导出URI格式",
+            title: "导出为URI格式",
             bottomRadius: true,
             description: "将令牌信息（不包含分类和图标）导出到未经加密的纯文本格式文件，兼容性较高",
             onTap: () async {
               String? result = await FilePicker.platform.saveFile(
-                dialogTitle: "选择文件",
-                type: FileType.any,
+                dialogTitle: "导出URI格式",
+                type: FileType.custom,
                 allowedExtensions: ['txt'],
                 lockParentWindow: true,
               );

@@ -158,14 +158,14 @@ class _GroupButtonBodyState<T> extends State<GroupButtonBody<T>> {
       final buttonIndexedBuilder = widget.buttonIndexedBuilder;
       if (buttonBuilder != null || buttonIndexedBuilder != null) {
         var onTap = widget.disabled
-            ? _controller.disabledIndexes.contains(i)
+            ? null
+            : _controller.disabledIndexes.contains(i)
                 ? () => _controller.onDisablePressed?.call(i)
                 : () {
                     _selectButton(i);
                     widget.onSelected
                         ?.call(widget.buttons[i], i, _isSelected(i));
-                  }
-            : null;
+                  };
         button = GestureDetector(
           onTap: onTap,
           child: buttonBuilder != null

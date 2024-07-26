@@ -32,7 +32,8 @@ class OtpTokenParser {
         Utils.isEmpty(uri.authority) ||
         uri.queryParameters.isEmpty ||
         !uri.queryParameters.containsKey("secret") ||
-        !OtpTokenType.TOTP.strings.contains(uri.authority.toLowerCase())) {
+        !OtpTokenType.labels(toLowerCase: true)
+            .contains(uri.authority.toLowerCase())) {
       return null;
     }
     if ((!uri.queryParameters.containsKey("algorithm") ||
