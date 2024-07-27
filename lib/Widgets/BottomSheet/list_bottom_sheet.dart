@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../generated/l10n.dart';
+
 class TileList extends StatelessWidget {
   const TileList(
     this.children, {
@@ -83,7 +85,7 @@ class TileList extends StatelessWidget {
         ...children,
         if (showCancel)
           ItemBuilder.buildEntryItem(
-            title: "取消",
+            title: S.current.cancel,
             backgroundColor: Theme.of(context).cardColor.withAlpha(127),
             showTrailing: false,
             onTap: onCloseTap,

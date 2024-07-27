@@ -7,6 +7,7 @@ import '../../Database/category_dao.dart';
 import '../../Models/category.dart';
 import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
+import '../../generated/l10n.dart';
 
 class SelectCategoryBottomSheet extends StatefulWidget {
   const SelectCategoryBottomSheet({
@@ -93,7 +94,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
       alignment: Alignment.center,
       child: Text(
         textAlign: TextAlign.center,
-        "选择令牌「${widget.token.issuer}」的分类",
+        S.current.setCategoryForToken(widget.token.issuer),
         style: Theme.of(context).textTheme.titleLarge,
       ),
     );
@@ -115,7 +116,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
               child: ItemBuilder.buildRoundButton(
                 context,
                 background: Theme.of(context).primaryColor,
-                text: " 保存 ",
+                text: S.current.save,
                 onTap: () async {
                   List<int> selectedIndexes =
                       controller.selectedIndexes.toList();

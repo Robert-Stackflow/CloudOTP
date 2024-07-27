@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../Custom/floating_modal.dart';
@@ -36,6 +36,7 @@ class BottomSheetBuilder {
         builder: builder,
         containerWidget: (_, animation, child) => FloatingModal(
           preferMinWidth: preferMinWidth,
+          useVerticalMargin: true,
           child: child,
         ),
       );

@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  flutter_any_logo
   gtk
   hotkey_manager_linux
   isar_flutter_libs

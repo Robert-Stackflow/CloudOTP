@@ -1,9 +1,8 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/iprint.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:process_run/process_run.dart';
 
@@ -12,6 +11,7 @@ import '../../Utils/file_util.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/Item/item_builder.dart';
+import '../../generated/l10n.dart';
 
 class UpdateScreen extends StatefulWidget {
   const UpdateScreen({
@@ -41,7 +41,7 @@ class _UpdateScreenState extends State<UpdateScreen>
 
   late ReleaseItem latestReleaseItem;
 
-  String buttonText = "立即下载";
+  String buttonText = S.current.immediatelyDownload;
   DownloadState downloadState = DownloadState.normal;
 
   @override
@@ -57,7 +57,7 @@ class _UpdateScreenState extends State<UpdateScreen>
     return Scaffold(
       appBar: ItemBuilder.buildSimpleAppBar(
         transparent: true,
-        title: "发现新版本$latestVersion",
+        title: S.current.getNewVersion(latestVersion),
         leading: Icons.arrow_back_rounded,
         context: context,
       ),
@@ -93,7 +93,8 @@ class _UpdateScreenState extends State<UpdateScreen>
           children: [
             ItemBuilder.buildHtmlWidget(
               context,
-              "更新日志如下：<br/>${Utils.replaceLineBreak(item.body ?? "")}",
+              S.current.updateLogAsFollow(
+                  "<br/>${Utils.replaceLineBreak(item.body ?? "")}"),
               textStyle: Theme.of(context).textTheme.titleMedium?.apply(
                     fontSizeDelta: 1,
                     color: Theme.of(context).textTheme.bodySmall?.color,
@@ -116,7 +117,7 @@ class _UpdateScreenState extends State<UpdateScreen>
             height: 45,
             child: ItemBuilder.buildFramedButton(
               context,
-              text: "暂不更新",
+              text: S.current.updateLater,
               onTap: () {
                 dialogNavigatorState?.popPage();
               },
@@ -146,7 +147,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     return;
                   } else if (downloadState == DownloadState.toInstall) {
                     setState(() {
-                      buttonText = "安装中...";
+                      buttonText = S.current.installing;
                       downloadState == DownloadState.installing;
                     });
                     try {
@@ -158,7 +159,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     } catch (e) {
                       IToast.showTop(e.toString());
                       setState(() {
-                        buttonText = "立即安装";
+                        buttonText = S.current.immediatelyInstall;
                       });
                       downloadState == DownloadState.toInstall;
                     }
@@ -167,7 +168,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     if (Utils.isNotEmpty(asset.browserDownloadUrl)) {
                       double progressValue = 0.0;
                       setState(() {
-                        buttonText = "已下载0%";
+                        buttonText = S.current.alreadyDownloadProgress(0);
                       });
                       downloadState = DownloadState.downloading;
                       await Dio().download(
@@ -182,20 +183,20 @@ class _UpdateScreenState extends State<UpdateScreen>
                               progressValue = 0.0;
                             }
                             setState(() {
-                              buttonText =
-                                  "已下载${(progressValue * 100).toInt()}%";
+                              buttonText = S.current.alreadyDownloadProgress(
+                                  (progressValue * 100).toInt());
                             });
                           }
                         },
                       ).then((response) async {
                         if (response.statusCode == 200) {
-                          IToast.showTop("下载完成");
+                          IToast.showTop(S.current.downloadSuccess);
                           setState(() {
-                            buttonText = "立即安装";
+                            buttonText = S.current.immediatelyInstall;
                             downloadState = DownloadState.toInstall;
                           });
                         } else {
-                          IToast.showTop("下载失败");
+                          IToast.showTop(S.current.downloadFailed);
                           downloadState == DownloadState.normal;
                           UriUtil.openExternal(latestReleaseItem.url);
                         }
@@ -206,7 +207,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     }
                   }
                 } catch (e) {
-                  IToast.showTop("下载失败");
+                  IToast.showTop(S.current.downloadFailed);
                   downloadState == DownloadState.normal;
                 }
               },

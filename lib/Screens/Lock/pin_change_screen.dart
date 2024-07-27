@@ -1,20 +1,16 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
-import 'package:local_auth/local_auth.dart';
-import 'package:local_auth_android/local_auth_android.dart';
-import 'package:cloudotp/Utils/iprint.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_indicator.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_view.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/material.dart';
 
 import '../../Utils/hive_util.dart';
+import '../../Utils/utils.dart';
+import '../../generated/l10n.dart';
 
 class PinChangeScreen extends StatefulWidget {
   const PinChangeScreen({super.key});
@@ -25,17 +21,6 @@ class PinChangeScreen extends StatefulWidget {
   PinChangeScreenState createState() => PinChangeScreenState();
 }
 
-AndroidAuthMessages andStrings = const AndroidAuthMessages(
-  cancelButton: '取消',
-  goToSettingsButton: '去设置',
-  biometricNotRecognized: '指纹识别失败',
-  goToSettingsDescription: '请设置指纹',
-  biometricHint: '',
-  biometricSuccess: '指纹识别成功',
-  signInTitle: '指纹验证',
-  deviceCredentialsRequiredTitle: '请先录入指纹!',
-);
-
 class PinChangeScreenState extends State<PinChangeScreen> {
   String _gesturePassword = "";
   final String? _oldPassword = HiveUtil.getString(HiveUtil.guesturePasswdKey);
@@ -44,8 +29,12 @@ class PinChangeScreenState extends State<PinChangeScreen> {
   late final bool _isUseBiometric =
       _isEditMode && HiveUtil.getBool(HiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = _isEditMode
-      ? GestureNotifier(status: GestureStatus.verify, gestureText: "绘制旧手势密码")
-      : GestureNotifier(status: GestureStatus.create, gestureText: "绘制新手势密码");
+      ? GestureNotifier(
+          status: GestureStatus.verify,
+          gestureText: S.current.drawOldGestureLock)
+      : GestureNotifier(
+          status: GestureStatus.create,
+          gestureText: S.current.drawNewGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
   final GlobalKey<GestureUnlockIndicatorState> _indicator = GlobalKey();
 
@@ -58,45 +47,17 @@ class PinChangeScreenState extends State<PinChangeScreen> {
   }
 
   void auth() async {
-    LocalAuthentication localAuth = LocalAuthentication();
-    try {
-      String appName = (await PackageInfo.fromPlatform()).appName;
-      await localAuth
-          .authenticate(
-        localizedReason: ResponsiveUtil.isWindows()
-            ? '验证PIN以使用$appName'
-            : '进行指纹验证以使用$appName',
-        authMessages: [andStrings, andStrings, andStrings],
-        options: const AuthenticationOptions(
-          useErrorDialogs: false,
-          stickyAuth: true,
-        ),
-      )
-          .then((value) {
-        if (value) {
-          IToast.showTop("验证成功");
-          setState(() {
-            _notifier.setStatus(
-              status: GestureStatus.create,
-              gestureText: "绘制新手势密码",
-            );
-            _isEditMode = false;
-          });
-          _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
-        }
+    await Utils.localAuth(onAuthed: () {
+      IToast.showTop(S.current.biometricVerifySuccess);
+      setState(() {
+        _notifier.setStatus(
+          status: GestureStatus.create,
+          gestureText: S.current.drawNewGestureLock,
+        );
+        _isEditMode = false;
       });
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notAvailable) {
-        IPrint.debug("not avaliable");
-      } else if (e.code == auth_error.notEnrolled) {
-        IPrint.debug("not enrolled");
-      } else if (e.code == auth_error.lockedOut ||
-          e.code == auth_error.permanentlyLockedOut) {
-        IPrint.debug("locked out");
-      } else {
-        IPrint.debug("other reason:$e");
-      }
-    }
+      _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
+    });
   }
 
   @override
@@ -149,7 +110,9 @@ class PinChangeScreenState extends State<PinChangeScreen> {
                   clickable: _isEditMode && _isUseBiometric,
                   Text(
                     _isEditMode && _isUseBiometric
-                        ? (ResponsiveUtil.isWindows() ? "验证PIN" : "指纹识别")
+                        ? (ResponsiveUtil.isWindows()
+                            ? S.current.biometricVerifyPin
+                            : S.current.biometricVerifyFingerprint)
                         : "",
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
@@ -171,7 +134,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
           setState(() {
             _notifier.setStatus(
               status: GestureStatus.createFailed,
-              gestureText: "连接数不能小于4个，请重新设置",
+              gestureText: S.current.atLeast4Points,
             );
           });
           _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);
@@ -179,7 +142,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
           setState(() {
             _notifier.setStatus(
               status: GestureStatus.verify,
-              gestureText: "请再次绘制解锁密码",
+              gestureText: S.current.drawGestureLockAgain,
             );
           });
           _gesturePassword = GestureUnlockView.selectedToString(selected);
@@ -192,11 +155,11 @@ class PinChangeScreenState extends State<PinChangeScreen> {
         if (!_isEditMode) {
           String password = GestureUnlockView.selectedToString(selected);
           if (_gesturePassword == password) {
-            IToast.showTop("设置成功");
+            IToast.showTop(S.current.setGestureLockSuccess);
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.verify,
-                gestureText: "设置成功",
+                gestureText: S.current.setGestureLockSuccess,
               );
               Navigator.pop(context);
             });
@@ -206,7 +169,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.verifyFailed,
-                gestureText: "与上一次绘制不一致, 请重新绘制",
+                gestureText: S.current.gestureLockNotMatch,
               );
             });
             _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);
@@ -217,7 +180,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.create,
-                gestureText: "绘制新手势密码",
+                gestureText: S.current.drawNewGestureLock,
               );
               _isEditMode = false;
             });
@@ -226,7 +189,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.verifyFailed,
-                gestureText: "密码错误, 请重新绘制",
+                gestureText: S.current.gestureLockWrong,
               );
             });
             _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);

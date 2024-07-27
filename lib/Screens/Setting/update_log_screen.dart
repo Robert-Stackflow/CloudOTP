@@ -117,7 +117,7 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
                       0)
                     ItemBuilder.buildRoundButton(
                       context,
-                      text: "当前版本",
+                      text: S.current.currentVersion,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 3, vertical: 2),
                       radius: 3,

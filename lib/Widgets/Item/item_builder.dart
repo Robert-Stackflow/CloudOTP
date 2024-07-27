@@ -21,6 +21,7 @@ import '../../Utils/itoast.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
+import '../../generated/l10n.dart';
 import '../Scaffold/my_appbar.dart';
 import '../Selectable/my_selection_area.dart';
 import '../Selectable/my_selection_toolbar.dart';
@@ -948,7 +949,8 @@ class ItemBuilder {
                   color: Theme.of(context).textTheme.titleSmall?.color,
                 ),
                 const SizedBox(height: 6),
-                Text("新建主题", style: Theme.of(context).textTheme.titleSmall),
+                Text(S.current.newTheme,
+                    style: Theme.of(context).textTheme.titleSmall),
               ],
             ),
           ),
@@ -1312,17 +1314,6 @@ class ItemBuilder {
     );
   }
 
-  static Widget buildDot(
-    BuildContext context, {
-    TextStyle? style,
-  }) {
-    return Text(
-      " · ",
-      style: style ??
-          Theme.of(context).textTheme.titleSmall?.apply(fontWeightDelta: 2),
-    );
-  }
-
   static Widget buildLoadingDialog(
     BuildContext context, {
     double size = 50,
@@ -1348,7 +1339,7 @@ class ItemBuilder {
             ),
             if (showText) const SizedBox(height: 10),
             if (showText)
-              Text(text ?? "正在加载...",
+              Text(text ?? S.current.loading,
                   style: Theme.of(context).textTheme.labelLarge),
           ],
         ),
@@ -1498,52 +1489,6 @@ class ItemBuilder {
                             fontWeightDelta: 2,
                             fontSizeDelta: fontSizeDelta,
                           ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Widget buildFramedDoubleButton({
-    required BuildContext context,
-    required bool isFollowed,
-    required Function() onTap,
-    String? positiveText,
-    String? negtiveText,
-    double radius = 50,
-    Color? outline,
-  }) {
-    return Material(
-      color: isFollowed ? Theme.of(context).cardColor : Colors.transparent,
-      borderRadius: BorderRadius.circular(radius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(radius),
-        child: ItemBuilder.buildClickItem(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(
-                color: isFollowed
-                    ? Theme.of(context).dividerColor
-                    : outline ?? Theme.of(context).primaryColor.withAlpha(127),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  isFollowed ? positiveText ?? "已关注" : negtiveText ?? "关注",
-                  style: TextStyle(
-                    color: isFollowed
-                        ? Theme.of(context).textTheme.labelSmall?.color
-                        : Theme.of(context).primaryColor,
-                    fontSize: 12,
-                  ),
                 ),
               ],
             ),
@@ -1965,16 +1910,16 @@ class ItemBuilder {
     return MySelectionArea(
       contextMenuBuilder: (contextMenuContext, details) {
         Map<ContextMenuButtonType, String> typeToString = {
-          ContextMenuButtonType.copy: "复制",
-          ContextMenuButtonType.cut: "剪切",
-          ContextMenuButtonType.paste: "粘贴",
-          ContextMenuButtonType.selectAll: "全选",
-          ContextMenuButtonType.searchWeb: "选择",
-          ContextMenuButtonType.share: "分享",
-          ContextMenuButtonType.lookUp: "搜索",
-          ContextMenuButtonType.delete: "删除",
-          ContextMenuButtonType.liveTextInput: "输入",
-          ContextMenuButtonType.custom: "自定义",
+          ContextMenuButtonType.copy: S.current.copy,
+          ContextMenuButtonType.cut: S.current.cut,
+          ContextMenuButtonType.paste: S.current.paste,
+            ContextMenuButtonType.selectAll: S.current.selectAll,
+          ContextMenuButtonType.searchWeb: S.current.search,
+          ContextMenuButtonType.share: S.current.share,
+          ContextMenuButtonType.lookUp: S.current.search,
+          ContextMenuButtonType.delete: S.current.delete,
+          ContextMenuButtonType.liveTextInput: S.current.input,
+          ContextMenuButtonType.custom: S.current.custom,
         };
         List<MyContextMenuItem> items = [];
         for (var e in details.contextMenuButtonItems) {
@@ -1986,7 +1931,7 @@ class ItemBuilder {
                 onPressed: () {
                   e.onPressed?.call();
                   if (e.type == ContextMenuButtonType.copy) {
-                    IToast.showTop("已复制到剪贴板");
+                    IToast.showTop(S.current.copySuccess);
                   }
                 },
               ),
@@ -2028,16 +1973,16 @@ class ItemBuilder {
     required BuildContext context,
   }) {
     Map<ContextMenuButtonType, String> typeToString = {
-      ContextMenuButtonType.copy: "复制",
-      ContextMenuButtonType.cut: "剪切",
-      ContextMenuButtonType.paste: "粘贴",
-      ContextMenuButtonType.selectAll: "全选",
-      ContextMenuButtonType.searchWeb: "选择",
-      ContextMenuButtonType.share: "分享",
-      ContextMenuButtonType.lookUp: "搜索",
-      ContextMenuButtonType.delete: "删除",
-      ContextMenuButtonType.liveTextInput: "输入",
-      ContextMenuButtonType.custom: "自定义",
+      ContextMenuButtonType.copy: S.current.copy,
+      ContextMenuButtonType.cut: S.current.cut,
+      ContextMenuButtonType.paste: S.current.paste,
+      ContextMenuButtonType.selectAll: S.current.selectAll,
+      ContextMenuButtonType.searchWeb: S.current.search,
+      ContextMenuButtonType.share: S.current.share,
+      ContextMenuButtonType.lookUp: S.current.search,
+      ContextMenuButtonType.delete: S.current.delete,
+      ContextMenuButtonType.liveTextInput: S.current.input,
+      ContextMenuButtonType.custom: S.current.custom,
     };
     List<MyContextMenuItem> items = [];
     int start = details.textEditingValue.selection.start <= -1
@@ -2055,7 +2000,7 @@ class ItemBuilder {
             onPressed: () {
               e.onPressed?.call();
               if (e.type == ContextMenuButtonType.copy) {
-                IToast.showTop("已复制到剪贴板");
+                IToast.showTop(S.current.copySuccess);
               }
             },
           ),
@@ -2135,7 +2080,7 @@ class ItemBuilder {
                   borderRadius: BorderRadius.circular(10),
                   child: ItemBuilder.buildLoadingDialog(
                     context,
-                    text: "加载中...",
+                    text: S.current.loading,
                     size: 40,
                     bottomPadding: 30,
                     topPadding: 30,

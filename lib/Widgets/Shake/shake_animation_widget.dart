@@ -145,7 +145,6 @@ class _ShakeAnimationState extends State<ShakeAnimationWidget>
         ///有次数限定执行
         if (_shakeCurrentCount < _shakeTotalCount) {
           ///未执行够次数时继续执行
-          print("dismissed");
           _animationController.forward();
         } else {
           if (widget.shakeAnimationController != null) {

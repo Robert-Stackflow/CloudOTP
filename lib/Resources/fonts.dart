@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:tuple/tuple.dart';
 
 import '../Utils/font_util.dart';
@@ -7,6 +7,7 @@ import '../Utils/hive_util.dart';
 import '../Utils/itoast.dart';
 import '../Utils/utils.dart';
 import '../Widgets/Dialog/progress_dialog.dart';
+import '../generated/l10n.dart';
 
 enum FontEnum {
   Default(fontName: '跟随系统', fontFamily: '', fontUrl: ''),
@@ -78,9 +79,9 @@ enum FontEnum {
         onFinished?.call(value);
         if (showToast && context != null) {
           if (value == true) {
-            IToast.showTop("字体加载成功，重启后切换");
+            IToast.showTop(S.current.fontFamlyLoadSuccess);
           } else {
-            IToast.showTop("字体加载失败");
+            IToast.showTop(S.current.fontFamlyLoadFailed);
           }
         }
       });
@@ -92,7 +93,7 @@ enum FontEnum {
 
   static void loadFont(BuildContext context, FontEnum item,
       {bool autoRestartApp = false}) async {
-    var dialog = showProgressDialog(context, msg: "已下载");
+    var dialog = showProgressDialog(context, msg: S.current.downloadComplete);
     await HiveUtil.put(HiveUtil.fontFamilyKey, item.index);
     await FontEnum.downloadFont(
       context: context,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../Resources/theme.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/utils.dart';
+import '../../generated/l10n.dart';
 import '../Item/item_builder.dart';
 
 class InputBottomSheet extends StatefulWidget {
@@ -126,7 +127,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
               height: 45,
               child: ItemBuilder.buildRoundButton(
                 context,
-                text: "取消",
+                text: S.current.cancel,
                 onTap: () {
                   widget.onCancel?.call();
                   Navigator.of(context).pop();
@@ -143,7 +144,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 context,
                 background: Theme.of(context).primaryColor,
                 color: Colors.white,
-                text: "确定",
+                text: S.current.confirm,
                 onTap: () {
                   widget.onConfirm?.call(controller.text);
                   Navigator.of(context).pop();

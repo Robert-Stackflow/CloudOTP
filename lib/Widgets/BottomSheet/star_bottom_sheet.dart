@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../generated/l10n.dart';
 
 class StarBottomSheet extends StatefulWidget {
   const StarBottomSheet({
@@ -15,7 +17,7 @@ class StarBottomSheet extends StatefulWidget {
 
 class StarBottomSheetState extends State<StarBottomSheet> {
   int currentStar = 0;
-  String currentComment = "请评分";
+  String currentComment = S.current.pleaseRate;
 
   @override
   void initState() {
@@ -58,7 +60,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
       padding: const EdgeInsets.symmetric(vertical: 20),
       alignment: Alignment.center,
       child: Text(
-        "为CloudOTP评个分吧",
+        S.current.rateTitle,
         style: Theme.of(context).textTheme.titleLarge,
       ),
     );
@@ -67,19 +69,19 @@ class StarBottomSheetState extends State<StarBottomSheet> {
   updateComment() {
     switch (currentStar) {
       case 1:
-        currentComment = "革命仍需努力";
+        currentComment = S.current.rate1Star;
         break;
       case 2:
-        currentComment = "还请你多反馈和建议";
+        currentComment = S.current.rate2Star;
         break;
       case 3:
-        currentComment = "我会继续进步的！";
+        currentComment = S.current.rate3Star;
         break;
       case 4:
-        currentComment = "收下你的认可啦";
+        currentComment = S.current.rate4Star;
         break;
       case 5:
-        currentComment = "啾咪~~";
+        currentComment = S.current.rate5Star;
         break;
     }
   }
@@ -139,7 +141,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
               height: 50,
               child: ItemBuilder.buildRoundButton(
                 context,
-                text: "暂不评分",
+                text: S.current.rateLater,
                 onTap: () {
                   Navigator.of(context).pop();
                 },
@@ -154,13 +156,13 @@ class StarBottomSheetState extends State<StarBottomSheet> {
               child: ItemBuilder.buildRoundButton(
                 context,
                 background: Theme.of(context).primaryColor,
-                text: " 确定 ",
+                text: S.current.submitRate,
                 onTap: () {
                   if (currentStar != 0) {
-                    IToast.showTop("感谢您的评分");
+                    IToast.showTop(S.current.rateSuccess);
                     Navigator.of(context).pop();
                   } else {
-                    IToast.showTop("请点击评分");
+                    IToast.showTop(S.current.pleaseClickToRate);
                   }
                 },
                 fontSizeDelta: 2,

@@ -231,7 +231,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                       title: S.current.shareApp,
                       showLeading: true,
                       onTap: () {
-                        Share.share(shareText);
+                        Share.share(shareAppText);
                       },
                       leading: Icons.share_rounded,
                     ),

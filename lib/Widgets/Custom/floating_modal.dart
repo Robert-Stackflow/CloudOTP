@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 class FloatingModal extends StatelessWidget {
   final Widget child;
   final double? preferMinWidth;
+  final bool useVerticalMargin;
 
   const FloatingModal({
     super.key,
     required this.child,
     this.preferMinWidth,
+    this.useVerticalMargin = false,
   });
 
   @override
@@ -28,7 +30,7 @@ class FloatingModal extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.symmetric(
           horizontal: preferHorizontalMargin,
-          vertical: preferVerticalMargin,
+          vertical: useVerticalMargin ? preferVerticalMargin : 0,
         ),
         child: child,
       ),

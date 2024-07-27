@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
+import 'package:cloudotp/TokenUtils/mobile_otp.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
+import 'package:cloudotp/TokenUtils/steam_totp.dart';
+import 'package:cloudotp/TokenUtils/yandex_otp.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
@@ -63,26 +66,87 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   getCurrentCode() {
-    String code = OTP.generateTOTPCodeString(
-      widget.token.secret,
-      DateTime.now().millisecondsSinceEpoch - widget.token.period * 1000,
-      length: widget.token.digits.digit,
-      interval: widget.token.period,
-      algorithm: widget.token.algorithm.algorithm,
-      isGoogle: true,
-    );
+    late String code;
+    switch (widget.token.tokenType) {
+      case OtpTokenType.TOTP:
+        code = OTP.generateTOTPCodeString(
+          widget.token.secret,
+          DateTime.now().millisecondsSinceEpoch - widget.token.period * 1000,
+          length: widget.token.digits.digit,
+          interval: widget.token.period,
+          algorithm: widget.token.algorithm.algorithm,
+          isGoogle: true,
+        );
+        break;
+      case OtpTokenType.HOTP:
+        code = OTP.generateHOTPCodeString(
+          widget.token.secret,
+          widget.token.counter,
+          length: widget.token.digits.digit,
+          algorithm: widget.token.algorithm.algorithm,
+          isGoogle: true,
+        );
+        break;
+      case OtpTokenType.MOTP:
+        code = MOTP(
+          secret: widget.token.secret,
+          pin: widget.token.pin,
+        ).generate();
+        break;
+      case OtpTokenType.Steam:
+        code = SteamTOTP(secret: widget.token.secret).generate();
+        break;
+      case OtpTokenType.Yandex:
+        code = YandexOTP(
+          pin: widget.token.pin,
+          secret: widget.token.secret,
+        ).generate();
+        break;
+    }
     return code;
   }
 
   getNextCode() {
-    String code = OTP.generateTOTPCodeString(
-      widget.token.secret,
-      DateTime.now().millisecondsSinceEpoch,
-      length: widget.token.digits.digit,
-      interval: widget.token.period,
-      algorithm: widget.token.algorithm.algorithm,
-      isGoogle: true,
-    );
+    late String code;
+    switch (widget.token.tokenType) {
+      case OtpTokenType.TOTP:
+        code = OTP.generateTOTPCodeString(
+          widget.token.secret,
+          DateTime.now().millisecondsSinceEpoch,
+          length: widget.token.digits.digit,
+          interval: widget.token.period,
+          algorithm: widget.token.algorithm.algorithm,
+          isGoogle: true,
+        );
+        break;
+      case OtpTokenType.HOTP:
+        code = OTP.generateHOTPCodeString(
+          widget.token.secret,
+          widget.token.counter + 1,
+          length: widget.token.digits.digit,
+          algorithm: widget.token.algorithm.algorithm,
+          isGoogle: true,
+        );
+        break;
+      case OtpTokenType.MOTP:
+        code = MOTP(
+          secret: widget.token.secret,
+          pin: widget.token.pin,
+          period: widget.token.period,
+          digits: widget.token.digits.digit,
+        ).generate(deltaMilliseconds: widget.token.period * 1000);
+        break;
+      case OtpTokenType.Steam:
+        code = SteamTOTP(secret: widget.token.secret)
+            .generate(deltaMilliseconds: 30000);
+        break;
+      case OtpTokenType.Yandex:
+        code = YandexOTP(
+          pin: widget.token.pin,
+          secret: widget.token.secret,
+        ).generate();
+        break;
+    }
     return code;
   }
 
@@ -181,7 +245,19 @@ class TokenLayoutState extends State<TokenLayout>
           ContextMenuButtonConfig(
             "复制URI",
             onPressed: () {
-              Utils.copy(context, OtpTokenParser.toUri(widget.token));
+              DialogBuilder.showConfirmDialog(
+                context,
+                title: "明文警告",
+                message:
+                    "你正在复制令牌的URI，你的令牌密钥将以明文形式暴露在文本中。除非你能确保该文本不会泄露，否则我们建议你导出为加密文件。",
+                confirmButtonText: "确认",
+                cancelButtonText: "取消",
+                onTapConfirm: () {
+                  Utils.copy(context, OtpTokenParser.toUri(widget.token));
+                },
+                onTapCancel: () {},
+                customDialogType: CustomDialogType.normal,
+              );
             },
           ),
           ContextMenuButtonConfig.divider(),
@@ -267,7 +343,7 @@ class TokenLayoutState extends State<TokenLayout>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _showCode ? getCurrentCode() : "******",
+                  true ? getCurrentCode() : "******",
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 24,

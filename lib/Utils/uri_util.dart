@@ -3,7 +3,6 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
-import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -11,7 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../Widgets/Dialog/custom_dialog.dart';
-import 'iprint.dart';
+import '../generated/l10n.dart';
 
 class UriUtil {
   static String? encodeQueryParameters(Map<String, String> params) {
@@ -38,7 +37,7 @@ class UriUtil {
         Clipboard.setData(ClipboardData(text: email));
       }
     } on PlatformException catch (_) {
-      IToast.showTop("尚未安装邮箱程序，已复制Email地址到剪贴板");
+      IToast.showTop(S.current.noEmailClient);
     }
     return true;
   }
@@ -46,11 +45,11 @@ class UriUtil {
   static share(BuildContext context, String str) {
     Share.share(str).then((shareResult) {
       if (shareResult.status == ShareResultStatus.success) {
-        IToast.showTop("分享成功");
+        IToast.showTop(S.current.shareSuccess);
       } else if (shareResult.status == ShareResultStatus.dismissed) {
-        IToast.showTop("取消分享");
+        IToast.showTop(S.current.cancelShare);
       } else {
-        IToast.showTop("分享失败");
+        IToast.showTop(S.current.shareFailed);
       }
     });
   }
@@ -78,7 +77,7 @@ class UriUtil {
     bool quiet = false,
   }) async {
     try {
-      if (!quiet) CustomLoadingDialog.showLoading(title: "加载中...");
+      if (!quiet) CustomLoadingDialog.showLoading(title: S.current.loading);
       url = Uri.decodeComponent(url);
       if (!quiet) await CustomLoadingDialog.dismissLoading();
       if (!quiet) {
@@ -89,8 +88,7 @@ class UriUtil {
             UriUtil.openExternal(url);
           }
         } else {
-          IToast.showTop("不支持的URI：$url");
-          IPrint.debug("不支持的URI：$url");
+          IToast.showTop(S.current.notSupportedUri(url));
         }
       }
       return false;
@@ -126,22 +124,5 @@ class UriUtil {
       uri,
       mode: LaunchMode.externalNonBrowserApplication,
     );
-  }
-
-  static String getPostUrlByPermalink(String blogName, String permalink) {
-    return "https://$blogName.lofter.com/post/$permalink";
-  }
-
-  static String getPostUrlById(String blogName, int postId, int blogId) {
-    return "https://$blogName.lofter.com/post/${Utils.intToHex(blogId)}_${Utils.intToHex(postId)}";
-  }
-
-  static String getTagUrlByTagName(String tagName, {bool isNew = true}) {
-    return "https://www.lofter.com/${isNew ? "front/blog/" : ""}tag/$tagName";
-  }
-
-  static String getCollectionUrlByCollectionInfo(
-      String blogName, int collectionId) {
-    return "https://www.lofter.com/collection/$blogName?op=collectionDetail&collectionId=$collectionId";
   }
 }

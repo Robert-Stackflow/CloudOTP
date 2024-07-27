@@ -1,10 +1,12 @@
 import 'package:base32/base32.dart';
+import 'package:cloudotp/generated/l10n.dart';
 
 import '../Models/opt_token.dart';
 
 enum CheckTokenError {
   ISSUER_EMPTY,
   SECRET_EMPTY,
+  PIN_EMPTY,
   SECRET_BASE32_ERROR,
   period_ERROR,
   UNKNOWN_ERROR;
@@ -12,17 +14,17 @@ enum CheckTokenError {
   String get message {
     switch (this) {
       case CheckTokenError.ISSUER_EMPTY:
-        return "应用名称不能为空";
+        return S.current.issuerCannotBeEmpty;
       case CheckTokenError.SECRET_EMPTY:
-        return "密钥不能为空";
+        return S.current.secretCannotBeEmpty;
       case CheckTokenError.SECRET_BASE32_ERROR:
-        return "密钥不是Base32编码";
+        return S.current.secretNotBase32;
       case CheckTokenError.period_ERROR:
-        return "时间间隔不是整数或过长";
+        return S.current.periodTooLong;
+      case CheckTokenError.PIN_EMPTY:
+        return S.current.pinCannotBeEmpty;
       case CheckTokenError.UNKNOWN_ERROR:
-        return "未知错误";
-      default:
-        return "未知错误";
+        return S.current.tokenUnKnownError;
     }
   }
 }
@@ -35,9 +37,13 @@ class CheckTokenUtil {
     if (token.secret.isEmpty) {
       return CheckTokenError.SECRET_EMPTY;
     }
-    // if (!isSecretBase32(token.secret)) {
-    //   return CheckTokenError.SECRET_BASE32_ERROR;
-    // }
+    if (token.tokenType == OtpTokenType.MOTP && token.pin.isEmpty) {
+      return CheckTokenError.PIN_EMPTY;
+    }
+    if (token.tokenType == OtpTokenType.Steam &&
+        !isSecretBase32(token.secret)) {
+      return CheckTokenError.SECRET_BASE32_ERROR;
+    }
     if (!isIntervalValid(token.periodString)) {
       return CheckTokenError.period_ERROR;
     }

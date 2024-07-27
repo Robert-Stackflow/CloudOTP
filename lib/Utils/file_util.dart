@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../Widgets/Item/item_builder.dart';
+import '../generated/l10n.dart';
 import 'iprint.dart';
 import 'itoast.dart';
 import 'notification_util.dart';
@@ -42,11 +43,10 @@ class FileUtil {
     String apkUrl,
     String htmlUrl, {
     String? version,
-    bool isUpdate = true,
     Function(double)? onReceiveProgress,
   }) async {
     await Permission.storage.onDeniedCallback(() {
-      IToast.showTop("请授予文件存储权限");
+      IToast.showTop(S.current.pleaseGrantFilePermission);
     }).onGrantedCallback(() async {
       if (Utils.isNotEmpty(apkUrl)) {
         double progressValue = 0.0;
@@ -68,9 +68,7 @@ class FileUtil {
                 NotificationUtil.sendProgressNotification(
                   0,
                   (progressValue * 100).toInt(),
-                  title: isUpdate
-                      ? '正在下载新版本安装包...'
-                      : '正在下载版本${version ?? ""}的安装包...',
+                  title: S.current.downloadingNewVersionPackage,
                   payload: version ?? "",
                 );
                 onReceiveProgress?.call(progressValue);
@@ -81,10 +79,8 @@ class FileUtil {
               NotificationUtil.closeNotification(0);
               NotificationUtil.sendInfoNotification(
                 1,
-                "下载完成",
-                isUpdate
-                    ? "新版本安装包已经下载完成，点击立即安装"
-                    : "版本${version ?? ""}的安装包已经下载完成，点击立即安装",
+                S.current.downloadComplete,
+                S.current.downloadSuccessClickToInstall,
                 payload: savePath,
               );
             } else {
@@ -96,22 +92,22 @@ class FileUtil {
           NotificationUtil.closeNotification(0);
           NotificationUtil.sendInfoNotification(
             2,
-            "下载失败，请重试",
-            "新版本安装包下载失败，请重试",
+            S.current.downloadFailedAndRetry,
+            S.current.downloadFailedAndRetryTip,
           );
         }
       } else {
         UriUtil.openExternal(htmlUrl);
       }
     }).onPermanentlyDeniedCallback(() {
-      IToast.showTop("已拒绝文件存储权限，将跳转到浏览器下载");
+      IToast.showTop(S.current.hasRejectedFilePermission);
       UriUtil.openExternal(apkUrl);
     }).onRestrictedCallback(() {
-      IToast.showTop("请授予文件存储权限");
+      IToast.showTop(S.current.pleaseGrantFilePermission);
     }).onLimitedCallback(() {
-      IToast.showTop("请授予文件存储权限");
+      IToast.showTop(S.current.pleaseGrantFilePermission);
     }).onProvisionalCallback(() {
-      IToast.showTop("请授予文件存储权限");
+      IToast.showTop(S.current.pleaseGrantFilePermission);
     }).request();
   }
 
@@ -129,15 +125,16 @@ class FileUtil {
       image.imageUrl,
       headers: headers,
     );
-    final result = await Share.shareXFiles([XFile(file.path)], text: message);
-    if (result.status == ShareResultStatus.success) {
-      IToast.showTop("分享成功");
-    } else if (result.status == ShareResultStatus.dismissed) {
-      IToast.showTop("取消分享");
+    final shareResult =
+        await Share.shareXFiles([XFile(file.path)], text: message);
+    if (shareResult.status == ShareResultStatus.success) {
+      IToast.showTop(S.current.shareSuccess);
+    } else if (shareResult.status == ShareResultStatus.dismissed) {
+      IToast.showTop(S.current.cancelShare);
     } else {
-      IToast.showTop("分享失败");
+      IToast.showTop(S.current.shareFailed);
     }
-    return result.status;
+    return shareResult.status;
   }
 
   static Future<File> getImageFile(

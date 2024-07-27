@@ -6,7 +6,6 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <flutter_any_logo/flutter_any_logo_plugin.h>
 #include <gtk/gtk_plugin.h>
 #include <hotkey_manager_linux/hotkey_manager_linux_plugin.h>
 #include <isar_flutter_libs/isar_flutter_libs_plugin.h>
@@ -16,9 +15,6 @@
 #include <window_manager/window_manager_plugin.h>
 
 void fl_register_plugins(FlPluginRegistry* registry) {
-  g_autoptr(FlPluginRegistrar) flutter_any_logo_registrar =
-      fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterAnyLogoPlugin");
-  flutter_any_logo_plugin_register_with_registrar(flutter_any_logo_registrar);
   g_autoptr(FlPluginRegistrar) gtk_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "GtkPlugin");
   gtk_plugin_register_with_registrar(gtk_registrar);

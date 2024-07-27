@@ -6,6 +6,7 @@ import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 
 import '../Utils/itoast.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
+import '../generated/l10n.dart';
 
 class ExportTokenUtil {
   static exportUriFile(
@@ -13,7 +14,7 @@ class ExportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: "导出中...");
+      CustomLoadingDialog.showLoading(title: S.current.exporting);
     }
     List<OtpToken> tokens = await TokenDao.listTokens();
     List<String> uris =
@@ -24,7 +25,7 @@ class ExportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.dismissLoading();
     }
-    IToast.showTop("导出成功");
+    IToast.showTop(S.current.exportSuccess);
   }
 
   static exportEncryptFile(
@@ -32,7 +33,7 @@ class ExportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: "导出中...");
+      CustomLoadingDialog.showLoading(title: S.current.exporting);
     }
     List<OtpToken> tokens = await TokenDao.listTokens();
     List<String> uris =
@@ -43,6 +44,6 @@ class ExportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.dismissLoading();
     }
-    IToast.showTop("导出成功");
+    IToast.showTop(S.current.exportSuccess);
   }
 }

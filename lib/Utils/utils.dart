@@ -5,7 +5,6 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/github_response.dart';
-import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Setting/update_screen.dart';
 import 'package:cloudotp/Utils/enums.dart';
 import 'package:cloudotp/Utils/file_util.dart';
@@ -14,10 +13,11 @@ import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_any_logo/flutter_logo.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
 
@@ -26,6 +26,7 @@ import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
 import '../generated/l10n.dart';
 import 'app_provider.dart';
+import 'constant.dart';
 import 'itoast.dart';
 
 class Utils {
@@ -457,13 +458,48 @@ class Utils {
         }
       } else {
         if (showNoUpdateToast) {
-          IToast.showTop(S.current.checkUpdatesAlreadyLatest);
+          IToast.showTop(S.current.alreadyLatestVersion);
         }
       }
     });
   }
 
-  static getBrandLogo(OtpToken token) {
-    return AnyLogo.auto.dodge.image();
+  static localAuth({Function()? onAuthed}) async {
+    LocalAuthentication localAuth = LocalAuthentication();
+    try {
+      String appName = (await PackageInfo.fromPlatform()).appName;
+      await localAuth
+          .authenticate(
+        localizedReason: ResponsiveUtil.isWindows()
+            ? S.current.biometricReasonWindows(appName)
+            : S.current.biometricReason(appName),
+        authMessages: [
+          androidAuthMessages,
+          androidAuthMessages,
+          androidAuthMessages
+        ],
+        options: const AuthenticationOptions(
+          useErrorDialogs: false,
+          stickyAuth: true,
+        ),
+      )
+          .then((value) {
+        if (value) {
+          onAuthed?.call();
+        }
+      });
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notAvailable) {
+        IToast.showTop(S.current.biometricNotAvailable);
+      } else if (e.code == auth_error.notEnrolled) {
+        IToast.showTop(S.current.biometricNotEnrolled);
+      } else if (e.code == auth_error.lockedOut) {
+        IToast.showTop(S.current.biometricLockout);
+      } else if (e.code == auth_error.permanentlyLockedOut) {
+        IToast.showTop(S.current.biometricLockoutPermanent);
+      } else {
+        IToast.showTop(S.current.biometricOtherReason(e));
+      }
+    }
   }
 }

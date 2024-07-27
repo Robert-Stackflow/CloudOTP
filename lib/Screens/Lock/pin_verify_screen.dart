@@ -1,19 +1,15 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
-import 'package:local_auth/local_auth.dart';
-import 'package:local_auth_android/local_auth_android.dart';
-import 'package:cloudotp/Utils/iprint.dart';
+import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_view.dart';
 import 'package:cloudotp/Widgets/Window/window_caption.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/material.dart';
 
 import '../../Utils/hive_util.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Widgets/Item/item_builder.dart';
+import '../../generated/l10n.dart';
 
 class PinVerifyScreen extends StatefulWidget {
   const PinVerifyScreen(
@@ -28,23 +24,12 @@ class PinVerifyScreen extends StatefulWidget {
   PinVerifyScreenState createState() => PinVerifyScreenState();
 }
 
-AndroidAuthMessages andStrings = const AndroidAuthMessages(
-  cancelButton: '取消',
-  goToSettingsButton: '去设置',
-  biometricNotRecognized: '指纹识别失败',
-  goToSettingsDescription: '请设置指纹',
-  biometricHint: '',
-  biometricSuccess: '指纹识别成功',
-  signInTitle: '指纹验证',
-  deviceCredentialsRequiredTitle: '请先录入指纹!',
-);
-
 class PinVerifyScreenState extends State<PinVerifyScreen> {
   final String? _password = HiveUtil.getString(HiveUtil.guesturePasswdKey);
   late final bool _isUseBiometric =
       HiveUtil.getBool(HiveUtil.enableBiometricKey);
-  late final GestureNotifier _notifier =
-      GestureNotifier(status: GestureStatus.verify, gestureText: "验证密码");
+  late final GestureNotifier _notifier = GestureNotifier(
+      status: GestureStatus.verify, gestureText: S.current.verifyGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
 
   @override
@@ -56,39 +41,11 @@ class PinVerifyScreenState extends State<PinVerifyScreen> {
   }
 
   void auth() async {
-    LocalAuthentication localAuth = LocalAuthentication();
-    try {
-      String appName = (await PackageInfo.fromPlatform()).appName;
-      await localAuth
-          .authenticate(
-        localizedReason: ResponsiveUtil.isWindows()
-            ? '验证PIN以使用$appName'
-            : '进行指纹验证以使用$appName',
-        authMessages: [andStrings, andStrings, andStrings],
-        options: const AuthenticationOptions(
-          useErrorDialogs: false,
-          stickyAuth: true,
-        ),
-      )
-          .then((value) {
-        if (value) {
-          if (widget.onSuccess != null) widget.onSuccess!();
-          Navigator.pop(context);
-          _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
-        }
-      });
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notAvailable) {
-        IPrint.debug("not avaliable");
-      } else if (e.code == auth_error.notEnrolled) {
-        IPrint.debug("not enrolled");
-      } else if (e.code == auth_error.lockedOut ||
-          e.code == auth_error.permanentlyLockedOut) {
-        IPrint.debug("locked out");
-      } else {
-        IPrint.debug("other reason:$e");
-      }
-    }
+    Utils.localAuth(onAuthed: () {
+      if (widget.onSuccess != null) widget.onSuccess!();
+      Navigator.pop(context);
+      _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
+    });
   }
 
   @override
@@ -137,7 +94,9 @@ class PinVerifyScreenState extends State<PinVerifyScreen> {
                         },
                         child: ItemBuilder.buildClickItem(
                           Text(
-                            ResponsiveUtil.isWindows() ? "验证PIN" : "指纹识别",
+                            ResponsiveUtil.isWindows()
+                                ? S.current.biometricVerifyPin
+                                : S.current.biometricVerifyFingerprint,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                         ),
@@ -167,7 +126,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen> {
           setState(() {
             _notifier.setStatus(
               status: GestureStatus.verifyFailed,
-              gestureText: "密码错误, 请重新绘制",
+              gestureText: S.current.gestureLockWrong,
             );
           });
           _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);

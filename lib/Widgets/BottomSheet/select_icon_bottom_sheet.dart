@@ -9,6 +9,7 @@ import '../../Models/opt_token.dart';
 import '../../TokenUtils/token_image_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
+import '../../generated/l10n.dart';
 
 class SelectIconBottomSheet extends StatefulWidget {
   const SelectIconBottomSheet({
@@ -72,7 +73,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
             bottomMargin: 18,
             hintFontSizeDelta: 1,
             background: Colors.grey.withAlpha(40),
-            hintText: "搜索图标名称",
+            hintText: S.current.searchIconName,
             onSubmitted: (str) {
               setState(() {
                 icons = TokenImageUtil.matchBrandLogos(str);
@@ -127,7 +128,9 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
       alignment: Alignment.center,
       child: Text(
         textAlign: TextAlign.center,
-        "选择令牌${widget.token.issuer.isNotEmpty ? '「${widget.token.issuer}」的' : ''}图标",
+        widget.token.issuer.isNotEmpty
+            ? S.current.setIconForToken
+            : S.current.setIconForTokenDetail(widget.token.issuer),
         style: Theme.of(context).textTheme.titleLarge,
       ),
     );

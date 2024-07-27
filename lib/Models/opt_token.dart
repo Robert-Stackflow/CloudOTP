@@ -143,6 +143,12 @@ extension IntToOtpTokenTypeExtension on int {
         return OtpTokenType.TOTP;
       case 1:
         return OtpTokenType.HOTP;
+      case 2:
+        return OtpTokenType.MOTP;
+      case 3:
+        return OtpTokenType.Steam;
+      case 4:
+        return OtpTokenType.Yandex;
       default:
         return OtpTokenType.TOTP;
     }

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Resources/colors.dart';
+import 'package:flutter/material.dart';
 
 import 'fonts.dart';
 
@@ -105,42 +105,24 @@ class ThemeColorData {
     ThemeColorData(
       name: "清新绿",
       background: const Color(0xFFE8F5E9),
-      // 浅绿色背景
       canvasBackground: const Color(0xFFECF7EF),
-      // 白色画布背景
       primaryColor: const Color(0xFF66BB6A),
-      // 亮绿色主色
       iconColor: const Color(0xFF333333),
-      // 深灰色图标
       splashColor: const Color(0x44c8c8c8),
-      // 灰色飞溅色
       highlightColor: const Color(0x44bcbcbc),
-      // 灰色高亮色
       shadowColor: Colors.grey.shade200,
-      // 浅灰色阴影
       appBarShadowColor: const Color(0xFFF6F6F6),
-      // 浅灰色AppBar阴影
       appBarBackgroundColor: const Color(0xFFE8F5E9),
-      // 浅绿色AppBar背景
       appBarSurfaceTintColor: const Color(0xFFE8F5E9),
-      // 浅绿色AppBar表面色调
       textColor: const Color(0xFF333333),
-      // 深灰色文字
       textGrayColor: const Color(0xFF999999),
-      // 灰色文字
       textDisabledColor: const Color(0xFFD4E2FA),
-      // 浅蓝色禁用文字
       buttonTextColor: const Color(0xFFF2F2F2),
-      // 浅灰色按钮文字
       buttonDisabledColor: const Color(0xFF96BBFA),
-      // 浅蓝色禁用按钮
       dividerColor: const Color(0xFFF5F5F5),
-      // 浅灰色分割线
       tagBackground: const Color(0xFFF5F5F5),
-      // 浅灰色标签背景
       tagColor: const Color(0xFFBDBDBD),
-      // 灰色标签文字
-      cardBackground: const Color(0xFFF5F5F5), // 浅灰色卡片背景
+      cardBackground: const Color(0xFFF5F5F5),
     ),
   ];
 

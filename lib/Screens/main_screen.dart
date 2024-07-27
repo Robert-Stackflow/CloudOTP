@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:app_links/app_links.dart';
 import 'package:cloudotp/Resources/colors.dart';
+import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
@@ -381,6 +382,14 @@ class MainScreenState extends State<MainScreen>
                   ),
                   onTap: () async {
                     RouteUtil.pushDesktopFadeRoute(const SettingScreen());
+                  },
+                ),
+                const SizedBox(width: 6),
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: const Icon(Icons.info_outline_rounded, size: 22),
+                  onTap: () async {
+                    RouteUtil.pushDesktopFadeRoute(const AboutSettingScreen());
                   },
                 ),
                 const SizedBox(height: 15),

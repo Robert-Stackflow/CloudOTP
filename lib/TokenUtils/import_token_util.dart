@@ -8,6 +8,7 @@ import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 
 import '../Utils/utils.dart';
+import '../generated/l10n.dart';
 
 class ImportAnalysis {
   int parseFailed;
@@ -30,11 +31,12 @@ class ImportTokenUtil {
   }) async {
     File file = File(filePath);
     if (!file.existsSync()) {
-      IToast.showTop("文件不存在");
+      IToast.showTop(S.current.fileNotExist);
       return;
     } else {
       String content = file.readAsStringSync();
-      await importText(content, showLoading: showLoading, emptyTip: "文件内容为空");
+      await importText(content,
+          showLoading: showLoading, emptyTip: S.current.fileEmpty);
     }
   }
 
@@ -44,7 +46,7 @@ class ImportTokenUtil {
   }) async {
     File file = File(filePath);
     if (!file.existsSync()) {
-      IToast.showTop("文件不存在");
+      IToast.showTop(S.current.fileNotExist);
       return;
     } else {
       String content = file.readAsStringSync();
@@ -54,15 +56,15 @@ class ImportTokenUtil {
 
   static importText(
     String content, {
-    String emptyTip = "内容为空",
+    String emptyTip = "",
     bool showLoading = true,
   }) async {
-    if (Utils.isEmpty(content)) {
+    if (Utils.isEmpty(content) && Utils.isNotEmpty(emptyTip)) {
       IToast.showTop(emptyTip);
       return;
     }
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: "导入中...");
+      CustomLoadingDialog.showLoading(title: S.current.importing);
     }
     ImportAnalysis analysis = ImportAnalysis();
     List<String> lines = content.split("\n");
@@ -81,8 +83,8 @@ class ImportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.dismissLoading();
     }
-    IToast.showTop(
-        "解析成功${analysis.parseSuccess}个令牌，导入成功${analysis.importSuccess}个令牌");
+    IToast.showTop(S.current
+        .importResultTip(analysis.parseSuccess, analysis.importSuccess));
   }
 
   static bool contain(OtpToken token, List<OtpToken> tokenList) {

@@ -110,7 +110,6 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
             });
           }),
     );
-    // list.add(ItemBuilder.buildEmptyThemeItem(context: context, onTap: null));
     return list;
   }
 }

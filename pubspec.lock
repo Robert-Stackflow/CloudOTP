@@ -469,14 +469,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_any_logo:
-    dependency: "direct main"
-    description:
-      name: flutter_any_logo
-      sha256: fef531885788ad62154c57653501ae30077775d68cc1003e1d6489fcb005dd8c
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.1.1"
   flutter_cache_manager:
     dependency: "direct main"
     description:

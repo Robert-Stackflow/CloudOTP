@@ -34,7 +34,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   final TextEditingController _issuerController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _secretController = TextEditingController();
-  final TextEditingController _intervalController = TextEditingController();
+  final TextEditingController _periodController = TextEditingController();
+  final TextEditingController _pinController = TextEditingController();
   final TextEditingController _counterController = TextEditingController();
   final GroupButtonController _typeController = GroupButtonController();
   final GroupButtonController _digitsController = GroupButtonController();
@@ -42,6 +43,22 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   late OtpToken _otpToken;
   bool _isEditing = false;
   bool customedImage = false;
+
+  bool get isSteam =>
+      // ignore: unnecessary_null_comparison
+      _otpToken != null && _otpToken.tokenType == OtpTokenType.Steam;
+
+  bool get isHotp =>
+      // ignore: unnecessary_null_comparison
+      _otpToken != null && _otpToken.tokenType == OtpTokenType.HOTP;
+
+  bool get isMotp =>
+      // ignore: unnecessary_null_comparison
+      _otpToken != null && _otpToken.tokenType == OtpTokenType.MOTP;
+
+  bool get isYandex =>
+      // ignore: unnecessary_null_comparison
+      _otpToken != null && _otpToken.tokenType == OtpTokenType.Yandex;
 
   @override
   void initState() {
@@ -57,7 +74,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     _issuerController.text = _otpToken.issuer;
     _accountController.text = _otpToken.account;
     _secretController.text = _otpToken.secret;
-    _intervalController.text = _otpToken.period.toString();
+    _pinController.text = _otpToken.pin;
+    _periodController.text = _otpToken.period.toString();
     _counterController.text = _otpToken.counter.toString();
     _typeController.selectIndex(_otpToken.tokenType.index);
     _digitsController.selectIndex(_otpToken.digits.index);
@@ -76,8 +94,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     _secretController.addListener(() {
       _otpToken.secret = _secretController.text;
     });
-    _intervalController.addListener(() {
-      _otpToken.periodString = _intervalController.text;
+    _pinController.addListener(() {
+      _otpToken.pin = _pinController.text;
+    });
+    _periodController.addListener(() {
+      _otpToken.periodString = _periodController.text;
     });
     _counterController.addListener(() {
       _otpToken.counterString = _counterController.text;
@@ -232,6 +253,39 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                 context: context,
                 topRadius: true,
                 bottomRadius: true,
+                child: Column(
+                  children: [
+                    ItemBuilder.buildGroupTile(
+                      context: context,
+                      title: "类型",
+                      disabled: _isEditing,
+                      controller: _typeController,
+                      buttons: OtpTokenType.labels(),
+                      onSelected: (value, index, isSelected) {
+                        _otpToken.tokenType = index.otpTokenType;
+                        if (_otpToken.tokenType == OtpTokenType.MOTP) {
+                          _otpToken.periodString = "10";
+                          _periodController.text = "10";
+                        } else if (_otpToken.tokenType == OtpTokenType.Yandex) {
+                          _otpToken.periodString = "30";
+                          _periodController.text = "30";
+                          _otpToken.digits = OtpDigits.D8;
+                          _otpToken.algorithm = OtpAlgorithm.SHA256;
+                        }else{
+                          _otpToken.periodString = "30";
+                          _periodController.text = "30";
+                        }
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              ItemBuilder.buildContainerItem(
+                context: context,
+                topRadius: true,
+                bottomRadius: true,
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Column(
                   children: [
@@ -256,7 +310,18 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       textInputAction: TextInputAction.next,
                       leadingText: "密钥",
                       hint: "Base32编码的密钥",
-                      bottomRadius: true,
+                      bottomRadius: !isMotp,
+                    ),
+                    Visibility(
+                      visible: isMotp || isYandex,
+                      child: ItemBuilder.buildInputItem(
+                        context: context,
+                        controller: _pinController,
+                        textInputAction: TextInputAction.next,
+                        leadingText: "PIN",
+                        hint: "额外的PIN码",
+                        bottomRadius: true,
+                      ),
                     ),
                   ],
                 ),
@@ -266,55 +331,54 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                 context: context,
                 topRadius: true,
                 bottomRadius: true,
-                padding: const EdgeInsets.only(top: 5, bottom: 10),
+                padding: EdgeInsets.only(top: 5, bottom: !isSteam ? 10 : 5),
                 child: Column(
                   children: [
-                    ItemBuilder.buildGroupTile(
-                      context: context,
-                      title: "类型",
-                      disabled: _isEditing,
-                      controller: _typeController,
-                      buttons: OtpTokenType.labels(),
-                      onSelected: (value, index, isSelected) {
-                        _otpToken.tokenType = index.otpTokenType;
-                        setState(() {});
-                      },
-                    ),
-                    ItemBuilder.buildGroupTile(
-                      context: context,
-                      title: "位数",
-                      disabled: _isEditing,
-                      controller: _digitsController,
-                      buttons: OtpDigits.D5.strings,
-                      onSelected: (value, index, isSelected) {
-                        _otpToken.digits = index.otpDigits;
-                        setState(() {});
-                      },
-                    ),
-                    ItemBuilder.buildGroupTile(
-                      context: context,
-                      title: "算法",
-                      controller: _algorithmController,
-                      buttons: OtpAlgorithm.SHA1.strings,
-                      disabled: _isEditing,
-                      onSelected: (value, index, isSelected) {
-                        _otpToken.algorithm = index.otpAlgorithm;
-                        setState(() {});
-                      },
-                    ),
-                    ItemBuilder.buildInputItem(
-                      context: context,
-                      controller: _intervalController,
-                      leadingText: "间隔",
-                      keyboardType: TextInputType.number,
-                      textInputAction: _otpToken.tokenType == OtpTokenType.TOTP
-                          ? TextInputAction.done
-                          : TextInputAction.next,
-                      hint: "密码刷新时间间隔，默认为30秒",
-                      readOnly: _isEditing,
+                    Visibility(
+                      visible: !isSteam && !isYandex,
+                      child: ItemBuilder.buildGroupTile(
+                        context: context,
+                        title: "位数",
+                        disabled: _isEditing,
+                        controller: _digitsController,
+                        buttons: OtpDigits.D5.strings,
+                        onSelected: (value, index, isSelected) {
+                          _otpToken.digits = index.otpDigits;
+                          setState(() {});
+                        },
+                      ),
                     ),
                     Visibility(
-                      visible: _otpToken.tokenType == OtpTokenType.HOTP,
+                      visible: !isSteam && !isMotp && !isYandex,
+                      child: ItemBuilder.buildGroupTile(
+                        context: context,
+                        title: "算法",
+                        controller: _algorithmController,
+                        buttons: OtpAlgorithm.SHA1.strings,
+                        disabled: _isEditing,
+                        onSelected: (value, index, isSelected) {
+                          _otpToken.algorithm = index.otpAlgorithm;
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: !isSteam && !isYandex,
+                      child: ItemBuilder.buildInputItem(
+                        context: context,
+                        controller: _periodController,
+                        leadingText: "间隔",
+                        keyboardType: TextInputType.number,
+                        textInputAction:
+                            _otpToken.tokenType == OtpTokenType.TOTP
+                                ? TextInputAction.done
+                                : TextInputAction.next,
+                        hint: "密码刷新时间间隔，默认为30秒",
+                        readOnly: _isEditing,
+                      ),
+                    ),
+                    Visibility(
+                      visible: !isSteam && !isYandex && isHotp,
                       child: ItemBuilder.buildInputItem(
                         context: context,
                         controller: _counterController,
@@ -329,7 +393,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
             ],
           ),
         ],

@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/file_util.dart';
-import 'package:cloudotp/Utils/fontsize_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/request_header_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
@@ -191,21 +190,10 @@ class MyApp extends StatelessWidget {
           },
           home: ItemBuilder.buildContextMenuOverlay(home),
           builder: (context, widget) {
-            return Overlay(
-              initialEntries: [
-                if (widget != null) ...[
-                  OverlayEntry(
-                    builder: (context) => MediaQuery(
-                      data: MediaQuery.of(context).copyWith(
-                        textScaler: TextScaler.linear(
-                          FontSizeUtil.getTextFactor(globalProvider.fontSize),
-                        ),
-                      ),
-                      child: widget,
-                    ),
-                  ),
-                ],
-              ],
+            return MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.noScaling),
+              child: widget ?? Container(),
             );
           },
         ),
