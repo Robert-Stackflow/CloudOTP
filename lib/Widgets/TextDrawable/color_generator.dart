@@ -31,6 +31,9 @@ class ColorGenerator {
     const Color(0xff90a4ae)
   ];
 
-  Color getRandomColor() =>
-      _materialColors[random.nextInt(_materialColors.length)];
+  Color getColorByString(String text) {
+    final int hash = text.hashCode;
+    final int index = hash % _materialColors.length;
+    return _materialColors[index];
+  }
 }

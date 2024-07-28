@@ -13,7 +13,7 @@ const Widget emptyWidget = SizedBox.shrink();
 
 const defaultWindowSize = Size(1120, 740);
 
-const minimumSize = Size(630, 700);
+const minimumSize = Size(660, 700);
 
 String shareAppText = S.current.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";

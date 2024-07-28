@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloudotp/Screens/Setting/egg_screen.dart';
 import 'package:cloudotp/Screens/Setting/update_log_screen.dart';
 import 'package:cloudotp/Utils/route_util.dart';
@@ -10,6 +8,8 @@ import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/star_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Custom/no_shadow_scroll_behavior.dart';
 import 'package:cloudotp/Widgets/Shake/shake_animation_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -221,7 +221,6 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                           context,
                           (context) => const StarBottomSheet(),
                           responsive: true,
-                          preferMinWidth: 400,
                         );
                       },
                       leading: Icons.rate_review_outlined,

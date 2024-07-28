@@ -11,11 +11,12 @@ class BottomSheetBuilder {
     bool enableDrag = true,
     bool responsive = false,
     Color? backgroundColor,
-    double preferMinWidth = 720,
+    double? preferMinWidth,
     ShapeBorder shape = const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
   }) {
+    preferMinWidth ??= responsive && ResponsiveUtil.isLandscape() ? 400 : null;
     if (responsive && ResponsiveUtil.isLandscape()) {
       showDialog(
         context: context,
@@ -36,7 +37,6 @@ class BottomSheetBuilder {
         builder: builder,
         containerWidget: (_, animation, child) => FloatingModal(
           preferMinWidth: preferMinWidth,
-          useVerticalMargin: true,
           child: child,
         ),
       );

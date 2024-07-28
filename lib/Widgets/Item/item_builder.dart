@@ -344,16 +344,18 @@ class ItemBuilder {
     required dynamic icon,
     required Function()? onTap,
     Function()? onLongPress,
+    Color? background,
+    EdgeInsets? padding,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: background ?? Colors.transparent,
       shape: const CircleBorder(),
       clipBehavior: Clip.hardEdge,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: padding ?? const EdgeInsets.all(8),
           child: icon ?? emptyWidget,
         ),
       ),
@@ -1602,9 +1604,8 @@ class ItemBuilder {
             onTap: () {
               onSubmitted(controller?.text);
             },
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: AssetUtil.loadDouble(
+            child: buildClickItem(
+              AssetUtil.loadDouble(
                 context,
                 AssetUtil.searchLightIcon,
                 AssetUtil.searchDarkIcon,
@@ -1913,7 +1914,7 @@ class ItemBuilder {
           ContextMenuButtonType.copy: S.current.copy,
           ContextMenuButtonType.cut: S.current.cut,
           ContextMenuButtonType.paste: S.current.paste,
-            ContextMenuButtonType.selectAll: S.current.selectAll,
+          ContextMenuButtonType.selectAll: S.current.selectAll,
           ContextMenuButtonType.searchWeb: S.current.search,
           ContextMenuButtonType.share: S.current.share,
           ContextMenuButtonType.lookUp: S.current.search,

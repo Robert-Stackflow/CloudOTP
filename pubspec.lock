@@ -17,6 +17,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "6.4.1"
+  animated_text_kit:
+    dependency: "direct main"
+    description:
+      name: animated_text_kit
+      sha256: "37392a5376c9a1a503b02463c38bc0342ef814ddbb8f9977bc90f2a84b22fa92"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.2.2"
   animations:
     dependency: "direct main"
     description:
@@ -1075,6 +1083,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.5"
+  mobile_scanner:
+    dependency: "direct main"
+    description:
+      name: mobile_scanner
+      sha256: b8c0e9afcfd52534f85ec666f3d52156f560b5e6c25b1e3d4fe2087763607926
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "5.1.1"
   modal_bottom_sheet:
     dependency: "direct main"
     description:
@@ -1355,6 +1371,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.2"
+  reorderable_grid:
+    dependency: "direct main"
+    description:
+      name: reorderable_grid
+      sha256: "0b9cd95ef0f070ef99f92affe9cf85a4aa127099cd1334e5940950ce58cd981d"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.10"
   responsive_builder:
     dependency: "direct main"
     description:
@@ -1379,6 +1403,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.28.0"
+  scan:
+    dependency: "direct main"
+    description:
+      name: scan
+      sha256: b343ec36f863a88d41eb4c174b810c055c6bd1f1822b2188ab31aab684fb7cdb
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.6.0"
   screen_retriever:
     dependency: transitive
     description:

@@ -47,8 +47,8 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
         width > preferWidth ? (width - preferWidth) / 2 : 0;
     double preferVerticalMargin =
         height > preferHeight ? (height - preferHeight) / 2 : 0;
-    preferHorizontalMargin = max(preferHorizontalMargin, 20);
-    preferVerticalMargin = max(preferVerticalMargin, 20);
+    // preferHorizontalMargin = max(preferHorizontalMargin, 20);
+    // preferVerticalMargin = max(preferVerticalMargin, 20);
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.symmetric(

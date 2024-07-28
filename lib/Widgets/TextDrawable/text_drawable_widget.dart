@@ -55,8 +55,8 @@ class TextDrawableState extends State<TextDrawable> {
 
   @override
   void initState() {
-    backgroundColor =
-        widget.backgroundColor ?? ColorGenerator().getRandomColor();
+    backgroundColor = widget.backgroundColor ??
+        ColorGenerator().getColorByString(widget.text);
     super.initState();
   }
 
@@ -71,7 +71,7 @@ class TextDrawableState extends State<TextDrawable> {
       255,
       255
     ]);
-
+    contrast = 2;
     return _getSide(contrast);
   }
 

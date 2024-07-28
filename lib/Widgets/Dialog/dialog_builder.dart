@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:cloudotp/Widgets/General/Animation/animated_fade.dart';
+import 'package:flutter/material.dart';
 
+import '../../generated/l10n.dart';
 import 'custom_dialog.dart';
 
 class DialogBuilder {
@@ -12,8 +13,8 @@ class DialogBuilder {
     String? title,
     required String message,
     String? imagePath,
-    required String confirmButtonText,
-    required String cancelButtonText,
+    String? confirmButtonText,
+    String? cancelButtonText,
     required VoidCallback onTapConfirm,
     required VoidCallback onTapCancel,
     required CustomDialogType customDialogType,
@@ -41,8 +42,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         noImage: noImage,
         align: Alignment.center,
-        confirmButtonText: confirmButtonText,
-        cancelButtonText: cancelButtonText,
+        confirmButtonText: confirmButtonText ?? S.current.confirm,
+        cancelButtonText: cancelButtonText ?? S.current.cancel,
         onTapConfirm: onTapConfirm,
         onTapCancel: onTapCancel,
         customDialogType: customDialogType,
@@ -61,8 +62,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         noImage: noImage,
         align: Alignment.bottomCenter,
-        confirmButtonText: confirmButtonText,
-        cancelButtonText: cancelButtonText,
+        confirmButtonText: confirmButtonText ?? S.current.confirm,
+        cancelButtonText: cancelButtonText ?? S.current.cancel,
         onTapConfirm: onTapConfirm,
         onTapCancel: onTapCancel,
         customDialogType: customDialogType,
@@ -76,7 +77,7 @@ class DialogBuilder {
     String? message,
     Widget? messageChild,
     String? imagePath,
-    required String buttonText,
+    String? buttonText,
     required VoidCallback onTapDismiss,
     required CustomDialogType customDialogType,
     Color? color,
@@ -92,7 +93,7 @@ class DialogBuilder {
     if (responsive && ResponsiveUtil.isLandscape()) {
       CustomInfoDialog.show(
         context,
-        buttonText: buttonText,
+        buttonText: buttonText ?? S.current.confirm,
         message: message,
         messageChild: messageChild,
         imagePath: imagePath,
@@ -111,7 +112,7 @@ class DialogBuilder {
     } else {
       CustomInfoDialog.showAnimatedFromBottom(
         context,
-        buttonText: buttonText,
+        buttonText: buttonText ?? S.current.confirm,
         message: message,
         messageChild: messageChild,
         imagePath: imagePath,

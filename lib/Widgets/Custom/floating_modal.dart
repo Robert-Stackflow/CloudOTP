@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:flutter/material.dart';
 
 class FloatingModal extends StatelessWidget {
@@ -24,13 +25,17 @@ class FloatingModal extends StatelessWidget {
         width > preferWidth ? (width - preferWidth) / 2 : 0;
     double preferVerticalMargin =
         height > preferHeight ? (height - preferHeight) / 2 : 0;
-    preferHorizontalMargin = max(preferHorizontalMargin, 20);
-    preferVerticalMargin = max(preferVerticalMargin, 20);
     return SafeArea(
       child: Container(
-        margin: EdgeInsets.symmetric(
-          horizontal: preferHorizontalMargin,
-          vertical: useVerticalMargin ? preferVerticalMargin : 0,
+        margin: EdgeInsets.only(
+          left: preferHorizontalMargin,
+          right: preferHorizontalMargin,
+          top: useVerticalMargin
+              ? preferVerticalMargin
+              : ResponsiveUtil.isLandscape()
+                  ? 0
+                  : 200,
+          bottom: useVerticalMargin ? preferVerticalMargin : 0,
         ),
         child: child,
       ),

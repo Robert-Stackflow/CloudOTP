@@ -103,12 +103,17 @@ class CategoryDao {
     return Category.fromMap(maps[0]);
   }
 
-  static Future<List<OtpToken>> getTokensByCategoryId(int id) async {
-    if (id == -1) return await TokenDao.listTokens();
+  static Future<List<OtpToken>> getTokensByCategoryId(
+    int id, {
+    String searchKey = "",
+  }) async {
+    if (id == -1) return await TokenDao.listTokens(searchKey: searchKey);
     Category category = await getCategoryById(id);
     List<OtpToken> tokens = [];
     for (int tokenId in category.tokenIds) {
-      tokens.add(await TokenDao.getTokenById(tokenId));
+      OtpToken? tmp =
+          await TokenDao.getTokenById(tokenId, searchKey: searchKey);
+      if (tmp != null) tokens.add(tmp);
     }
     tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
     return tokens;
@@ -123,6 +128,11 @@ class CategoryDao {
       }
     }
     return categoryIds;
+  }
+
+  static Future<void> deleteToken(int tokenId) async {
+    List<int> categoryIds = await getCategoryIdsByTokenId(tokenId);
+    updateCategoriesForToken(tokenId, categoryIds, []);
   }
 
   static Future<void> updateCategoriesForToken(

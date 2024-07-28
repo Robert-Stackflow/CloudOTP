@@ -13,6 +13,7 @@ import '../../Models/category.dart';
 import '../../Utils/itoast.dart';
 import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../generated/l10n.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({
@@ -55,7 +56,9 @@ class _CategoryScreenState extends State<CategoryScreen>
         context: context,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         forceShowClose: true,
-        leading: Icons.close_rounded,
+        leading: ResponsiveUtil.isLandscape()
+            ? Icons.close_rounded
+            : Icons.arrow_back_rounded,
         onLeadingTap: () {
           if (ResponsiveUtil.isLandscape()) {
             dialogNavigatorState?.popPage();
@@ -64,7 +67,7 @@ class _CategoryScreenState extends State<CategoryScreen>
           }
         },
         title: Text(
-          "分类列表",
+          S.current.category,
           style: Theme.of(context)
               .textTheme
               .titleMedium
@@ -80,14 +83,13 @@ class _CategoryScreenState extends State<CategoryScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                preferMinWidth: 300,
                 (context) => InputBottomSheet(
-                  title: "新建分类",
+                  title: S.current.addCategory,
                   text: "",
-                  buttonText: "确认",
+                  buttonText: S.current.confirm,
                   onConfirm: (text) async {
                     if (await CategoryDao.isCategoryExist(text)) {
-                      IToast.showTop("分类名称与已有分类重复");
+                      IToast.showTop(S.current.categoryNameDuplicate);
                       return;
                     }
                     await CategoryDao.insertCategory(
@@ -115,7 +117,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                   vertical: 10),
               children: [
                 ItemBuilder.buildEmptyPlaceholder(
-                    context: context, text: "暂无分类"),
+                    context: context, text: S.current.noCategory),
               ],
             )
           : ReorderableListView.builder(
@@ -159,13 +161,22 @@ class _CategoryScreenState extends State<CategoryScreen>
     return Container(
       key: ValueKey(category.title),
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
+          ReorderableDragStartListener(
+            index: categories.indexOf(category),
+            child: ItemBuilder.buildIconButton(
+              context: context,
+              icon: const Icon(Icons.dehaze_rounded, size: 20),
+              onTap: () {},
+            ),
+          ),
+          const SizedBox(width: 5),
           Expanded(
             child: Text(
               category.title,
@@ -179,14 +190,13 @@ class _CategoryScreenState extends State<CategoryScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                preferMinWidth: 300,
                 (context) => InputBottomSheet(
-                  title: "修改分类名称",
+                  title: S.current.editCategoryName,
                   text: category.title,
-                  buttonText: "保存",
+                  buttonText: S.current.save,
                   onConfirm: (text) async {
                     if (await CategoryDao.isCategoryExist(text)) {
-                      IToast.showTop("分类名称与已有分类重复");
+                      IToast.showTop(S.current.categoryNameDuplicate);
                       return;
                     }
                     category.title = text;
@@ -205,10 +215,7 @@ class _CategoryScreenState extends State<CategoryScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                preferMinWidth: 300,
-                (context) => SelectTokenBottomSheet(
-                  category: category,
-                ),
+                (context) => SelectTokenBottomSheet(category: category),
               );
             },
           ),
@@ -220,28 +227,20 @@ class _CategoryScreenState extends State<CategoryScreen>
             onTap: () {
               DialogBuilder.showConfirmDialog(
                 context,
-                title: "删除分类",
-                message: "确认删除分类「${category.title}」？删除分类后，分类内的令牌不会被删除",
-                confirmButtonText: "确认",
-                cancelButtonText: "取消",
+                title: S.current.deleteCategory,
+                message: S.current.deleteCategoryHint(category.title),
+                confirmButtonText: S.current.confirm,
+                cancelButtonText: S.current.cancel,
                 onTapConfirm: () async {
                   await CategoryDao.deleteCategory(category);
-                  IToast.showTop("删除成功");
+                  IToast.showTop(
+                      S.current.deleteCategorySuccess(category.title));
                   refresh();
                 },
                 onTapCancel: () {},
                 customDialogType: CustomDialogType.normal,
               );
             },
-          ),
-          const SizedBox(width: 5),
-          ReorderableDragStartListener(
-            index: categories.indexOf(category),
-            child: ItemBuilder.buildIconButton(
-              context: context,
-              icon: const Icon(Icons.dehaze_rounded, size: 20),
-              onTap: () {},
-            ),
           ),
         ],
       ),

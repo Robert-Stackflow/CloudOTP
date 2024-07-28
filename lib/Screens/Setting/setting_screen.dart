@@ -9,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../Models/github_response.dart';
 import '../../Resources/fonts.dart';
+import '../../Resources/theme_color_data.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/cache_util.dart';
 import '../../Utils/enums.dart';
@@ -47,8 +48,7 @@ class _SettingScreenState extends State<SettingScreen>
       HiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
           HiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
   bool _autoLock = HiveUtil.getBool(HiveUtil.autoLockKey);
-  bool _enableSafeMode =
-      HiveUtil.getBool(HiveUtil.enableSafeModeKey, defaultValue: false);
+  bool _enableSafeMode = HiveUtil.getBool(HiveUtil.enableSafeModeKey);
   bool _enableBiometric = HiveUtil.getBool(HiveUtil.enableBiometricKey);
   bool _biometricAvailable = false;
   bool enableMinimizeToTray = HiveUtil.getBool(HiveUtil.enableCloseToTrayKey);
@@ -61,13 +61,20 @@ class _SettingScreenState extends State<SettingScreen>
   bool autoCheckUpdate = HiveUtil.getBool(HiveUtil.autoCheckUpdateKey);
   String _cacheSize = "";
   bool inAppBrowser = HiveUtil.getBool(HiveUtil.inappWebviewKey);
+  bool clipToCopy = HiveUtil.getBool(HiveUtil.clickToCopyKey);
+  bool autoDisplayNextCode = HiveUtil.getBool(HiveUtil.autoDisplayNextCodeKey);
+  bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
+  bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
 
   @override
   void initState() {
     super.initState();
     initBiometricAuthentication();
+    getCacheSize();
+    fetchReleases(false);
   }
 
+  @override
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -81,6 +88,7 @@ class _SettingScreenState extends State<SettingScreen>
             children: [
               ..._generalSettings(),
               ..._apperanceSettings(),
+              ..._operationSettings(),
               ..._privacySettings(),
               if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
               if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
@@ -121,18 +129,26 @@ class _SettingScreenState extends State<SettingScreen>
           },
         ),
       ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.selectTheme,
-        onTap: () {
-          RouteUtil.pushCupertinoRoute(context, const SelectThemeScreen());
-        },
+      Selector<AppProvider, ThemeColorData>(
+        selector: (context, appProvider) => appProvider.lightTheme,
+        builder: (context, lightTheme, child) =>
+            Selector<AppProvider, ThemeColorData>(
+          selector: (context, appProvider) => appProvider.darkTheme,
+          builder: (context, darkTheme, child) => ItemBuilder.buildEntryItem(
+            context: context,
+            title: S.current.selectTheme,
+            tip: "${lightTheme.name}/${darkTheme.name}",
+            onTap: () {
+              RouteUtil.pushCupertinoRoute(context, const SelectThemeScreen());
+            },
+          ),
+        ),
       ),
       ItemBuilder.buildEntryItem(
         context: context,
         title: S.current.fontFamily,
         bottomRadius: true,
-        tip: _currentFont.fontName,
+        tip: _currentFont.intlFontName,
         onTap: () {
           BottomSheetBuilder.showListBottomSheet(
             context,
@@ -151,6 +167,63 @@ class _SettingScreenState extends State<SettingScreen>
               onCloseTap: () => Navigator.pop(context),
             ),
           );
+        },
+      ),
+    ];
+  }
+
+  _operationSettings() {
+    return [
+      const SizedBox(height: 10),
+      ItemBuilder.buildCaptionItem(
+          context: context, title: S.current.operationSetting),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: clipToCopy,
+        title: S.current.clickToCopy,
+        description: S.current.clickToCopyTip,
+        onTap: () {
+          setState(() {
+            clipToCopy = !clipToCopy;
+            HiveUtil.put(HiveUtil.clickToCopyKey, clipToCopy);
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: autoDisplayNextCode,
+        title: S.current.autoDisplayNextCode,
+        description: S.current.autoDisplayNextCodeTip,
+        onTap: () {
+          setState(() {
+            autoDisplayNextCode = !autoDisplayNextCode;
+            HiveUtil.put(HiveUtil.autoDisplayNextCodeKey, autoDisplayNextCode);
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        disabled: !clipToCopy,
+        value: autoCopyNextCode,
+        title: S.current.autoCopyNextCode,
+        description: S.current.autoCopyNextCodeTip,
+        onTap: () {
+          setState(() {
+            autoCopyNextCode = !autoCopyNextCode;
+            HiveUtil.put(HiveUtil.autoCopyNextCodeKey, autoCopyNextCode);
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: autoHideCode,
+        title: S.current.autoHideCode,
+        description: S.current.autoHideCodeTip,
+        onTap: () {
+          setState(() {
+            autoHideCode = !autoHideCode;
+            HiveUtil.put(HiveUtil.autoHideCodeKey, autoHideCode);
+          });
         },
       ),
     ];

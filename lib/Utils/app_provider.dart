@@ -1,3 +1,4 @@
+import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
@@ -72,23 +73,23 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  ThemeData _lightTheme = HiveUtil.getLightTheme().toThemeData();
+  ThemeColorData _lightTheme = HiveUtil.getLightTheme();
 
-  ThemeData get lightTheme => _lightTheme;
+  ThemeColorData get lightTheme => _lightTheme;
 
   setLightTheme(int index) {
     HiveUtil.setLightTheme(index);
-    _lightTheme = HiveUtil.getLightTheme().toThemeData();
+    _lightTheme = HiveUtil.getLightTheme();
     notifyListeners();
   }
 
-  ThemeData _darkTheme = HiveUtil.getDarkTheme().toThemeData();
+  ThemeColorData _darkTheme = HiveUtil.getDarkTheme();
 
-  ThemeData get darkTheme => _darkTheme;
+  ThemeColorData get darkTheme => _darkTheme;
 
   setDarkTheme(int index) {
     HiveUtil.setDarkTheme(index);
-    _darkTheme = HiveUtil.getDarkTheme().toThemeData();
+    _darkTheme = HiveUtil.getDarkTheme();
     notifyListeners();
   }
 
@@ -101,18 +102,6 @@ class AppProvider with ChangeNotifier {
       _locale = value;
       notifyListeners();
       HiveUtil.setLocale(value);
-    }
-  }
-
-  int? _fontSize = HiveUtil.getFontSize();
-
-  int? get fontSize => _fontSize;
-
-  set fontSize(int? value) {
-    if (value != _fontSize) {
-      _fontSize = value;
-      notifyListeners();
-      HiveUtil.setFontSize(value);
     }
   }
 
@@ -160,18 +149,26 @@ class AppProvider with ChangeNotifier {
   }
 
   static String getAutoLockOptionLabel(int time) {
-    if (time == 0)
-      return "立即锁定";
-    else
-      return "处于后台$time分钟后锁定";
+    switch (time) {
+      case 0:
+        return S.current.immediatelyLock;
+      case 1:
+        return S.current.after1MinuteLock;
+      case 5:
+        return S.current.after5MinutesLock;
+      case 10:
+        return S.current.after10MinutesLock;
+      default:
+        return "";
+    }
   }
 
   static List<Tuple2<String, int>> getAutoLockOptions() {
     return [
-      Tuple2("立即锁定", 0),
-      Tuple2("处于后台1分钟后锁定", 1),
-      Tuple2("处于后台5分钟后锁定", 5),
-      Tuple2("处于后台10分钟后锁定", 10),
+      Tuple2(S.current.immediatelyLock, 0),
+      Tuple2(S.current.after1MinuteLock, 1),
+      Tuple2(S.current.after5MinutesLock, 5),
+      Tuple2(S.current.after10MinutesLock, 10),
     ];
   }
 

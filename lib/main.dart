@@ -160,12 +160,12 @@ class MyApp extends StatelessWidget {
           title: title,
           theme: globalProvider.getBrightness() == null ||
                   globalProvider.getBrightness() == Brightness.light
-              ? globalProvider.lightTheme
-              : globalProvider.darkTheme,
+              ? globalProvider.lightTheme.toThemeData()
+              : globalProvider.darkTheme.toThemeData(),
           darkTheme: globalProvider.getBrightness() == null ||
                   globalProvider.getBrightness() == Brightness.dark
-              ? globalProvider.darkTheme
-              : globalProvider.lightTheme,
+              ? globalProvider.darkTheme.toThemeData()
+              : globalProvider.lightTheme.toThemeData(),
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
             S.delegate,
@@ -190,10 +190,18 @@ class MyApp extends StatelessWidget {
           },
           home: ItemBuilder.buildContextMenuOverlay(home),
           builder: (context, widget) {
-            return MediaQuery(
-              data: MediaQuery.of(context)
-                  .copyWith(textScaler: TextScaler.noScaling),
-              child: widget ?? Container(),
+            return Overlay(
+              initialEntries: [
+                if (widget != null) ...[
+                  OverlayEntry(
+                    builder: (context) => MediaQuery(
+                      data: MediaQuery.of(context)
+                          .copyWith(textScaler: TextScaler.noScaling),
+                      child: widget,
+                    ),
+                  ),
+                ],
+              ],
             );
           },
         ),

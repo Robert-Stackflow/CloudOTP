@@ -1,23 +1,26 @@
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
+import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
+import 'package:reorderable_grid/reorderable_grid.dart';
 
+import '../Database/token_dao.dart';
 import '../Models/category.dart';
 import '../Utils/app_provider.dart';
 import '../Utils/route_util.dart';
-import '../Utils/utils.dart';
 import '../Widgets/Custom/custom_tab_indicator.dart';
-import '../Widgets/Custom/sliver_appbar_delegate.dart';
+import '../generated/l10n.dart';
+import 'Token/category_screen.dart';
+import 'Token/scan_token_screen.dart';
 import 'Token/token_layout.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -33,7 +36,30 @@ class HomeScreen extends StatefulWidget {
 
 enum LayoutType {
   Simple,
-  Detail,
+  Compact,
+  Tile;
+
+  double get maxCrossAxisExtent {
+    switch (this) {
+      case LayoutType.Simple:
+        return 200;
+      case LayoutType.Compact:
+        return 200;
+      case LayoutType.Tile:
+        return 480;
+    }
+  }
+
+  double get childAspectRatio {
+    switch (this) {
+      case LayoutType.Simple:
+        return 1.8;
+      case LayoutType.Compact:
+        return 1.8;
+      case LayoutType.Tile:
+        return 3.2;
+    }
+  }
 }
 
 class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
@@ -44,7 +70,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   List<Tab> tabList = [];
   int _currentTabIndex = 0;
-  Key sliverPersistentHeaderKey = ValueKey(Utils.getRandomString());
+  String _searchKey = "";
 
   @override
   void initState() {
@@ -63,8 +89,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   refresh() async {
+    if (!mounted) return;
     await getCategories();
-    getTokens();
+    await getTokens();
   }
 
   int get currentCategoryId {
@@ -80,7 +107,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   getTokens() async {
-    await CategoryDao.getTokensByCategoryId(currentCategoryId).then((value) {
+    await CategoryDao.getTokensByCategoryId(
+      currentCategoryId,
+      searchKey: _searchKey,
+    ).then((value) {
       setState(() {
         tokens = value;
       });
@@ -105,13 +135,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   initTab() {
     tabList.clear();
-    tabList.add(const Tab(text: "全部"));
+    tabList.add(Tab(text: S.current.allTokens));
     for (var category in categories) {
       tabList.add(Tab(text: category.title));
     }
     _tabController = TabController(length: tabList.length, vsync: this);
     _tabController.index = _currentTabIndex;
-    sliverPersistentHeaderKey = ValueKey(Utils.getRandomString());
     setState(() {});
   }
 
@@ -124,7 +153,14 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 300),
       ),
       appBar: ResponsiveUtil.isLandscape()
-          ? null
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(54),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: _buildTabBar(),
+              ),
+            )
           : ItemBuilder.buildAppBar(
               context: context,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -142,9 +178,18 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               actions: [
                 ItemBuilder.buildIconButton(
                   context: context,
-                  icon: Icon(Icons.qr_code_scanner_rounded,
+                  icon: Icon(Icons.search_rounded,
                       color: Theme.of(context).iconTheme.color),
                   onTap: () {},
+                ),
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: Icon(Icons.qr_code_scanner_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  onTap: () {
+                    RouteUtil.pushCupertinoRoute(
+                        context, const ScanTokenScreen());
+                  },
                 ),
                 const SizedBox(width: 5),
                 ItemBuilder.buildIconButton(
@@ -152,16 +197,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   icon: Icon(Icons.dashboard_outlined,
                       color: Theme.of(context).iconTheme.color),
                   onTap: () {
-                    setState(() {
-                      layoutType = layoutType == LayoutType.Simple
-                          ? LayoutType.Detail
-                          : LayoutType.Simple;
-                    });
+                    changeLayoutType();
                   },
                 ),
                 ItemBuilder.buildIconButton(
                   context: context,
-                  icon: Icon(Icons.more_vert_rounded,
+                  icon: Icon(Icons.sort_rounded,
                       color: Theme.of(context).iconTheme.color),
                   onTap: () {},
                 ),
@@ -173,62 +214,64 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  @override
-  didChangeDependencies() {
-    super.didChangeDependencies();
-    if (Utils.isDark(context) != Theme.of(context).brightness) {
-      sliverPersistentHeaderKey = ValueKey(Utils.getRandomString());
-    }
+  changeLayoutType() {
+    setState(() {
+      layoutType = layoutType == LayoutType.Tile
+          ? LayoutType.Simple
+          : LayoutType.values[layoutType.index + 1];
+      HiveUtil.setLayoutType(layoutType);
+    });
   }
 
   _buildBody() {
-    late double maxCrossAxisExtent;
-    switch (layoutType) {
-      case LayoutType.Simple:
-        maxCrossAxisExtent = 300;
-        break;
-      case LayoutType.Detail:
-        maxCrossAxisExtent = 800;
-        break;
-    }
-    return CustomScrollView(
-      slivers: [
-        SliverPersistentHeader(
-          key: sliverPersistentHeaderKey,
-          pinned: true,
-          delegate: SliverHeaderDelegate.fixedHeight(
-            height: 54,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              color: Theme.of(context).scaffoldBackgroundColor,
-              child: _buildTabBar(),
-            ),
+    Widget gridView = ReorderableGridView.extent(
+      maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
+      childAspectRatio: layoutType.childAspectRatio,
+      padding: const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 30),
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 8,
+      onReorder: (int oldIndex, int newIndex) async {
+        final item = tokens.removeAt(oldIndex);
+        tokens.insert(newIndex, item);
+        for (int i = 0; i < tokens.length; i++) {
+          tokens[i].seq = i;
+        }
+        tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
+        setState(() {});
+        await TokenDao.updateTokens(tokens);
+      },
+      proxyDecorator: (Widget child, int index, Animation<double> animation) {
+        return Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor,
+                offset: const Offset(0, 4),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ).scale(2),
+            ],
           ),
-        ),
-        SliverFillRemaining(
-          child: EasyRefresh(
-            onRefresh: () async {
-              await getTokens();
-            },
-            refreshOnStart: true,
-            child: WaterfallFlow.extent(
-              maxCrossAxisExtent: maxCrossAxisExtent,
-              padding: const EdgeInsets.only(
-                  left: 10, right: 10, top: 10, bottom: 30),
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              children: [
-                for (var token in tokens)
-                  TokenLayout(
-                    token: token,
-                    layoutType: layoutType,
-                  ),
-              ],
-            ),
+          child: child,
+        );
+      },
+      children: [
+        for (var token in tokens)
+          TokenLayout(
+            key: ValueKey(token.toMap().toString()),
+            token: token,
+            layoutType: layoutType,
           ),
-        ),
       ],
     );
+    return tokens.isEmpty
+        ? ListView(
+            children: [
+              ItemBuilder.buildEmptyPlaceholder(
+                  context: context, text: S.current.noToken),
+            ],
+          )
+        : gridView;
   }
 
   _buildTabBar() {
@@ -255,6 +298,11 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         });
       },
     );
+  }
+
+  performSearch(String searchKey) {
+    _searchKey = searchKey;
+    getTokens();
   }
 
   _buildDrawer() {
@@ -290,7 +338,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               const SizedBox(height: 16),
               ItemBuilder.buildEntryItem(
                 context: context,
-                title: "添加令牌",
+                title: S.current.addToken,
                 topRadius: true,
                 showLeading: true,
                 onTap: () {
@@ -300,23 +348,45 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               ItemBuilder.buildEntryItem(
                 context: context,
-                bottomRadius: true,
-                onTap: () {},
-                title: "导入和导出",
+                onTap: () {
+                  RouteUtil.pushCupertinoRoute(
+                      context, const ImportExportTokenScreen());
+                },
+                title: S.current.exportImport,
                 showLeading: true,
                 leading: Icons.import_export_rounded,
+              ),
+              ItemBuilder.buildEntryItem(
+                context: context,
+                bottomRadius: true,
+                onTap: () {
+                  RouteUtil.pushCupertinoRoute(context, const CategoryScreen());
+                },
+                title: S.current.category,
+                showLeading: true,
+                leading: Icons.category_outlined,
               ),
               const SizedBox(height: 10),
               ItemBuilder.buildEntryItem(
                 context: context,
-                title: "设置",
+                title: S.current.setting,
                 topRadius: true,
-                bottomRadius: true,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(context, const SettingScreen());
                 },
                 leading: Icons.settings_outlined,
+              ),
+              ItemBuilder.buildEntryItem(
+                context: context,
+                title: S.current.about,
+                bottomRadius: true,
+                showLeading: true,
+                onTap: () {
+                  RouteUtil.pushCupertinoRoute(
+                      context, const AboutSettingScreen());
+                },
+                leading: Icons.info_outline_rounded,
               ),
             ],
           ),

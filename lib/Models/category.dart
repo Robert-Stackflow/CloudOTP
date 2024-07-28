@@ -71,4 +71,9 @@ class Category {
       tokenIds: tmp,
     );
   }
+
+  @override
+  String toString() {
+    return 'Category{id: $id, seq: $seq, title: $title, description: $description, createTimeStamp: $createTimeStamp, editTimeStamp: $editTimeStamp, pinned: $pinned, remark: $remark, tokenIds: $tokenIds}';
+  }
 }

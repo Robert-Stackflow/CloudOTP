@@ -26,6 +26,10 @@ dependencies:
   custom_sliding_segmented_control: ^1.8.3 # 分段控制器
   flutter_inappwebview: ^6.0.0 # Webview
   extended_nested_scroll_view: ^6.2.1 # 嵌套滚动
+  animated_text_kit: ^4.2.2 # 文字动画
+  scan: ^1.6.0 # 扫码
+  mobile_scanner: ^5.1.1 # 扫码
+  reorderable_grid: ^1.0.10 # 可拖动的网格
   # 系统
   provider: ^6.0.5 # 状态管理
   local_auth: ^2.2.0 # 指纹验证

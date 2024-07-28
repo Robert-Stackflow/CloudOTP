@@ -14,6 +14,7 @@ import '../../TokenUtils/check_token_util.dart';
 import '../../TokenUtils/token_image_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
+import '../../generated/l10n.dart';
 
 class AddTokenScreen extends StatefulWidget {
   const AddTokenScreen({
@@ -121,7 +122,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           }
         },
         title: Text(
-          "添加令牌",
+          S.current.addToken,
           style: Theme.of(context)
               .textTheme
               .titleMedium
@@ -158,7 +159,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         }
         success = true;
       } catch (e) {
-        IToast.showTop("保存失败");
+        IToast.showTop(S.current.saveFailed);
       } finally {
         homeScreenState?.refresh();
         if (success) {
@@ -232,7 +233,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                           BottomSheetBuilder.showBottomSheet(
                             context,
                             responsive: true,
-                            preferMinWidth: 500,
                             (context) => SelectIconBottomSheet(
                               token: _otpToken,
                               onSelected: (path) {
@@ -257,7 +257,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                   children: [
                     ItemBuilder.buildGroupTile(
                       context: context,
-                      title: "类型",
+                      title: S.current.tokenType,
                       disabled: _isEditing,
                       controller: _typeController,
                       buttons: OtpTokenType.labels(),
@@ -271,7 +271,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                           _periodController.text = "30";
                           _otpToken.digits = OtpDigits.D8;
                           _otpToken.algorithm = OtpAlgorithm.SHA256;
-                        }else{
+                        } else {
                           _otpToken.periodString = "30";
                           _periodController.text = "30";
                         }
@@ -293,23 +293,23 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       context: context,
                       controller: _issuerController,
                       textInputAction: TextInputAction.next,
-                      leadingText: "应用",
+                      leadingText: S.current.tokenIssuer,
                       topRadius: true,
-                      hint: "应用名称",
+                      hint: S.current.tokenIssuerHint,
                     ),
                     ItemBuilder.buildInputItem(
                       context: context,
                       controller: _accountController,
                       textInputAction: TextInputAction.next,
-                      leadingText: "帐户",
-                      hint: "帐户名称或邮箱",
+                      leadingText: S.current.tokenAccount,
+                      hint: S.current.tokenAccountHint,
                     ),
                     ItemBuilder.buildInputItem(
                       context: context,
                       controller: _secretController,
                       textInputAction: TextInputAction.next,
-                      leadingText: "密钥",
-                      hint: "Base32编码的密钥",
+                      leadingText: S.current.tokenSecret,
+                      hint: S.current.tokenSecretHint,
                       bottomRadius: !isMotp,
                     ),
                     Visibility(
@@ -318,8 +318,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                         context: context,
                         controller: _pinController,
                         textInputAction: TextInputAction.next,
-                        leadingText: "PIN",
-                        hint: "额外的PIN码",
+                        leadingText: S.current.tokenPin,
+                        hint: S.current.tokenPinHint,
                         bottomRadius: true,
                       ),
                     ),
@@ -338,12 +338,12 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       visible: !isSteam && !isYandex,
                       child: ItemBuilder.buildGroupTile(
                         context: context,
-                        title: "位数",
+                        title: S.current.tokenDigits,
                         disabled: _isEditing,
                         controller: _digitsController,
                         buttons: OtpDigits.D5.strings,
                         onSelected: (value, index, isSelected) {
-                          _otpToken.digits = index.otpDigits;
+                          _otpToken.digits = OtpDigits.fromLabel(value);
                           setState(() {});
                         },
                       ),
@@ -352,7 +352,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       visible: !isSteam && !isMotp && !isYandex,
                       child: ItemBuilder.buildGroupTile(
                         context: context,
-                        title: "算法",
+                        title: S.current.tokenAlgorithm,
                         controller: _algorithmController,
                         buttons: OtpAlgorithm.SHA1.strings,
                         disabled: _isEditing,
@@ -367,13 +367,13 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       child: ItemBuilder.buildInputItem(
                         context: context,
                         controller: _periodController,
-                        leadingText: "间隔",
+                        leadingText: S.current.tokenPeriod,
                         keyboardType: TextInputType.number,
                         textInputAction:
                             _otpToken.tokenType == OtpTokenType.TOTP
                                 ? TextInputAction.done
                                 : TextInputAction.next,
-                        hint: "密码刷新时间间隔，默认为30秒",
+                        hint: S.current.tokenPeriodHint,
                         readOnly: _isEditing,
                       ),
                     ),
@@ -382,11 +382,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       child: ItemBuilder.buildInputItem(
                         context: context,
                         controller: _counterController,
-                        leadingText: "计数",
+                        leadingText: S.current.tokenCounter,
                         keyboardType: TextInputType.number,
                         textInputAction: TextInputAction.done,
                         bottomRadius: true,
-                        hint: "HOTP类型令牌的计数器",
+                        hint: S.current.tokenCounterHint,
                         readOnly: _isEditing,
                       ),
                     ),

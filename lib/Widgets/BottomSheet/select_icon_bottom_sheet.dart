@@ -50,42 +50,44 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).canvasColor,
-        borderRadius: BorderRadius.vertical(
-            top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isLandscape()
-                ? const Radius.circular(20)
-                : Radius.zero),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          ItemBuilder.buildDesktopSearchBar(
-            controller: searchController,
-            context: context,
-            borderRadius: 8,
-            bottomMargin: 18,
-            hintFontSizeDelta: 1,
-            background: Colors.grey.withAlpha(40),
-            hintText: S.current.searchIconName,
-            onSubmitted: (str) {
-              setState(() {
-                icons = TokenImageUtil.matchBrandLogos(str);
-              });
-            },
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: _buildButtons(),
-          ),
-          const SizedBox(height: 10),
-        ],
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).canvasColor,
+          borderRadius: BorderRadius.vertical(
+              top: const Radius.circular(20),
+              bottom: ResponsiveUtil.isLandscape()
+                  ? const Radius.circular(20)
+                  : Radius.zero),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            ItemBuilder.buildDesktopSearchBar(
+              controller: searchController,
+              context: context,
+              borderRadius: 8,
+              bottomMargin: 18,
+              hintFontSizeDelta: 1,
+              background: Colors.grey.withAlpha(40),
+              hintText: S.current.searchIconName,
+              onSubmitted: (str) {
+                setState(() {
+                  icons = TokenImageUtil.matchBrandLogos(str);
+                });
+              },
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: _buildButtons(),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
       ),
     );
   }
@@ -114,7 +116,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
           }
           Navigator.of(context).pop();
         },
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         textStyle:
             Theme.of(context).textTheme.titleSmall?.apply(fontSizeDelta: 1),
       ),

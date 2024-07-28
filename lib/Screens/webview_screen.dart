@@ -1,12 +1,12 @@
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tuple/tuple.dart';
 
 import '../Utils/constant.dart';
@@ -14,6 +14,7 @@ import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/list_bottom_sheet.dart';
 import '../Widgets/Item/item_builder.dart';
+import '../generated/l10n.dart';
 
 class WebviewScreen extends StatefulWidget {
   const WebviewScreen({
@@ -77,12 +78,6 @@ class _WebviewScreenState extends State<WebviewScreen>
         isSecure: true,
       );
     });
-    webViewController?.addUserScript(
-      userScript: UserScript(
-          source:
-              'if(document.querySelector("html").classList.contains("lofter-page"))',
-          injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END),
-    );
   }
 
   @override
@@ -125,10 +120,10 @@ class _WebviewScreenState extends State<WebviewScreen>
                           color: Theme.of(context).iconTheme.color),
                       onTap: () {
                         List<Tuple2<String, dynamic>> options = [
-                          const Tuple2("刷新", -1),
-                          const Tuple2("复制链接", 0),
-                          const Tuple2("在浏览器打开", 1),
-                          const Tuple2("分享到其他应用", 2),
+                          Tuple2(S.current.refresh, -1),
+                          Tuple2(S.current.copyLink, 0),
+                          Tuple2(S.current.openWithBrowser, 1),
+                          Tuple2(S.current.shareToOtherApps, 2),
                         ];
                         BottomSheetBuilder.showListBottomSheet(
                           context,
@@ -185,7 +180,7 @@ class _WebviewScreenState extends State<WebviewScreen>
                     action: PermissionResponseAction.GRANT);
               },
               onDownloadStartRequest: (controller, url) async {
-                IToast.showTop("即将跳转到浏览器下载");
+                IToast.showTop(S.current.jumpToBrowserDownload);
                 Future.delayed(const Duration(milliseconds: 300), () {
                   UriUtil.openExternalUri(url.url);
                 });
@@ -200,7 +195,6 @@ class _WebviewScreenState extends State<WebviewScreen>
                   "data",
                   "javascript",
                   "about",
-                  "lofter",
                 ].contains(uri.scheme)) {
                   if (await UriUtil.canLaunchUri(uri)) {
                     UriUtil.launchUri(uri);
@@ -225,27 +219,9 @@ class _WebviewScreenState extends State<WebviewScreen>
                 await controller.evaluateJavascript(
                     source:
                         'javascript:!function(){function t(e){e.stopPropagation(),e.stopImmediatePropagation&&e.stopImmediatePropagation()}document.querySelectorAll("*").forEach(e=>{"none"===window.getComputedStyle(e,null).getPropertyValue("user-select")&&e.style.setProperty("user-select","text","important")}),["copy","cut","contextmenu","selectstart","mousedown","mouseup","mousemove","keydown","keypress","keyup"].forEach(function(e){document.documentElement.addEventListener(e,t,{capture:!0})})}();');
-                if (Utils.isDark(context)) {
-                  await controller.evaluateJavascript(
-                      source:
-                          'document.querySelector("html").classList.add("nw-dark-mode");document.querySelector("html").classList.remove("nw-light-mode");');
-                } else {
-                  await controller.evaluateJavascript(
-                      source:
-                          'document.querySelector("html").classList.add("nw-light-mode");document.querySelector("html").classList.remove("nw-dark-mode");');
-                }
-                // String html = await controller.getHtml() ?? "";
-                // if (html.contains('<html lang="zh" class="lofter-page')) {
-                //   setState(() {
-                //     showAppBar = false;
-                //   });
-                // }
               },
               onReceivedError: (controller, request, error) {
                 currentError = error;
-                // if (error.type != WebResourceErrorType.UNSUPPORTED_SCHEME) {
-                //   showError = true;
-                // }
                 setState(() {});
               },
               onProgressChanged: (controller, progress) {
@@ -298,12 +274,14 @@ class _WebviewScreenState extends State<WebviewScreen>
               ),
               const SizedBox(height: 10),
               Text(
-                "加载失败",
+                S.current.loadFailed,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 10),
               Text(
-                "错误类型：${currentError != null ? currentError?.type : "未知"}",
+                currentError != null
+                    ? S.current.loadErrorType(currentError!.type.toString())
+                    : S.current.loadUnkownError,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 10),
@@ -312,7 +290,7 @@ class _WebviewScreenState extends State<WebviewScreen>
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 child: ItemBuilder.buildRoundButton(
                   context,
-                  text: "重新加载",
+                  text: S.current.reload,
                   onTap: () {
                     webViewController?.reload();
                   },

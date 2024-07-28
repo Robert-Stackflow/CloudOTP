@@ -32,6 +32,11 @@ class HiveUtil {
   static const String autoCheckUpdateKey = "autoCheckUpdate";
   static const String inappWebviewKey = "inappWebview";
 
+  static const String clickToCopyKey = "clickToCopy";
+  static const String autoDisplayNextCodeKey = "autoDisplayNextCode";
+  static const String autoCopyNextCodeKey = "autoCopyNextCode";
+  static const String autoHideCodeKey = "autoHideCode";
+
   //Appearance
   static const String enableLandscapeInTabletKey = "enableLandscapeInTablet";
   static const String fontFamilyKey = "fontFamily";
@@ -63,6 +68,7 @@ class HiveUtil {
 
   static initConfig() async {
     HiveUtil.put(HiveUtil.inappWebviewKey, true);
+    HiveUtil.put(HiveUtil.enableSafeModeKey, true);
   }
 
   static setLayoutType(LayoutType type) {
@@ -143,15 +149,6 @@ class HiveUtil {
     } else {
       HiveUtil.put(HiveUtil.localeKey, locale.toString());
     }
-  }
-
-  static int? getFontSize() {
-    return 2;
-    // return HiveUtil.getInt( HiveUtil.fontSizeKey,defaultValue: 2);
-  }
-
-  static void setFontSize(int? fontSize) {
-    HiveUtil.put(HiveUtil.fontFamilyKey, fontSize);
   }
 
   static ActiveThemeMode getThemeMode() {

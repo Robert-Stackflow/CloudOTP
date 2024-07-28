@@ -10,6 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
+import '../../generated/l10n.dart';
 
 class ImportExportTokenScreen extends StatefulWidget {
   const ImportExportTokenScreen({
@@ -41,7 +42,9 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
       appBar: ItemBuilder.buildAppBar(
         context: context,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        leading: Icons.close_rounded,
+        leading: ResponsiveUtil.isLandscape()
+            ? Icons.close_rounded
+            : Icons.arrow_back_rounded,
         onLeadingTap: () {
           if (ResponsiveUtil.isLandscape()) {
             dialogNavigatorState?.popPage();
@@ -50,7 +53,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           }
         },
         title: Text(
-          "导入导出",
+          S.current.exportImport,
           style: Theme.of(context)
               .textTheme
               .titleMedium
@@ -73,14 +76,15 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         children: [
-          ItemBuilder.buildCaptionItem(context: context, title: "导入"),
+          ItemBuilder.buildCaptionItem(
+              context: context, title: S.current.import),
           ItemBuilder.buildEntryItem(
             context: context,
-            title: "导入加密文件",
-            description: "导入加密的二进制文件，仅适用于$appName",
+            title: S.current.importEncryptFile,
+            description: S.current.importEncryptFileHint(appName),
             onTap: () async {
               FilePickerResult? result = await FilePicker.platform.pickFiles(
-                dialogTitle: "选择加密文件",
+                dialogTitle: S.current.importEncryptFileTitle,
                 type: FileType.custom,
                 allowedExtensions: ['bin'],
                 lockParentWindow: true,
@@ -92,11 +96,11 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           ),
           ItemBuilder.buildEntryItem(
             context: context,
-            title: "导入URI格式",
-            description: "导入纯文本格式的OTPAuth URI列表，每行对应一个令牌",
+            title: S.current.importUriFile,
+            description: S.current.importUriFileHint,
             onTap: () async {
               FilePickerResult? result = await FilePicker.platform.pickFiles(
-                dialogTitle: "选择文本文件",
+                dialogTitle: S.current.importUriFileTitle,
                 type: FileType.any,
                 lockParentWindow: true,
               );
@@ -107,23 +111,25 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           ),
           ItemBuilder.buildEntryItem(
             context: context,
-            title: "从剪切板导入URI格式",
+            title: S.current.importUriFromClipBoard,
             bottomRadius: true,
-            description: "从剪切板中导入纯文本格式的OTPAuth URI列表，每行对应一个令牌",
+            description: S.current.importUriFromClipBoardHint,
             onTap: () async {
               String? content = await Utils.getClipboardData();
-              ImportTokenUtil.importText(content ?? "", emptyTip: "剪切板内容为空");
+              ImportTokenUtil.importText(content ?? "",
+                  emptyTip: S.current.clipboardEmpty);
             },
           ),
           const SizedBox(height: 10),
-          ItemBuilder.buildCaptionItem(context: context, title: "导出"),
+          ItemBuilder.buildCaptionItem(
+              context: context, title: S.current.export),
           ItemBuilder.buildEntryItem(
             context: context,
-            title: "导出为加密文件",
-            description: "将令牌信息及其分类和图标导出到加密的二进制文件中，仅适用于$appName",
+            title: S.current.exportEncryptFile,
+            description: S.current.exportEncryptFileHint(appName),
             onTap: () async {
               String? result = await FilePicker.platform.saveFile(
-                dialogTitle: "导出加密文件",
+                dialogTitle: S.current.exportEncryptFileTitle,
                 type: FileType.custom,
                 allowedExtensions: ['bin'],
                 lockParentWindow: true,
@@ -135,12 +141,12 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           ),
           ItemBuilder.buildEntryItem(
             context: context,
-            title: "导出为URI格式",
+            title: S.current.exportUriFile,
             bottomRadius: true,
-            description: "将令牌信息（不包含分类和图标）导出到未经加密的纯文本格式文件，兼容性较高",
+            description: S.current.exportUriFileHint,
             onTap: () async {
               String? result = await FilePicker.platform.saveFile(
-                dialogTitle: "导出URI格式",
+                dialogTitle: S.current.exportUriFileTitle,
                 type: FileType.custom,
                 allowedExtensions: ['txt'],
                 lockParentWindow: true,

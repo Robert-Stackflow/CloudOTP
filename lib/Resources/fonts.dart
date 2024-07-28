@@ -1,36 +1,36 @@
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:tuple/tuple.dart';
+import "package:cloudotp/Utils/responsive_util.dart";
+import "package:flutter/cupertino.dart";
+import "package:tuple/tuple.dart";
 
-import '../Utils/font_util.dart';
-import '../Utils/hive_util.dart';
-import '../Utils/itoast.dart';
-import '../Utils/utils.dart';
-import '../Widgets/Dialog/progress_dialog.dart';
-import '../generated/l10n.dart';
+import "../Utils/font_util.dart";
+import "../Utils/hive_util.dart";
+import "../Utils/itoast.dart";
+import "../Utils/utils.dart";
+import "../Widgets/Dialog/progress_dialog.dart";
+import "../generated/l10n.dart";
 
 enum FontEnum {
-  Default(fontName: '跟随系统', fontFamily: '', fontUrl: ''),
+  Default(fontName: "跟随系统", fontFamily: "", fontUrl: ""),
   LxgwWenKai(
-      fontName: '霞鹜文楷',
-      fontFamily: 'LxgwWenKai',
+      fontName: "霞鹜文楷",
+      fontFamily: "LxgwWenKai",
       fontUrl:
-          'https://github.com/lxgw/LxgwWenKai/releases/download/v1.330/LXGWWenKai-Regular.ttf'),
+          "https://github.com/lxgw/LxgwWenKai/releases/download/v1.330/LXGWWenKai-Regular.ttf"),
   LxgwWenKaiGB(
-      fontName: '霞鹜文楷-GB',
-      fontFamily: 'LxgwWenKaiGB',
+      fontName: "霞鹜文楷-GB",
+      fontFamily: "LxgwWenKaiGB",
       fontUrl:
-          'https://github.com/lxgw/LxgwWenkaiGB/releases/download/v1.330/LXGWWenKaiGB-Regular.ttf'),
+          "https://github.com/lxgw/LxgwWenkaiGB/releases/download/v1.330/LXGWWenKaiGB-Regular.ttf"),
   LxgwWenKaiLite(
-      fontName: '霞鹜文楷-Lite',
-      fontFamily: 'LxgwWenKaiLite',
+      fontName: "霞鹜文楷-Lite",
+      fontFamily: "LxgwWenKaiLite",
       fontUrl:
-          'https://github.com/lxgw/LxgwWenKai-Lite/releases/download/v1.330/LXGWWenKaiLite-Regular.ttf'),
+          "https://github.com/lxgw/LxgwWenKai-Lite/releases/download/v1.330/LXGWWenKaiLite-Regular.ttf"),
   LxgwWenKaiScreen(
-      fontName: '霞鹜文楷-Screen',
-      fontFamily: 'LxgwWenKaiScreen',
+      fontName: "霞鹜文楷-Screen",
+      fontFamily: "LxgwWenKaiScreen",
       fontUrl:
-          'https://github.com/lxgw/LxgwWenKai-Screen/releases/download/v1.330/LXGWWenKaiGBScreen.ttf');
+          "https://github.com/lxgw/LxgwWenKai-Screen/releases/download/v1.330/LXGWWenKaiGBScreen.ttf");
 
   const FontEnum({
     required this.fontName,
@@ -42,8 +42,25 @@ enum FontEnum {
   final String fontFamily;
   final String fontUrl;
 
+  String get intlFontName {
+    switch (this) {
+      case FontEnum.Default:
+        return S.current.followSystem;
+      case FontEnum.LxgwWenKai:
+        return S.current.lxgw;
+      case FontEnum.LxgwWenKaiGB:
+        return S.current.lxgwGB;
+      case FontEnum.LxgwWenKaiLite:
+        return S.current.lxgwLite;
+      case FontEnum.LxgwWenKaiScreen:
+        return S.current.lxgwScreen;
+      default:
+        return S.current.followSystem;
+    }
+  }
+
   static List<Tuple2<String, FontEnum>> getFontList() {
-    return FontEnum.values.map((e) => Tuple2(e.fontName, e)).toList();
+    return FontEnum.values.map((e) => Tuple2(e.intlFontName, e)).toList();
   }
 
   static String getFontUrlByEnum(FontEnum fontEnum) {

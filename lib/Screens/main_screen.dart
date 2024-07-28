@@ -35,6 +35,7 @@ import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
 import '../Widgets/Scaffold/my_scaffold.dart';
 import '../Widgets/Window/window_button.dart';
+import '../generated/l10n.dart';
 import 'Lock/pin_verify_screen.dart';
 import 'Setting/setting_screen.dart';
 import 'Token/category_screen.dart';
@@ -65,6 +66,7 @@ class MainScreenState extends State<MainScreen>
   bool _isMaximized = false;
   bool _isStayOnTop = false;
   bool _hasJumpedToPinVerify = false;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void onWindowMinimize() {
@@ -162,6 +164,9 @@ class MainScreenState extends State<MainScreen>
       );
     });
     initGlobalConfig();
+    searchController.addListener(() {
+      homeScreenState?.performSearch(searchController.text);
+    });
   }
 
   initGlobalConfig() {
@@ -184,7 +189,7 @@ class MainScreenState extends State<MainScreen>
           indicator: LottieUtil.load(LottieUtil.getLoadingPath(context)),
         );
     if (ResponsiveUtil.isMobile()) {
-      if (HiveUtil.getBool(HiveUtil.enableSafeModeKey, defaultValue: false)) {
+      if (HiveUtil.getBool(HiveUtil.enableSafeModeKey)) {
         FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
       } else {
         FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
@@ -290,20 +295,10 @@ class MainScreenState extends State<MainScreen>
             if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
             Column(
               children: [
-                const SizedBox(height: 76),
-                // ClipRRect(
-                //   borderRadius: BorderRadius.circular(16),
-                //   child: Image.asset(
-                //     'assets/logo-transparent.png',
-                //     height: 36,
-                //     width: 36,
-                //     fit: BoxFit.contain,
-                //   ),
-                // ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 80),
                 ItemBuilder.buildIconTextButton(
                   context,
-                  text: "添加",
+                  text: S.current.addToken,
                   direction: Axis.vertical,
                   showText: false,
                   fontSizeDelta: -2,
@@ -316,17 +311,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ItemBuilder.buildIconTextButton(
                   context,
-                  text: "二维码",
-                  fontSizeDelta: -2,
-                  showText: false,
-                  direction: Axis.vertical,
-                  icon: const Icon(Icons.qr_code_rounded),
-                  onTap: () async {},
-                ),
-                const SizedBox(height: 4),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  text: "导入导出",
+                  text: S.current.exportImport,
                   fontSizeDelta: -2,
                   showText: false,
                   direction: Axis.vertical,
@@ -341,7 +326,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ItemBuilder.buildIconTextButton(
                   context,
-                  text: "分类",
+                  text: S.current.category,
                   fontSizeDelta: -2,
                   showText: false,
                   direction: Axis.vertical,
@@ -353,6 +338,13 @@ class MainScreenState extends State<MainScreen>
                 ),
                 const Spacer(),
                 const SizedBox(height: 8),
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: const Icon(Icons.dashboard_outlined, size: 22),
+                  onTap: () {
+                    homeScreenState?.changeLayoutType();
+                  },
+                ),
                 ItemBuilder.buildDynamicIconButton(
                     context: context,
                     icon: darkModeWidget,
@@ -439,6 +431,22 @@ class MainScreenState extends State<MainScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
+                ItemBuilder.buildRoundIconButton(
+                  context: context,
+                  normalBackground: Colors.grey.withAlpha(40),
+                  icon: Icon(
+                    Icons.home_filled,
+                    size: 20,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                  onTap: () {
+                    while (desktopNavigatorState!.canPop()) {
+                      desktopNavigatorState?.pop();
+                    }
+                    appProvider.canPopByProvider = false;
+                  },
+                ),
+                const SizedBox(width: 8),
                 SizedBox(
                   width: min(300, MediaQuery.sizeOf(context).width - 240),
                   child: ItemBuilder.buildDesktopSearchBar(
@@ -446,10 +454,12 @@ class MainScreenState extends State<MainScreen>
                     borderRadius: 8,
                     bottomMargin: 18,
                     hintFontSizeDelta: 1,
-                    controller: TextEditingController(),
+                    controller: searchController,
                     background: Colors.grey.withAlpha(40),
-                    hintText: "搜索令牌",
-                    onSubmitted: (text) {},
+                    hintText: S.current.searchToken,
+                    onSubmitted: (text) {
+                      homeScreenState?.performSearch(text);
+                    },
                   ),
                 ),
                 const Spacer(),
@@ -608,7 +618,7 @@ class MainScreenState extends State<MainScreen>
         windowManager.show();
         windowManager.focus();
         windowManager.restore();
-        IToast.showTop("尚未设置手势密码");
+        IToast.showTop(S.current.noGestureLock);
       }
     } else if (menuItem.key == 'show_official_website') {
       UriUtil.launchUrlUri(context, officialWebsite);
