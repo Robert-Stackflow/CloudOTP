@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/loading_dialog_widget.dart';
+import 'package:flutter/material.dart';
 
 import '../../Utils/app_provider.dart';
 import './animations.dart';
@@ -711,15 +711,16 @@ class CustomLoadingDialog {
     double size = 40,
   }) {
     showDialog(
-        barrierDismissible: dismissible,
-        context: globalNavigatorKey.currentState!.context,
-        builder: (context) {
-          return LoadingDialogWidget(
-            dismissible: dismissible,
-            title: title,
-            size: size,
-          );
-        });
+      barrierDismissible: dismissible,
+      context: globalNavigatorKey.currentState!.context,
+      builder: (context) {
+        return LoadingDialogWidget(
+          dismissible: dismissible,
+          title: title,
+          size: size,
+        );
+      },
+    );
   }
 
   static Future<void> dismissLoading() async {

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../Database/token_dao.dart';
 import '../../Models/github_response.dart';
 import '../../Resources/fonts.dart';
 import '../../Resources/theme_color_data.dart';
@@ -44,6 +45,9 @@ class _SettingScreenState extends State<SettingScreen>
   FontEnum _currentFont = FontEnum.getCurrentFont();
   bool _enableGuesturePasswd =
       HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);
+  bool _autoBackup = HiveUtil.getBool(HiveUtil.autoBackupKey);
+  bool _useBackupPasswordToExportImport =
+      HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey);
   bool _hasGuesturePasswd =
       HiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
           HiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
@@ -65,6 +69,9 @@ class _SettingScreenState extends State<SettingScreen>
   bool autoDisplayNextCode = HiveUtil.getBool(HiveUtil.autoDisplayNextCodeKey);
   bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
   bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
+  String _autoBackupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+  String _autoBackupPassword =
+      HiveUtil.getString(HiveUtil.backupPasswordKey) ?? "";
 
   @override
   void initState() {
@@ -89,6 +96,7 @@ class _SettingScreenState extends State<SettingScreen>
               ..._generalSettings(),
               ..._apperanceSettings(),
               ..._operationSettings(),
+              ..._backupSettings(),
               ..._privacySettings(),
               if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
               if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
@@ -223,6 +231,68 @@ class _SettingScreenState extends State<SettingScreen>
           setState(() {
             autoHideCode = !autoHideCode;
             HiveUtil.put(HiveUtil.autoHideCodeKey, autoHideCode);
+          });
+        },
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        bottomRadius: true,
+        title: S.current.resetCopyTimes,
+        description: S.current.resetCopyTimesTip,
+        onTap: () async {
+          await TokenDao.resetTokenCopyTimes();
+          homeScreenState?.refresh();
+          IToast.showTop(S.current.resetSuccess);
+        },
+      ),
+    ];
+  }
+
+  _backupSettings() {
+    return [
+      const SizedBox(height: 10),
+      ItemBuilder.buildCaptionItem(
+          context: context, title: S.current.backupSetting),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: _autoBackup,
+        title: S.current.autoBackup,
+        description: S.current.autoBackupTip,
+        disabled: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty,
+        onTap: () {
+          setState(() {
+            _autoBackup = !_autoBackup;
+            HiveUtil.put(HiveUtil.autoBackupKey, _autoBackup);
+          });
+        },
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        title: S.current.autoBackupPath,
+        description: S.current.autoBackupPathTip,
+        tip: _autoBackupPath,
+        onTap: () {},
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        title: S.current.autoBackupPassword,
+        description: S.current.autoBackupPasswordTip,
+        tip: _autoBackupPassword,
+        onTap: () {},
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: _useBackupPasswordToExportImport,
+        bottomRadius: true,
+        title: S.current.useBackupPasswordToExportImport,
+        description: S.current.useBackupPasswordToExportImportTip,
+        disabled: _autoBackupPassword.isEmpty,
+        onTap: () {
+          setState(() {
+            _useBackupPasswordToExportImport =
+                !_useBackupPasswordToExportImport;
+            HiveUtil.put(HiveUtil.useBackupPasswordToExportImportKey,
+                _useBackupPasswordToExportImport);
           });
         },
       ),

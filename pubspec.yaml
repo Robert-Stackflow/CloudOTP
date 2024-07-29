@@ -133,5 +133,6 @@ flutter:
     - assets/brand/
     - assets/logo.png
     - assets/logo.svg
+    - assets/logo-transparent.ico
     - assets/logo-transparent.png
     - assets/logo-transparent.svg

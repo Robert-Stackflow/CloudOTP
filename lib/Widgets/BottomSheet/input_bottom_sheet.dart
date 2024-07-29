@@ -13,9 +13,9 @@ class InputBottomSheet extends StatefulWidget {
     this.minLines = 1,
     this.hint,
     this.controller,
-    required this.buttonText,
     this.onConfirm,
-    required this.text,
+    this.message = "",
+    this.text = "",
     this.onCancel,
     this.title = "",
   });
@@ -23,12 +23,12 @@ class InputBottomSheet extends StatefulWidget {
   final String? hint;
   final String text;
   final String title;
+  final String message;
   final int maxLines;
   final int minLines;
   final Function()? onCancel;
   final Function(String)? onConfirm;
   final TextEditingController? controller;
-  final String buttonText;
 
   @override
   InputBottomSheetState createState() => InputBottomSheetState();
@@ -70,7 +70,9 @@ class InputBottomSheetState extends State<InputBottomSheet> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                if (Utils.isNotEmpty(widget.title)) _buildHeader(),
+                if (Utils.isNotEmpty(widget.title) &&
+                    Utils.isNotEmpty(widget.message))
+                  _buildHeader(),
                 Center(
                   child: Material(
                     color: Colors.transparent,
@@ -83,12 +85,22 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                               context: context),
                       maxLines: widget.maxLines,
                       minLines: widget.minLines,
+
+                      textInputAction: TextInputAction.done,
                       cursorColor: Theme.of(context).primaryColor,
                       cursorHeight: 22,
                       cursorRadius: const Radius.circular(3),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: widget.hint,
+                        hintStyle: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.apply(
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                              fontSizeDelta: 2,
+                            ),
                       ),
                     ),
                   ),
@@ -107,9 +119,20 @@ class InputBottomSheetState extends State<InputBottomSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       alignment: Alignment.center,
-      child: Text(
-        widget.title,
-        style: Theme.of(context).textTheme.titleLarge,
+      child: Column(
+        children: [
+          if (Utils.isNotEmpty(widget.title))
+            Text(
+              widget.title,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          if (Utils.isNotEmpty(widget.message)) const SizedBox(height: 8),
+          if (Utils.isNotEmpty(widget.message))
+            Text(
+              widget.message,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+        ],
       ),
     );
   }

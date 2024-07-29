@@ -17,7 +17,7 @@ class SelectTokenBottomSheet extends StatefulWidget {
     required this.category,
   });
 
-  final Category category;
+  final TokenCategory category;
 
   @override
   SelectTokenBottomSheetState createState() => SelectTokenBottomSheetState();

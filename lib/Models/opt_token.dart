@@ -302,6 +302,14 @@ class OtpToken {
     );
   }
 
+  String toJson() {
+    return jsonEncode(toMap());
+  }
+
+  factory OtpToken.fromJson(String source) {
+    return OtpToken.fromMap(jsonDecode(source));
+  }
+
   clone() {
     return OtpToken(
       id: id,

@@ -28,7 +28,7 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen>
     with TickerProviderStateMixin {
-  List<Category> categories = [];
+  List<TokenCategory> categories = [];
 
   @override
   void initState() {
@@ -85,15 +85,13 @@ class _CategoryScreenState extends State<CategoryScreen>
                 responsive: true,
                 (context) => InputBottomSheet(
                   title: S.current.addCategory,
-                  text: "",
-                  buttonText: S.current.confirm,
                   onConfirm: (text) async {
                     if (await CategoryDao.isCategoryExist(text)) {
                       IToast.showTop(S.current.categoryNameDuplicate);
                       return;
                     }
                     await CategoryDao.insertCategory(
-                        Category.title(title: text));
+                        TokenCategory.title(title: text));
                     refresh();
                   },
                 ),
@@ -128,7 +126,7 @@ class _CategoryScreenState extends State<CategoryScreen>
               itemCount: categories.length,
               onReorder: (oldIndex, newIndex) {
                 if (newIndex > oldIndex) newIndex -= 1;
-                Category oldCategory = categories[oldIndex];
+                TokenCategory oldCategory = categories[oldIndex];
                 categories.removeAt(oldIndex);
                 categories.insert(newIndex, oldCategory);
                 for (int i = 0; i < categories.length; i++) {
@@ -157,7 +155,7 @@ class _CategoryScreenState extends State<CategoryScreen>
     );
   }
 
-  _buildCategoryItem(Category category) {
+  _buildCategoryItem(TokenCategory category) {
     return Container(
       key: ValueKey(category.title),
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
@@ -193,7 +191,6 @@ class _CategoryScreenState extends State<CategoryScreen>
                 (context) => InputBottomSheet(
                   title: S.current.editCategoryName,
                   text: category.title,
-                  buttonText: S.current.save,
                   onConfirm: (text) async {
                     if (await CategoryDao.isCategoryExist(text)) {
                       IToast.showTop(S.current.categoryNameDuplicate);

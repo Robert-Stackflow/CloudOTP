@@ -56,6 +56,12 @@ class HiveUtil {
   static const String themeModeKey = "themeMode";
   static const String navItemsKey = "navItems";
 
+  //Backup
+  static const String autoBackupKey = "autoBackup";
+  static const String backupPathKey = "backupPath";
+  static const String backupPasswordKey = "backupPassword";
+  static const String useBackupPasswordToExportImportKey = "useBackupPasswordToExportImport";
+
   //Privacy
   static const String enableGuesturePasswdKey = "enableGuesturePasswd";
   static const String guesturePasswdKey = "guesturePasswd";

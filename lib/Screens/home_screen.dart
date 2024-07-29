@@ -115,7 +115,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   LayoutType layoutType = HiveUtil.getLayoutType();
   OrderType orderType = HiveUtil.getOrderType();
   List<OtpToken> tokens = [];
-  List<Category> categories = [];
+  List<TokenCategory> categories = [];
   late TabController _tabController;
   List<Tab> tabList = [];
   int _currentTabIndex = 0;
@@ -160,9 +160,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       currentCategoryId,
       searchKey: _searchKey,
     ).then((value) {
-      setState(() {
-        tokens = value;
-      });
+      tokens = value;
+      performSort();
+      setState(() {});
     });
   }
 
@@ -273,7 +273,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  changeOrderType([OrderType? type]) {
+  changeOrderType({
+    bool doPerformSort = true,
+    OrderType? type,
+  }) {
     setState(() {
       if (type != null) {
         orderType = type;
@@ -284,6 +287,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
       HiveUtil.setOrderType(orderType);
     });
+    if (doPerformSort) performSort();
+  }
+
+  performSort() {
     switch (orderType) {
       case OrderType.Default:
         tokens.sort((a, b) => a.seq.compareTo(b.seq));
@@ -315,6 +322,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         tokens.sort((a, b) => a.createTimeStamp.compareTo(b.createTimeStamp));
         break;
     }
+    tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
   }
 
   _buildBody() {
@@ -325,14 +333,16 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       crossAxisSpacing: 8,
       mainAxisSpacing: 8,
       onReorder: (int oldIndex, int newIndex) async {
-        final item = tokens.removeAt(oldIndex);
-        tokens.insert(newIndex, item);
+        setState(() {
+          final item = tokens.removeAt(oldIndex);
+          tokens.insert(newIndex, item);
+        });
         for (int i = 0; i < tokens.length; i++) {
           tokens[i].seq = i;
         }
         tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-        setState(() {});
         await TokenDao.updateTokens(tokens);
+        changeOrderType(type: OrderType.Default, doPerformSort: false);
       },
       proxyDecorator: (Widget child, int index, Animation<double> animation) {
         return Container(

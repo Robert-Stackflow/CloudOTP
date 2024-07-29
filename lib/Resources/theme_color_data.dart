@@ -6,6 +6,8 @@ import 'fonts.dart';
 class ThemeColorData {
   bool isDarkMode;
 
+  String id;
+
   String name;
 
   String? description;
@@ -54,6 +56,7 @@ class ThemeColorData {
 
   ThemeColorData({
     this.isDarkMode = false,
+    required this.id,
     required this.name,
     this.description,
     required this.cardBackground,
@@ -81,6 +84,7 @@ class ThemeColorData {
 
   static List<ThemeColorData> defaultLightThemes = [
     ThemeColorData(
+      id: "pureWhite",
       name: "极简白",
       background: const Color(0xFFF7F8F9),
       canvasBackground: const Color(0xFFFFFFFF),
@@ -103,6 +107,7 @@ class ThemeColorData {
       cardBackground: const Color(0xFFF5F5F5),
     ),
     ThemeColorData(
+      id: "freshGreen",
       name: "清新绿",
       background: const Color(0xFFE8F5E9),
       canvasBackground: const Color(0xFFECF7EF),
@@ -128,6 +133,7 @@ class ThemeColorData {
 
   static List<ThemeColorData> defaultDarkThemes = [
     ThemeColorData(
+      id: "pureBlack",
       name: "极简黑",
       background: const Color(0xFF151515),
       canvasBackground: const Color(0xFF232326),
@@ -150,6 +156,7 @@ class ThemeColorData {
       cardBackground: const Color(0xFF333333),
     ),
     ThemeColorData(
+      id: "blueIron",
       name: "蓝铁",
       background: const Color(0xFF1D2733),
       canvasBackground: const Color(0xFF242E39),
@@ -317,6 +324,7 @@ class ThemeColorData {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         "isDarkMode": isDarkMode ? 1 : 0,
+        "id": id,
         "name": name,
         "description": description,
         "primaryColor": primaryColor.toHex(),
@@ -344,6 +352,7 @@ class ThemeColorData {
 
   factory ThemeColorData.fromJson(Map<String, dynamic> map) => ThemeColorData(
         isDarkMode: map['isDarkMode'] == 0 ? false : true,
+        id: map['id'] as String,
         name: map['name'] as String,
         description: map['description'] as String,
         primaryColor: HexColor.fromHex(map['primaryColor'] as String),

@@ -78,6 +78,24 @@ class TokenDao {
     return results.length;
   }
 
+  static Future<int> resetTokenCopyTimes() async {
+    final db = await DatabaseManager.getDataBase();
+    List<OtpToken> tokens = await listTokens();
+    Batch batch = db.batch();
+    for (OtpToken token in tokens) {
+      token.copyTimes = 0;
+      token.lastCopyTimeStamp = 0;
+      batch.update(
+        tableName,
+        token.toMap(),
+        where: 'id = ?',
+        whereArgs: [token.id],
+      );
+    }
+    List<dynamic> results = await batch.commit();
+    return results.length;
+  }
+
   static Future<int> updateTokenPinned(OtpToken token, bool pinned) async {
     final db = await DatabaseManager.getDataBase();
     token.pinned = pinned;

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import '../Utils/utils.dart';
 
-class Category {
+class TokenCategory {
   int id;
   int seq;
   String title;
@@ -13,7 +13,7 @@ class Category {
   Map<String, dynamic> remark;
   List<int> tokenIds;
 
-  Category({
+  TokenCategory({
     required this.tokenIds,
     required this.id,
     required this.seq,
@@ -25,7 +25,7 @@ class Category {
     required this.remark,
   });
 
-  Category.title({
+  TokenCategory.title({
     required this.title,
   })  : id = 0,
         seq = 0,
@@ -50,7 +50,7 @@ class Category {
     };
   }
 
-  factory Category.fromMap(Map<String, dynamic> map) {
+  factory TokenCategory.fromMap(Map<String, dynamic> map) {
     List<int> tmp = [];
     if (Utils.isNotEmpty(map['token_ids'])) {
       for (String e in map['token_ids'].split(",")) {
@@ -59,7 +59,7 @@ class Category {
         }
       }
     }
-    return Category(
+    return TokenCategory(
       id: map['id'],
       seq: map['seq'],
       title: map['title'],
@@ -70,6 +70,14 @@ class Category {
       remark: jsonDecode(map['remark']),
       tokenIds: tmp,
     );
+  }
+
+  String toJson() {
+    return jsonEncode(toMap());
+  }
+
+  factory TokenCategory.fromJson(String source) {
+    return TokenCategory.fromMap(jsonDecode(source));
   }
 
   @override

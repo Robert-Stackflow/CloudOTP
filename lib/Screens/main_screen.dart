@@ -7,7 +7,6 @@ import 'package:cloudotp/Resources/colors.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
-import 'package:image/image.dart' as img;
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/constant.dart';
@@ -22,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:image/image.dart' as img;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -300,63 +300,91 @@ class MainScreenState extends State<MainScreen>
           S.current.defaultOrder,
           checked: homeScreenState?.orderType == OrderType.Default,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.Default);
+            homeScreenState?.changeOrderType(type: OrderType.Default);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.alphabeticalASCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalASC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.AlphabeticalASC);
+            homeScreenState?.changeOrderType(type: OrderType.AlphabeticalASC);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.alphabeticalDESCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalDESC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.AlphabeticalDESC);
+            homeScreenState?.changeOrderType(type: OrderType.AlphabeticalDESC);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.copyTimesDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesDESC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.CopyTimesDESC);
+            homeScreenState?.changeOrderType(type: OrderType.CopyTimesDESC);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.copyTimesASCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesASC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.CopyTimesASC);
+            homeScreenState?.changeOrderType(type: OrderType.CopyTimesASC);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.lastCopyTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeDESC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.LastCopyTimeDESC);
+            homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeDESC);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.lastCopyTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeASC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.LastCopyTimeASC);
+            homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeASC);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.createTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeDESC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.CreateTimeDESC);
+            homeScreenState?.changeOrderType(type: OrderType.CreateTimeDESC);
           },
         ),
         ContextMenuButtonConfig.checkbox(
           S.current.createTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeASC,
           onPressed: () {
-            homeScreenState?.changeOrderType(OrderType.CreateTimeASC);
+            homeScreenState?.changeOrderType(type: OrderType.CreateTimeASC);
+          },
+        ),
+      ],
+    );
+  }
+
+  _buildLayoutContextMenuButtons() {
+    return GenericContextMenu(
+      buttonConfigs: [
+        ContextMenuButtonConfig.checkbox(
+          S.current.simpleLayoutType,
+          checked: homeScreenState?.layoutType == LayoutType.Simple,
+          onPressed: () {
+            homeScreenState?.changeLayoutType(LayoutType.Simple);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.compactLayoutType,
+          checked: homeScreenState?.layoutType == LayoutType.Compact,
+          onPressed: () {
+            homeScreenState?.changeLayoutType(LayoutType.Compact);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.tileLayoutType,
+          checked: homeScreenState?.layoutType == LayoutType.Tile,
+          onPressed: () {
+            homeScreenState?.changeLayoutType(LayoutType.Tile);
           },
         ),
       ],
@@ -416,21 +444,22 @@ class MainScreenState extends State<MainScreen>
   }
 
   capture(CaptureMode mode) async {
-    Directory directory = await getApplicationDocumentsDirectory();
-    String appName =
-        await PackageInfo.fromPlatform().then((value) => value.appName);
-    String imageName =
-        'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-    String imagePath = '${directory.path}\\$appName\\Screenshots\\$imageName';
-    CapturedData? capturedData = await screenCapturer.capture(
-      mode: mode,
-      copyToClipboard: false,
-      imagePath: imagePath,
-      silent: true,
-    );
-    await analyzeImage(capturedData?.imageBytes);
     try {
-      File(imagePath).delete();
+      Directory directory = await getApplicationDocumentsDirectory();
+      String appName =
+          await PackageInfo.fromPlatform().then((value) => value.appName);
+      String imageName =
+          'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
+      String imagePath = '${directory.path}\\$appName\\Screenshots\\$imageName';
+      CapturedData? capturedData = await screenCapturer.capture(
+        mode: mode,
+        copyToClipboard: false,
+        imagePath: imagePath,
+        silent: true,
+      );
+      await analyzeImage(capturedData?.imageBytes);
+      File file = File(imagePath);
+      if (file.existsSync()) file.delete();
     } finally {}
   }
 
@@ -545,7 +574,8 @@ class MainScreenState extends State<MainScreen>
                   context: context,
                   icon: const Icon(Icons.dashboard_outlined, size: 22),
                   onTap: () {
-                    homeScreenState?.changeLayoutType();
+                    context.contextMenuOverlay
+                        .show(_buildLayoutContextMenuButtons());
                   },
                 ),
                 ItemBuilder.buildDynamicIconButton(

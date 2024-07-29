@@ -206,7 +206,10 @@ class ItemBuilder {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.apply(fontWeightDelta: 2),
           ),
           Flexible(
             child: Container(
@@ -768,7 +771,7 @@ class ItemBuilder {
                       opacity: showCheck ? 1 : 0,
                       child: const Icon(Icons.check, size: 16),
                     ),
-                  if (showCheck) const SizedBox(width: 8),
+                  if (isCheckbox) SizedBox(width: showCheck ? 8 : 4),
                   if (config.icon != null) config.icon!,
                   Text(
                     config.label,
@@ -1105,7 +1108,10 @@ class ItemBuilder {
               margin: const EdgeInsets.only(left: 10, right: 5),
               child: Text(
                 leadingText!,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.apply(fontWeightDelta: 2),
               ),
             ),
           if (leadingWidget != null) leadingWidget,

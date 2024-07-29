@@ -1,15 +1,20 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../Database/category_dao.dart';
+import '../Models/category.dart';
 import '../Utils/utils.dart';
 import '../generated/l10n.dart';
+import 'Backup/backup_encrypt_v1.dart';
 
 class ImportAnalysis {
   int parseFailed;
@@ -18,16 +23,42 @@ class ImportAnalysis {
 
   int importSuccess;
 
+  int parseCategorySuccess;
+
+  int importCategorySuccess;
+
   ImportAnalysis({
     this.parseFailed = 0,
     this.parseSuccess = 0,
     this.importSuccess = 0,
+    this.parseCategorySuccess = 0,
+    this.importCategorySuccess = 0,
   });
+
+  showToast([String noTokenToast = ""]) {
+    String tokenToast = S.current.importResultTip(parseSuccess, importSuccess);
+    String categoryToast = S.current
+        .importCategoryResultTip(parseCategorySuccess, importCategorySuccess);
+    if (parseSuccess > 0) {
+      if (parseCategorySuccess > 0) {
+        IToast.showTop("$tokenToast; $categoryToast");
+      } else {
+        IToast.showTop(tokenToast);
+      }
+    } else {
+      if (Utils.isNotEmpty(noTokenToast)) {
+        IToast.showTop(noTokenToast);
+      }
+    }
+  }
 }
 
 class ImportTokenUtil {
-  static parseData(List<String> rawUris,
-      {bool autoPopup = true, BuildContext? context}) async {
+  static parseData(
+    List<String> rawUris, {
+    bool autoPopup = true,
+    BuildContext? context,
+  }) async {
     List<String> validUris = [];
     for (String line in rawUris) {
       Uri? uri = Uri.tryParse(line);
@@ -39,7 +70,10 @@ class ImportTokenUtil {
       }
     }
     if (validUris.isNotEmpty) {
-      await ImportTokenUtil.importText(validUris.join("\n"));
+      await ImportTokenUtil.importText(
+        validUris.join("\n"),
+        noTokenToast: S.current.imageDoesNotContainToken,
+      );
       if (autoPopup && context != null && context.mounted) {
         Navigator.pop(context);
       }
@@ -58,28 +92,92 @@ class ImportTokenUtil {
       return;
     } else {
       String content = file.readAsStringSync();
-      await importText(content,
-          showLoading: showLoading, emptyTip: S.current.fileEmpty);
+      await importText(
+        content,
+        showLoading: showLoading,
+        emptyTip: S.current.fileEmpty,
+        noTokenToast: S.current.fileDoesNotContainToken,
+      );
+    }
+  }
+
+  static importOldEncryptFile(
+    String filePath,
+    String password, {
+    bool showLoading = true,
+  }) async {
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.importing);
+    }
+    try {
+      File file = File(filePath);
+      if (!file.existsSync()) {
+        IToast.showTop(S.current.fileNotExist);
+        return;
+      } else {
+        Uint8List content = file.readAsBytesSync();
+        List<OtpToken>? tokens =
+            await BackupEncryptionOld().decrypt(content, password);
+        if (tokens == null) {
+          IToast.showTop(S.current.importFailed);
+          return;
+        }
+        ImportAnalysis analysis = ImportAnalysis();
+        analysis.parseSuccess = tokens.length;
+        analysis.importSuccess = await mergeTokens(tokens);
+        if (showLoading) {
+          CustomLoadingDialog.dismissLoading();
+        }
+        analysis.showToast(S.current.fileDoesNotContainToken);
+      }
+    } catch (e) {
+      IToast.showTop(S.current.importFailed);
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
     }
   }
 
   static importEncryptFile(
-    String filePath, {
+    String filePath,
+    String password, {
     bool showLoading = true,
   }) async {
-    File file = File(filePath);
-    if (!file.existsSync()) {
-      IToast.showTop(S.current.fileNotExist);
-      return;
-    } else {
-      String content = file.readAsStringSync();
-      await importText(content, showLoading: showLoading);
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.importing);
+    }
+    try {
+      File file = File(filePath);
+      if (!file.existsSync()) {
+        IToast.showTop(S.current.fileNotExist);
+        return;
+      } else {
+        file.readAsBytes().then((content) {
+          BackupEncryptionV1().decrypt(content, password).then((backup) async {
+            ImportAnalysis analysis = ImportAnalysis();
+            analysis.parseSuccess = backup.tokens.length;
+            analysis.parseCategorySuccess = backup.categories.length;
+            analysis.importSuccess = await mergeTokens(backup.tokens);
+            analysis.importCategorySuccess =
+                await mergeCategories(backup.categories);
+            analysis.showToast(S.current.fileDoesNotContainToken);
+          });
+        });
+      }
+    } catch (e) {
+      IToast.showTop(S.current.importFailed);
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
     }
   }
 
   static importText(
     String content, {
     String emptyTip = "",
+    String noTokenToast = "",
     bool showLoading = true,
   }) async {
     if (Utils.isEmpty(content) && Utils.isNotEmpty(emptyTip)) {
@@ -106,14 +204,25 @@ class ImportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.dismissLoading();
     }
-    IToast.showTop(S.current
-        .importResultTip(analysis.parseSuccess, analysis.importSuccess));
+    analysis.showToast(noTokenToast);
   }
 
   static bool contain(OtpToken token, List<OtpToken> tokenList) {
     for (OtpToken otpToken in tokenList) {
       if (otpToken.issuer == token.issuer &&
           otpToken.account == token.account) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static bool containCategory(
+    TokenCategory category,
+    List<TokenCategory> categoryList,
+  ) {
+    for (TokenCategory tokenCategory in categoryList) {
+      if (tokenCategory.title == category.title) {
         return true;
       }
     }
@@ -136,5 +245,24 @@ class ImportTokenUtil {
       homeScreenState?.refresh();
     }
     return newTokenList.length;
+  }
+
+  static Future<int> mergeCategories(
+    List<TokenCategory> categoryList, {
+    bool performInsert = true,
+  }) async {
+    List<TokenCategory> already = await CategoryDao.listCategories();
+    List<TokenCategory> newCategoryList = [];
+    for (TokenCategory category in categoryList) {
+      if (!containCategory(category, already) &&
+          !containCategory(category, newCategoryList)) {
+        newCategoryList.add(category);
+      }
+    }
+    if (performInsert) {
+      await CategoryDao.insertCategories(newCategoryList);
+      homeScreenState?.refresh();
+    }
+    return newCategoryList.length;
   }
 }

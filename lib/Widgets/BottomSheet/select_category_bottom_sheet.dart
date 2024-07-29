@@ -24,7 +24,7 @@ class SelectCategoryBottomSheet extends StatefulWidget {
 }
 
 class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
-  List<Category> categories = [];
+  List<TokenCategory> categories = [];
   GroupButtonController controller = GroupButtonController();
   List<int> oldCategoryIds = [];
 

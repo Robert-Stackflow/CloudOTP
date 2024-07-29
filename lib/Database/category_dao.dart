@@ -8,7 +8,7 @@ import 'database_manager.dart';
 class CategoryDao {
   static const String tableName = "category";
 
-  static Future<int> insertCategory(Category category) async {
+  static Future<int> insertCategory(TokenCategory category) async {
     final db = await DatabaseManager.getDataBase();
     category.seq = await getMaxSeq() + 1;
     category.id = await getMaxId() + 1;
@@ -18,6 +18,22 @@ class CategoryDao {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     return id;
+  }
+
+  static Future<int> insertCategories(List<TokenCategory> categories) async {
+    final db = await DatabaseManager.getDataBase();
+    Batch batch = db.batch();
+    for (TokenCategory category in categories) {
+      category.seq = await getMaxSeq() + 1 + categories.indexOf(category);
+      category.id = await getMaxId() + 1 + categories.indexOf(category);
+      batch.insert(
+        tableName,
+        category.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    List<dynamic> results = await batch.commit();
+    return results.length;
   }
 
   static Future<int> getMaxId() async {
@@ -36,7 +52,7 @@ class CategoryDao {
     return maps[0]["seq"] ?? 0;
   }
 
-  static Future<int> updateCategory(Category category) async {
+  static Future<int> updateCategory(TokenCategory category) async {
     category.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
     final db = await DatabaseManager.getDataBase();
     int id = await db.update(
@@ -48,10 +64,10 @@ class CategoryDao {
     return id;
   }
 
-  static Future<int> updateCategories(List<Category> category) async {
+  static Future<int> updateCategories(List<TokenCategory> category) async {
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
-    for (Category category in category) {
+    for (TokenCategory category in category) {
       category.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
       batch.update(
         tableName,
@@ -64,7 +80,7 @@ class CategoryDao {
     return results.length;
   }
 
-  static Future<int> deleteCategory(Category category) async {
+  static Future<int> deleteCategory(TokenCategory category) async {
     final db = await DatabaseManager.getDataBase();
     int id = await db.delete(
       tableName,
@@ -74,12 +90,12 @@ class CategoryDao {
     return id;
   }
 
-  static Future<List<Category>> listCategories({bool desc = false}) async {
+  static Future<List<TokenCategory>> listCategories({bool desc = false}) async {
     final db = await DatabaseManager.getDataBase();
     final List<Map<String, dynamic>> maps =
         await db.query(tableName, orderBy: "seq ${desc ? "DESC" : "ASC"}");
     return List.generate(maps.length, (i) {
-      return Category.fromMap(maps[i]);
+      return TokenCategory.fromMap(maps[i]);
     });
   }
 
@@ -93,14 +109,14 @@ class CategoryDao {
     return maps.isNotEmpty;
   }
 
-  static Future<Category> getCategoryById(int id) async {
+  static Future<TokenCategory> getCategoryById(int id) async {
     final db = await DatabaseManager.getDataBase();
     List<Map<String, dynamic>> maps = await db.query(
       tableName,
       where: 'id = ?',
       whereArgs: [id],
     );
-    return Category.fromMap(maps[0]);
+    return TokenCategory.fromMap(maps[0]);
   }
 
   static Future<List<OtpToken>> getTokensByCategoryId(
@@ -108,7 +124,7 @@ class CategoryDao {
     String searchKey = "",
   }) async {
     if (id == -1) return await TokenDao.listTokens(searchKey: searchKey);
-    Category category = await getCategoryById(id);
+    TokenCategory category = await getCategoryById(id);
     List<OtpToken> tokens = [];
     for (int tokenId in category.tokenIds) {
       OtpToken? tmp =
@@ -120,9 +136,9 @@ class CategoryDao {
   }
 
   static Future<List<int>> getCategoryIdsByTokenId(int id) async {
-    List<Category> categories = await listCategories();
+    List<TokenCategory> categories = await listCategories();
     List<int> categoryIds = [];
-    for (Category category in categories) {
+    for (TokenCategory category in categories) {
       if (category.tokenIds.contains(id)) {
         categoryIds.add(category.id);
       }
@@ -137,18 +153,18 @@ class CategoryDao {
 
   static Future<void> updateCategoriesForToken(
       int tokenId, List<int> unseletedIds, List<int> newSeletedIds) async {
-    List<Category> unselectedCategories = [];
-    List<Category> newSeletedCategories = [];
+    List<TokenCategory> unselectedCategories = [];
+    List<TokenCategory> newSeletedCategories = [];
     for (int id in unseletedIds) {
       unselectedCategories.add(await getCategoryById(id));
     }
     for (int id in newSeletedIds) {
       newSeletedCategories.add(await getCategoryById(id));
     }
-    for (Category category in unselectedCategories) {
+    for (TokenCategory category in unselectedCategories) {
       category.tokenIds.remove(tokenId);
     }
-    for (Category category in newSeletedCategories) {
+    for (TokenCategory category in newSeletedCategories) {
       category.tokenIds.add(tokenId);
     }
     await updateCategories(unselectedCategories);
