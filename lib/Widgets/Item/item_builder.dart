@@ -561,6 +561,7 @@ class ItemBuilder {
     bool showTrailing = true,
     bool isCaption = false,
     Color? backgroundColor,
+    Color? leadingColor,
     Color? titleColor,
     Color? descriptionColor,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.start,
@@ -633,7 +634,7 @@ class ItemBuilder {
                   children: [
                     Visibility(
                       visible: showLeading,
-                      child: Icon(leading, size: 20),
+                      child: Icon(leading, size: 20, color: leadingColor),
                     ),
                     showLeading
                         ? const SizedBox(width: 10)
@@ -722,7 +723,7 @@ class ItemBuilder {
   static buildContextMenuOverlay(Widget child) {
     return ContextMenuOverlay(
       cardBuilder: (context, widgets) => Container(
-        width: 160,
+        constraints: const BoxConstraints(minWidth: 160),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -747,18 +748,27 @@ class ItemBuilder {
         horizontal: 4,
       ),
       buttonBuilder: (context, config, [_]) {
+        bool isCheckbox = config.type == ContextMenuButtonConfigType.checkbox;
+        bool showCheck = isCheckbox && config.checked;
         return Material(
           borderRadius: BorderRadius.circular(10),
           child: InkWell(
             onTap: config.onPressed,
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.only(
+                  left: showCheck ? 8 : 12, right: 12, top: 8, bottom: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
+                  if (isCheckbox)
+                    Opacity(
+                      opacity: showCheck ? 1 : 0,
+                      child: const Icon(Icons.check, size: 16),
+                    ),
+                  if (showCheck) const SizedBox(width: 8),
                   if (config.icon != null) config.icon!,
                   Text(
                     config.label,

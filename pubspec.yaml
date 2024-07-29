@@ -21,15 +21,18 @@ dependencies:
     path: third-party/group_button
   pretty_qr_code: ^3.3.0
   path_drawing: ^1.0.1 # 路径绘制
-#  video_player_media_kit: ^1.0.5 # 视频播放
-#  media_kit_libs_windows_video: ^1.0.9
+  #  video_player_media_kit: ^1.0.5 # 视频播放
+  #  media_kit_libs_windows_video: ^1.0.9
   custom_sliding_segmented_control: ^1.8.3 # 分段控制器
   flutter_inappwebview: ^6.0.0 # Webview
   extended_nested_scroll_view: ^6.2.1 # 嵌套滚动
   animated_text_kit: ^4.2.2 # 文字动画
-  scan: ^1.6.0 # 扫码
   mobile_scanner: ^5.1.1 # 扫码
   reorderable_grid: ^1.0.10 # 可拖动的网格
+  zxing2: ^0.2.3 # 二维码
+  image: ^4.2.0 # 图片
+  context_menus:
+    path: third-party/context_menus
   # 系统
   provider: ^6.0.5 # 状态管理
   local_auth: ^2.2.0 # 指纹验证
@@ -59,8 +62,8 @@ dependencies:
   cached_network_image: ^3.2.1 # 网络图片缓存
   flutter_cache_manager: ^3.3.1 # 缓存管理
   process_run: ^1.0.0+1 # 运行
-  context_menus:
-    path: third-party/context_menus
+  screen_capturer:
+    path: third-party/screen_capturer
   # 工具
   intl_utils: ^2.8.7
   html: ^0.15.0
@@ -98,7 +101,7 @@ msix_config:
   identity_name: com.cloudchewie.cloudotp
   msix_version: 1.8.0.0
   logo_path: D:\Repositories\CloudOTP\assets\logo-transparent.ico
-#  trim_logo: false
+  #  trim_logo: false
   output_path: D:\Ruida\Downloads
   output_name: CloudOTP
   build_windows: false

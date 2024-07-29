@@ -1,5 +1,6 @@
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
+import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
@@ -9,6 +10,7 @@ import '../../Models/opt_token.dart';
 import '../../TokenUtils/token_image_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
+import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
 
 class SelectIconBottomSheet extends StatefulWidget {
@@ -31,6 +33,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
   GroupButtonController controller = GroupButtonController();
   TextEditingController searchController = TextEditingController();
   List<String> icons = [];
+  FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -46,49 +49,60 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
         });
       });
     });
+    Future.delayed(const Duration(milliseconds: 200), () {
+      FocusScope.of(context).requestFocus(_focusNode);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: Theme.of(context).canvasColor,
-          borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(20),
-              bottom: ResponsiveUtil.isLandscape()
-                  ? const Radius.circular(20)
-                  : Radius.zero),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            ItemBuilder.buildDesktopSearchBar(
-              controller: searchController,
-              context: context,
-              borderRadius: 8,
-              bottomMargin: 18,
-              hintFontSizeDelta: 1,
-              background: Colors.grey.withAlpha(40),
-              hintText: S.current.searchIconName,
-              onSubmitted: (str) {
-                setState(() {
-                  icons = TokenImageUtil.matchBrandLogos(str);
-                });
-              },
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: _buildButtons(),
-            ),
-            const SizedBox(height: 10),
-          ],
-        ),
+    Widget mainBody = Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        minHeight: MediaQuery.of(context).size.height * 0.3,
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).canvasColor,
+        borderRadius: BorderRadius.vertical(
+            top: const Radius.circular(20),
+            bottom: ResponsiveUtil.isLandscape()
+                ? const Radius.circular(20)
+                : Radius.zero),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          ItemBuilder.buildDesktopSearchBar(
+            controller: searchController,
+            context: context,
+            borderRadius: 8,
+            bottomMargin: 18,
+            focusNode: _focusNode,
+            hintFontSizeDelta: 1,
+            background: Colors.grey.withAlpha(40),
+            hintText: S.current.searchIconName,
+            onSubmitted: (str) {
+              setState(() {
+                icons = TokenImageUtil.matchBrandLogos(str);
+              });
+            },
+          ),
+          const SizedBox(height: 10),
+          Flexible(
+            child: _buildButtons(),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+    return AnimatedPadding(
+      padding: MediaQuery.of(context).viewInsets,
+      duration: const Duration(milliseconds: 100),
+      child: ResponsiveUtil.isLandscape() ? Center(child: mainBody) : mainBody,
     );
   }
 
@@ -112,7 +126,8 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
           widget.onSelected.call(widget.token.imagePath);
           if (widget.doUpdate) {
             await TokenDao.updateToken(widget.token);
-            homeScreenState?.refresh();
+            IToast.showTop(S.current.saveSuccess);
+            // homeScreenState?.refresh();
           }
           Navigator.of(context).pop();
         },

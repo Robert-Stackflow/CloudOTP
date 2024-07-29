@@ -6,6 +6,7 @@ import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../Utils/utils.dart';
 import '../generated/l10n.dart';
@@ -25,6 +26,28 @@ class ImportAnalysis {
 }
 
 class ImportTokenUtil {
+  static parseData(List<String> rawUris,
+      {bool autoPopup = true, BuildContext? context}) async {
+    List<String> validUris = [];
+    for (String line in rawUris) {
+      Uri? uri = Uri.tryParse(line);
+      if (uri != null &&
+          uri.scheme.isNotEmpty &&
+          uri.scheme == "otpauth" &&
+          uri.authority.isNotEmpty) {
+        validUris.add(line);
+      }
+    }
+    if (validUris.isNotEmpty) {
+      await ImportTokenUtil.importText(validUris.join("\n"));
+      if (autoPopup && context != null && context.mounted) {
+        Navigator.pop(context);
+      }
+    } else {
+      IToast.showTop(S.current.noQrCodeToken);
+    }
+  }
+
   static importUriFile(
     String filePath, {
     bool showLoading = true,

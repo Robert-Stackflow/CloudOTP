@@ -168,12 +168,14 @@ class ContextMenuButtonConfig {
     required this.onPressed,
     this.shortcutLabel,
     this.icon,
+    this.checked = false,
     this.iconHover,
     this.type = ContextMenuButtonConfigType.normal,
   });
 
   ContextMenuButtonConfig.divider()
       : label = "",
+        checked = false,
         type = ContextMenuButtonConfigType.divider,
         shortcutLabel = "",
         icon = null,
@@ -183,10 +185,21 @@ class ContextMenuButtonConfig {
   ContextMenuButtonConfig.warning(
     this.label, {
     required this.onPressed,
+    this.checked = false,
     this.shortcutLabel,
     this.icon,
     this.iconHover,
     this.type = ContextMenuButtonConfigType.warning,
+  });
+
+  ContextMenuButtonConfig.checkbox(
+    this.label, {
+    this.checked = false,
+    required this.onPressed,
+    this.shortcutLabel,
+    this.icon,
+    this.iconHover,
+    this.type = ContextMenuButtonConfigType.checkbox,
   });
 
   final String label;
@@ -194,6 +207,7 @@ class ContextMenuButtonConfig {
   final VoidCallback? onPressed;
   final Widget? icon;
   final Widget? iconHover;
+  final bool checked;
   final ContextMenuButtonConfigType type;
 }
 
@@ -201,4 +215,5 @@ enum ContextMenuButtonConfigType {
   normal,
   divider,
   warning,
+  checkbox,
 }

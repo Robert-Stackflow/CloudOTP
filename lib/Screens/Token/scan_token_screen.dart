@@ -39,7 +39,7 @@ class ScanTokenScreenState extends State<ScanTokenScreen>
         return;
       case AppLifecycleState.resumed:
         _subscription = scannerController.barcodes.listen(_handleBarcode);
-      // unawaited(scannerController.start());
+        unawaited(scannerController.start());
       case AppLifecycleState.inactive:
         unawaited(_subscription?.cancel());
         _subscription = null;
@@ -78,7 +78,10 @@ class ScanTokenScreenState extends State<ScanTokenScreen>
         alreadyScanned.add(barcode.rawValue!);
       }
     }
-    if (rawValues.isNotEmpty) await parseData(rawValues, autoPopup);
+    if (rawValues.isNotEmpty) {
+      await ImportTokenUtil.parseData(rawValues,
+          autoPopup: autoPopup, context: context);
+    }
     _subscription?.resume();
   }
 
@@ -217,25 +220,6 @@ class ScanTokenScreenState extends State<ScanTokenScreen>
         ),
       ),
     );
-  }
-
-  parseData(List<String> rawUris, [bool autoPopup = true]) async {
-    List<String> validUris = [];
-    for (String line in rawUris) {
-      Uri? uri = Uri.tryParse(line);
-      if (uri != null &&
-          uri.scheme.isNotEmpty &&
-          uri.scheme == "otpauth" &&
-          uri.authority.isNotEmpty) {
-        validUris.add(line);
-      }
-    }
-    if (validUris.isNotEmpty) {
-      await ImportTokenUtil.importText(validUris.join("\n"));
-      if (autoPopup && mounted) Navigator.pop(context);
-    } else {
-      IToast.showTop(S.current.noQrCodeToken);
-    }
   }
 }
 
@@ -534,8 +518,12 @@ class ScannerErrorWidget extends StatelessWidget {
     switch (error.errorCode) {
       case MobileScannerErrorCode.controllerUninitialized:
         errorMessage = S.current.scanControllerUninitialized;
+      case MobileScannerErrorCode.controllerAlreadyInitialized:
+        errorMessage = S.current.scanControllerAlreadyInitialized;
+      case MobileScannerErrorCode.controllerDisposed:
+        errorMessage = S.current.scanControllerDisposed;
       case MobileScannerErrorCode.permissionDenied:
-        errorMessage =  S.current.scanPermissionDenied;
+        errorMessage = S.current.scanPermissionDenied;
       case MobileScannerErrorCode.unsupported:
         errorMessage = S.current.scanUnsupported;
       default:

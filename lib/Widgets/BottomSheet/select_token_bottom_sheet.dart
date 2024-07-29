@@ -8,6 +8,7 @@ import '../../Database/token_dao.dart';
 import '../../Models/category.dart';
 import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
+import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
 
 class SelectTokenBottomSheet extends StatefulWidget {
@@ -78,10 +79,13 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   }
 
   _buildButtons() {
-    return ItemBuilder.buildGroupTokenButtons(
-      tokens: tokens,
-      controller: controller,
-    );
+    return tokens.isNotEmpty
+        ? ItemBuilder.buildGroupTokenButtons(
+            tokens: tokens,
+            controller: controller,
+          )
+        : ItemBuilder.buildEmptyPlaceholder(
+            context: context, text: S.current.noToken);
   }
 
   _buildHeader() {
@@ -121,6 +125,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
                   widget.category.tokenIds = tokenIds;
                   await CategoryDao.updateCategory(widget.category);
                   homeScreenState?.refresh();
+                  IToast.showTop(S.current.saveSuccess);
                   Navigator.of(context).pop();
                 },
                 fontSizeDelta: 2,

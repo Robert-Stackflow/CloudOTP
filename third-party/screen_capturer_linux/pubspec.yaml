@@ -1,0 +1,28 @@
+name: screen_capturer_linux
+description: Linux implementation of the screen_capturer plugin.
+version: 0.2.2
+repository: https://github.com/leanflutter/screen_capturer/tree/main/packages/screen_capturer_linux
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  screen_capturer_platform_interface:
+    path: ../screen_capturer_platform_interface
+  shell_executor: ^0.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mostly_reasonable_lints: ^0.1.2
+
+flutter:
+  plugin:
+    implements: screen_capturer
+    platforms:
+      linux:
+        dartPluginClass: ScreenCapturerLinux
+        pluginClass: ScreenCapturerLinuxPlugin

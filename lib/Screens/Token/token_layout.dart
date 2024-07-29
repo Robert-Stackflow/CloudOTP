@@ -11,6 +11,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
@@ -172,96 +173,27 @@ class TokenLayoutState extends State<TokenLayout>
   _buildContextMenuButtons() {
     return GenericContextMenu(
       buttonConfigs: [
-        ContextMenuButtonConfig(
-          S.current.copyTokenCode,
-          onPressed: () {
-            Utils.copy(context, getCurrentCode());
-            TokenDao.incTokenCopyTimes(widget.token);
-          },
-        ),
-        ContextMenuButtonConfig(
-          S.current.copyNextTokenCode,
-          onPressed: () {
-            Utils.copy(context, getNextCode());
-            TokenDao.incTokenCopyTimes(widget.token);
-          },
-        ),
+        ContextMenuButtonConfig(S.current.copyTokenCode,
+            onPressed: _processCopyCode),
+        ContextMenuButtonConfig(S.current.copyNextTokenCode,
+            onPressed: _processCopyNextCode),
         ContextMenuButtonConfig.divider(),
+        ContextMenuButtonConfig(
+            widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
+            onPressed: _processPin),
         ContextMenuButtonConfig(S.current.editToken, onPressed: _processEdit),
-        ContextMenuButtonConfig(
-          widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
-          onPressed: () {
-            TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
-            IToast.showTop(
-              widget.token.pinned
-                  ? S.current.alreadyUnPinnedToken(getTitle())
-                  : S.current.alreadyPinnedToken(getTitle()),
-            );
-            homeScreenState?.refresh();
-          },
-        ),
-        ContextMenuButtonConfig(
-          S.current.editTokenIcon,
-          onPressed: () {
-            BottomSheetBuilder.showBottomSheet(
-              context,
-              responsive: true,
-              (context) => SelectIconBottomSheet(
-                token: widget.token,
-                onSelected: (path) => {},
-                doUpdate: true,
-              ),
-            );
-          },
-        ),
-        ContextMenuButtonConfig(
-          S.current.editTokenCategory,
-          onPressed: () {
-            BottomSheetBuilder.showBottomSheet(
-              context,
-              responsive: true,
-              (context) => SelectCategoryBottomSheet(token: widget.token),
-            );
-            homeScreenState?.refresh();
-          },
-        ),
+        ContextMenuButtonConfig(S.current.editTokenIcon,
+            onPressed: _processEditIcon),
+        ContextMenuButtonConfig(S.current.editTokenCategory,
+            onPressed: _processEditCategory),
         ContextMenuButtonConfig.divider(),
         ContextMenuButtonConfig(S.current.viewTokenQrCode,
-            onPressed: _processQrCode),
-        ContextMenuButtonConfig(
-          S.current.copyTokenUri,
-          onPressed: () {
-            DialogBuilder.showConfirmDialog(
-              context,
-              title: "明文警告",
-              message:
-                  "你正在复制令牌的URI，你的令牌密钥将以明文形式暴露在文本中。除非你能确保该文本不会泄露，否则我们建议你导出为加密文件。",
-              onTapConfirm: () {
-                Utils.copy(context, OtpTokenParser.toUri(widget.token));
-              },
-              onTapCancel: () {},
-              customDialogType: CustomDialogType.normal,
-            );
-          },
-        ),
+            onPressed: _processViewQrCode),
+        ContextMenuButtonConfig(S.current.copyTokenUri,
+            onPressed: _processCopyUri),
         ContextMenuButtonConfig.divider(),
-        ContextMenuButtonConfig.warning(
-          S.current.deleteToken,
-          onPressed: () {
-            DialogBuilder.showConfirmDialog(
-              context,
-              title: S.current.deleteTokenTitle(getTitle()),
-              message: S.current.deleteTokenMessage(getTitle()),
-              onTapConfirm: () async {
-                await TokenDao.deleteToken(widget.token);
-                IToast.showTop(S.current.deleteTokenSuccess(getTitle()));
-                homeScreenState?.refresh();
-              },
-              onTapCancel: () {},
-              customDialogType: CustomDialogType.normal,
-            );
-          },
-        ),
+        ContextMenuButtonConfig.warning(S.current.deleteToken,
+            onPressed: _processDelete),
       ],
     );
   }
@@ -292,7 +224,130 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   showContextMenu() {
-    context.contextMenuOverlay.show(_buildContextMenuButtons());
+    if (ResponsiveUtil.isLandscape()) {
+      context.contextMenuOverlay.show(_buildContextMenuButtons());
+    } else {
+      BottomSheetBuilder.showBottomSheet(
+        context,
+        responsive: true,
+        (context) => TokenOptionBottomSheet(
+          isPinned: widget.token.pinned,
+          nextCode: getNextCode(),
+          onCopyTokenCode: _processCopyCode,
+          onPinOrUnPinToken: _processPin,
+          onEditToken: _processEdit,
+          onEditTokenIcon: _processEditIcon,
+          onEditTokenCategory: _processEditCategory,
+          onDeleteToken: _processDelete,
+          onCopyNextTokenCode: _processCopyNextCode,
+          onViewTokenQrCode: _processViewQrCode,
+          onCopyTokenUri: _processCopyUri,
+        ),
+      );
+    }
+  }
+
+  _processCopyCode() {
+    Utils.copy(context, getCurrentCode());
+    TokenDao.incTokenCopyTimes(widget.token);
+  }
+
+  _processCopyNextCode() {
+    Utils.copy(context, getNextCode());
+    TokenDao.incTokenCopyTimes(widget.token);
+  }
+
+  _processEdit() {
+    if (ResponsiveUtil.isLandscape()) {
+      DialogBuilder.showPageDialog(
+        context,
+        child: AddTokenScreen(token: widget.token),
+        showClose: false,
+      );
+    } else {
+      RouteUtil.pushCupertinoRoute(
+        context,
+        AddTokenScreen(token: widget.token),
+      );
+    }
+  }
+
+  _processPin() {
+    TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
+    IToast.showTop(
+      widget.token.pinned
+          ? S.current.alreadyUnPinnedToken(getTitle())
+          : S.current.alreadyPinnedToken(getTitle()),
+    );
+    homeScreenState?.refresh();
+  }
+
+  _processEditIcon() {
+    BottomSheetBuilder.showBottomSheet(
+      context,
+      responsive: true,
+      (context) => SelectIconBottomSheet(
+        token: widget.token,
+        onSelected: (path) => {},
+        doUpdate: true,
+      ),
+    );
+  }
+
+  _processEditCategory() {
+    BottomSheetBuilder.showBottomSheet(
+      context,
+      responsive: true,
+      (context) => SelectCategoryBottomSheet(token: widget.token),
+    );
+    homeScreenState?.refresh();
+  }
+
+  _processViewQrCode() {
+    DialogBuilder.showInfoDialog(
+      context,
+      title: getTitle(),
+      onTapDismiss: () {},
+      messageChild: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: PrettyQrView.data(
+          data: OtpTokenParser.toUri(widget.token).toString(),
+        ),
+      ),
+      customDialogType: CustomDialogType.normal,
+    );
+  }
+
+  _processCopyUri() {
+    DialogBuilder.showConfirmDialog(
+      context,
+      title: S.current.copyUriClearWarningTitle,
+      message: S.current.copyUriClearWarningTip,
+      onTapConfirm: () {
+        Utils.copy(context, OtpTokenParser.toUri(widget.token));
+      },
+      onTapCancel: () {},
+      customDialogType: CustomDialogType.normal,
+    );
+  }
+
+  _processDelete() {
+    DialogBuilder.showConfirmDialog(
+      context,
+      title: S.current.deleteTokenTitle(getTitle()),
+      message: S.current.deleteTokenMessage(getTitle()),
+      onTapConfirm: () async {
+        await TokenDao.deleteToken(widget.token);
+        IToast.showTop(S.current.deleteTokenSuccess(getTitle()));
+        homeScreenState?.refresh();
+      },
+      onTapCancel: () {},
+      customDialogType: CustomDialogType.normal,
+    );
   }
 
   _buildSimpleLayout() {
@@ -487,40 +542,6 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
-  _processQrCode() {
-    DialogBuilder.showInfoDialog(
-      context,
-      title: getTitle(),
-      onTapDismiss: () {},
-      messageChild: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: PrettyQrView.data(
-          data: OtpTokenParser.toUri(widget.token).toString(),
-        ),
-      ),
-      customDialogType: CustomDialogType.normal,
-    );
-  }
-
-  _processEdit() {
-    if (ResponsiveUtil.isLandscape()) {
-      DialogBuilder.showPageDialog(
-        context,
-        child: AddTokenScreen(token: widget.token),
-        showClose: false,
-      );
-    } else {
-      RouteUtil.pushCupertinoRoute(
-        context,
-        AddTokenScreen(token: widget.token),
-      );
-    }
-  }
-
   _buildLargeLayout() {
     return ItemBuilder.buildClickItem(
       Material(
@@ -592,7 +613,7 @@ class TokenLayoutState extends State<TokenLayout>
                         context: context,
                         icon: Icon(Icons.qr_code_rounded,
                             color: Theme.of(context).iconTheme.color, size: 20),
-                        onTap: _processQrCode),
+                        onTap: _processViewQrCode),
                     ItemBuilder.buildIconButton(
                       context: context,
                       icon: Icon(

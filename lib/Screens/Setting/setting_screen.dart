@@ -70,7 +70,7 @@ class _SettingScreenState extends State<SettingScreen>
   void initState() {
     super.initState();
     initBiometricAuthentication();
-    getCacheSize();
+    if (ResponsiveUtil.isMobile()) getCacheSize();
     fetchReleases(false);
   }
 

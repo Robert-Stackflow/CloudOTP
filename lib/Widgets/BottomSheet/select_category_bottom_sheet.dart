@@ -1,3 +1,4 @@
+import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
@@ -80,12 +81,15 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
   }
 
   _buildButtons() {
-    return ItemBuilder.buildGroupButtons(
-      isRadio: false,
-      enableDeselect: true,
-      buttons: categories.map((e) => e.title).toList(),
-      controller: controller,
-    );
+    return categories.isNotEmpty
+        ? ItemBuilder.buildGroupButtons(
+            isRadio: false,
+            enableDeselect: true,
+            buttons: categories.map((e) => e.title).toList(),
+            controller: controller,
+          )
+        : ItemBuilder.buildEmptyPlaceholder(
+            context: context, text: S.current.noCategory);
   }
 
   _buildHeader() {
@@ -135,6 +139,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
                     newSelectedCategoryIds,
                   );
                   homeScreenState?.refresh();
+                  IToast.showTop(S.current.saveSuccess);
                   Navigator.of(context).pop();
                 },
                 fontSizeDelta: 2,

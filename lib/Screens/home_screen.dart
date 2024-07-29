@@ -6,6 +6,7 @@ import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
@@ -62,9 +63,57 @@ enum LayoutType {
   }
 }
 
+enum OrderType {
+  Default,
+  AlphabeticalASC,
+  AlphabeticalDESC,
+  CopyTimesDESC,
+  CopyTimesASC,
+  LastCopyTimeDESC,
+  LastCopyTimeASC,
+  CreateTimeDESC,
+  CreateTimeASC;
+
+  String get title {
+    switch (this) {
+      case OrderType.Default:
+        return S.current.defaultOrder;
+      case OrderType.AlphabeticalASC:
+        return S.current.alphabeticalASCOrder;
+      case OrderType.AlphabeticalDESC:
+        return S.current.alphabeticalDESCOrder;
+      case OrderType.CopyTimesDESC:
+        return S.current.copyTimesDESCOrder;
+      case OrderType.CopyTimesASC:
+        return S.current.copyTimesASCOrder;
+      case OrderType.LastCopyTimeDESC:
+        return S.current.lastCopyTimeDESCOrder;
+      case OrderType.LastCopyTimeASC:
+        return S.current.lastCopyTimeASCOrder;
+      case OrderType.CreateTimeDESC:
+        return S.current.createTimeDESCOrder;
+      case OrderType.CreateTimeASC:
+        return S.current.createTimeASCOrder;
+    }
+  }
+}
+
+extension LayoutTypeExtension on int {
+  LayoutType get layoutType {
+    return LayoutType.values[Utils.patchEnum(0, LayoutType.values.length)];
+  }
+}
+
+extension OrderTypeExtension on int {
+  OrderType get orderType {
+    return OrderType.values[Utils.patchEnum(0, OrderType.values.length)];
+  }
+}
+
 class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String appName = "";
   LayoutType layoutType = HiveUtil.getLayoutType();
+  OrderType orderType = HiveUtil.getOrderType();
   List<OtpToken> tokens = [];
   List<Category> categories = [];
   late TabController _tabController;
@@ -148,10 +197,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return MyScaffold(
       key: homeScaffoldKey,
-      customAnimationController: AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 300),
-      ),
+      resizeToAvoidBottomInset: false,
       appBar: ResponsiveUtil.isLandscape()
           ? PreferredSize(
               preferredSize: const Size.fromHeight(54),
@@ -214,13 +260,61 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  changeLayoutType() {
+  changeLayoutType([LayoutType? type]) {
     setState(() {
-      layoutType = layoutType == LayoutType.Tile
-          ? LayoutType.Simple
-          : LayoutType.values[layoutType.index + 1];
+      if (type != null) {
+        layoutType = type;
+      } else {
+        layoutType = layoutType == LayoutType.Tile
+            ? LayoutType.Simple
+            : LayoutType.values[layoutType.index + 1];
+      }
       HiveUtil.setLayoutType(layoutType);
     });
+  }
+
+  changeOrderType([OrderType? type]) {
+    setState(() {
+      if (type != null) {
+        orderType = type;
+      } else {
+        orderType = orderType == OrderType.CreateTimeASC
+            ? OrderType.Default
+            : OrderType.values[orderType.index + 1];
+      }
+      HiveUtil.setOrderType(orderType);
+    });
+    switch (orderType) {
+      case OrderType.Default:
+        tokens.sort((a, b) => a.seq.compareTo(b.seq));
+        break;
+      case OrderType.AlphabeticalASC:
+        tokens.sort((a, b) => a.issuer.compareTo(b.issuer));
+        break;
+      case OrderType.AlphabeticalDESC:
+        tokens.sort((a, b) => -a.issuer.compareTo(b.issuer));
+        break;
+      case OrderType.CopyTimesDESC:
+        tokens.sort((a, b) => -a.copyTimes.compareTo(b.copyTimes));
+        break;
+      case OrderType.CopyTimesASC:
+        tokens.sort((a, b) => a.copyTimes.compareTo(b.copyTimes));
+        break;
+      case OrderType.LastCopyTimeDESC:
+        tokens.sort(
+            (a, b) => -a.lastCopyTimeStamp.compareTo(b.lastCopyTimeStamp));
+        break;
+      case OrderType.LastCopyTimeASC:
+        tokens
+            .sort((a, b) => a.lastCopyTimeStamp.compareTo(b.lastCopyTimeStamp));
+        break;
+      case OrderType.CreateTimeDESC:
+        tokens.sort((a, b) => -a.createTimeStamp.compareTo(b.createTimeStamp));
+        break;
+      case OrderType.CreateTimeASC:
+        tokens.sort((a, b) => a.createTimeStamp.compareTo(b.createTimeStamp));
+        break;
+    }
   }
 
   _buildBody() {

@@ -22,6 +22,7 @@ class HiveUtil {
 
   //General
   static const String layoutTypeKey = "layoutType";
+  static const String orderTypeKey = "orderType";
   static const String autoCompleteParameterKey = "autoCompleteParameter";
   static const String localeKey = "locale";
   static const String recordWindowStateKey = "recordWindowState";
@@ -78,6 +79,15 @@ class HiveUtil {
   static LayoutType getLayoutType() {
     return LayoutType.values[Utils.patchEnum(
         HiveUtil.getInt(HiveUtil.layoutTypeKey), LayoutType.values.length)];
+  }
+
+  static setOrderType(OrderType type) {
+    HiveUtil.put(HiveUtil.orderTypeKey, type.index);
+  }
+
+  static OrderType getOrderType() {
+    return OrderType.values[Utils.patchEnum(
+        HiveUtil.getInt(HiveUtil.orderTypeKey), OrderType.values.length)];
   }
 
   static void setWindowSize(Size size) {

@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gtk
   hotkey_manager_linux
   isar_flutter_libs
+  screen_capturer_linux
   screen_retriever
   tray_manager
   url_launcher_linux

@@ -65,6 +65,7 @@ class _GenericContextMenuState extends State<GenericContextMenu>
                 shortcutLabel: config.shortcutLabel,
                 onPressed: action,
                 type: config.type,
+                checked: config.checked,
               ),
               widget.buttonStyle);
         },

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:app_links/app_links.dart';
@@ -6,6 +7,7 @@ import 'package:cloudotp/Resources/colors.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
+import 'package:image/image.dart' as img;
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/constant.dart';
@@ -14,15 +16,22 @@ import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Window/window_caption.dart';
+import 'package:context_menus/context_menus.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:zxing2/qrcode.dart';
 
 import '../Resources/fonts.dart';
+import '../TokenUtils/import_token_util.dart';
 import '../Utils/app_provider.dart';
 import '../Utils/enums.dart';
 import '../Utils/hive_util.dart';
@@ -284,6 +293,179 @@ class MainScreenState extends State<MainScreen>
     }
   }
 
+  _buildSortContextMenuButtons() {
+    return GenericContextMenu(
+      buttonConfigs: [
+        ContextMenuButtonConfig.checkbox(
+          S.current.defaultOrder,
+          checked: homeScreenState?.orderType == OrderType.Default,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.Default);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.alphabeticalASCOrder,
+          checked: homeScreenState?.orderType == OrderType.AlphabeticalASC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.AlphabeticalASC);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.alphabeticalDESCOrder,
+          checked: homeScreenState?.orderType == OrderType.AlphabeticalDESC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.AlphabeticalDESC);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.copyTimesDESCOrder,
+          checked: homeScreenState?.orderType == OrderType.CopyTimesDESC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.CopyTimesDESC);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.copyTimesASCOrder,
+          checked: homeScreenState?.orderType == OrderType.CopyTimesASC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.CopyTimesASC);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.lastCopyTimeDESCOrder,
+          checked: homeScreenState?.orderType == OrderType.LastCopyTimeDESC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.LastCopyTimeDESC);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.lastCopyTimeASCOrder,
+          checked: homeScreenState?.orderType == OrderType.LastCopyTimeASC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.LastCopyTimeASC);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.createTimeDESCOrder,
+          checked: homeScreenState?.orderType == OrderType.CreateTimeDESC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.CreateTimeDESC);
+          },
+        ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.createTimeASCOrder,
+          checked: homeScreenState?.orderType == OrderType.CreateTimeASC,
+          onPressed: () {
+            homeScreenState?.changeOrderType(OrderType.CreateTimeASC);
+          },
+        ),
+      ],
+    );
+  }
+
+  _buildQrCodeContextMenuButtons() {
+    return GenericContextMenu(
+      buttonConfigs: [
+        ContextMenuButtonConfig(
+          S.current.scanFromImageFile,
+          onPressed: () async {
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+              type: FileType.image,
+              lockParentWindow: true,
+            );
+            if (result == null) return;
+            File file = File(result.files.single.path!);
+            Uint8List? imageBytes = file.readAsBytesSync();
+            analyzeImage(imageBytes);
+          },
+        ),
+        ContextMenuButtonConfig(
+          S.current.scanFromClipboard,
+          onPressed: () {
+            ScreenCapturerPlatform.instance
+                .readImageFromClipboard()
+                .then((value) {
+              if (value != null) {
+                analyzeImage(value);
+              } else {
+                IToast.showTop(S.current.clipboardNoImage);
+              }
+            });
+          },
+        ),
+        ContextMenuButtonConfig(
+          S.current.scanFromRegionCapture,
+          onPressed: () async {
+            await capture(CaptureMode.region);
+          },
+        ),
+        ContextMenuButtonConfig(
+          S.current.scanFromWindowCapture,
+          onPressed: () async {
+            await capture(CaptureMode.window);
+          },
+        ),
+        ContextMenuButtonConfig(
+          S.current.scanFromScreenCapture,
+          onPressed: () async {
+            await capture(CaptureMode.screen);
+          },
+        ),
+      ],
+    );
+  }
+
+  capture(CaptureMode mode) async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    String appName =
+        await PackageInfo.fromPlatform().then((value) => value.appName);
+    String imageName =
+        'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
+    String imagePath = '${directory.path}\\$appName\\Screenshots\\$imageName';
+    CapturedData? capturedData = await screenCapturer.capture(
+      mode: mode,
+      copyToClipboard: false,
+      imagePath: imagePath,
+      silent: true,
+    );
+    await analyzeImage(capturedData?.imageBytes);
+    try {
+      File(imagePath).delete();
+    } finally {}
+  }
+
+  analyzeImage(Uint8List? imageBytes) async {
+    if (imageBytes == null || imageBytes.isEmpty) {
+      IToast.showTop(S.current.noQrCode);
+      return;
+    }
+    try {
+      img.Image image = img.decodeImage(imageBytes)!;
+      LuminanceSource source = RGBLuminanceSource(
+          image.width,
+          image.height,
+          image
+              .convert(numChannels: 4)
+              .getBytes(order: img.ChannelOrder.abgr)
+              .buffer
+              .asInt32List());
+      var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
+      var reader = QRCodeReader();
+      var result = reader.decode(bitmap);
+      if (Utils.isNotEmpty(result.text)) {
+        await ImportTokenUtil.parseData([result.text]);
+      } else {
+        IToast.showTop(S.current.noQrCode);
+      }
+    } catch (e) {
+      if (e.runtimeType == NotFoundException) {
+        IToast.showTop(S.current.noQrCode);
+      } else {
+        IToast.showTop(S.current.parseQrCodeWrong);
+      }
+    }
+  }
+
   _sideBar() {
     return SizedBox(
       width: 56,
@@ -306,6 +488,19 @@ class MainScreenState extends State<MainScreen>
                   onTap: () async {
                     DialogBuilder.showPageDialog(context,
                         child: const AddTokenScreen(), showClose: false);
+                  },
+                ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  text: S.current.scanToken,
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.qr_code_rounded),
+                  onTap: () async {
+                    context.contextMenuOverlay
+                        .show(_buildQrCodeContextMenuButtons());
                   },
                 ),
                 const SizedBox(height: 4),
@@ -338,6 +533,14 @@ class MainScreenState extends State<MainScreen>
                 ),
                 const Spacer(),
                 const SizedBox(height: 8),
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: const Icon(Icons.sort_rounded, size: 22),
+                  onTap: () {
+                    context.contextMenuOverlay
+                        .show(_buildSortContextMenuButtons());
+                  },
+                ),
                 ItemBuilder.buildIconButton(
                   context: context,
                   icon: const Icon(Icons.dashboard_outlined, size: 22),

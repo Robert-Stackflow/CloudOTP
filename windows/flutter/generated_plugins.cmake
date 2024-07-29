@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   isar_flutter_libs
   local_auth_windows
   permission_handler_windows
+  screen_capturer_windows
   screen_retriever
   share_plus
   tray_manager
