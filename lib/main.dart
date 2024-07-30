@@ -56,17 +56,10 @@ Future<void> initApp() async {
   imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await DatabaseManager.getDataBase();
+  await DatabaseManager.initDataBase("123456");
   Hive.defaultDirectory = await FileUtil.getApplicationDir();
   NotificationUtil.init();
   await TokenImageUtil.loadBrandLogos();
-  // VideoPlayerMediaKit.ensureInitialized(
-  //   android: false,
-  //   iOS: false,
-  //   macOS: false,
-  //   windows: true,
-  //   linux: false,
-  // );
 }
 
 Future<void> initWindow() async {
@@ -84,7 +77,6 @@ Future<void> initWindow() async {
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
-    // if (position != Offset.zero) await windowManager.setPosition(position);
   });
 }
 

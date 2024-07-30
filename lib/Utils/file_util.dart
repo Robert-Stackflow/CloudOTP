@@ -25,7 +25,7 @@ class FileUtil {
     String path = '${dir.path}/$appName';
     Directory directory = Directory(path);
     if (!await directory.exists()) {
-      await directory.create();
+      await directory.create(recursive: true);
     }
     return path;
   }

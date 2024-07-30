@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
@@ -9,6 +8,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 import '../Database/category_dao.dart';
 import '../Models/category.dart';
@@ -88,18 +88,29 @@ class ImportTokenUtil {
     String filePath, {
     bool showLoading = true,
   }) async {
-    File file = File(filePath);
-    if (!file.existsSync()) {
-      IToast.showTop(S.current.fileNotExist);
-      return;
-    } else {
-      String content = file.readAsStringSync();
-      await importText(
-        content,
-        showLoading: showLoading,
-        emptyTip: S.current.fileEmpty,
-        noTokenToast: S.current.fileDoesNotContainToken,
-      );
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.importing);
+    }
+    try {
+      File file = File(filePath);
+      if (!file.existsSync()) {
+        IToast.showTop(S.current.fileNotExist);
+        return;
+      } else {
+        String content = file.readAsStringSync();
+        await importText(
+          content,
+          showLoading: showLoading,
+          emptyTip: S.current.fileEmpty,
+          noTokenToast: S.current.fileDoesNotContainToken,
+        );
+      }
+    } catch (e) {
+      IToast.showTop(S.current.importFailed);
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
     }
   }
 
@@ -117,9 +128,12 @@ class ImportTokenUtil {
         IToast.showTop(S.current.fileNotExist);
         return;
       } else {
-        Uint8List content = file.readAsBytesSync();
-        List<OtpToken>? tokens =
-            await BackupEncryptionOld().decrypt(content, password);
+        List<OtpToken>? tokens = await compute((_) async {
+          Uint8List content = file.readAsBytesSync();
+          List<OtpToken>? tokens =
+              await BackupEncryptionOld().decrypt(content, password);
+          return tokens;
+        }, null);
         if (tokens == null) {
           IToast.showTop(S.current.importFailed);
           return;
@@ -155,8 +169,10 @@ class ImportTokenUtil {
         IToast.showTop(S.current.fileNotExist);
         return;
       } else {
-        Uint8List content = file.readAsBytesSync();
-        Backup backup = await BackupEncryptionV1().decrypt(content, password);
+        Backup backup = await compute((_) async {
+          Uint8List content = file.readAsBytesSync();
+          return await BackupEncryptionV1().decrypt(content, password);
+        }, null);
         ImportAnalysis analysis = ImportAnalysis();
         analysis.parseSuccess = backup.tokens.length;
         analysis.parseCategorySuccess = backup.categories.length;
@@ -165,7 +181,7 @@ class ImportTokenUtil {
             await mergeCategories(backup.categories);
         analysis.showToast(S.current.fileDoesNotContainToken);
       }
-    } catch (e, t) {
+    } catch (e) {
       if (e is BackupBaseException) {
         IToast.showTop(e.message);
       } else {

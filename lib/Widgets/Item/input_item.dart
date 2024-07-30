@@ -51,6 +51,11 @@ class InputStateController {
   void setState(InputState state) {
     this.state = state;
   }
+
+  void setTextEditingController(TextEditingController controller) {
+    this.controller = controller;
+    controller.addListener(doValidate);
+  }
 }
 
 class InputItem extends StatefulWidget {
@@ -80,6 +85,8 @@ class InputItem extends StatefulWidget {
     this.maxLength,
     this.inputFormatters = const [],
     this.leadingMinWidth,
+    this.maxLines,
+    this.minLines,
   });
 
   final TextInputAction? textInputAction;
@@ -96,6 +103,8 @@ class InputItem extends StatefulWidget {
   final Function()? onTailingTap;
   final Widget? tailingWidget;
   final Widget? leadingWidget;
+  final int? maxLines;
+  final int? minLines;
   final String? leadingText;
   final Color? backgroundColor;
   final TextInputType? keyboardType;
@@ -162,6 +171,10 @@ class InputItemState extends State<InputItem> {
 
   int? get maxLength => widget.maxLength;
 
+  int? get maxLines => widget.maxLines;
+
+  int? get minLines => widget.minLines;
+
   double get leadingMinWidth => widget.leadingMinWidth ?? 40;
 
   @override
@@ -223,41 +236,47 @@ class InputItemState extends State<InputItem> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
-                          child: TextField(
-                            focusNode: focusNode,
-                            controller: controller,
-                            textInputAction: textInputAction,
-                            keyboardType: keyboardType,
-                            readOnly: readOnly,
-                            obscureText: obscureText,
-                            maxLength: maxLength,
-                            inputFormatters: [
-                              if (maxLength != null && maxLength! > 0)
-                                LengthLimitingTextInputFormatter(maxLength),
-                              ...inputFormatters
-                            ],
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              isCollapsed: true,
-                              hintText: hint,
-                              contentPadding:
-                                  const EdgeInsets.only(top: 8, left: 10),
-                              counterText: '',
-                              counter: Container(),
-                              hintStyle: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.apply(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.color),
-                              prefixIcon: null,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: TextField(
+                              focusNode: focusNode,
+                              controller: controller,
+                              textInputAction: textInputAction,
+                              keyboardType: keyboardType,
+                              readOnly: readOnly,
+                              obscureText: obscureText,
+                              maxLength: maxLength,
+                              maxLines: maxLines,
+                              minLines: minLines,
+                              inputFormatters: [
+                                if (maxLength != null && maxLength! > 0)
+                                  LengthLimitingTextInputFormatter(maxLength),
+                                ...inputFormatters
+                              ],
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                isCollapsed: true,
+                                hintText: hint,
+                                contentPadding: EdgeInsets.only(
+                                    top: 8, left: leading != null ? 10 : 5),
+                                counterText: '',
+                                counter: Container(),
+                                hintStyle: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.apply(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.color),
+                                prefixIcon: null,
+                              ),
+                              contextMenuBuilder:
+                                  (contextMenuContext, details) =>
+                                      ItemBuilder.editTextContextMenuBuilder(
+                                          contextMenuContext, details,
+                                          context: context),
                             ),
-                            contextMenuBuilder: (contextMenuContext, details) =>
-                                ItemBuilder.editTextContextMenuBuilder(
-                                    contextMenuContext, details,
-                                    context: context),
                           ),
                         ),
                         if (tailing != null) tailing,

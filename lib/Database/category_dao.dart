@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../Models/category.dart';
 import '../Models/opt_token.dart';
+import '../TokenUtils/export_token_util.dart';
 import 'database_manager.dart';
 
 class CategoryDao {
@@ -17,6 +18,7 @@ class CategoryDao {
       category.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    ExportTokenUtil.backupEncryptFile();
     return id;
   }
 
@@ -33,6 +35,7 @@ class CategoryDao {
       );
     }
     List<dynamic> results = await batch.commit();
+    ExportTokenUtil.backupEncryptFile();
     return results.length;
   }
 
@@ -61,6 +64,7 @@ class CategoryDao {
       where: 'id = ?',
       whereArgs: [category.id],
     );
+    ExportTokenUtil.backupEncryptFile();
     return id;
   }
 
@@ -77,6 +81,7 @@ class CategoryDao {
       );
     }
     List<dynamic> results = await batch.commit();
+    ExportTokenUtil.backupEncryptFile();
     return results.length;
   }
 
@@ -87,6 +92,7 @@ class CategoryDao {
       where: 'id = ?',
       whereArgs: [category.id],
     );
+    ExportTokenUtil.backupEncryptFile();
     return id;
   }
 

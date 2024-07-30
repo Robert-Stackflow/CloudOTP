@@ -53,7 +53,7 @@ dependencies:
   hive: ^4.0.0-dev.2 # 轻量存储
   isar_flutter_libs: ^4.0.0-dev.13
   path_provider: ^2.0.12
-  sqflite: ^2.3.3+1 # SQLite数据库
+  sqflite_sqlcipher: ^3.1.0+1 # SQLite加密
   file_picker: ^8.0.6 # 文件选择
   dio_cache_interceptor: ^3.5.0 # dio缓存
   dio_cookie_manager: ^3.1.1 # dio cookie管理

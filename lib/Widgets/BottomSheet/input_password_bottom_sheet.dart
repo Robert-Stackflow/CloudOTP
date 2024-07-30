@@ -1,97 +1,58 @@
 import 'package:cloudotp/Widgets/Item/input_item.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../Utils/responsive_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import '../Item/item_builder.dart';
 
-class InputBottomSheet extends StatefulWidget {
-  const InputBottomSheet({
+class InputPasswordBottomSheet extends StatefulWidget {
+  const InputPasswordBottomSheet({
     super.key,
-    this.maxLines = 5,
-    this.minLines = 1,
-    this.hint,
-    this.controller,
     this.onConfirm,
     this.onValidConfirm,
     this.message = "",
-    this.text = "",
     this.onCancel,
     this.title = "",
-    this.textInputAction,
-    this.leadingIcon,
-    this.obscureText,
-    this.tailingType = InputItemTailingType.none,
-    this.leadingType = InputItemLeadingType.none,
-    this.stateController,
-    this.tailingText,
-    this.showTailing,
-    this.tailingIcon,
-    this.onTailingTap,
-    this.tailingWidget,
-    this.leadingWidget,
-    this.leadingText,
-    this.backgroundColor,
-    this.keyboardType,
-    this.focusNode,
-    this.topRadius,
-    this.bottomRadius,
-    this.readOnly,
-    this.maxLength,
-    this.inputFormatters = const [],
-    this.leadingMinWidth,
   });
 
-  final String? hint;
-  final String text;
   final String title;
   final String message;
-  final int maxLines;
-  final int minLines;
   final Function()? onCancel;
-  final Function(String)? onConfirm;
-  final Function(String)? onValidConfirm;
-  final TextEditingController? controller;
-
-  final TextInputAction? textInputAction;
-  final IconData? leadingIcon;
-  final bool? obscureText;
-  final InputItemTailingType tailingType;
-  final InputItemLeadingType leadingType;
-  final InputStateController? stateController;
-  final String? tailingText;
-  final bool? showTailing;
-  final IconData? tailingIcon;
-  final Function()? onTailingTap;
-  final Widget? tailingWidget;
-  final Widget? leadingWidget;
-  final String? leadingText;
-  final Color? backgroundColor;
-  final TextInputType? keyboardType;
-  final FocusNode? focusNode;
-  final bool? topRadius;
-  final bool? bottomRadius;
-  final bool? readOnly;
-  final int? maxLength;
-  final List<TextInputFormatter> inputFormatters;
-  final double? leadingMinWidth;
+  final Function(String, String)? onConfirm;
+  final Function(String, String)? onValidConfirm;
 
   @override
-  InputBottomSheetState createState() => InputBottomSheetState();
+  InputPasswordBottomSheetState createState() =>
+      InputPasswordBottomSheetState();
 }
 
-class InputBottomSheetState extends State<InputBottomSheet> {
-  late TextEditingController controller;
+class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
+  TextEditingController _controller = TextEditingController();
+  TextEditingController _confirmController = TextEditingController();
+  late InputStateController _stateController;
+  late InputStateController _confirmStateController;
   final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    controller = widget.controller ?? TextEditingController();
-    controller.value = TextEditingValue(text: widget.text);
-    widget.stateController?.setTextEditingController(controller);
+    _stateController = InputStateController(
+        controller: _controller,
+        validate: (value) {
+          if (value.isEmpty) {
+            return S.current.encryptDatabasePasswordCannotBeEmpty;
+          }
+          return null;
+        });
+    _confirmStateController = InputStateController(
+        controller: _confirmController,
+        validate: (value) {
+          if (value != _controller.text) {
+            return S.current.encryptDatabasePasswordNotMatch;
+          }
+          return null;
+        });
     Future.delayed(const Duration(milliseconds: 200), () {
       FocusScope.of(context).requestFocus(_focusNode);
     });
@@ -126,36 +87,26 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 const SizedBox(height: 8.0),
                 Center(
                   child: InputItem(
-                    controller: controller,
+                    controller: _controller,
                     focusNode: _focusNode,
-                    hint: widget.hint,
-                    maxLines: widget.tailingType ==
-                                InputItemTailingType.password ||
-                            (widget.obscureText != null && widget.obscureText!)
-                        ? 1
-                        : widget.maxLines,
-                    minLines: widget.minLines,
-                    textInputAction: widget.textInputAction,
-                    leadingIcon: widget.leadingIcon,
-                    obscureText: widget.obscureText,
-                    tailingType: widget.tailingType,
-                    leadingType: widget.leadingType,
-                    stateController: widget.stateController,
-                    tailingText: widget.tailingText,
-                    showTailing: widget.showTailing,
-                    tailingIcon: widget.tailingIcon,
-                    onTailingTap: widget.onTailingTap,
-                    tailingWidget: widget.tailingWidget,
-                    leadingWidget: widget.leadingWidget,
-                    leadingText: widget.leadingText,
-                    backgroundColor: widget.backgroundColor,
-                    keyboardType: widget.keyboardType,
-                    topRadius: widget.topRadius,
-                    bottomRadius: widget.bottomRadius,
-                    readOnly: widget.readOnly,
-                    maxLength: widget.maxLength,
-                    inputFormatters: widget.inputFormatters,
-                    leadingMinWidth: widget.leadingMinWidth,
+                    textInputAction: TextInputAction.next,
+                    tailingType: InputItemTailingType.password,
+                    stateController: _stateController,
+                    inputFormatters: [
+                      RegexInputFormatter.onlyNumberAndLetter,
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                Center(
+                  child: InputItem(
+                    controller: _confirmController,
+                    textInputAction: TextInputAction.done,
+                    tailingType: InputItemTailingType.password,
+                    stateController: _confirmStateController,
+                    inputFormatters: [
+                      RegexInputFormatter.onlyNumberAndLetter,
+                    ],
                   ),
                 ),
                 _buildFooter(),
@@ -221,10 +172,13 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 color: Colors.white,
                 text: S.current.confirm,
                 onTap: () {
-                  String? error = widget.stateController?.doValidate();
-                  widget.onConfirm?.call(controller.text);
-                  if (error == null) {
-                    widget.onValidConfirm?.call(controller.text);
+                  String? error1 = _stateController.doValidate();
+                  String? error2 = _confirmStateController.doValidate();
+                  widget.onConfirm
+                      ?.call(_controller.text, _confirmController.text);
+                  if (error1 == null && error2 == null) {
+                    widget.onValidConfirm
+                        ?.call(_controller.text, _confirmController.text);
                     Navigator.of(context).pop();
                   }
                 },

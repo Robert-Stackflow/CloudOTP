@@ -35,6 +35,13 @@ enum Sql {
         token_ids TEXT NOT NULL,
         remark TEXT NOT NULL
       );
+    '''),
+  createConfigTable('''
+      CREATE TABLE config (
+        id INTEGER PRIMARY KEY,
+        backup_password TEXT NOT NULL,
+        remark TEXT NOT NULL
+      );
     ''');
 
   const Sql(this.sql);

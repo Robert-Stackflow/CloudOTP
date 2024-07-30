@@ -1,4 +1,9 @@
+import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
+import 'package:cloudotp/TokenUtils/export_token_util.dart';
+import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/Item/input_item.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
@@ -21,9 +26,9 @@ import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 import '../Lock/pin_change_screen.dart';
@@ -70,8 +75,10 @@ class _SettingScreenState extends State<SettingScreen>
   bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
   bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
   String _autoBackupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
-  String _autoBackupPassword =
-      HiveUtil.getString(HiveUtil.backupPasswordKey) ?? "";
+  String _autoBackupPassword = "";
+  bool _enableEncrypt = HiveUtil.getBool(HiveUtil.enableEncryptKey);
+  bool _hasEncryptPassword =
+      HiveUtil.getBool(HiveUtil.hasEncryptPasswordKey, defaultValue: false);
 
   @override
   void initState() {
@@ -79,6 +86,11 @@ class _SettingScreenState extends State<SettingScreen>
     initBiometricAuthentication();
     if (ResponsiveUtil.isMobile()) getCacheSize();
     fetchReleases(false);
+    ConfigDao.getConfig().then((config) {
+      setState(() {
+        _autoBackupPassword = config.backupPassword;
+      });
+    });
   }
 
   @override
@@ -97,6 +109,7 @@ class _SettingScreenState extends State<SettingScreen>
             ..._apperanceSettings(),
             ..._operationSettings(),
             ..._backupSettings(),
+            ..._encryptSettings(),
             ..._privacySettings(),
             if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
             if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
@@ -254,7 +267,9 @@ class _SettingScreenState extends State<SettingScreen>
           context: context, title: S.current.backupSetting),
       ItemBuilder.buildRadioItem(
         context: context,
-        value: _autoBackup,
+        value: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty
+            ? false
+            : _autoBackup,
         title: S.current.autoBackup,
         description: S.current.autoBackupTip,
         disabled: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty,
@@ -268,16 +283,77 @@ class _SettingScreenState extends State<SettingScreen>
       ItemBuilder.buildEntryItem(
         context: context,
         title: S.current.autoBackupPath,
-        description: S.current.autoBackupPathTip,
         tip: _autoBackupPath,
-        onTap: () {},
+        onTap: () async {
+          String? selectedDirectory =
+              await FilePicker.platform.getDirectoryPath(
+            dialogTitle: S.current.autoBackupPath,
+            lockParentWindow: true,
+          );
+          if (selectedDirectory != null) {
+            setState(() {
+              _autoBackupPath = selectedDirectory;
+              HiveUtil.put(HiveUtil.backupPathKey, selectedDirectory);
+            });
+          }
+        },
       ),
       ItemBuilder.buildEntryItem(
         context: context,
-        title: S.current.autoBackupPassword,
-        description: S.current.autoBackupPasswordTip,
-        tip: _autoBackupPassword,
-        onTap: () {},
+        title: Utils.isNotEmpty(_autoBackupPassword)
+            ? S.current.editAutoBackupPassword
+            : S.current.setAutoBackupPassword,
+        onTap: () {
+          TextEditingController controller = TextEditingController();
+          BottomSheetBuilder.showBottomSheet(
+            context,
+            responsive: true,
+            (context) => InputBottomSheet(
+              title: Utils.isNotEmpty(_autoBackupPassword)
+                  ? S.current.editAutoBackupPassword
+                  : S.current.setAutoBackupPassword,
+              text: _autoBackupPassword,
+              message: Utils.isNotEmpty(_autoBackupPassword)
+                  ? S.current.editAutoBackupPasswordTip
+                  : S.current.setAutoBackupPasswordTip,
+              hint: S.current.inputAutoBackupPassword,
+              tailingType: InputItemTailingType.password,
+              controller: controller,
+              stateController: InputStateController(
+                controller: controller,
+                validate: (text) {
+                  if (text.isEmpty) {
+                    return S.current.autoBackupPasswordCannotBeEmpty;
+                  }
+                  return null;
+                },
+              ),
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetter,
+              ],
+              onConfirm: (text) async {},
+              onValidConfirm: (text) async {
+                IToast.showTop(Utils.isNotEmpty(_autoBackupPassword)
+                    ? S.current.editSuccess
+                    : S.current.setSuccess);
+                ConfigDao.updateBackupPassword(text);
+                setState(() {
+                  _autoBackupPassword = text;
+                });
+              },
+            ),
+          );
+        },
+      ),
+      Visibility(
+        visible: _autoBackupPath.isNotEmpty && _autoBackupPassword.isNotEmpty,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.immediatelyBackup,
+          onTap: () async {
+            ExportTokenUtil.backupEncryptFile(showLoading: true);
+          },
+        ),
       ),
       ItemBuilder.buildRadioItem(
         context: context,
@@ -294,6 +370,72 @@ class _SettingScreenState extends State<SettingScreen>
                 _useBackupPasswordToExportImport);
           });
         },
+      ),
+    ];
+  }
+
+  _encryptSettings() {
+    return [
+      const SizedBox(height: 10),
+      ItemBuilder.buildCaptionItem(
+          context: context, title: S.current.encryptSetting),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: _enableEncrypt,
+        title: S.current.encryptDatabase,
+        description: S.current.encryptDatabaseTip,
+        onTap: () {
+          setState(() {
+            _enableEncrypt = !_enableEncrypt;
+            HiveUtil.put(HiveUtil.enableEncryptKey, _enableEncrypt);
+          });
+        },
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        bottomRadius: !_hasEncryptPassword,
+        title: _hasEncryptPassword
+            ? S.current.editEncryptDatabasePassword
+            : S.current.setEncryptDatabasePassword,
+        onTap: () {
+          BottomSheetBuilder.showBottomSheet(
+            context,
+            responsive: true,
+            (context) => InputPasswordBottomSheet(
+              title: _hasEncryptPassword
+                  ? S.current.editEncryptDatabasePassword
+                  : S.current.setEncryptDatabasePassword,
+              message: _hasEncryptPassword
+                  ? S.current.editEncryptDatabasePasswordTip
+                  : S.current.setEncryptDatabasePasswordTip,
+              onConfirm: (passord, confirmPassword) async {},
+              onValidConfirm: (passord, confirmPassword) async {
+                IToast.showTop(_hasEncryptPassword
+                    ? S.current.editSuccess
+                    : S.current.setSuccess);
+                HiveUtil.put(HiveUtil.hasEncryptPasswordKey, true);
+                setState(() {
+                  _hasEncryptPassword = true;
+                });
+              },
+            ),
+          );
+        },
+      ),
+      Visibility(
+        visible: _hasEncryptPassword,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          bottomRadius: true,
+          title: S.current.clearEncryptDatabasePassword,
+          onTap: () {
+            HiveUtil.put(HiveUtil.hasEncryptPasswordKey, false);
+            IToast.showTop(S.current.clearEncryptDatabasePasswordSuccess);
+            setState(() {
+              _hasEncryptPassword = false;
+            });
+          },
+        ),
       ),
     ];
   }

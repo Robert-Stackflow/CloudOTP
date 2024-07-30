@@ -10,6 +10,7 @@ import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/constant.dart';
+import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
@@ -22,8 +23,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image/image.dart' as img;
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -446,12 +445,10 @@ class MainScreenState extends State<MainScreen>
 
   capture(CaptureMode mode) async {
     try {
-      Directory directory = await getApplicationDocumentsDirectory();
-      String appName =
-          await PackageInfo.fromPlatform().then((value) => value.appName);
+      Directory directory = Directory(await FileUtil.getApplicationDir());
       String imageName =
           'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-      String imagePath = '${directory.path}\\$appName\\Screenshots\\$imageName';
+      String imagePath = '${directory.path}\\Screenshots\\$imageName';
       CapturedData? capturedData = await screenCapturer.capture(
         mode: mode,
         copyToClipboard: false,

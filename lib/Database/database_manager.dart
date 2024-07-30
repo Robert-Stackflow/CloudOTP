@@ -1,38 +1,58 @@
 import 'dart:async';
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:math';
 
+import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Database/create_table_sql.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
-import '../Utils/responsive_util.dart';
+import 'package:sqlite3/open.dart';
 
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
   static const _dbVersion = 1;
   static Database? _database;
 
+  static bool get initialized => _database != null;
+
   static Future<Database> getDataBase() async {
     if (_database == null) {
-      await _initDataBase();
+      await initDataBase("");
     }
     return _database!;
   }
 
-  static Future<void> _initDataBase() async {
-    if (ResponsiveUtil.isDesktop()) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
+  static Future<void> initDataBase(String password) async {
+    final dbFactory = createDatabaseFactoryFfi(ffiInit: ffiInit);
     if (_database == null) {
-      String path = join(await getDatabasesPath(), _dbName);
-      _database =
-          await openDatabase(path, version: _dbVersion, onCreate: _onCreate);
+      String path = join(await dbFactory.getDatabasesPath(), _dbName);
+      _database = await dbFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: _dbVersion,
+          singleInstance: false,
+          onConfigure: (db) async {
+            await db.rawQuery("PRAGMA KEY='$password'");
+          },
+          onCreate: _onCreate,
+        ),
+      );
+      print(await _database!.rawQuery("PRAGMA cipher_version"));
+      print(await _database!.rawQuery("SELECT * FROM sqlite_master"));
+      print(_database!.path);
     }
+    ConfigDao.initConfig();
+  }
+
+  static void ffiInit() {
+    open.overrideForAll(sqlcipherOpen);
   }
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute(Sql.createTokenTable.sql);
     await db.execute(Sql.createCategoryTable.sql);
+    await db.execute(Sql.createConfigTable.sql);
   }
 
   static Future<void> createTable({
@@ -48,5 +68,35 @@ class DatabaseManager {
     var result = await (await getDataBase()).rawQuery(
         "select * from Sqlite_master where type = 'table' and name = '$tableName'");
     return result.isNotEmpty;
+  }
+
+  static DynamicLibrary sqlcipherOpen() {
+    if (Platform.isLinux || Platform.isAndroid) {
+      try {
+        return DynamicLibrary.open('libsqlcipher.so');
+      } catch (_) {
+        if (Platform.isAndroid) {
+          final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
+
+          final endOfAppId = max(appIdAsBytes.indexOf(0), 0);
+          final appId =
+              String.fromCharCodes(appIdAsBytes.sublist(0, endOfAppId));
+          return DynamicLibrary.open('/data/data/$appId/lib/libsqlcipher.so');
+        }
+
+        rethrow;
+      }
+    }
+    if (Platform.isIOS) {
+      return DynamicLibrary.process();
+    }
+    if (Platform.isMacOS) {
+      return DynamicLibrary.open('/usr/lib/libsqlite3.dylib');
+    }
+    if (Platform.isWindows) {
+      return DynamicLibrary.open('sqlite3.dll');
+    }
+
+    throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
   }
 }

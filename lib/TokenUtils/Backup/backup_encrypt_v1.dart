@@ -89,7 +89,8 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
     }
 
     final json = utf8.decode(unencryptedData);
-    return Backup.fromJson(jsonDecode(json));
+    Backup res = Backup.fromJson(jsonDecode(json));
+    return res;
   }
 
   @override
@@ -121,3 +122,49 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
     return Uint8List.fromList(key);
   }
 }
+
+// ReceivePort handshakePort = ReceivePort();
+//
+// await Isolate.spawn((sendPort) async {
+//
+// ReceivePort isolateHandshakePort = ReceivePort();
+// sendPort.send(isolateHandshakePort.sendPort);
+//
+// await for (var msg in isolateHandshakePort) {
+// SendPort callbackPort = msg[0];
+//
+// final headerBytes = utf8.encode(header);
+// final salt =
+// data.sublist(headerBytes.length, headerBytes.length + saltLength);
+// final iv = data.sublist(headerBytes.length + saltLength,
+// headerBytes.length + saltLength + ivLength);
+// final encryptedData =
+// data.sublist(headerBytes.length + saltLength + ivLength);
+//
+// final key = deriveKey(password, salt);
+// final parameters =
+// AEADParameters(KeyParameter(key), tagLength * 8, iv, Uint8List(0));
+//
+// final cipher = GCMBlockCipher(AESEngine())..init(false, parameters);
+//
+// Uint8List unencryptedData;
+//
+// try {
+// unencryptedData = cipher.process(encryptedData);
+// } catch (e) {
+// throw InvalidPasswordOrDataCorruptedException(
+// S.current.invalidPasswordOrDataCorrupted);
+// }
+//
+// final json = utf8.decode(unencryptedData);
+// Backup res = Backup.fromJson(jsonDecode(json));
+//
+// callbackPort.send(res);
+// }
+// }, handshakePort.sendPort);
+//
+// SendPort sendPort = await handshakePort.first;
+//
+// ReceivePort responsePort = ReceivePort();
+// sendPort.send([responsePort.sendPort]);
+// return await responsePort.first;

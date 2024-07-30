@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/enums.dart';
+import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -59,8 +61,12 @@ class HiveUtil {
   //Backup
   static const String autoBackupKey = "autoBackup";
   static const String backupPathKey = "backupPath";
-  static const String backupPasswordKey = "backupPassword";
-  static const String useBackupPasswordToExportImportKey = "useBackupPasswordToExportImport";
+  static const String useBackupPasswordToExportImportKey =
+      "useBackupPasswordToExportImport";
+
+  //Encrypt
+  static const String enableEncryptKey = "enableEncrypt";
+  static const String hasEncryptPasswordKey = "hasEncryptPassword";
 
   //Privacy
   static const String enableGuesturePasswdKey = "enableGuesturePasswd";
@@ -76,6 +82,18 @@ class HiveUtil {
   static initConfig() async {
     HiveUtil.put(HiveUtil.inappWebviewKey, true);
     HiveUtil.put(HiveUtil.enableSafeModeKey, true);
+    HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getApplicationDir());
+  }
+
+  static Future<bool> canImportOrExportUseBackupPassword() async {
+    return HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey) &&
+        await ConfigDao.hasBackupPassword();
+  }
+
+  static Future<bool> canBackup() async {
+    return HiveUtil.getBool(HiveUtil.autoBackupKey) &&
+        Utils.isNotEmpty(HiveUtil.getString(HiveUtil.backupPathKey)) &&
+        await ConfigDao.hasBackupPassword();
   }
 
   static setLayoutType(LayoutType type) {

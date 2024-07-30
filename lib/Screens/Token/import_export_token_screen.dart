@@ -1,9 +1,10 @@
+import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:file_picker/file_picker.dart';
@@ -75,10 +76,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
     );
   }
 
-  String getFileName(String extension) {
-    return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}.$extension";
-  }
-
   _buildBody() {
     return ListView(
       physics: const BouncingScrollPhysics(),
@@ -97,19 +94,24 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               lockParentWindow: true,
             );
             if (result != null) {
-              BottomSheetBuilder.showBottomSheet(
-                context,
-                responsive: true,
-                (context) => InputBottomSheet(
-                  title: S.current.inputImportPasswordTitle,
-                  message: S.current.inputImportPasswordTip,
-                  hint: S.current.inputImportPasswordHint,
-                  onConfirm: (password) {
-                    ImportTokenUtil.importEncryptFile(
-                        result.files.single.path!, password);
-                  },
-                ),
-              );
+              if (await HiveUtil.canImportOrExportUseBackupPassword()) {
+                ImportTokenUtil.importEncryptFile(result.files.single.path!,
+                    await ConfigDao.getBackupPassword());
+              } else {
+                BottomSheetBuilder.showBottomSheet(
+                  context,
+                  responsive: true,
+                  (context) => InputBottomSheet(
+                    title: S.current.inputImportPasswordTitle,
+                    message: S.current.inputImportPasswordTip,
+                    hint: S.current.inputImportPasswordHint,
+                    onConfirm: (password) {
+                      ImportTokenUtil.importEncryptFile(
+                          result.files.single.path!, password);
+                    },
+                  ),
+                );
+              }
             }
           },
         ),
@@ -125,19 +127,24 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               lockParentWindow: true,
             );
             if (result != null) {
-              BottomSheetBuilder.showBottomSheet(
-                context,
-                responsive: true,
-                (context) => InputBottomSheet(
-                  title: S.current.inputImportPasswordTitle,
-                  message: S.current.inputImportPasswordTip,
-                  hint: S.current.inputImportPasswordHint,
-                  onConfirm: (password) {
-                    ImportTokenUtil.importOldEncryptFile(
-                        result.files.single.path!, password);
-                  },
-                ),
-              );
+              if (await HiveUtil.canImportOrExportUseBackupPassword()) {
+                ImportTokenUtil.importOldEncryptFile(result.files.single.path!,
+                    await ConfigDao.getBackupPassword());
+              } else {
+                BottomSheetBuilder.showBottomSheet(
+                  context,
+                  responsive: true,
+                  (context) => InputBottomSheet(
+                    title: S.current.inputImportPasswordTitle,
+                    message: S.current.inputImportPasswordTip,
+                    hint: S.current.inputImportPasswordHint,
+                    onConfirm: (password) {
+                      ImportTokenUtil.importOldEncryptFile(
+                          result.files.single.path!, password);
+                    },
+                  ),
+                );
+              }
             }
           },
         ),
@@ -179,24 +186,29 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           onTap: () async {
             String? result = await FilePicker.platform.saveFile(
               dialogTitle: S.current.exportEncryptFileTitle,
-              fileName: getFileName("bin"),
+              fileName: ExportTokenUtil.getExportFileName("bin"),
               type: FileType.custom,
               allowedExtensions: ['bin'],
               lockParentWindow: true,
             );
             if (result != null) {
-              BottomSheetBuilder.showBottomSheet(
-                context,
-                responsive: true,
-                (context) => InputBottomSheet(
-                  title: S.current.setExportPasswordTitle,
-                  message: S.current.setExportPasswordTip,
-                  hint: S.current.setExportPasswordHint,
-                  onConfirm: (password) {
-                    ExportTokenUtil.exportEncryptFile(result, password);
-                  },
-                ),
-              );
+              if (await HiveUtil.canImportOrExportUseBackupPassword()) {
+                ExportTokenUtil.exportEncryptFile(
+                    result, await ConfigDao.getBackupPassword());
+              } else {
+                BottomSheetBuilder.showBottomSheet(
+                  context,
+                  responsive: true,
+                  (context) => InputBottomSheet(
+                    title: S.current.setExportPasswordTitle,
+                    message: S.current.setExportPasswordTip,
+                    hint: S.current.setExportPasswordHint,
+                    onConfirm: (password) {
+                      ExportTokenUtil.exportEncryptFile(result, password);
+                    },
+                  ),
+                );
+              }
             }
           },
         ),
@@ -213,7 +225,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               onTapConfirm: () async {
                 String? result = await FilePicker.platform.saveFile(
                   dialogTitle: S.current.exportUriFileTitle,
-                  fileName: getFileName("txt"),
+                  fileName: ExportTokenUtil.getExportFileName("txt"),
                   type: FileType.custom,
                   allowedExtensions: ['txt'],
                   lockParentWindow: true,
