@@ -4,12 +4,15 @@ import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
+import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
+import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
@@ -243,14 +246,18 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   icon: Icon(Icons.dashboard_outlined,
                       color: Theme.of(context).iconTheme.color),
                   onTap: () {
-                    changeLayoutType();
+                    context.contextMenuOverlay
+                        .show(MainScreenState.buildLayoutContextMenuButtons());
                   },
                 ),
                 ItemBuilder.buildIconButton(
                   context: context,
                   icon: Icon(Icons.sort_rounded,
                       color: Theme.of(context).iconTheme.color),
-                  onTap: () {},
+                  onTap: () {
+                    context.contextMenuOverlay
+                        .show(MainScreenState.buildSortContextMenuButtons());
+                  },
                 ),
                 const SizedBox(width: 5),
               ],
@@ -368,14 +375,18 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
       ],
     );
-    return tokens.isEmpty
-        ? ListView(
-            children: [
-              ItemBuilder.buildEmptyPlaceholder(
-                  context: context, text: S.current.noToken),
-            ],
-          )
-        : gridView;
+    return EasyRefresh(
+      onRefresh: refresh,
+      refreshOnStart: true,
+      child: tokens.isEmpty
+          ? ListView(
+              children: [
+                ItemBuilder.buildEmptyPlaceholder(
+                    context: context, text: S.current.noToken),
+              ],
+            )
+          : gridView,
+    );
   }
 
   _buildTabBar() {

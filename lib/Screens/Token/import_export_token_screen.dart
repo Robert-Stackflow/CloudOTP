@@ -75,156 +75,159 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
     );
   }
 
+  String getFileName(String extension) {
+    return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}.$extension";
+  }
+
   _buildBody() {
-    return EasyRefresh(
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        children: [
-          ItemBuilder.buildCaptionItem(
-              context: context, title: S.current.import),
-          ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.importEncryptFile,
-            description: S.current.importEncryptFileHint(appName),
-            onTap: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(
-                dialogTitle: S.current.importEncryptFileTitle,
-                type: FileType.custom,
-                allowedExtensions: ['bin'],
-                lockParentWindow: true,
-              );
-              if (result != null) {
-                BottomSheetBuilder.showBottomSheet(
-                  context,
-                  responsive: true,
-                  (context) => InputBottomSheet(
-                    title: S.current.inputImportPasswordTitle,
-                    message: S.current.inputImportPasswordTip,
-                    hint: S.current.inputImportPasswordHint,
-                    onConfirm: (password) {
-                      ImportTokenUtil.importEncryptFile(
-                          result.files.single.path!, password);
-                    },
-                  ),
-                );
-              }
-            },
-          ),
-          ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.importOldEncryptFile,
-            description: S.current.importOldEncryptFileHint(appName),
-            onTap: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(
-                dialogTitle: S.current.importOldEncryptFileTitle,
-                type: FileType.custom,
-                allowedExtensions: ['db'],
-                lockParentWindow: true,
-              );
-              if (result != null) {
-                BottomSheetBuilder.showBottomSheet(
-                  context,
-                  responsive: true,
-                      (context) => InputBottomSheet(
-                    title: S.current.inputImportPasswordTitle,
-                    message: S.current.inputImportPasswordTip,
-                    hint: S.current.inputImportPasswordHint,
-                    onConfirm: (password) {
-                      ImportTokenUtil.importOldEncryptFile(
-                          result.files.single.path!, password);
-                    },
-                  ),
-                );
-              }
-            },
-          ),
-          ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.importUriFile,
-            description: S.current.importUriFileHint,
-            onTap: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(
-                dialogTitle: S.current.importUriFileTitle,
-                type: FileType.any,
-                lockParentWindow: true,
-              );
-              if (result != null) {
-                ImportTokenUtil.importUriFile(result.files.single.path!);
-              }
-            },
-          ),
-          ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.importUriFromClipBoard,
-            bottomRadius: true,
-            description: S.current.importUriFromClipBoardHint,
-            onTap: () async {
-              String? content = await Utils.getClipboardData();
-              ImportTokenUtil.importText(
-                content ?? "",
-                emptyTip: S.current.clipboardEmpty,
-                noTokenToast: S.current.clipBoardDoesNotContainToken,
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          ItemBuilder.buildCaptionItem(
-              context: context, title: S.current.export),
-          ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.exportEncryptFile,
-            description: S.current.exportEncryptFileHint(appName),
-            onTap: () async {
-              String? result = await FilePicker.platform.saveFile(
-                dialogTitle: S.current.exportEncryptFileTitle,
-                type: FileType.custom,
-                allowedExtensions: ['bin'],
-                lockParentWindow: true,
-              );
-              if (result != null) {
-                BottomSheetBuilder.showBottomSheet(
-                  context,
-                  responsive: true,
-                  (context) => InputBottomSheet(
-                    title: S.current.setExportPasswordTitle,
-                    message: S.current.setExportPasswordTip,
-                    hint: S.current.setExportPasswordHint,
-                    onConfirm: (password) {
-                      ExportTokenUtil.exportEncryptFile(result, password);
-                    },
-                  ),
-                );
-              }
-            },
-          ),
-          ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.exportUriFile,
-            bottomRadius: true,
-            description: S.current.exportUriFileHint,
-            onTap: () async {
-              DialogBuilder.showConfirmDialog(
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      children: [
+        ItemBuilder.buildCaptionItem(context: context, title: S.current.import),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importEncryptFile,
+          description: S.current.importEncryptFileHint(appName),
+          onTap: () async {
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+              dialogTitle: S.current.importEncryptFileTitle,
+              type: FileType.custom,
+              allowedExtensions: ['bin'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              BottomSheetBuilder.showBottomSheet(
                 context,
-                title: S.current.exportUriClearWarningTitle,
-                message: S.current.exportUriClearWarningTip,
-                onTapConfirm: () async {
-                  String? result = await FilePicker.platform.saveFile(
-                    dialogTitle: S.current.exportUriFileTitle,
-                    type: FileType.custom,
-                    allowedExtensions: ['txt'],
-                    lockParentWindow: true,
-                  );
-                  if (result != null) {
-                    ExportTokenUtil.exportUriFile(result);
-                  }
-                },
-                onTapCancel: () {},
-                customDialogType: CustomDialogType.normal,
+                responsive: true,
+                (context) => InputBottomSheet(
+                  title: S.current.inputImportPasswordTitle,
+                  message: S.current.inputImportPasswordTip,
+                  hint: S.current.inputImportPasswordHint,
+                  onConfirm: (password) {
+                    ImportTokenUtil.importEncryptFile(
+                        result.files.single.path!, password);
+                  },
+                ),
               );
-            },
-          ),
-        ],
-      ),
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importOldEncryptFile,
+          description: S.current.importOldEncryptFileHint(appName),
+          onTap: () async {
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+              dialogTitle: S.current.importOldEncryptFileTitle,
+              type: FileType.custom,
+              allowedExtensions: ['db'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              BottomSheetBuilder.showBottomSheet(
+                context,
+                responsive: true,
+                (context) => InputBottomSheet(
+                  title: S.current.inputImportPasswordTitle,
+                  message: S.current.inputImportPasswordTip,
+                  hint: S.current.inputImportPasswordHint,
+                  onConfirm: (password) {
+                    ImportTokenUtil.importOldEncryptFile(
+                        result.files.single.path!, password);
+                  },
+                ),
+              );
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importUriFile,
+          description: S.current.importUriFileHint,
+          onTap: () async {
+            FilePickerResult? result = await FilePicker.platform.pickFiles(
+              dialogTitle: S.current.importUriFileTitle,
+              type: FileType.any,
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              ImportTokenUtil.importUriFile(result.files.single.path!);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importUriFromClipBoard,
+          bottomRadius: true,
+          description: S.current.importUriFromClipBoardHint,
+          onTap: () async {
+            String? content = await Utils.getClipboardData();
+            ImportTokenUtil.importText(
+              content ?? "",
+              emptyTip: S.current.clipboardEmpty,
+              noTokenToast: S.current.clipBoardDoesNotContainToken,
+            );
+          },
+        ),
+        const SizedBox(height: 10),
+        ItemBuilder.buildCaptionItem(context: context, title: S.current.export),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.exportEncryptFile,
+          description: S.current.exportEncryptFileHint(appName),
+          onTap: () async {
+            String? result = await FilePicker.platform.saveFile(
+              dialogTitle: S.current.exportEncryptFileTitle,
+              fileName: getFileName("bin"),
+              type: FileType.custom,
+              allowedExtensions: ['bin'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              BottomSheetBuilder.showBottomSheet(
+                context,
+                responsive: true,
+                (context) => InputBottomSheet(
+                  title: S.current.setExportPasswordTitle,
+                  message: S.current.setExportPasswordTip,
+                  hint: S.current.setExportPasswordHint,
+                  onConfirm: (password) {
+                    ExportTokenUtil.exportEncryptFile(result, password);
+                  },
+                ),
+              );
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.exportUriFile,
+          bottomRadius: true,
+          description: S.current.exportUriFileHint,
+          onTap: () async {
+            DialogBuilder.showConfirmDialog(
+              context,
+              title: S.current.exportUriClearWarningTitle,
+              message: S.current.exportUriClearWarningTip,
+              onTapConfirm: () async {
+                String? result = await FilePicker.platform.saveFile(
+                  dialogTitle: S.current.exportUriFileTitle,
+                  fileName: getFileName("txt"),
+                  type: FileType.custom,
+                  allowedExtensions: ['txt'],
+                  lockParentWindow: true,
+                );
+                if (result != null) {
+                  ExportTokenUtil.exportUriFile(result);
+                }
+              },
+              onTapCancel: () {},
+              customDialogType: CustomDialogType.normal,
+            );
+          },
+        ),
+      ],
     );
   }
 }

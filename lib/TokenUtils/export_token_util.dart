@@ -15,6 +15,7 @@ import '../Models/category.dart';
 import '../Utils/itoast.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../generated/l10n.dart';
+import 'Backup/backup_encrypt_interface.dart';
 
 class ExportTokenUtil {
   static exportUriFile(
@@ -61,17 +62,26 @@ class ExportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.exporting);
     }
-    List<OtpToken> tokens = await TokenDao.listTokens();
-    List<TokenCategory> categories = await CategoryDao.listCategories();
-    Backup backup = Backup(tokens: tokens, categories: categories);
-    BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
-    Uint8List encryptedData =
-        await backupEncryption.encrypt(backup, password);
-    File file = File(filePath);
-    file.writeAsBytesSync(encryptedData);
-    if (showLoading) {
-      CustomLoadingDialog.dismissLoading();
+    try {
+      List<OtpToken> tokens = await TokenDao.listTokens();
+      List<TokenCategory> categories = await CategoryDao.listCategories();
+      Backup backup = Backup(tokens: tokens, categories: categories);
+      BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
+      Uint8List encryptedData =
+          await backupEncryption.encrypt(backup, password);
+      File file = File(filePath);
+      file.writeAsBytesSync(encryptedData);
+      IToast.showTop(S.current.exportSuccess);
+    } catch (e) {
+      if (e is BackupBaseException) {
+        IToast.showTop(e.message);
+      } else {
+        IToast.showTop(S.current.exportFailed);
+      }
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
     }
-    IToast.showTop(S.current.exportSuccess);
   }
 }

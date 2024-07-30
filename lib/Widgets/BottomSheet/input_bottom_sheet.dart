@@ -63,7 +63,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                   bottom: ResponsiveUtil.isLandscape()
                       ? const Radius.circular(20)
                       : Radius.zero),
-              color: MyTheme.getCardBackground(context),
+              color: Theme.of(context).canvasColor,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

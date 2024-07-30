@@ -389,7 +389,7 @@ class Utils {
     bool showNoUpdateToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: "检查更新中...");
+      CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
     }
     String currentVersion = (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
@@ -400,7 +400,7 @@ class Utils {
         CustomLoadingDialog.dismissLoading();
       }
       if (releases.isEmpty) {
-        if (showNoUpdateToast) IToast.showTop("检查更新失败");
+        if (showNoUpdateToast) IToast.showTop(S.current.checkUpdatesFailed);
         return;
       }
       onGetReleases?.call(releases);
@@ -420,11 +420,12 @@ class Utils {
           if (ResponsiveUtil.isMobile()) {
             DialogBuilder.showConfirmDialog(
               context,
-              title: "发现新版本$latestVersion",
-              message:
-                  "是否立即更新？${Utils.isNotEmpty(latestReleaseItem.body) ? "更新日志如下：\n${latestReleaseItem.body}" : ""}",
-              confirmButtonText: "立即下载",
-              cancelButtonText: "暂不更新",
+              title: S.current.getNewVersion(latestVersion),
+              message: S.current.doesImmediateUpdate +
+                  S.current.updateLogAsFollow(
+                      "<br/>${Utils.replaceLineBreak(latestReleaseItem.body ?? "")}"),
+              confirmButtonText: S.current.immediatelyDownload,
+              cancelButtonText: S.current.updateLater,
               onTapConfirm: () {
                 if (ResponsiveUtil.isDesktop()) {
                   UriUtil.openExternal(latestReleaseItem!.htmlUrl);
@@ -501,5 +502,9 @@ class Utils {
         IToast.showTop(S.current.biometricOtherReason(e));
       }
     }
+  }
+
+  static String getFormattedDate(DateTime dateTime) {
+    return DateFormat("yyyy-MM-dd-HH-mm-ss").format(dateTime);
   }
 }

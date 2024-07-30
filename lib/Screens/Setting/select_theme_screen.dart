@@ -28,49 +28,48 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
       child: Scaffold(
         appBar: ItemBuilder.buildSimpleAppBar(
             title: S.current.selectTheme, context: context, transparent: true),
-        body: EasyRefresh(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            children: [
-              const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.lightTheme),
-              ItemBuilder.buildContainerItem(
-                context: context,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: _buildLightThemeList(),
-                      ),
+        body: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          children: [
+            const SizedBox(height: 10),
+            ItemBuilder.buildCaptionItem(
+                context: context, title: S.current.lightTheme),
+            ItemBuilder.buildContainerItem(
+              context: context,
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: _buildLightThemeList(),
                     ),
                   ),
                 ),
-                bottomRadius: true,
               ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.darkTheme),
-              ItemBuilder.buildContainerItem(
-                context: context,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: _buildDarkThemeList(),
-                      ),
+              bottomRadius: true,
+            ),
+            const SizedBox(height: 10),
+            ItemBuilder.buildCaptionItem(
+                context: context, title: S.current.darkTheme),
+            ItemBuilder.buildContainerItem(
+              context: context,
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: _buildDarkThemeList(),
                     ),
                   ),
                 ),
-                bottomRadius: true,
               ),
-              const SizedBox(height: 10),
-            ],
-          ),
+              bottomRadius: true,
+            ),
+            const SizedBox(height: 10),
+          ],
         ),
       ),
     );

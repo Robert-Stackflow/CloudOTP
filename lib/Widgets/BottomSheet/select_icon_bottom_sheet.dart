@@ -33,7 +33,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
   GroupButtonController controller = GroupButtonController();
   TextEditingController searchController = TextEditingController();
   List<String> icons = [];
-  FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -146,8 +146,8 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
       child: Text(
         textAlign: TextAlign.center,
         widget.token.issuer.isNotEmpty
-            ? S.current.setIconForToken
-            : S.current.setIconForTokenDetail(widget.token.issuer),
+            ? S.current.setIconForTokenDetail(widget.token.issuer)
+            : S.current.setIconForToken,
         style: Theme.of(context).textTheme.titleLarge,
       ),
     );

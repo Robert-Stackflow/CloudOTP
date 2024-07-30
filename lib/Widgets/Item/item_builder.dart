@@ -197,6 +197,7 @@ class ItemBuilder {
     EdgeInsets? padding,
     bool disabled = false,
     bool enableDeselect = false,
+    double titleMinWidth = 40,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return Container(
@@ -204,12 +205,16 @@ class ItemBuilder {
           padding ?? const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       child: Row(
         children: [
-          Text(
-            title,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.apply(fontWeightDelta: 2),
+          Container(
+            alignment: Alignment.center,
+            constraints: BoxConstraints(minWidth: titleMinWidth),
+            child: Text(
+              title,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.apply(fontWeightDelta: 2),
+            ),
           ),
           Flexible(
             child: Container(
@@ -769,13 +774,15 @@ class ItemBuilder {
                   if (isCheckbox)
                     Opacity(
                       opacity: showCheck ? 1 : 0,
-                      child: const Icon(Icons.check, size: 16),
+                      child: Icon(Icons.check_rounded,
+                          size: ResponsiveUtil.isMobile() ? null : 16),
                     ),
                   if (isCheckbox) SizedBox(width: showCheck ? 8 : 4),
                   if (config.icon != null) config.icon!,
                   Text(
                     config.label,
                     style: Theme.of(context).textTheme.bodyMedium?.apply(
+                          fontSizeDelta: ResponsiveUtil.isMobile() ? 2 : 0,
                           color:
                               config.type == ContextMenuButtonConfigType.warning
                                   ? Colors.red
@@ -925,7 +932,7 @@ class ItemBuilder {
           ),
           const SizedBox(height: 8),
           Text(
-            themeColorData.name,
+            themeColorData.intlName,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -2002,12 +2009,12 @@ class ItemBuilder {
       ContextMenuButtonType.custom: S.current.custom,
     };
     List<MyContextMenuItem> items = [];
-    int start = details.textEditingValue.selection.start <= -1
-        ? 0
-        : details.textEditingValue.selection.start;
-    int end = details.textEditingValue.selection.end
-        .clamp(0, details.textEditingValue.text.length);
-    String selectedText = details.textEditingValue.text.substring(start, end);
+    // int start = details.textEditingValue.selection.start <= -1
+    //     ? 0
+    //     : details.textEditingValue.selection.start;
+    // int end = details.textEditingValue.selection.end
+    //     .clamp(0, details.textEditingValue.text.length);
+    // String selectedText = details.textEditingValue.text.substring(start, end);
     for (var e in details.contextMenuButtonItems) {
       if (e.type != ContextMenuButtonType.custom) {
         items.add(

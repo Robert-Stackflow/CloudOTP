@@ -103,55 +103,53 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
               leading: Icons.close_rounded,
               context: context,
             ),
-      body: EasyRefresh(
-        child: ListView(
-          children: [
-            const SizedBox(height: 20),
-            Center(
-              child: ItemBuilder.buildClickItem(
-                GestureDetector(
-                  onLongPressStart: (details) {
-                    if (_timer != null) _timer!.cancel();
-                    _timer =
-                        Timer.periodic(const Duration(seconds: 1), (timer) {
-                      count = timer.tick;
-                      if (count >= countThreholdLevel4 / 4) {
-                        diaplayCelebrate();
-                      } else if (count >= countThreholdLevel3 / 4) {
-                        setHapticTimer(HapticFeedback.heavyImpact);
-                      } else if (count >= countThreholdLevel2 / 4) {
-                        setHapticTimer(HapticFeedback.mediumImpact);
-                      } else if (count >= countThreholdLevel1 / 4) {
-                        startShake();
-                        setHapticTimer(HapticFeedback.lightImpact);
-                      }
-                      setState(() {});
-                    });
-                  },
-                  onLongPressEnd: (details) {
-                    restore();
-                  },
-                  child: ShakeAnimationWidget(
-                    shakeAnimationController: _shakeAnimationController,
-                    shakeAnimationType: ShakeAnimationType.RandomShake,
-                    isForward: false,
-                    shakeRange: 0.1,
-                    child: Hero(
-                      tag: "logo-egg",
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Theme.of(context).dividerColor, width: 1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.asset(
-                            'assets/logo.png',
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.contain,
-                          ),
+      body: ListView(
+        physics: const BouncingScrollPhysics(),
+        children: [
+          const SizedBox(height: 20),
+          Center(
+            child: ItemBuilder.buildClickItem(
+              GestureDetector(
+                onLongPressStart: (details) {
+                  if (_timer != null) _timer!.cancel();
+                  _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+                    count = timer.tick;
+                    if (count >= countThreholdLevel4 / 4) {
+                      diaplayCelebrate();
+                    } else if (count >= countThreholdLevel3 / 4) {
+                      setHapticTimer(HapticFeedback.heavyImpact);
+                    } else if (count >= countThreholdLevel2 / 4) {
+                      setHapticTimer(HapticFeedback.mediumImpact);
+                    } else if (count >= countThreholdLevel1 / 4) {
+                      startShake();
+                      setHapticTimer(HapticFeedback.lightImpact);
+                    }
+                    setState(() {});
+                  });
+                },
+                onLongPressEnd: (details) {
+                  restore();
+                },
+                child: ShakeAnimationWidget(
+                  shakeAnimationController: _shakeAnimationController,
+                  shakeAnimationType: ShakeAnimationType.RandomShake,
+                  isForward: false,
+                  shakeRange: 0.1,
+                  child: Hero(
+                    tag: "logo-egg",
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Theme.of(context).dividerColor, width: 1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/logo.png',
+                          height: 80,
+                          width: 80,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -159,121 +157,121 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                 ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              alignment: Alignment.center,
-              child: Text(
-                appName,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            alignment: Alignment.center,
+            child: Text(
+              appName,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            Container(
-              margin: const EdgeInsets.all(10),
-              child: ScrollConfiguration(
-                behavior: NoShadowScrollBehavior(),
-                child: ListView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  children: [
-                    const SizedBox(height: 10),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.changeLog,
-                      topRadius: true,
-                      showLeading: true,
-                      onTap: () {
-                        RouteUtil.pushCupertinoRoute(
-                            context, const UpdateLogScreen());
-                      },
-                      leading: Icons.merge_type_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.bugReport,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context, issueUrl);
-                      },
-                      showLeading: true,
-                      leading: Icons.bug_report_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.githubRepo,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context, repoUrl);
-                      },
-                      showLeading: true,
-                      bottomRadius: true,
-                      leading: Icons.commit_outlined,
-                    ),
-                    const SizedBox(height: 10),
-                    ItemBuilder.buildEntryItem(
-                      topRadius: true,
-                      context: context,
-                      title: S.current.rate,
-                      showLeading: true,
-                      onTap: () {
-                        BottomSheetBuilder.showBottomSheet(
-                          context,
-                          (context) => const StarBottomSheet(),
-                          responsive: true,
-                        );
-                      },
-                      leading: Icons.rate_review_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.shareApp,
-                      showLeading: true,
-                      onTap: () {
-                        Share.share(shareAppText);
-                      },
-                      leading: Icons.share_rounded,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.contact,
-                      onTap: () {
-                        UriUtil.launchEmailUri(
-                          context,
-                          feedbackEmail,
-                          subject: feedbackSubject,
-                          body: feedbackBody,
-                        );
-                      },
-                      showLeading: true,
-                      leading: Icons.contact_support_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.officialWebsite,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context, officialWebsite);
-                      },
-                      showLeading: true,
-                      leading: Icons.language_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.telegramGroup,
-                      onTap: () {
-                        UriUtil.openExternal(telegramLink);
-                      },
-                      bottomRadius: true,
-                      showLeading: true,
-                      leading: Icons.telegram_outlined,
-                    ),
-                    const SizedBox(height: 10)
-                  ],
-                ),
+          ),
+          Container(
+            margin: const EdgeInsets.all(10),
+            child: ScrollConfiguration(
+              behavior: NoShadowScrollBehavior(),
+              child: ListView(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                children: [
+                  const SizedBox(height: 10),
+                  ItemBuilder.buildEntryItem(
+                    context: context,
+                    title: S.current.changeLog,
+                    topRadius: true,
+                    showLeading: true,
+                    onTap: () {
+                      RouteUtil.pushCupertinoRoute(
+                          context, const UpdateLogScreen());
+                    },
+                    leading: Icons.merge_type_outlined,
+                  ),
+                  ItemBuilder.buildEntryItem(
+                    context: context,
+                    title: S.current.bugReport,
+                    onTap: () {
+                      UriUtil.launchUrlUri(context, issueUrl);
+                    },
+                    showLeading: true,
+                    leading: Icons.bug_report_outlined,
+                  ),
+                  ItemBuilder.buildEntryItem(
+                    context: context,
+                    title: S.current.githubRepo,
+                    onTap: () {
+                      UriUtil.launchUrlUri(context, repoUrl);
+                    },
+                    showLeading: true,
+                    bottomRadius: true,
+                    leading: Icons.commit_outlined,
+                  ),
+                  const SizedBox(height: 10),
+                  ItemBuilder.buildEntryItem(
+                    topRadius: true,
+                    context: context,
+                    title: S.current.rate,
+                    showLeading: true,
+                    onTap: () {
+                      BottomSheetBuilder.showBottomSheet(
+                        context,
+                        (context) => const StarBottomSheet(),
+                        responsive: true,
+                      );
+                    },
+                    leading: Icons.rate_review_outlined,
+                  ),
+                  ItemBuilder.buildEntryItem(
+                    context: context,
+                    title: S.current.shareApp,
+                    showLeading: true,
+                    onTap: () {
+                      Share.share(shareAppText);
+                    },
+                    leading: Icons.share_rounded,
+                  ),
+                  ItemBuilder.buildEntryItem(
+                    context: context,
+                    title: S.current.contact,
+                    onTap: () {
+                      UriUtil.launchEmailUri(
+                        context,
+                        feedbackEmail,
+                        subject: feedbackSubject,
+                        body: feedbackBody,
+                      );
+                    },
+                    showLeading: true,
+                    leading: Icons.contact_support_outlined,
+                  ),
+                  ItemBuilder.buildEntryItem(
+                    context: context,
+                    title: S.current.officialWebsite,
+                    onTap: () {
+                      UriUtil.launchUrlUri(context, officialWebsite);
+                    },
+                    showLeading: true,
+                    leading: Icons.language_outlined,
+                  ),
+                  ItemBuilder.buildEntryItem(
+                    context: context,
+                    title: S.current.telegramGroup,
+                    onTap: () {
+                      UriUtil.openExternal(telegramLink);
+                    },
+                    bottomRadius: true,
+                    showLeading: true,
+                    leading: Icons.telegram_outlined,
+                  ),
+                  const SizedBox(height: 10)
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

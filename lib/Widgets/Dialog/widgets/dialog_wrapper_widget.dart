@@ -55,6 +55,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
             horizontal: preferHorizontalMargin, vertical: preferVerticalMargin),
         child: Container(
           decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
                 color: Utils.isDark(context)
@@ -68,7 +69,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             child: Stack(
               children: [
                 Navigator(

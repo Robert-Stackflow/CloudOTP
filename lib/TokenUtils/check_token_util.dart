@@ -61,7 +61,7 @@ class CheckTokenUtil {
   }
 
   static bool isSecretValid(String str) {
-    return RegExp("[a-zA-Z|0-9]+").hasMatch(str);
+    return RegExp(r"^[a-zA-Z|0-9]+$").hasMatch(str);
   }
 
   static bool isSecretBase32(String str) {

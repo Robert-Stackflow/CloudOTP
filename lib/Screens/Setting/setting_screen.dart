@@ -89,20 +89,19 @@ class _SettingScreenState extends State<SettingScreen>
       child: Scaffold(
         appBar: ItemBuilder.buildSimpleAppBar(
             title: S.current.setting, context: context, transparent: true),
-        body: EasyRefresh(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            children: [
-              ..._generalSettings(),
-              ..._apperanceSettings(),
-              ..._operationSettings(),
-              ..._backupSettings(),
-              ..._privacySettings(),
-              if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
-              if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
-              const SizedBox(height: 30),
-            ],
-          ),
+        body: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          children: [
+            ..._generalSettings(),
+            ..._apperanceSettings(),
+            ..._operationSettings(),
+            ..._backupSettings(),
+            ..._privacySettings(),
+            if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
+            if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
+            const SizedBox(height: 30),
+          ],
         ),
       ),
     );
@@ -145,7 +144,7 @@ class _SettingScreenState extends State<SettingScreen>
           builder: (context, darkTheme, child) => ItemBuilder.buildEntryItem(
             context: context,
             title: S.current.selectTheme,
-            tip: "${lightTheme.name}/${darkTheme.name}",
+            tip: "${lightTheme.intlName}/${darkTheme.intlName}",
             onTap: () {
               RouteUtil.pushCupertinoRoute(context, const SelectThemeScreen());
             },

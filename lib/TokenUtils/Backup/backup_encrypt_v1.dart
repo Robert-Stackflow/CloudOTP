@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
+import '../../generated/l10n.dart';
 import './backup_encrypt_interface.dart';
 import 'backup.dart';
 
@@ -23,7 +24,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
   @override
   Future<Uint8List> encrypt(Backup backup, String password) async {
     if (password.isEmpty) {
-      throw ArgumentError("Cannot encrypt without a password");
+      throw EmptyPasswordException(S.current.cannotEncryptWithoutPassword);
     }
 
     final random = SecureRandom("Fortuna")
@@ -57,11 +58,11 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
   @override
   Future<Backup> decrypt(Uint8List data, String password) async {
     if (password.isEmpty) {
-      throw ArgumentError("Cannot decrypt without a password");
+      throw EmptyPasswordException(S.current.cannotDecryptWithoutPassword);
     }
 
     if (!canBeDecrypted(data)) {
-      throw ArgumentError("Header does not match");
+      throw BackupVersionUnsupportException(S.current.backupVersionUnsupport);
     }
 
     final headerBytes = utf8.encode(header);
@@ -83,7 +84,8 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
     try {
       unencryptedData = cipher.process(encryptedData);
     } catch (e) {
-      throw Exception("Invalid password or data corrupted");
+      throw InvalidPasswordOrDataCorruptedException(
+          S.current.invalidPasswordOrDataCorrupted);
     }
 
     final json = utf8.decode(unencryptedData);
@@ -92,14 +94,18 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
 
   @override
   bool canBeDecrypted(Uint8List data) {
-    final headerBytes = utf8.encode(header);
-    final foundHeader = data.sublist(0, headerBytes.length);
-    for (int i = 0; i < headerBytes.length; i++) {
-      if (headerBytes[i] != foundHeader[i]) {
-        return false;
+    try {
+      final headerBytes = utf8.encode(header);
+      final foundHeader = data.sublist(0, headerBytes.length);
+      for (int i = 0; i < headerBytes.length; i++) {
+        if (headerBytes[i] != foundHeader[i]) {
+          return false;
+        }
       }
+      return true;
+    } catch (e) {
+      throw FileNotBackupException(S.current.fileNotBackup);
     }
-    return true;
   }
 
   Uint8List deriveKey(String password, Uint8List salt) {

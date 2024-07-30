@@ -190,7 +190,8 @@ class MainScreenState extends State<MainScreen>
     ResponsiveUtil.checkSizeCondition();
     EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
           backgroundColor: Theme.of(context).canvasColor,
-          indicator: LottieUtil.load(LottieUtil.getLoadingPath(context)),
+          indicator:
+              LottieUtil.load(LottieUtil.getLoadingPath(context), scale: 1.5),
           hapticFeedback: true,
           triggerOffset: 40,
         );
@@ -293,7 +294,7 @@ class MainScreenState extends State<MainScreen>
     }
   }
 
-  _buildSortContextMenuButtons() {
+  static buildSortContextMenuButtons() {
     return GenericContextMenu(
       buttonConfigs: [
         ContextMenuButtonConfig.checkbox(
@@ -363,7 +364,7 @@ class MainScreenState extends State<MainScreen>
     );
   }
 
-  _buildLayoutContextMenuButtons() {
+  static buildLayoutContextMenuButtons() {
     return GenericContextMenu(
       buttonConfigs: [
         ContextMenuButtonConfig.checkbox(
@@ -567,7 +568,7 @@ class MainScreenState extends State<MainScreen>
                   icon: const Icon(Icons.sort_rounded, size: 22),
                   onTap: () {
                     context.contextMenuOverlay
-                        .show(_buildSortContextMenuButtons());
+                        .show(buildSortContextMenuButtons());
                   },
                 ),
                 ItemBuilder.buildIconButton(
@@ -575,7 +576,7 @@ class MainScreenState extends State<MainScreen>
                   icon: const Icon(Icons.dashboard_outlined, size: 22),
                   onTap: () {
                     context.contextMenuOverlay
-                        .show(_buildLayoutContextMenuButtons());
+                        .show(buildLayoutContextMenuButtons());
                   },
                 ),
                 ItemBuilder.buildDynamicIconButton(

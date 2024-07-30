@@ -66,56 +66,53 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
                   leading: Icons.close_rounded,
                   context: context,
                 ),
-          body: EasyRefresh(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: [
-                const SizedBox(height: 20),
-                Center(
-                  child: ItemBuilder.buildClickItem(
-                    GestureDetector(
-                      onTap: diaplayCelebrate,
-                      child: Hero(
-                        tag: "logo-egg",
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Theme.of(context).dividerColor,
-                                width: 1),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.asset(
-                              'assets/logo.png',
-                              height: 120,
-                              width: 120,
-                              fit: BoxFit.contain,
-                            ),
+          body: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+            children: [
+              Center(
+                child: ItemBuilder.buildClickItem(
+                  GestureDetector(
+                    onTap: diaplayCelebrate,
+                    child: Hero(
+                      tag: "logo-egg",
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Theme.of(context).dividerColor, width: 1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            height: 120,
+                            width: 120,
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
-                ItemBuilder.buildContainerItem(
-                  backgroundColor: Theme.of(context).canvasColor,
-                  bottomRadius: true,
-                  topRadius: true,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 10),
-                    child: ItemBuilder.buildHtmlWidget(
-                      context,
-                      S.current.eggEssay,
-                      textStyle: Theme.of(context).textTheme.bodyLarge,
-                    ),
+              ),
+              const SizedBox(height: 30),
+              ItemBuilder.buildContainerItem(
+                backgroundColor: Theme.of(context).canvasColor,
+                bottomRadius: true,
+                topRadius: true,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: ItemBuilder.buildHtmlWidget(
+                    context,
+                    S.current.eggEssay,
+                    textStyle: Theme.of(context).textTheme.bodyLarge,
                   ),
-                  context: context,
                 ),
-              ],
-            ),
+                context: context,
+              ),
+            ],
           ),
         ),
         Visibility(

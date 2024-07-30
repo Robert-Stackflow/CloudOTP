@@ -8,12 +8,14 @@ class LoadingDialogWidget extends StatefulWidget {
 
   final double size;
 
-  const LoadingDialogWidget({
-    super.key,
-    this.dismissible = false,
-    this.title,
-    this.size = 40,
-  });
+  final double scale;
+
+  const LoadingDialogWidget(
+      {super.key,
+      this.dismissible = false,
+      this.title,
+      this.size = 40,
+      this.scale = 1.0});
 
   @override
   State<StatefulWidget> createState() => LoadingDialogWidgetState();
@@ -39,8 +41,12 @@ class LoadingDialogWidgetState extends State<LoadingDialogWidget> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                LottieUtil.load(LottieUtil.getLoadingPath(context),
-                    size: widget.size),
+                LottieUtil.load(
+                  LottieUtil.getLoadingPath(context),
+                  size: widget.size,
+                  fit: BoxFit.fill,
+                  scale: widget.scale * 1.8,
+                ),
                 if (widget.title != null) const SizedBox(height: 16),
                 if (widget.title != null)
                   Text(

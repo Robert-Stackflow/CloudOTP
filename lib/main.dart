@@ -79,11 +79,12 @@ Future<void> initWindow() async {
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
+    position: position,
   );
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
-    if (position != Offset.zero) await windowManager.setPosition(position);
+    // if (position != Offset.zero) await windowManager.setPosition(position);
   });
 }
 

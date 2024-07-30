@@ -14,6 +14,8 @@ import '../Database/category_dao.dart';
 import '../Models/category.dart';
 import '../Utils/utils.dart';
 import '../generated/l10n.dart';
+import 'Backup/backup.dart';
+import 'Backup/backup_encrypt_interface.dart';
 import 'Backup/backup_encrypt_v1.dart';
 
 class ImportAnalysis {
@@ -153,20 +155,22 @@ class ImportTokenUtil {
         IToast.showTop(S.current.fileNotExist);
         return;
       } else {
-        file.readAsBytes().then((content) {
-          BackupEncryptionV1().decrypt(content, password).then((backup) async {
-            ImportAnalysis analysis = ImportAnalysis();
-            analysis.parseSuccess = backup.tokens.length;
-            analysis.parseCategorySuccess = backup.categories.length;
-            analysis.importSuccess = await mergeTokens(backup.tokens);
-            analysis.importCategorySuccess =
-                await mergeCategories(backup.categories);
-            analysis.showToast(S.current.fileDoesNotContainToken);
-          });
-        });
+        Uint8List content = file.readAsBytesSync();
+        Backup backup = await BackupEncryptionV1().decrypt(content, password);
+        ImportAnalysis analysis = ImportAnalysis();
+        analysis.parseSuccess = backup.tokens.length;
+        analysis.parseCategorySuccess = backup.categories.length;
+        analysis.importSuccess = await mergeTokens(backup.tokens);
+        analysis.importCategorySuccess =
+            await mergeCategories(backup.categories);
+        analysis.showToast(S.current.fileDoesNotContainToken);
       }
-    } catch (e) {
-      IToast.showTop(S.current.importFailed);
+    } catch (e, t) {
+      if (e is BackupBaseException) {
+        IToast.showTop(e.message);
+      } else {
+        IToast.showTop(S.current.importFailed);
+      }
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();

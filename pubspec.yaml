@@ -1,6 +1,7 @@
 name: cloudotp
 version: 2.0.0
 description: An awesome two-factor authenticator which supports dropbox
+publish_to: none
 
 environment:
   sdk: '>=3.1.4 <4.0.0'
@@ -21,9 +22,6 @@ dependencies:
     path: third-party/group_button
   pretty_qr_code: ^3.3.0
   path_drawing: ^1.0.1 # 路径绘制
-  #  video_player_media_kit: ^1.0.5 # 视频播放
-  #  media_kit_libs_windows_video: ^1.0.9
-  custom_sliding_segmented_control: ^1.8.3 # 分段控制器
   flutter_inappwebview: ^6.0.0 # Webview
   extended_nested_scroll_view: ^6.2.1 # 嵌套滚动
   animated_text_kit: ^4.2.2 # 文字动画
@@ -62,6 +60,7 @@ dependencies:
   cached_network_image: ^3.2.1 # 网络图片缓存
   flutter_cache_manager: ^3.3.1 # 缓存管理
   process_run: ^1.0.0+1 # 运行
+  webdav_client: ^1.2.2 # WebDAV
   screen_capturer:
     path: third-party/screen_capturer
   # 工具
@@ -81,7 +80,8 @@ dependencies:
   responsive_builder: ^0.7.1 # 响应式布局
   tray_manager: ^0.2.3 # 托盘图标
   flutter_resizable_container: ^2.0.0 # 可调整大小的容器
-  window_manager: ^0.3.9 # 窗口管理
+  window_manager:
+    path: third-party/window_manager
 
 dependency_overrides:
   webview_flutter_android: 3.16.1

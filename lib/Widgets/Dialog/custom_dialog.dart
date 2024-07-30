@@ -709,6 +709,7 @@ class CustomLoadingDialog {
     bool dismissible = false,
     String? title,
     double size = 40,
+    double scale = 1,
   }) {
     showDialog(
       barrierDismissible: dismissible,
@@ -718,6 +719,7 @@ class CustomLoadingDialog {
           dismissible: dismissible,
           title: title,
           size: size,
+          scale:scale,
         );
       },
     );

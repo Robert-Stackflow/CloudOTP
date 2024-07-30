@@ -1,6 +1,7 @@
 import 'package:cloudotp/Resources/colors.dart';
 import 'package:flutter/material.dart';
 
+import '../generated/l10n.dart';
 import 'fonts.dart';
 
 class ThemeColorData {
@@ -82,13 +83,28 @@ class ThemeColorData {
     required this.tagColor,
   });
 
+  String get intlName {
+    switch (id) {
+      case "pureWhite":
+        return S.current.pureWhite;
+      case "freshGreen":
+        return S.current.freshGreen;
+      case "pureBlack":
+        return S.current.pureBlack;
+      case "blueIron":
+        return S.current.blueIron;
+      default:
+        return name;
+    }
+  }
+
   static List<ThemeColorData> defaultLightThemes = [
     ThemeColorData(
       id: "pureWhite",
       name: "极简白",
       background: const Color(0xFFF7F8F9),
       canvasBackground: const Color(0xFFFFFFFF),
-      primaryColor: const Color(0xFF14C2BB),
+      primaryColor: const Color(0xFF11B566),
       iconColor: const Color(0xFF333333),
       splashColor: const Color(0x44c8c8c8),
       highlightColor: const Color(0x44bcbcbc),
@@ -137,7 +153,7 @@ class ThemeColorData {
       name: "极简黑",
       background: const Color(0xFF151515),
       canvasBackground: const Color(0xFF232326),
-      primaryColor: const Color(0xFF14C2BB),
+      primaryColor: const Color(0xFF11B566),
       iconColor: const Color(0xFFCACACA),
       splashColor: const Color(0x12cccccc),
       highlightColor: const Color(0x12cfcfcf),
