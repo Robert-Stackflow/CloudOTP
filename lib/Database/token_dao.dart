@@ -4,7 +4,7 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:sqflite/sqflite.dart';
 
 class TokenDao {
-  static const String tableName = "token";
+  static const String tableName = "otp_token";
 
   static Future<int> insertToken(OtpToken token) async {
     final db = await DatabaseManager.getDataBase();

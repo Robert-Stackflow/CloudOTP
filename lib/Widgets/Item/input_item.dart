@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,8 +16,9 @@ class InputStateController {
   TextEditingController controller;
   InputState state = InputState.normal;
   String? errorMessage;
-  String? Function(String) validate;
+  Future<String?> Function(String) validate;
   void Function() onStateChanged = () {};
+  Function()? pop;
 
   InputStateController({
     required this.controller,
@@ -26,30 +29,36 @@ class InputStateController {
     controller.addListener(doValidate);
   }
 
-  String? doValidate() {
-    String? error = validate(controller.text);
+  Future<String?> doValidate() async {
+    String? error = await validate(controller.text);
     errorMessage = error;
     if (Utils.isNotEmpty(error)) {
-      setState(InputState.error);
+      setInputState(InputState.error);
     } else {
-      setState(InputState.success);
+      setInputState(InputState.success);
     }
     onStateChanged();
     return error;
   }
 
   void reset() {
-    setState(InputState.normal);
+    setInputState(InputState.normal);
     errorMessage = null;
     onStateChanged();
   }
 
-  bool isValid() {
-    return doValidate() == null;
+  Future<bool> isValid() async {
+    return await doValidate() == null;
   }
 
-  void setState(InputState state) {
+  void setInputState(InputState state) {
     this.state = state;
+  }
+
+  void setError(String error) {
+    errorMessage = error;
+    setInputState(InputState.error);
+    onStateChanged();
   }
 
   void setTextEditingController(TextEditingController controller) {
@@ -183,7 +192,8 @@ class InputItemState extends State<InputItem> {
     controller = widget.controller ?? TextEditingController();
     obscureText = widget.obscureText ?? false;
     stateController = widget.stateController ??
-        InputStateController(controller: controller, validate: (value) => null);
+        InputStateController(
+            controller: controller, validate: (value) => Future.value(null));
     stateController.onStateChanged = () {
       if (mounted) setState(() {});
     };
@@ -197,7 +207,6 @@ class InputItemState extends State<InputItem> {
     Widget? leading = getLeading();
     Widget? tailing = getTailing();
     return Container(
-      padding: const EdgeInsets.only(right: 10),
       decoration: BoxDecoration(
         color: backgroundColor ?? Theme.of(context).canvasColor,
         shape: BoxShape.rectangle,

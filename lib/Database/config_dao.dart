@@ -4,7 +4,7 @@ import '../Models/config.dart';
 import 'database_manager.dart';
 
 class ConfigDao {
-  static const String tableName = "config";
+  static const String tableName = "cloudotp_config";
 
   static Future<int> initConfig() async {
     if (await hasConfig()) return 0;

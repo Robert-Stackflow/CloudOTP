@@ -258,18 +258,8 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _processEdit() {
-    if (ResponsiveUtil.isLandscape()) {
-      DialogBuilder.showPageDialog(
-        context,
-        child: AddTokenScreen(token: widget.token),
-        showClose: false,
-      );
-    } else {
-      RouteUtil.pushCupertinoRoute(
-        context,
-        AddTokenScreen(token: widget.token),
-      );
-    }
+    RouteUtil.pushDialogRoute(context, AddTokenScreen(token: widget.token),
+        showClose: false);
   }
 
   _processPin() {

@@ -24,7 +24,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
   @override
   Future<Uint8List> encrypt(Backup backup, String password) async {
     if (password.isEmpty) {
-      throw EmptyPasswordException(S.current.cannotEncryptWithoutPassword);
+      throw EncryptEmptyPasswordException();
     }
 
     final random = SecureRandom("Fortuna")
@@ -58,11 +58,11 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
   @override
   Future<Backup> decrypt(Uint8List data, String password) async {
     if (password.isEmpty) {
-      throw EmptyPasswordException(S.current.cannotDecryptWithoutPassword);
+      throw DecryptEmptyPasswordException();
     }
 
     if (!canBeDecrypted(data)) {
-      throw BackupVersionUnsupportException(S.current.backupVersionUnsupport);
+      throw BackupVersionUnsupportException();
     }
 
     final headerBytes = utf8.encode(header);
@@ -84,8 +84,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
     try {
       unencryptedData = cipher.process(encryptedData);
     } catch (e) {
-      throw InvalidPasswordOrDataCorruptedException(
-          S.current.invalidPasswordOrDataCorrupted);
+      throw InvalidPasswordOrDataCorruptedException();
     }
 
     final json = utf8.decode(unencryptedData);
@@ -105,7 +104,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
       }
       return true;
     } catch (e) {
-      throw FileNotBackupException(S.current.fileNotBackup);
+      throw FileNotBackupException();
     }
   }
 

@@ -30,6 +30,38 @@ class FileUtil {
     return path;
   }
 
+  static Future<String> getBackupDir() async {
+    Directory directory = Directory('${await getApplicationDir()}/Backup');
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory.path;
+  }
+
+  static Future<String> getScreenshotDir() async {
+    Directory directory = Directory('${await getApplicationDir()}/Screenshots');
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory.path;
+  }
+
+  static Future<String> getLogDir() async {
+    Directory directory = Directory('${await getApplicationDir()}/Log');
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory.path;
+  }
+
+  static Future<String> getHiveDir() async {
+    Directory directory = Directory('${await getApplicationDir()}/Hive');
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory.path;
+  }
+
   static String extractFileNameFromUrl(String imageUrl) {
     return Uri.parse(imageUrl).pathSegments.last;
   }

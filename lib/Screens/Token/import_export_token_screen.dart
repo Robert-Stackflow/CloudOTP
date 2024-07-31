@@ -15,6 +15,7 @@ import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
+import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
 class ImportExportTokenScreen extends StatefulWidget {
@@ -76,6 +77,40 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
     );
   }
 
+  _showImportPasswordDialog(
+      Function(TextEditingController, InputStateController, String)?
+          onValidConfirm) {
+    TextEditingController controller = TextEditingController();
+    InputStateController stateController = InputStateController(
+      controller: controller,
+      validate: (value) {
+        if (value.isEmpty) {
+          return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);
+        }
+        return Future.value(null);
+      },
+    );
+    BottomSheetBuilder.showBottomSheet(
+      context,
+      responsive: true,
+      (context) => InputBottomSheet(
+        controller: controller,
+        stateController: stateController,
+        title: S.current.inputImportPasswordTitle,
+        message: S.current.inputImportPasswordTip,
+        hint: S.current.inputImportPasswordHint,
+        inputFormatters: [
+          RegexInputFormatter.onlyNumberAndLetter,
+        ],
+        tailingType: InputItemTailingType.password,
+        preventPop: true,
+        onValidConfirm: (password) async {
+          onValidConfirm?.call(controller, stateController, password);
+        },
+      ),
+    );
+  }
+
   _buildBody() {
     return ListView(
       physics: const BouncingScrollPhysics(),
@@ -94,23 +129,27 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               lockParentWindow: true,
             );
             if (result != null) {
+              operation() {
+                _showImportPasswordDialog(
+                    (controller, stateController, password) async {
+                  bool success = await ImportTokenUtil.importEncryptFile(
+                      result.files.single.path!, password);
+                  if (success) {
+                    stateController.pop?.call();
+                  } else {
+                    stateController
+                        .setError(S.current.encryptDatabasePasswordWrong);
+                  }
+                });
+              }
+
               if (await HiveUtil.canImportOrExportUseBackupPassword()) {
-                ImportTokenUtil.importEncryptFile(result.files.single.path!,
+                bool success = await ImportTokenUtil.importEncryptFile(
+                    result.files.single.path!,
                     await ConfigDao.getBackupPassword());
+                if (!success) operation();
               } else {
-                BottomSheetBuilder.showBottomSheet(
-                  context,
-                  responsive: true,
-                  (context) => InputBottomSheet(
-                    title: S.current.inputImportPasswordTitle,
-                    message: S.current.inputImportPasswordTip,
-                    hint: S.current.inputImportPasswordHint,
-                    onConfirm: (password) {
-                      ImportTokenUtil.importEncryptFile(
-                          result.files.single.path!, password);
-                    },
-                  ),
-                );
+                operation();
               }
             }
           },
@@ -127,23 +166,27 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               lockParentWindow: true,
             );
             if (result != null) {
+              operation() {
+                _showImportPasswordDialog(
+                    (controller, stateController, password) async {
+                  bool success = await ImportTokenUtil.importOldEncryptFile(
+                      result.files.single.path!, password);
+                  if (success) {
+                    stateController.pop?.call();
+                  } else {
+                    stateController
+                        .setError(S.current.encryptDatabasePasswordWrong);
+                  }
+                });
+              }
+
               if (await HiveUtil.canImportOrExportUseBackupPassword()) {
-                ImportTokenUtil.importOldEncryptFile(result.files.single.path!,
+                bool success = await ImportTokenUtil.importOldEncryptFile(
+                    result.files.single.path!,
                     await ConfigDao.getBackupPassword());
+                if (!success) operation();
               } else {
-                BottomSheetBuilder.showBottomSheet(
-                  context,
-                  responsive: true,
-                  (context) => InputBottomSheet(
-                    title: S.current.inputImportPasswordTitle,
-                    message: S.current.inputImportPasswordTip,
-                    hint: S.current.inputImportPasswordHint,
-                    onConfirm: (password) {
-                      ImportTokenUtil.importOldEncryptFile(
-                          result.files.single.path!, password);
-                    },
-                  ),
-                );
+                operation();
               }
             }
           },
@@ -196,6 +239,17 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                 ExportTokenUtil.exportEncryptFile(
                     result, await ConfigDao.getBackupPassword());
               } else {
+                TextEditingController controller = TextEditingController();
+                InputStateController stateController = InputStateController(
+                  controller: controller,
+                  validate: (value) {
+                    if (value.isEmpty) {
+                      return Future.value(
+                          S.current.encryptDatabasePasswordCannotBeEmpty);
+                    }
+                    return Future.value(null);
+                  },
+                );
                 BottomSheetBuilder.showBottomSheet(
                   context,
                   responsive: true,
@@ -203,7 +257,13 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                     title: S.current.setExportPasswordTitle,
                     message: S.current.setExportPasswordTip,
                     hint: S.current.setExportPasswordHint,
-                    onConfirm: (password) {
+                    tailingType: InputItemTailingType.password,
+                    inputFormatters: [
+                      RegexInputFormatter.onlyNumberAndLetter,
+                    ],
+                    controller: controller,
+                    stateController: stateController,
+                    onValidConfirm: (password) {
                       ExportTokenUtil.exportEncryptFile(result, password);
                     },
                   ),

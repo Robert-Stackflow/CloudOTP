@@ -42,6 +42,7 @@ class InputBottomSheet extends StatefulWidget {
     this.maxLength,
     this.inputFormatters = const [],
     this.leadingMinWidth,
+    this.preventPop = false,
   });
 
   final String? hint;
@@ -77,6 +78,7 @@ class InputBottomSheet extends StatefulWidget {
   final int? maxLength;
   final List<TextInputFormatter> inputFormatters;
   final double? leadingMinWidth;
+  final bool preventPop;
 
   @override
   InputBottomSheetState createState() => InputBottomSheetState();
@@ -92,6 +94,9 @@ class InputBottomSheetState extends State<InputBottomSheet> {
     controller = widget.controller ?? TextEditingController();
     controller.value = TextEditingValue(text: widget.text);
     widget.stateController?.setTextEditingController(controller);
+    widget.stateController?.pop = () {
+      Navigator.of(context).pop();
+    };
     Future.delayed(const Duration(milliseconds: 200), () {
       FocusScope.of(context).requestFocus(_focusNode);
     });
@@ -220,12 +225,12 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 background: Theme.of(context).primaryColor,
                 color: Colors.white,
                 text: S.current.confirm,
-                onTap: () {
-                  String? error = widget.stateController?.doValidate();
+                onTap: () async {
+                  String? error = await widget.stateController?.doValidate();
                   widget.onConfirm?.call(controller.text);
                   if (error == null) {
                     widget.onValidConfirm?.call(controller.text);
-                    Navigator.of(context).pop();
+                    if (!widget.preventPop) Navigator.of(context).pop();
                   }
                 },
                 fontSizeDelta: 2,

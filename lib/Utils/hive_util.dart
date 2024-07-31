@@ -9,6 +9,7 @@ import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../Screens/Setting/setting_screen.dart';
 import 'constant.dart';
 
 class HiveUtil {
@@ -20,6 +21,7 @@ class HiveUtil {
 
   //Auth
   static const String deviceIdKey = "deviceId";
+  static const String defaultDatabasePasswordKey = "defaultDatabasePassword";
   static const String cookieKey = "cookieKey";
 
   //General
@@ -59,14 +61,15 @@ class HiveUtil {
   static const String navItemsKey = "navItems";
 
   //Backup
-  static const String autoBackupKey = "autoBackup";
+  static const String enableAutoBackupKey = "enableAutoBackup";
+  static const String enableCloudBackupKey = "enableCloudBackup";
   static const String backupPathKey = "backupPath";
   static const String useBackupPasswordToExportImportKey =
       "useBackupPasswordToExportImport";
 
   //Encrypt
   static const String enableEncryptKey = "enableEncrypt";
-  static const String hasEncryptPasswordKey = "hasEncryptPassword";
+  static const String encryptDatabaseStatusKey = "encryptDatabaseStatus";
 
   //Privacy
   static const String enableGuesturePasswdKey = "enableGuesturePasswd";
@@ -80,9 +83,16 @@ class HiveUtil {
   static const String firstLoginKey = "firstLogin";
 
   static initConfig() async {
-    HiveUtil.put(HiveUtil.inappWebviewKey, true);
-    HiveUtil.put(HiveUtil.enableSafeModeKey, true);
-    HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getApplicationDir());
+    await HiveUtil.put(HiveUtil.inappWebviewKey, true);
+    await HiveUtil.put(HiveUtil.enableSafeModeKey, true);
+    await HiveUtil.put(
+        HiveUtil.backupPathKey, await FileUtil.getBackupDir());
+  }
+
+  static Future<String> regeneratePassword() async {
+    String password = Utils.getRandomString(length: 16);
+    await put(HiveUtil.defaultDatabasePasswordKey, password);
+    return password;
   }
 
   static Future<bool> canImportOrExportUseBackupPassword() async {
@@ -91,7 +101,7 @@ class HiveUtil {
   }
 
   static Future<bool> canBackup() async {
-    return HiveUtil.getBool(HiveUtil.autoBackupKey) &&
+    return HiveUtil.getBool(HiveUtil.enableAutoBackupKey) &&
         Utils.isNotEmpty(HiveUtil.getString(HiveUtil.backupPathKey)) &&
         await ConfigDao.hasBackupPassword();
   }
@@ -103,6 +113,16 @@ class HiveUtil {
   static LayoutType getLayoutType() {
     return LayoutType.values[Utils.patchEnum(
         HiveUtil.getInt(HiveUtil.layoutTypeKey), LayoutType.values.length)];
+  }
+
+  static EncryptDatabaseStatus getEncryptDatabaseStatus() {
+    return EncryptDatabaseStatus.values[Utils.patchEnum(
+        HiveUtil.getInt(HiveUtil.encryptDatabaseStatusKey),
+        EncryptDatabaseStatus.values.length)];
+  }
+
+  static void setEncryptDatabaseStatus(EncryptDatabaseStatus status) {
+    HiveUtil.put(HiveUtil.encryptDatabaseStatusKey, status.index);
   }
 
   static setOrderType(OrderType type) {

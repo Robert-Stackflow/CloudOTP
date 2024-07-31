@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloudotp/Database/database_manager.dart';
+import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
+import 'package:cloudotp/Screens/Lock/pin_verify_screen.dart';
+import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
@@ -46,7 +49,15 @@ Future<void> runMyApp(List<String> args) async {
     initTray();
     await HotKeyManager.instance.unregisterAll();
   }
-  runApp(const MyApp());
+  late Widget home;
+  if (!DatabaseManager.initialized) {
+    home = const DatabaseDecryptScreen();
+  } else if (HiveUtil.shouldAutoLock()) {
+    home = const PinVerifyScreen();
+  } else {
+    home = const MainScreen();
+  }
+  runApp(MyApp(home: home));
   FlutterNativeSplash.remove();
 }
 
@@ -56,8 +67,20 @@ Future<void> initApp() async {
   imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await DatabaseManager.initDataBase("123456");
-  Hive.defaultDirectory = await FileUtil.getApplicationDir();
+  Hive.defaultDirectory = await FileUtil.getHiveDir();
+  if (HiveUtil.isFirstLogin()) {
+    await HiveUtil.initConfig();
+    HiveUtil.setFirstLogin();
+  }
+  try {
+    if (HiveUtil.getEncryptDatabaseStatus() !=
+        EncryptDatabaseStatus.customPassword) {
+      await DatabaseManager.initDataBase(
+          HiveUtil.getString(HiveUtil.defaultDatabasePasswordKey) ?? "");
+    }
+  } catch (e) {
+    HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.customPassword);
+  }
   NotificationUtil.init();
   await TokenImageUtil.loadBrandLogos();
 }
@@ -121,7 +144,7 @@ Future<void> initDisplayMode() async {
 }
 
 Future<void> onError(FlutterErrorDetails details) async {
-  File errorFile = File("${await FileUtil.getApplicationDir()}/error.log");
+  File errorFile = File("${await FileUtil.getLogDir()}\\error.log");
   if (!errorFile.existsSync()) errorFile.createSync();
   errorFile
       .writeAsStringSync(errorFile.readAsStringSync() + details.toString());

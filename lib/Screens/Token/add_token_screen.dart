@@ -114,65 +114,65 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       controller: _issuerController,
       validate: (text) {
         if (text.isEmpty) {
-          return S.current.issuerCannotBeEmpty;
+          return Future.value(S.current.issuerCannotBeEmpty);
         }
-        return null;
+        return Future.value(null);
       },
     );
     _secretStateController = InputStateController(
       controller: _secretController,
       validate: (text) {
         if (text.isEmpty) {
-          return S.current.secretCannotBeEmpty;
+          return Future.value(S.current.secretCannotBeEmpty);
         }
         if (_otpToken.tokenType == OtpTokenType.Steam &&
             !CheckTokenUtil.isSecretBase32(text)) {
-          return S.current.secretNotBase32;
+          return Future.value(S.current.secretNotBase32);
         }
-        return null;
+        return Future.value(null);
       },
     );
     _pinStateController = InputStateController(
       controller: _pinController,
       validate: (text) {
         if (text.isEmpty) {
-          return S.current.pinCannotBeEmpty;
+          return Future.value(S.current.pinCannotBeEmpty);
         }
-        return null;
+        return Future.value(null);
       },
     );
     _periodStateController = InputStateController(
       controller: _periodController,
       validate: (text) {
         if (text.isEmpty) {
-          return S.current.periodCannotBeEmpty;
+          return Future.value(S.current.periodCannotBeEmpty);
         }
         if (int.tryParse(text) == null) {
-          return S.current.periodTooLong;
+          return Future.value(S.current.periodTooLong);
         }
-        return null;
+        return Future.value(null);
       },
     );
     _counterStateController = InputStateController(
       controller: _counterController,
       validate: (text) {
         if (text.isEmpty) {
-          return S.current.counterCannotBeEmpty;
+          return Future.value(S.current.counterCannotBeEmpty);
         }
         if (int.tryParse(text) == null) {
-          return S.current.counterTooLong;
+          return Future.value(S.current.counterTooLong);
         }
-        return null;
+        return Future.value(null);
       },
     );
   }
 
-  bool isValid() {
-    bool issuerValid = _issuerStateController.isValid();
-    bool secretValid = _secretStateController.isValid();
-    bool pinValid = _pinStateController.isValid();
-    bool periodValid = _periodStateController.isValid();
-    bool counterValid = _counterStateController.isValid();
+  Future<bool> isValid() async {
+    bool issuerValid = await _issuerStateController.isValid();
+    bool secretValid = await _secretStateController.isValid();
+    bool pinValid = await _pinStateController.isValid();
+    bool periodValid = await _periodStateController.isValid();
+    bool counterValid = await _counterStateController.isValid();
     return issuerValid &&
         secretValid &&
         pinValid &&
@@ -230,7 +230,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   }
 
   processDone() async {
-    if (isValid()) {
+    if (await isValid()) {
       bool success = false;
       try {
         if (_isEditing) {
@@ -331,6 +331,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               context: context,
               topRadius: true,
               bottomRadius: true,
+              padding: const EdgeInsets.only(right: 10),
               child: Column(
                 children: [
                   ItemBuilder.buildGroupTile(
@@ -365,7 +366,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               context: context,
               topRadius: true,
               bottomRadius: true,
-              padding: const EdgeInsets.only(top: 15, bottom: 5),
+              padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
               child: Column(
                 children: [
                   InputItem(
@@ -420,7 +421,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               context: context,
               topRadius: true,
               bottomRadius: true,
-              padding: const EdgeInsets.only(top: 15, bottom: 5),
+              padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
               child: Column(
                 children: [
                   Visibility(

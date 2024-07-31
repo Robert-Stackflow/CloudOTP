@@ -270,12 +270,12 @@ class OtpToken {
       'counter': counter,
       'period': period,
       'pinned': pinned ? 1 : 0,
-      'create_time_stamp': createTimeStamp,
-      'edit_time_stamp': editTimeStamp,
+      'create_timestamp': createTimeStamp,
+      'edit_timestamp': editTimeStamp,
       'remark': jsonEncode(remark),
       'copy_times': copyTimes,
       'pin': pin,
-      'last_copy_time_stamp': lastCopyTimeStamp,
+      'last_copy_timestamp': lastCopyTimeStamp,
     };
   }
 
@@ -293,11 +293,11 @@ class OtpToken {
       counterString: map['counter'].toString(),
       periodString: map['period'].toString(),
       pinned: map['pinned'] == 1,
-      createTimeStamp: map['create_time_stamp'],
-      editTimeStamp: map['edit_time_stamp'],
+      createTimeStamp: map['create_timestamp'],
+      editTimeStamp: map['edit_timestamp'],
       remark: jsonDecode(map['remark'] ?? "{}"),
       copyTimes: map['copy_times'],
-      lastCopyTimeStamp: map['last_copy_time_stamp'],
+      lastCopyTimeStamp: map['last_copy_timestamp'],
       pin: map['pin'],
     );
   }

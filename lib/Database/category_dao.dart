@@ -7,7 +7,7 @@ import '../TokenUtils/export_token_util.dart';
 import 'database_manager.dart';
 
 class CategoryDao {
-  static const String tableName = "category";
+  static const String tableName = "token_category";
 
   static Future<int> insertCategory(TokenCategory category) async {
     final db = await DatabaseManager.getDataBase();

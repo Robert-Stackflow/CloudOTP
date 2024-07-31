@@ -1,3 +1,4 @@
+import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
@@ -67,5 +68,19 @@ class RouteUtil {
       context,
       getFadeRoute(page),
     ).then(onThen ?? (_) => {});
+  }
+
+  static pushDialogRoute(BuildContext context, Widget page,
+      {bool barrierDismissible = true, bool showClose = true}) {
+    if (ResponsiveUtil.isLandscape()) {
+      DialogBuilder.showPageDialog(
+        context,
+        child: page,
+        barrierDismissible: barrierDismissible,
+        showClose: showClose,
+      );
+    } else {
+      pushCupertinoRoute(context, page);
+    }
   }
 }

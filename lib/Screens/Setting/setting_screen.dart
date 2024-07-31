@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:cloudotp/Database/config_dao.dart';
+import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
+import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
@@ -12,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../Database/database_manager.dart';
 import '../../Database/token_dao.dart';
 import '../../Models/github_response.dart';
 import '../../Resources/fonts.dart';
@@ -34,6 +39,8 @@ import '../../generated/l10n.dart';
 import '../Lock/pin_change_screen.dart';
 import '../Lock/pin_verify_screen.dart';
 
+enum EncryptDatabaseStatus { defaultPassword, customPassword }
+
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
 
@@ -50,7 +57,8 @@ class _SettingScreenState extends State<SettingScreen>
   FontEnum _currentFont = FontEnum.getCurrentFont();
   bool _enableGuesturePasswd =
       HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);
-  bool _autoBackup = HiveUtil.getBool(HiveUtil.autoBackupKey);
+  bool _enableAutoBackup = HiveUtil.getBool(HiveUtil.enableAutoBackupKey);
+  bool _enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
   bool _useBackupPasswordToExportImport =
       HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey);
   bool _hasGuesturePasswd =
@@ -76,9 +84,8 @@ class _SettingScreenState extends State<SettingScreen>
   bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
   String _autoBackupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
   String _autoBackupPassword = "";
-  bool _enableEncrypt = HiveUtil.getBool(HiveUtil.enableEncryptKey);
-  bool _hasEncryptPassword =
-      HiveUtil.getBool(HiveUtil.hasEncryptPasswordKey, defaultValue: false);
+  EncryptDatabaseStatus _encryptDatabaseStatus =
+      HiveUtil.getEncryptDatabaseStatus();
 
   @override
   void initState() {
@@ -109,7 +116,6 @@ class _SettingScreenState extends State<SettingScreen>
             ..._apperanceSettings(),
             ..._operationSettings(),
             ..._backupSettings(),
-            ..._encryptSettings(),
             ..._privacySettings(),
             if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
             if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
@@ -269,14 +275,14 @@ class _SettingScreenState extends State<SettingScreen>
         context: context,
         value: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty
             ? false
-            : _autoBackup,
+            : _enableAutoBackup,
         title: S.current.autoBackup,
         description: S.current.autoBackupTip,
         disabled: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty,
         onTap: () {
           setState(() {
-            _autoBackup = !_autoBackup;
-            HiveUtil.put(HiveUtil.autoBackupKey, _autoBackup);
+            _enableAutoBackup = !_enableAutoBackup;
+            HiveUtil.put(HiveUtil.enableAutoBackupKey, _enableAutoBackup);
           });
         },
       ),
@@ -323,9 +329,10 @@ class _SettingScreenState extends State<SettingScreen>
                 controller: controller,
                 validate: (text) {
                   if (text.isEmpty) {
-                    return S.current.autoBackupPasswordCannotBeEmpty;
+                    return Future.value(
+                        S.current.autoBackupPasswordCannotBeEmpty);
                   }
-                  return null;
+                  return Future.value(null);
                 },
               ),
               inputFormatters: [
@@ -345,11 +352,39 @@ class _SettingScreenState extends State<SettingScreen>
           );
         },
       ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty
+            ? false
+            : _enableAutoBackup,
+        title: S.current.enableCloudBackup,
+        description: S.current.enableCloudBackupTip,
+        disabled: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty,
+        onTap: () {
+          setState(() {
+            _enableCloudBackup = !_enableCloudBackup;
+            HiveUtil.put(HiveUtil.enableCloudBackupKey, _enableCloudBackup);
+          });
+        },
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        title: S.current.cloudBackupServiceSetting,
+        description: S.current.cloudBackupServiceSettingTip,
+        onTap: () async {
+          RouteUtil.pushDialogRoute(
+            context,
+            const WebDavServiceScreen(),
+            showClose: false,
+          );
+        },
+      ),
       Visibility(
         visible: _autoBackupPath.isNotEmpty && _autoBackupPassword.isNotEmpty,
         child: ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.immediatelyBackup,
+          description: S.current.immediatelyBackupTip,
           onTap: () async {
             ExportTokenUtil.backupEncryptFile(showLoading: true);
           },
@@ -374,81 +409,16 @@ class _SettingScreenState extends State<SettingScreen>
     ];
   }
 
-  _encryptSettings() {
-    return [
-      const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.encryptSetting),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: _enableEncrypt,
-        title: S.current.encryptDatabase,
-        description: S.current.encryptDatabaseTip,
-        onTap: () {
-          setState(() {
-            _enableEncrypt = !_enableEncrypt;
-            HiveUtil.put(HiveUtil.enableEncryptKey, _enableEncrypt);
-          });
-        },
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        bottomRadius: !_hasEncryptPassword,
-        title: _hasEncryptPassword
-            ? S.current.editEncryptDatabasePassword
-            : S.current.setEncryptDatabasePassword,
-        onTap: () {
-          BottomSheetBuilder.showBottomSheet(
-            context,
-            responsive: true,
-            (context) => InputPasswordBottomSheet(
-              title: _hasEncryptPassword
-                  ? S.current.editEncryptDatabasePassword
-                  : S.current.setEncryptDatabasePassword,
-              message: _hasEncryptPassword
-                  ? S.current.editEncryptDatabasePasswordTip
-                  : S.current.setEncryptDatabasePasswordTip,
-              onConfirm: (passord, confirmPassword) async {},
-              onValidConfirm: (passord, confirmPassword) async {
-                IToast.showTop(_hasEncryptPassword
-                    ? S.current.editSuccess
-                    : S.current.setSuccess);
-                HiveUtil.put(HiveUtil.hasEncryptPasswordKey, true);
-                setState(() {
-                  _hasEncryptPassword = true;
-                });
-              },
-            ),
-          );
-        },
-      ),
-      Visibility(
-        visible: _hasEncryptPassword,
-        child: ItemBuilder.buildEntryItem(
-          context: context,
-          bottomRadius: true,
-          title: S.current.clearEncryptDatabasePassword,
-          onTap: () {
-            HiveUtil.put(HiveUtil.hasEncryptPasswordKey, false);
-            IToast.showTop(S.current.clearEncryptDatabasePasswordSuccess);
-            setState(() {
-              _hasEncryptPassword = false;
-            });
-          },
-        ),
-      ),
-    ];
-  }
-
   _privacySettings() {
     return [
       const SizedBox(height: 10),
       ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.privacySetting),
+          context: context, title: S.current.safeSetting),
       ItemBuilder.buildRadioItem(
         context: context,
         value: _enableGuesturePasswd,
         title: S.current.enableGestureLock,
+        description: S.current.enableGestureLockTip,
         onTap: onEnablePinTapped,
       ),
       Visibility(
@@ -517,9 +487,42 @@ class _SettingScreenState extends State<SettingScreen>
         value: _enableSafeMode,
         title: S.current.safeMode,
         disabled: ResponsiveUtil.isDesktop(),
-        bottomRadius: true,
         description: S.current.safeModeTip,
         onTap: onSafeModeTapped,
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        bottomRadius: true,
+        title: S.current.editEncryptDatabasePassword,
+        description: S.current.encryptDatabaseTip,
+        tip: _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword
+            ? S.current.defaultEncryptDatabasePassword
+            : S.current.customEncryptDatabasePassword,
+        onTap: () {
+          BottomSheetBuilder.showBottomSheet(
+            context,
+            responsive: true,
+            (context) => InputPasswordBottomSheet(
+              title: S.current.editEncryptDatabasePassword,
+              message: S.current.editEncryptDatabasePasswordTip,
+              onConfirm: (passord, confirmPassword) async {},
+              onValidConfirm: (passord, confirmPassword) async {
+                bool res = await DatabaseManager.changePassword(passord);
+                if (res) {
+                  IToast.showTop(S.current.editSuccess);
+                  HiveUtil.setEncryptDatabaseStatus(
+                      EncryptDatabaseStatus.customPassword);
+                  setState(() {
+                    _encryptDatabaseStatus =
+                        EncryptDatabaseStatus.customPassword;
+                  });
+                } else {
+                  IToast.showTop(S.current.editFailed);
+                }
+              },
+            ),
+          );
+        },
       ),
     ];
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import '../../generated/l10n.dart';
 import './backup.dart';
 
 abstract class BackupEncryptInterface {
@@ -12,24 +13,42 @@ abstract class BackupEncryptInterface {
 }
 
 class BackupBaseException implements Exception {
-  final String message;
+  final String? message;
 
-  BackupBaseException(this.message);
+  String get intlMessage {
+    if (this is EncryptEmptyPasswordException) {
+      return S.current.cannotEncryptWithoutPassword;
+    }else if (this is DecryptEmptyPasswordException) {
+      return S.current.cannotDecryptWithoutPassword;
+    } else if (this is BackupVersionUnsupportException) {
+      return S.current.backupVersionUnsupport;
+    } else if (this is FileNotBackupException) {
+      return S.current.fileNotBackup;
+    } else if (this is InvalidPasswordOrDataCorruptedException) {
+      return S.current.invalidPasswordOrDataCorrupted;
+    }
+    return message ?? "";
+  }
+
+  BackupBaseException({this.message});
 }
 
-class EmptyPasswordException extends BackupBaseException {
-  EmptyPasswordException(super.message);
+class EncryptEmptyPasswordException extends BackupBaseException {
+  EncryptEmptyPasswordException({super.message});
+}
+
+class DecryptEmptyPasswordException extends BackupBaseException {
+  DecryptEmptyPasswordException({super.message});
 }
 
 class BackupVersionUnsupportException extends BackupBaseException {
-  BackupVersionUnsupportException(super.message);
+  BackupVersionUnsupportException({super.message});
 }
 
 class FileNotBackupException extends BackupBaseException {
-  FileNotBackupException(super.message);
+  FileNotBackupException({super.message});
 }
 
-
 class InvalidPasswordOrDataCorruptedException extends BackupBaseException {
-  InvalidPasswordOrDataCorruptedException(super.message);
+  InvalidPasswordOrDataCorruptedException({super.message});
 }

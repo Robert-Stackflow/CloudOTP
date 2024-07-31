@@ -81,7 +81,7 @@ class ExportTokenUtil {
       IToast.showTop(S.current.exportSuccess);
     } catch (e) {
       if (e is BackupBaseException) {
-        IToast.showTop(e.message);
+        IToast.showTop(e.intlMessage);
       } else {
         IToast.showTop(S.current.exportFailed);
       }
@@ -123,7 +123,7 @@ class ExportTokenUtil {
       IToast.showTop(S.current.backupSuccess);
     } catch (e) {
       if (e is BackupBaseException) {
-        IToast.showTop(e.message);
+        IToast.showTop(e.intlMessage);
       } else {
         IToast.showTop(S.current.exportFailed);
       }

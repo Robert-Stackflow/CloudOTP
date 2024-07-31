@@ -5,6 +5,7 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/iprint.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:flutter/cupertino.dart';
@@ -114,7 +115,7 @@ class ImportTokenUtil {
     }
   }
 
-  static importOldEncryptFile(
+  static Future<bool> importOldEncryptFile(
     String filePath,
     String password, {
     bool showLoading = true,
@@ -126,7 +127,7 @@ class ImportTokenUtil {
       File file = File(filePath);
       if (!file.existsSync()) {
         IToast.showTop(S.current.fileNotExist);
-        return;
+        return true;
       } else {
         List<OtpToken>? tokens = await compute((_) async {
           Uint8List content = file.readAsBytesSync();
@@ -136,7 +137,7 @@ class ImportTokenUtil {
         }, null);
         if (tokens == null) {
           IToast.showTop(S.current.importFailed);
-          return;
+          return true;
         }
         ImportAnalysis analysis = ImportAnalysis();
         analysis.parseSuccess = tokens.length;
@@ -145,9 +146,11 @@ class ImportTokenUtil {
           CustomLoadingDialog.dismissLoading();
         }
         analysis.showToast(S.current.fileDoesNotContainToken);
+        return true;
       }
     } catch (e) {
       IToast.showTop(S.current.importFailed);
+      return false;
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
@@ -155,7 +158,7 @@ class ImportTokenUtil {
     }
   }
 
-  static importEncryptFile(
+  static Future<bool> importEncryptFile(
     String filePath,
     String password, {
     bool showLoading = true,
@@ -167,7 +170,7 @@ class ImportTokenUtil {
       File file = File(filePath);
       if (!file.existsSync()) {
         IToast.showTop(S.current.fileNotExist);
-        return;
+        return true;
       } else {
         Backup backup = await compute((_) async {
           Uint8List content = file.readAsBytesSync();
@@ -180,12 +183,15 @@ class ImportTokenUtil {
         analysis.importCategorySuccess =
             await mergeCategories(backup.categories);
         analysis.showToast(S.current.fileDoesNotContainToken);
+        return true;
       }
-    } catch (e) {
+    } catch (e, t) {
       if (e is BackupBaseException) {
-        IToast.showTop(e.message);
+        IToast.showTop(e.intlMessage);
+        return false;
       } else {
         IToast.showTop(S.current.importFailed);
+        return true;
       }
     } finally {
       if (showLoading) {

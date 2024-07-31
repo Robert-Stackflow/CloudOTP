@@ -41,17 +41,17 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
         controller: _controller,
         validate: (value) {
           if (value.isEmpty) {
-            return S.current.encryptDatabasePasswordCannotBeEmpty;
+            return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);
           }
-          return null;
+          return Future.value(null);
         });
     _confirmStateController = InputStateController(
         controller: _confirmController,
         validate: (value) {
           if (value != _controller.text) {
-            return S.current.encryptDatabasePasswordNotMatch;
+            return Future.value(S.current.encryptDatabasePasswordNotMatch);
           }
-          return null;
+          return Future.value(null);
         });
     Future.delayed(const Duration(milliseconds: 200), () {
       FocusScope.of(context).requestFocus(_focusNode);
@@ -171,9 +171,9 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                 background: Theme.of(context).primaryColor,
                 color: Colors.white,
                 text: S.current.confirm,
-                onTap: () {
-                  String? error1 = _stateController.doValidate();
-                  String? error2 = _confirmStateController.doValidate();
+                onTap: () async {
+                  String? error1 = await _stateController.doValidate();
+                  String? error2 = await _confirmStateController.doValidate();
                   widget.onConfirm
                       ?.call(_controller.text, _confirmController.text);
                   if (error1 == null && error2 == null) {

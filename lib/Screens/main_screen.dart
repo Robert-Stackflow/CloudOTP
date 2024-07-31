@@ -29,6 +29,7 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zxing2/qrcode.dart';
 
+import '../Database/database_manager.dart';
 import '../Resources/fonts.dart';
 import '../TokenUtils/import_token_util.dart';
 import '../Utils/app_provider.dart';
@@ -39,8 +40,11 @@ import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
 import '../Utils/utils.dart';
+import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
+import '../Widgets/Item/input_item.dart';
 import '../Widgets/Scaffold/my_scaffold.dart';
 import '../Widgets/Window/window_button.dart';
 import '../generated/l10n.dart';
@@ -162,8 +166,6 @@ class MainScreenState extends State<MainScreen>
     if (HiveUtil.getBool(HiveUtil.autoCheckUpdateKey)) fetchReleases();
     darkModeController = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkLogin();
-      jumpToPinVerify(autoAuth: true);
       darkModeWidget = LottieUtil.load(
         LottieUtil.sunLight,
         size: 25,
@@ -203,13 +205,6 @@ class MainScreenState extends State<MainScreen>
       } else {
         FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
       }
-    }
-  }
-
-  void checkLogin() {
-    if (HiveUtil.isFirstLogin()) {
-      HiveUtil.initConfig();
-      HiveUtil.setFirstLogin();
     }
   }
 
@@ -445,10 +440,10 @@ class MainScreenState extends State<MainScreen>
 
   capture(CaptureMode mode) async {
     try {
-      Directory directory = Directory(await FileUtil.getApplicationDir());
+      Directory directory = Directory(await FileUtil.getScreenshotDir());
       String imageName =
           'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-      String imagePath = '${directory.path}\\Screenshots\\$imageName';
+      String imagePath = '${directory.path}\\$imageName';
       CapturedData? capturedData = await screenCapturer.capture(
         mode: mode,
         copyToClipboard: false,

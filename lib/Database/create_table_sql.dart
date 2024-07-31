@@ -1,7 +1,7 @@
 enum Sql {
   createTokenTable(
     '''
-      CREATE TABLE token (
+      CREATE TABLE otp_token (
         id INTEGER PRIMARY KEY,
         seq INTEGER NOT NULL,
         issuer TEXT NOT NULL,
@@ -14,32 +14,47 @@ enum Sql {
         counter INTEGER NOT NULL,
         period INTEGER NOT NULL,
         pinned INTEGER NOT NULL,
-        create_time_stamp INTEGER NOT NULL,
-        edit_time_stamp INTEGER NOT NULL,
+        create_timestamp INTEGER NOT NULL,
+        edit_timestamp INTEGER NOT NULL,
         remark TEXT NOT NULL,
         copy_times INTEGER NOT NULL,
-        last_copy_time_stamp INTEGER NOT NULL,
+        last_copy_timestamp INTEGER NOT NULL,
         pin TEXT NOT NULL
       );
     ''',
   ),
   createCategoryTable('''
-      CREATE TABLE category (
+      CREATE TABLE token_category (
         id INTEGER PRIMARY KEY,
         seq INTEGER NOT NULL,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
-        create_time_stamp INTEGER NOT NULL,
-        edit_time_stamp INTEGER NOT NULL,
+        create_timestamp INTEGER NOT NULL,
+        edit_timestamp INTEGER NOT NULL,
         pinned INTEGER NOT NULL,
         token_ids TEXT NOT NULL,
         remark TEXT NOT NULL
       );
     '''),
   createConfigTable('''
-      CREATE TABLE config (
+      CREATE TABLE cloudotp_config (
         id INTEGER PRIMARY KEY,
         backup_password TEXT NOT NULL,
+        remark TEXT NOT NULL
+      );
+    '''),
+  createCloudServiceConfigTable('''
+      CREATE TABLE cloud_service_config (
+        id INTEGER PRIMARY KEY,
+        type INTEGER NOT NULL,
+        endpoint TEXT,
+        account TEXT,
+        secret TEXT,
+        token TEXT,
+        create_timestamp INTEGER NOT NULL,
+        edit_timestamp INTEGER NOT NULL,
+        last_fetch_timestamp INTEGER NOT NULL,
+        last_backup_timestamp INTEGER NOT NULL,
         remark TEXT NOT NULL
       );
     ''');
