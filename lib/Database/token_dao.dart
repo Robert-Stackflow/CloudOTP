@@ -39,7 +39,7 @@ class TokenDao {
     List<Map<String, dynamic>> maps = await db.rawQuery(
       "SELECT MAX(id) as id FROM $tableName",
     );
-    return maps[0]["id"] ?? 0;
+    return maps[0]["id"] ?? -1;
   }
 
   static Future<int> getMaxSeq() async {
@@ -47,7 +47,7 @@ class TokenDao {
     List<Map<String, dynamic>> maps = await db.rawQuery(
       "SELECT MAX(seq) as seq FROM $tableName",
     );
-    return maps[0]["seq"] ?? 0;
+    return maps[0]["seq"] ?? -1;
   }
 
   static Future<int> updateToken(OtpToken token) async {

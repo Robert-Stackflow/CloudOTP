@@ -1,6 +1,7 @@
-import 'package:cloudotp/Database/token_dao.dart';
+import 'dart:typed_data';
+
 import 'package:cloudotp/Models/cloud_service_config.dart';
-import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -8,14 +9,11 @@ import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:webdav_client/webdav_client.dart' as webdav;
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
-import '../../TokenUtils/check_token_util.dart';
-import '../../TokenUtils/token_image_util.dart';
-import '../../Utils/asset_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
@@ -47,6 +45,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   void initState() {
     super.initState();
     loadConfig();
+    RegExp urlRegex = RegExp(
+        r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\://)?(www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}(\:[0-9]{1,5})*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-@]+))*");
     _endpointController.addListener(() {
       _cloudServiceConfig!.endpoint = _endpointController.text;
     });
@@ -60,7 +60,10 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       controller: _endpointController,
       validate: (text) {
         if (text.isEmpty) {
-          return Future.value(S.current.webDAVServerCannotBeEmpty);
+          return Future.value(S.current.webDavServerCannotBeEmpty);
+        }
+        if (!urlRegex.hasMatch(text)) {
+          return Future.value(S.current.webDavServerInvalid);
         }
         return Future.value(null);
       },
@@ -69,7 +72,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       controller: _secretController,
       validate: (text) {
         if (text.isEmpty) {
-          return Future.value(S.current.webDAVPasswordCannotBeEmpty);
+          return Future.value(S.current.webDavPasswordCannotBeEmpty);
         }
         return Future.value(null);
       },
@@ -78,7 +81,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       controller: _accountController,
       validate: (text) {
         if (text.isEmpty) {
-          return Future.value(S.current.webDAVUsernameCannotBeEmpty);
+          return Future.value(S.current.webDavUsernameCannotBeEmpty);
         }
         return Future.value(null);
       },
@@ -91,19 +94,16 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     // a2uk28sqhdijtbet
     _cloudServiceConfig = await CloudServiceConfigDao.getWebdavConfig();
     if (_cloudServiceConfig != null) {
-      _endpointController.text =
-          _cloudServiceConfig!.endpoint ?? "";
-      _accountController.text =
-          _cloudServiceConfig!.account ?? "";
-      _secretController.text =
-          _cloudServiceConfig!.secret ?? "";
+      _endpointController.text = _cloudServiceConfig!.endpoint ?? "";
+      _accountController.text = _cloudServiceConfig!.account ?? "";
+      _secretController.text = _cloudServiceConfig!.secret ?? "";
       if (Utils.isEmpty(_cloudServiceConfig!.endpoint) ||
           Utils.isEmpty(_cloudServiceConfig!.account) ||
           Utils.isEmpty(_cloudServiceConfig!.secret)) {
         return;
       } else {
         _webDavCloudService = WebDavCloudService(_cloudServiceConfig!);
-        ping();
+        ping(showSuccessToast: false);
       }
     } else {
       _cloudServiceConfig =
@@ -141,7 +141,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
           }
         },
         title: Text(
-          S.current.webDAVSetting,
+          S.current.webDavSetting,
           style: Theme.of(context)
               .textTheme
               .titleMedium
@@ -158,8 +158,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             onTap: () {
               DialogBuilder.showInfoDialog(
                 context,
-                title: S.current.webDAVSetting,
-                message: S.current.webDAVSettingTip,
+                title: S.current.webDav,
+                message: S.current.webDavTip,
                 customDialogType: CustomDialogType.normal,
                 onTapDismiss: () {},
               );
@@ -172,15 +172,34 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     );
   }
 
-  ping() {
-    _webDavCloudService!.ping().then((value) {
+  ping({
+    bool showLoading = true,
+    bool showSuccessToast = true,
+  }) async {
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.webDavConnecting);
+    }
+    await _webDavCloudService!.ping().then((value) {
       setState(() {
-        connected = value;
+        connected = value == CloudServiceStatus.success;
       });
       if (!connected) {
-        IToast.showTop(S.current.webDAVConnectFailed);
+        switch (value) {
+          case CloudServiceStatus.connectionError:
+            IToast.show(S.current.webDavConnectionError);
+            break;
+          case CloudServiceStatus.unauthorized:
+            IToast.show(S.current.webDavUnauthorized);
+            break;
+          default:
+            IToast.show(S.current.webDavUnknownError);
+            break;
+        }
+      } else {
+        if (showSuccessToast) IToast.show(S.current.webDavAuthSuccess);
       }
     });
+    if (showLoading) CustomLoadingDialog.dismissLoading();
   }
 
   _buildBody() {
@@ -220,28 +239,33 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                   InputItem(
                     controller: _endpointController,
                     textInputAction: TextInputAction.next,
-                    leadingText: S.current.tokenIssuer,
+                    leadingText: S.current.webDavServer,
                     leadingType: InputItemLeadingType.text,
                     topRadius: true,
+                    readOnly: connected,
                     stateController: _endpointStateController,
-                    hint: S.current.tokenIssuerHint,
-                    maxLength: 32,
+                    hint: S.current.webDavServerHint,
+                    inputFormatters: [
+                      RegexInputFormatter.onlyUrl,
+                    ],
                   ),
                   InputItem(
                     controller: _accountController,
                     stateController: _accountStateController,
                     textInputAction: TextInputAction.next,
                     leadingType: InputItemLeadingType.text,
-                    leadingText: S.current.tokenAccount,
-                    hint: S.current.tokenAccountHint,
+                    readOnly: connected,
+                    leadingText: S.current.webDavUsername,
+                    hint: S.current.webDavUsernameHint,
                   ),
                   InputItem(
                     controller: _secretController,
                     textInputAction: TextInputAction.next,
                     leadingType: InputItemLeadingType.text,
-                    leadingText: S.current.tokenSecret,
+                    leadingText: S.current.webDavPassword,
                     tailingType: InputItemTailingType.password,
-                    hint: S.current.tokenSecretHint,
+                    readOnly: connected,
+                    hint: S.current.webDavPasswordHint,
                     inputFormatters: [
                       RegexInputFormatter.onlyNumberAndLetter,
                     ],
@@ -259,11 +283,11 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                   Expanded(
                     child: ItemBuilder.buildRoundButton(
                       context,
-                      text: "登录",
+                      text: S.current.webDavSignin,
                       background: Theme.of(context).primaryColor,
+                      fontSizeDelta: 2,
                       onTap: () async {
                         if (await isValid()) {
-                          print(_cloudServiceConfig!.toMap());
                           await CloudServiceConfigDao.updateConfig(
                               _cloudServiceConfig!);
                           _webDavCloudService =
@@ -283,10 +307,21 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                   Expanded(
                     child: ItemBuilder.buildFramedButton(
                       context,
-                      text: "拉取备份",
+                      text: S.current.webDavPullBackup,
                       outline: Theme.of(context).primaryColor,
                       color: Theme.of(context).primaryColor,
-                      onTap: () async {},
+                      fontSizeDelta: 2,
+                      onTap: () async {
+                        CustomLoadingDialog.showLoading(
+                            title: S.current.webDavPulling);
+                        List<webdav.File> files =
+                            await _webDavCloudService!.listFiles();
+                        CustomLoadingDialog.dismissLoading();
+                        if (files.isNotEmpty) {
+                        } else {
+                          IToast.show(S.current.webDavNoBackupFile);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -294,8 +329,28 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                     child: ItemBuilder.buildRoundButton(
                       context,
                       background: Theme.of(context).primaryColor,
-                      text: "备份到云端",
-                      onTap: () async {},
+                      text: S.current.webDavPushBackup,
+                      fontSizeDelta: 2,
+                      onTap: () async {
+                        CustomLoadingDialog.showLoading(
+                            title: S.current.backuping);
+                        Uint8List? encryptedData =
+                            await ExportTokenUtil.getBackupFile();
+                        if (encryptedData == null) {
+                          IToast.showTop(S.current.backupFailed);
+                          return;
+                        } else {
+                          CustomLoadingDialog.dismissLoading();
+                          CustomLoadingDialog.showLoading(
+                              title: S.current.webDavPushing);
+                          await _webDavCloudService!.uploadFile(
+                            ExportTokenUtil.getExportFileName("bin"),
+                            encryptedData,
+                          );
+                          CustomLoadingDialog.dismissLoading();
+                          IToast.showTop(S.current.backupSuccess);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -303,8 +358,14 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                     child: ItemBuilder.buildRoundButton(
                       context,
                       background: Colors.red,
-                      text: "退出帐户",
-                      onTap: () async {},
+                      text: S.current.webDavLogout,
+                      fontSizeDelta: 2,
+                      onTap: () async {
+                        setState(() {
+                          connected = false;
+                          _webDavCloudService = null;
+                        });
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),

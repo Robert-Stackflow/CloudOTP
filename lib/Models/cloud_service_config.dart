@@ -11,7 +11,7 @@ extension CloudServiceTypeExtension on CloudServiceType {
   String get name {
     switch (this) {
       case CloudServiceType.Webdav:
-        return 'WebDAV';
+        return 'WebDav';
       case CloudServiceType.GoogleDrive:
         return 'Google Drive';
       case CloudServiceType.OneDrive:

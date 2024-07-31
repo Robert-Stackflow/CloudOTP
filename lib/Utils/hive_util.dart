@@ -121,8 +121,8 @@ class HiveUtil {
         EncryptDatabaseStatus.values.length)];
   }
 
-  static void setEncryptDatabaseStatus(EncryptDatabaseStatus status) {
-    HiveUtil.put(HiveUtil.encryptDatabaseStatusKey, status.index);
+  static Future<void> setEncryptDatabaseStatus(EncryptDatabaseStatus status) async {
+    await HiveUtil.put(HiveUtil.encryptDatabaseStatusKey, status.index);
   }
 
   static setOrderType(OrderType type) {

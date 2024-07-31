@@ -255,7 +255,12 @@ class InputItemState extends State<InputItem> {
                               readOnly: readOnly,
                               obscureText: obscureText,
                               maxLength: maxLength,
-                              maxLines: maxLines,
+                              maxLines: widget.tailingType ==
+                                          InputItemTailingType.password ||
+                                      (widget.obscureText != null &&
+                                          widget.obscureText!)
+                                  ? 1
+                                  : widget.maxLines,
                               minLines: minLines,
                               inputFormatters: [
                                 if (maxLength != null && maxLength! > 0)
@@ -418,6 +423,8 @@ class RegexInputFormatter implements TextInputFormatter {
       RegexInputFormatter(RegExp(r'^[a-zA-Z]*$'));
   static RegexInputFormatter onlyNumberAndLetter =
       RegexInputFormatter(RegExp(r'^[a-zA-Z0-9]*$'));
+  static RegexInputFormatter onlyUrl = RegexInputFormatter(
+      RegExp(r'''^[a-zA-Z0-9!@#$%^&*()-_+=~{}:";',./|\\\[\]<>?]+$'''));
 
   @override
   TextEditingValue formatEditUpdate(

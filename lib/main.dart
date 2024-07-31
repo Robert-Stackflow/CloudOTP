@@ -73,11 +73,8 @@ Future<void> initApp() async {
     HiveUtil.setFirstLogin();
   }
   try {
-    if (HiveUtil.getEncryptDatabaseStatus() !=
-        EncryptDatabaseStatus.customPassword) {
-      await DatabaseManager.initDataBase(
-          HiveUtil.getString(HiveUtil.defaultDatabasePasswordKey) ?? "");
-    }
+    await DatabaseManager.initDataBase(
+        HiveUtil.getString(HiveUtil.defaultDatabasePasswordKey) ?? "");
   } catch (e) {
     HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.customPassword);
   }

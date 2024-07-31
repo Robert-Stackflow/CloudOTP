@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -22,7 +23,7 @@ class FileUtil {
   static Future<String> getApplicationDir() async {
     final dir = await getApplicationDocumentsDirectory();
     final appName = (await PackageInfo.fromPlatform()).appName;
-    String path = '${dir.path}/$appName';
+    String path = join(dir.path, appName);
     Directory directory = Directory(path);
     if (!await directory.exists()) {
       await directory.create(recursive: true);
@@ -31,7 +32,7 @@ class FileUtil {
   }
 
   static Future<String> getBackupDir() async {
-    Directory directory = Directory('${await getApplicationDir()}/Backup');
+    Directory directory = Directory(join(await getApplicationDir(), "Backup" ));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -39,7 +40,7 @@ class FileUtil {
   }
 
   static Future<String> getScreenshotDir() async {
-    Directory directory = Directory('${await getApplicationDir()}/Screenshots');
+    Directory directory = Directory(join(await getApplicationDir(), "Screenshots"));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -47,7 +48,7 @@ class FileUtil {
   }
 
   static Future<String> getLogDir() async {
-    Directory directory = Directory('${await getApplicationDir()}/Log');
+    Directory directory = Directory(join(await getApplicationDir(), "Log"));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -55,7 +56,7 @@ class FileUtil {
   }
 
   static Future<String> getHiveDir() async {
-    Directory directory = Directory('${await getApplicationDir()}/Hive');
+    Directory directory = Directory(join(await getApplicationDir(), "Hive"));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }

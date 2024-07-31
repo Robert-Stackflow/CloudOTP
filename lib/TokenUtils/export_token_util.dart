@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudotp/Database/category_dao.dart';
@@ -8,9 +7,7 @@ import 'package:cloudotp/TokenUtils/Backup/backup.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_v1.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../Database/config_dao.dart';
 import '../Models/category.dart';
@@ -42,21 +39,27 @@ class ExportTokenUtil {
     IToast.showTop(S.current.exportSuccess);
   }
 
-  Future<File> createCachedFileFromEncryptString(
-      String text, String fileName) async {
-    final directory = await getTemporaryDirectory();
-    final file = File('${directory.path}/$fileName');
-    return file.writeAsString(text);
-  }
-
-  String getEncryptedData(String password, List<Map<String, dynamic>> tokens) {
-    final json = jsonEncode(tokens);
-    final key = encrypt.Key.fromUtf8(password.padRight(32, ' '));
-    final iv = encrypt.IV.fromLength(16);
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-
-    final encrypted = encrypter.encrypt(json, iv: iv);
-    return encrypted.base64;
+  static Future<Uint8List?> getBackupFile({
+    String? password,
+  }) async {
+    if (!await HiveUtil.canBackup()) return null;
+    try {
+      String tmpPassword = password ?? await ConfigDao.getBackupPassword();
+      List<OtpToken> tokens = await TokenDao.listTokens();
+      List<TokenCategory> categories = await CategoryDao.listCategories();
+      return await compute((_) async {
+        Backup backup = Backup(tokens: tokens, categories: categories);
+        BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
+        Uint8List encryptedData =
+            await backupEncryption.encrypt(backup, tmpPassword);
+        return encryptedData;
+      }, null);
+    } catch (e) {
+      if (e is BackupBaseException) {
+        IToast.showTop(e.intlMessage);
+      }
+      return null;
+    }
   }
 
   static exportEncryptFile(
@@ -68,17 +71,17 @@ class ExportTokenUtil {
       CustomLoadingDialog.showLoading(title: S.current.exporting);
     }
     try {
-      List<OtpToken> tokens = await TokenDao.listTokens();
-      List<TokenCategory> categories = await CategoryDao.listCategories();
-      await compute((_) async {
-        Backup backup = Backup(tokens: tokens, categories: categories);
-        BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
-        Uint8List encryptedData =
-            await backupEncryption.encrypt(backup, password);
-        File file = File(filePath);
-        file.writeAsBytesSync(encryptedData);
-      }, null);
-      IToast.showTop(S.current.exportSuccess);
+      Uint8List? encryptedData = await getBackupFile(password: password);
+      if (encryptedData == null) {
+        IToast.showTop(S.current.exportFailed);
+        return;
+      } else {
+        await compute((_) async {
+          File file = File(filePath);
+          file.writeAsBytesSync(encryptedData);
+        }, null);
+        IToast.showTop(S.current.exportSuccess);
+      }
     } catch (e) {
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
@@ -104,28 +107,27 @@ class ExportTokenUtil {
       CustomLoadingDialog.showLoading(title: S.current.backuping);
     }
     try {
-      String password = await ConfigDao.getBackupPassword();
-      String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
-      Directory directory = Directory(backupPath);
-      if (!directory.existsSync()) {
-        directory.createSync(recursive: true);
+      Uint8List? encryptedData = await getBackupFile();
+      if (encryptedData == null) {
+        IToast.showTop(S.current.backupFailed);
+        return;
+      } else {
+        String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+        Directory directory = Directory(backupPath);
+        if (!directory.existsSync()) {
+          directory.createSync(recursive: true);
+        }
+        await compute((_) async {
+          File file = File("${directory.path}/${getExportFileName("bin")}");
+          file.writeAsBytesSync(encryptedData);
+        }, null);
+        IToast.showTop(S.current.backupSuccess);
       }
-      List<OtpToken> tokens = await TokenDao.listTokens();
-      List<TokenCategory> categories = await CategoryDao.listCategories();
-      await compute((_) async {
-        Backup backup = Backup(tokens: tokens, categories: categories);
-        BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
-        Uint8List encryptedData =
-            await backupEncryption.encrypt(backup, password);
-        File file = File("${directory.path}/${getExportFileName("bin")}");
-        file.writeAsBytesSync(encryptedData);
-      }, null);
-      IToast.showTop(S.current.backupSuccess);
     } catch (e) {
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       } else {
-        IToast.showTop(S.current.exportFailed);
+        IToast.showTop(S.current.backupFailed);
       }
     } finally {
       if (showLoading) {

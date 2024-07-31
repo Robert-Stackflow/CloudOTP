@@ -7,6 +7,13 @@ import 'package:webdav_client/webdav_client.dart';
 import '../../Models/cloud_service_config.dart';
 import 'cloud_service.dart';
 
+enum CloudServiceStatus {
+  success,
+  connectionError,
+  unauthorized,
+  unknownError,
+}
+
 class WebDavCloudService extends CloudService {
   static const String _webdavPath = '/cloudotp';
   final CloudServiceConfig _config;
@@ -36,16 +43,36 @@ class WebDavCloudService extends CloudService {
     client.setConnectTimeout(8000);
     client.setSendTimeout(8000);
     client.setReceiveTimeout(8000);
-    await client.mkdir(_webdavPath);
+    CloudServiceStatus status = await ping();
+    if (status == CloudServiceStatus.success) {
+      await client.mkdir(_webdavPath);
+    }
   }
 
-  Future<bool> ping() async {
+  Future<CloudServiceStatus> ping() async {
     try {
       await client.ping();
-      return true;
+      return CloudServiceStatus.success;
     } catch (e) {
-      print(e);
-      return false;
+      if (e is DioException) {
+        switch (e.type) {
+          case DioExceptionType.connectionTimeout:
+          case DioExceptionType.receiveTimeout:
+          case DioExceptionType.sendTimeout:
+          case DioExceptionType.badCertificate:
+          case DioExceptionType.connectionError:
+            return CloudServiceStatus.connectionError;
+          case DioExceptionType.badResponse:
+            if (e.response!.statusCode == 401) {
+              return CloudServiceStatus.unauthorized;
+            } else {
+              return CloudServiceStatus.connectionError;
+            }
+          default:
+            break;
+        }
+      }
+      return CloudServiceStatus.unknownError;
     }
   }
 

@@ -23,7 +23,7 @@ class CloudServiceConfigDao {
     List<Map<String, dynamic>> maps = await db.rawQuery(
       "SELECT MAX(id) as id FROM $tableName",
     );
-    return maps[0]["id"] ?? 0;
+    return maps[0]["id"] ?? -1;
   }
 
   static Future<List<CloudServiceConfig>> getConfigs() async {

@@ -173,11 +173,20 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     bool pinValid = await _pinStateController.isValid();
     bool periodValid = await _periodStateController.isValid();
     bool counterValid = await _counterStateController.isValid();
-    return issuerValid &&
-        secretValid &&
-        pinValid &&
-        periodValid &&
-        counterValid;
+    switch(_otpToken.tokenType) {
+      case OtpTokenType.TOTP:
+        return issuerValid && secretValid && periodValid;
+      case OtpTokenType.HOTP:
+        return issuerValid && secretValid && counterValid;
+      case OtpTokenType.MOTP:
+        return issuerValid && secretValid && pinValid;
+      case OtpTokenType.Yandex:
+        return issuerValid && secretValid && pinValid;
+      case OtpTokenType.Steam:
+        return issuerValid && secretValid;
+      default:
+        return false;
+    }
   }
 
   resetState() {
