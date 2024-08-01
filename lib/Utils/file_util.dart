@@ -63,6 +63,14 @@ class FileUtil {
     return directory.path;
   }
 
+  static Future<String> getDatabaseDir() async {
+    Directory directory = Directory(join(await getApplicationDir(), "Database"));
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory.path;
+  }
+
   static String extractFileNameFromUrl(String imageUrl) {
     return Uri.parse(imageUrl).pathSegments.last;
   }

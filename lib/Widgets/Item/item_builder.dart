@@ -83,10 +83,10 @@ class ItemBuilder {
     IconData? leading,
     Color? leadingColor,
     Function()? onLeadingTap,
+    Color? backgroundColor,
     List<Widget>? actions,
     required BuildContext context,
     bool transparent = false,
-    Color? backgroundColor,
     bool forceShowClose = false,
   }) {
     bool showLeading =
@@ -135,6 +135,12 @@ class ItemBuilder {
     PreferredSizeWidget? bottom,
     Widget? title,
     bool center = false,
+    bool floating = false,
+    bool pinned = false,
+    IconData? leading,
+    Color? leadingColor,
+    Function()? onLeadingTap,
+    Color? backgroundColor,
     double expandedHeight = 320,
     double? collapsedHeight,
     SystemUiOverlayStyle? systemOverlayStyle,
@@ -146,20 +152,19 @@ class ItemBuilder {
       expandedHeight: expandedHeight,
       collapsedHeight: collapsedHeight ??
           max(100, kToolbarHeight + MediaQuery.of(context).padding.top),
-      pinned: true,
+      pinned: pinned,
+      floating: floating,
       leadingWidth: showLeading ? 56 : 0,
       leading: showLeading
           ? Container(
               margin: const EdgeInsets.only(left: 5),
               child: ItemBuilder.buildIconButton(
                 context: context,
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: Colors.white,
+                icon: Icon(
+                  leading,
+                  color: leadingColor ?? Theme.of(context).iconTheme.color,
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: onLeadingTap,
               ),
             )
           : null,
@@ -183,7 +188,8 @@ class ItemBuilder {
                 ),
       elevation: 0,
       scrolledUnderElevation: 0,
-      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+      backgroundColor:
+          backgroundColor ?? Theme.of(context).appBarTheme.backgroundColor,
       flexibleSpace: flexibleSpace,
       bottom: bottom,
     );
@@ -409,7 +415,7 @@ class ItemBuilder {
       shape: const CircleBorder(),
       clipBehavior: Clip.hardEdge,
       child: Selector<AppProvider, ActiveThemeMode>(
-        selector: (context, globalProvider) => globalProvider.themeMode,
+        selector: (context, appProvider) => appProvider.themeMode,
         builder: (context, themeMode, child) {
           onChangemode?.call(context, themeMode, child);
           return buildIconButton(context: context, icon: icon, onTap: onTap);
@@ -542,6 +548,7 @@ class ItemBuilder {
                       height: 0,
                       margin: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
+                        color: Colors.transparent,
                         border: Border(
                           bottom: BorderSide(
                             color: Theme.of(context).dividerColor,
@@ -682,13 +689,14 @@ class ItemBuilder {
                     ),
                     isCaption || tip.isEmpty
                         ? Container()
-                        : const SizedBox(width: 50),
+                        : const SizedBox(width: 30),
                     Text(
                       tip,
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
                           ?.apply(fontSizeDelta: 1),
+                      maxLines: 1,
                     ),
                     SizedBox(width: showTrailing ? trailingLeftMargin : 0),
                     Visibility(
@@ -758,6 +766,16 @@ class ItemBuilder {
       buttonBuilder: (context, config, [_]) {
         bool isCheckbox = config.type == ContextMenuButtonConfigType.checkbox;
         bool showCheck = isCheckbox && config.checked;
+        Widget checkIcon = Row(
+          children: [
+            Opacity(
+              opacity: showCheck ? 1 : 0,
+              child: Icon(Icons.check_rounded,
+                  size: ResponsiveUtil.isMobile() ? null : 16),
+            ),
+            SizedBox(width: showCheck ? 8 : 4),
+          ],
+        );
         return Material(
           borderRadius: BorderRadius.circular(10),
           child: InkWell(
@@ -771,13 +789,7 @@ class ItemBuilder {
               ),
               child: Row(
                 children: [
-                  if (isCheckbox)
-                    Opacity(
-                      opacity: showCheck ? 1 : 0,
-                      child: Icon(Icons.check_rounded,
-                          size: ResponsiveUtil.isMobile() ? null : 16),
-                    ),
-                  if (isCheckbox) SizedBox(width: showCheck ? 8 : 4),
+                  if (isCheckbox) checkIcon,
                   if (config.icon != null) config.icon!,
                   Text(
                     config.label,

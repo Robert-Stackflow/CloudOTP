@@ -1,3 +1,4 @@
+import 'package:cloudotp/Resources/theme.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Utils/asset_util.dart';
@@ -59,7 +60,7 @@ class CustomInfoDialogWidget extends StatelessWidget {
           margin: margin ?? const EdgeInsets.all(24),
           padding: padding ?? const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: backgroundColor ?? theme.scaffoldBackgroundColor,
+            color: backgroundColor ?? MyTheme.getCardBackground(context),
             borderRadius: BorderRadius.circular(15),
           ),
           child: Column(

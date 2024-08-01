@@ -1,16 +1,12 @@
-import 'dart:typed_data';
-
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
-import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
@@ -140,7 +136,7 @@ class _SettingScreenState extends State<SettingScreen>
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.themeSetting),
       Selector<AppProvider, ActiveThemeMode>(
-        selector: (context, globalProvider) => globalProvider.themeMode,
+        selector: (context, appProvider) => appProvider.themeMode,
         builder: (context, themeMode, child) => ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.themeMode,
@@ -279,7 +275,8 @@ class _SettingScreenState extends State<SettingScreen>
   bool get canLocalBackup =>
       _autoBackupPath.isNotEmpty && _autoBackupPassword.isNotEmpty;
 
-  bool get canCloudBackup => _cloudBackupConfigured;
+  bool get canCloudBackup =>
+      _cloudBackupConfigured && _autoBackupPassword.isNotEmpty;
 
   bool get canImmediateBackup =>
       canBackup &&
@@ -334,7 +331,6 @@ class _SettingScreenState extends State<SettingScreen>
               tailingType: InputItemTailingType.password,
               controller: controller,
               stateController: InputStateController(
-                controller: controller,
                 validate: (text) {
                   if (text.isEmpty) {
                     return Future.value(
@@ -362,7 +358,7 @@ class _SettingScreenState extends State<SettingScreen>
       ),
       ItemBuilder.buildRadioItem(
         context: context,
-        value: _useBackupPasswordToExportImport,
+        value: canBackup ? _useBackupPasswordToExportImport : false,
         title: S.current.useBackupPasswordToExportImport,
         description: S.current.useBackupPasswordToExportImportTip,
         disabled: _autoBackupPassword.isEmpty,
@@ -379,12 +375,23 @@ class _SettingScreenState extends State<SettingScreen>
         visible: canImmediateBackup,
         child: ItemBuilder.buildEntryItem(
           context: context,
+          title: S.current.immediatelyBackup,
+          description: S.current.immediatelyBackupTip,
+          onTap: () async {
+            ExportTokenUtil.backupEncryptToFile(
+                showLoading: true, showToast: true);
+          },
+        ),
+      ),
+      Visibility(
+        visible: canImmediateBackup,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
           title: S.current.maxBackupCount,
-          description: S.current.maxBackupCountTip,
+          description: S.current.maxBackupCountTip(0),
           tip: _maxBackupsCount.toString(),
           onTap: () async {
             var stateController = InputStateController(
-              controller: TextEditingController(),
               validate: (text) {
                 if (text.isEmpty) {
                   return Future.value(S.current.maxBackupCountCannotBeEmpty);
@@ -395,13 +402,14 @@ class _SettingScreenState extends State<SettingScreen>
                 return Future.value(null);
               },
             );
+            int currentBackupsCount = await ExportTokenUtil.getBackupsCount();
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,
               (context) => InputBottomSheet(
                 title: S.current.maxBackupCount,
                 text: _maxBackupsCount.toString(),
-                message: S.current.maxBackupCountTip,
+                message: S.current.maxBackupCountTip(currentBackupsCount),
                 hint: S.current.inputMaxBackupCount,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 preventPop: true,
@@ -440,18 +448,6 @@ class _SettingScreenState extends State<SettingScreen>
           },
         ),
       ),
-      Visibility(
-        visible: canImmediateBackup,
-        child: ItemBuilder.buildEntryItem(
-          context: context,
-          title: S.current.immediatelyBackup,
-          description: S.current.immediatelyBackupTip,
-          onTap: () async {
-            ExportTokenUtil.backupEncryptToFile(
-                showLoading: true, showToast: true);
-          },
-        ),
-      ),
       ItemBuilder.buildRadioItem(
         context: context,
         value: canBackup ? _enableLocalBackup : false,
@@ -468,7 +464,7 @@ class _SettingScreenState extends State<SettingScreen>
       ItemBuilder.buildEntryItem(
         context: context,
         title: S.current.autoBackupPath,
-        tip: _autoBackupPath,
+        description: _autoBackupPath,
         onTap: () async {
           String? selectedDirectory =
               await FilePicker.platform.getDirectoryPath(
@@ -488,6 +484,7 @@ class _SettingScreenState extends State<SettingScreen>
         value: canBackup ? _enableCloudBackup : false,
         title: S.current.enableCloudBackup,
         description: S.current.enableCloudBackupTip,
+        disabled: !canCloudBackup,
         onTap: () {
           setState(() {
             _enableCloudBackup = !_enableCloudBackup;
@@ -566,7 +563,7 @@ class _SettingScreenState extends State<SettingScreen>
       Visibility(
         visible: _enableGuesturePasswd && _hasGuesturePasswd && _autoLock,
         child: Selector<AppProvider, int>(
-          selector: (context, globalProvider) => globalProvider.autoLockTime,
+          selector: (context, appProvider) => appProvider.autoLockTime,
           builder: (context, autoLockTime, child) => ItemBuilder.buildEntryItem(
             context: context,
             title: S.current.autoLockDelay,
@@ -641,7 +638,7 @@ class _SettingScreenState extends State<SettingScreen>
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.generalSetting),
       Selector<AppProvider, Locale?>(
-        selector: (context, globalProvider) => globalProvider.locale,
+        selector: (context, appProvider) => appProvider.locale,
         builder: (context, locale, child) => ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.language,

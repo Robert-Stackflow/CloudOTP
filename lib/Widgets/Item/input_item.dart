@@ -13,7 +13,7 @@ enum InputItemLeadingType { none, icon, text, widget }
 enum InputState { normal, success, error }
 
 class InputStateController {
-  TextEditingController controller;
+  TextEditingController? controller;
   InputState state = InputState.normal;
   String? errorMessage;
   Future<String?> Function(String) validate;
@@ -21,16 +21,16 @@ class InputStateController {
   Function()? pop;
 
   InputStateController({
-    required this.controller,
     this.state = InputState.normal,
     this.errorMessage,
     required this.validate,
-  }) {
-    controller.addListener(doValidate);
-  }
+  });
 
   Future<String?> doValidate() async {
-    String? error = await validate(controller.text);
+    if (controller == null) {
+      return null;
+    }
+    String? error = await validate(controller!.text);
     errorMessage = error;
     if (Utils.isNotEmpty(error)) {
       setInputState(InputState.error);
@@ -192,8 +192,8 @@ class InputItemState extends State<InputItem> {
     controller = widget.controller ?? TextEditingController();
     obscureText = widget.obscureText ?? false;
     stateController = widget.stateController ??
-        InputStateController(
-            controller: controller, validate: (value) => Future.value(null));
+        InputStateController(validate: (value) => Future.value(null));
+    stateController.setTextEditingController(controller);
     stateController.onStateChanged = () {
       if (mounted) setState(() {});
     };

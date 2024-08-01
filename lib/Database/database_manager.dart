@@ -6,9 +6,8 @@ import 'dart:math';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Database/create_table_sql.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
-import 'package:hive/hive.dart';
+import 'package:cloudotp/Utils/file_util.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3/open.dart';
 
@@ -31,7 +30,7 @@ class DatabaseManager {
 
   static Future<void> initDataBase(String password) async {
     if (_database == null) {
-      String path = join(await dbFactory.getDatabasesPath(), _dbName);
+      String path = join(await FileUtil.getDatabaseDir(), _dbName);
       if (!await dbFactory.databaseExists(path)) {
         password = await HiveUtil.regeneratePassword();
         await HiveUtil.setEncryptDatabaseStatus(
@@ -93,8 +92,9 @@ class DatabaseManager {
   static DynamicLibrary sqlcipherOpen() {
     if (Platform.isLinux || Platform.isAndroid) {
       try {
-        return DynamicLibrary.open('libsqlcipher.so');
-      } catch (_) {
+        DynamicLibrary lib = DynamicLibrary.open('libsqlcipher.so');
+        return lib;
+      } catch (e) {
         if (Platform.isAndroid) {
           final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
 

@@ -15,7 +15,6 @@ dependencies:
   lottie: ^3.1.2
   animations: ^2.0.11 # 动画
   fluttertoast: ^8.2.6 # 吐司
-  waterfall_flow: ^3.0.3 # 瀑布流
   flutter_widget_from_html: ^0.15.0 # 将HTML渲染成组件
   modal_bottom_sheet: ^3.0.0 # 底部弹窗
   group_button:
@@ -23,10 +22,8 @@ dependencies:
   pretty_qr_code: ^3.3.0
   path_drawing: ^1.0.1 # 路径绘制
   flutter_inappwebview: ^6.0.0 # Webview
-  extended_nested_scroll_view: ^6.2.1 # 嵌套滚动
-  animated_text_kit: ^4.2.2 # 文字动画
   mobile_scanner: ^5.1.1 # 扫码
-  reorderable_grid: ^1.0.10 # 可拖动的网格
+  flutter_layout_grid: ^2.0.7
   zxing2: ^0.2.3 # 二维码
   image: ^4.2.0 # 图片
   context_menus:

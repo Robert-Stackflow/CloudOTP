@@ -86,6 +86,7 @@ class InputBottomSheet extends StatefulWidget {
 
 class InputBottomSheetState extends State<InputBottomSheet> {
   late TextEditingController controller;
+  late InputStateController stateController;
   final FocusNode _focusNode = FocusNode();
 
   @override
@@ -93,8 +94,9 @@ class InputBottomSheetState extends State<InputBottomSheet> {
     super.initState();
     controller = widget.controller ?? TextEditingController();
     controller.value = TextEditingValue(text: widget.text);
-    widget.stateController?.setTextEditingController(controller);
-    widget.stateController?.pop = () {
+    stateController = widget.stateController ??
+        InputStateController(validate: (_) => Future.value(null));
+    stateController.pop = () {
       Navigator.of(context).pop();
     };
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -132,6 +134,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 Center(
                   child: InputItem(
                     controller: controller,
+                    stateController: stateController,
                     focusNode: _focusNode,
                     hint: widget.hint,
                     maxLines: widget.tailingType ==
@@ -145,7 +148,6 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                     obscureText: widget.obscureText,
                     tailingType: widget.tailingType,
                     leadingType: widget.leadingType,
-                    stateController: widget.stateController,
                     tailingText: widget.tailingText,
                     showTailing: widget.showTailing,
                     tailingIcon: widget.tailingIcon,
@@ -226,7 +228,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 color: Colors.white,
                 text: S.current.confirm,
                 onTap: () async {
-                  String? error = await widget.stateController?.doValidate();
+                  String? error = await stateController.doValidate();
                   widget.onConfirm?.call(controller.text);
                   if (error == null) {
                     widget.onValidConfirm?.call(controller.text);

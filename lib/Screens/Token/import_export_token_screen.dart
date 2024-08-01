@@ -78,11 +78,11 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
   }
 
   _showImportPasswordDialog(
-      Function(TextEditingController, InputStateController, String)?
-          onValidConfirm) {
+    Function(TextEditingController, InputStateController, String)?
+        onValidConfirm,
+  ) {
     TextEditingController controller = TextEditingController();
     InputStateController stateController = InputStateController(
-      controller: controller,
       validate: (value) {
         if (value.isEmpty) {
           return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);
@@ -94,7 +94,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
       context,
       responsive: true,
       (context) => InputBottomSheet(
-        controller: controller,
         stateController: stateController,
         title: S.current.inputImportPasswordTitle,
         message: S.current.inputImportPasswordTip,
@@ -239,9 +238,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                 ExportTokenUtil.exportEncryptFile(
                     result, await ConfigDao.getBackupPassword());
               } else {
-                TextEditingController controller = TextEditingController();
                 InputStateController stateController = InputStateController(
-                  controller: controller,
                   validate: (value) {
                     if (value.isEmpty) {
                       return Future.value(
@@ -261,7 +258,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                     inputFormatters: [
                       RegexInputFormatter.onlyNumberAndLetter,
                     ],
-                    controller: controller,
                     stateController: stateController,
                     onValidConfirm: (password) {
                       ExportTokenUtil.exportEncryptFile(result, password);

@@ -64,7 +64,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       _cloudServiceConfig!.secret = _secretController.text;
     });
     _endpointStateController = InputStateController(
-      controller: _endpointController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.webDavServerCannotBeEmpty);
@@ -76,7 +75,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       },
     );
     _secretStateController = InputStateController(
-      controller: _secretController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.webDavPasswordCannotBeEmpty);
@@ -85,7 +83,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       },
     );
     _accountStateController = InputStateController(
-      controller: _accountController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.webDavUsernameCannotBeEmpty);

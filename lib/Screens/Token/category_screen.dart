@@ -4,6 +4,7 @@ import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_token_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
+import 'package:cloudotp/Widgets/Item/input_item.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -85,11 +86,20 @@ class _CategoryScreenState extends State<CategoryScreen>
                 responsive: true,
                 (context) => InputBottomSheet(
                   title: S.current.addCategory,
-                  onConfirm: (text) async {
-                    if (await CategoryDao.isCategoryExist(text)) {
-                      IToast.showTop(S.current.categoryNameDuplicate);
-                      return;
-                    }
+                  hint: S.current.inputCategory,
+                  stateController: InputStateController(
+                    validate: (text) async {
+                      if (text.isEmpty) {
+                        return S.current.categoryNameCannotBeEmpty;
+                      }
+                      if (await CategoryDao.isCategoryExist(text)) {
+                        return S.current.categoryNameDuplicate;
+                      }
+                      return null;
+                    },
+                  ),
+                  maxLength: 32,
+                  onValidConfirm: (text) async {
                     await CategoryDao.insertCategory(
                         TokenCategory.title(title: text));
                     refresh();
@@ -157,7 +167,7 @@ class _CategoryScreenState extends State<CategoryScreen>
 
   _buildCategoryItem(TokenCategory category) {
     return Container(
-      key: ValueKey(category.title),
+      key: ValueKey("${category.id}${category.title}"),
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
@@ -190,12 +200,22 @@ class _CategoryScreenState extends State<CategoryScreen>
                 responsive: true,
                 (context) => InputBottomSheet(
                   title: S.current.editCategoryName,
+                  hint: S.current.inputCategory,
+                  maxLength: 32,
                   text: category.title,
-                  onConfirm: (text) async {
-                    if (await CategoryDao.isCategoryExist(text)) {
-                      IToast.showTop(S.current.categoryNameDuplicate);
-                      return;
-                    }
+                  stateController: InputStateController(
+                    validate: (text) async {
+                      if (text.isEmpty) {
+                        return S.current.categoryNameCannotBeEmpty;
+                      }
+                      if (text != category.title &&
+                          await CategoryDao.isCategoryExist(text)) {
+                        return S.current.categoryNameDuplicate;
+                      }
+                      return null;
+                    },
+                  ),
+                  onValidConfirm: (text) async {
                     category.title = text;
                     await CategoryDao.updateCategory(category);
                     refresh();

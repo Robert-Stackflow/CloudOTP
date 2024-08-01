@@ -4,7 +4,6 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -111,7 +110,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       _otpToken.counterString = _counterController.text;
     });
     _issuerStateController = InputStateController(
-      controller: _issuerController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.issuerCannotBeEmpty);
@@ -120,7 +118,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       },
     );
     _secretStateController = InputStateController(
-      controller: _secretController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.secretCannotBeEmpty);
@@ -133,7 +130,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       },
     );
     _pinStateController = InputStateController(
-      controller: _pinController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.pinCannotBeEmpty);
@@ -142,7 +138,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       },
     );
     _periodStateController = InputStateController(
-      controller: _periodController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.periodCannotBeEmpty);
@@ -154,7 +149,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       },
     );
     _counterStateController = InputStateController(
-      controller: _counterController,
       validate: (text) {
         if (text.isEmpty) {
           return Future.value(S.current.counterCannotBeEmpty);
@@ -173,7 +167,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     bool pinValid = await _pinStateController.isValid();
     bool periodValid = await _periodStateController.isValid();
     bool counterValid = await _counterStateController.isValid();
-    switch(_otpToken.tokenType) {
+    switch (_otpToken.tokenType) {
       case OtpTokenType.TOTP:
         return issuerValid && secretValid && periodValid;
       case OtpTokenType.HOTP:
@@ -430,7 +424,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               context: context,
               topRadius: true,
               bottomRadius: true,
-              padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
+              padding: EdgeInsets.only(
+                  top: 15, bottom: 5, right: !isSteam && !isYandex ? 10 : 0),
               child: Column(
                 children: [
                   Visibility(

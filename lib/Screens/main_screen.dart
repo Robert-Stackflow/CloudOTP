@@ -630,8 +630,8 @@ class MainScreenState extends State<MainScreen>
             child: Row(
               children: [
                 Selector<AppProvider, bool>(
-                  selector: (context, globalProvider) =>
-                      globalProvider.canPopByProvider,
+                  selector: (context, appProvider) =>
+                      appProvider.canPopByProvider,
                   builder: (context, desktopCanpop, child) => MouseRegion(
                     cursor: desktopCanpop
                         ? SystemMouseCursors.click

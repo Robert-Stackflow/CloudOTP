@@ -28,7 +28,6 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
   void initState() {
     super.initState();
     _stateController = InputStateController(
-      controller: _controller,
       validate: (value) {
         if (value.isEmpty) {
           return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);

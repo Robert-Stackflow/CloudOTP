@@ -78,8 +78,8 @@ class DialogBuilder {
     Widget? messageChild,
     String? imagePath,
     String? buttonText,
-    required VoidCallback onTapDismiss,
-    required CustomDialogType customDialogType,
+    VoidCallback? onTapDismiss,
+    CustomDialogType? customDialogType,
     Color? color,
     Color? textColor,
     Color? buttonTextColor,
@@ -106,8 +106,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         noImage: noImage,
         align: Alignment.center,
-        customDialogType: customDialogType,
-        onTapDismiss: onTapDismiss,
+        customDialogType: customDialogType ?? CustomDialogType.normal,
+        onTapDismiss: onTapDismiss ?? () {},
       );
     } else {
       CustomInfoDialog.showAnimatedFromBottom(
@@ -125,8 +125,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         noImage: noImage,
         align: Alignment.bottomCenter,
-        customDialogType: customDialogType,
-        onTapDismiss: onTapDismiss,
+        customDialogType: customDialogType ?? CustomDialogType.normal,
+        onTapDismiss: onTapDismiss ?? () {},
       );
     }
   }

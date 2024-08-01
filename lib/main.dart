@@ -167,18 +167,18 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: appProvider),
       ],
       child: Consumer<AppProvider>(
-        builder: (context, globalProvider, child) => MaterialApp(
+        builder: (context, appProvider, child) => MaterialApp(
           navigatorKey: globalNavigatorKey,
           navigatorObservers: [routeObserver],
           title: title,
-          theme: globalProvider.getBrightness() == null ||
-                  globalProvider.getBrightness() == Brightness.light
-              ? globalProvider.lightTheme.toThemeData()
-              : globalProvider.darkTheme.toThemeData(),
-          darkTheme: globalProvider.getBrightness() == null ||
-                  globalProvider.getBrightness() == Brightness.dark
-              ? globalProvider.darkTheme.toThemeData()
-              : globalProvider.lightTheme.toThemeData(),
+          theme: appProvider.getBrightness() == null ||
+                  appProvider.getBrightness() == Brightness.light
+              ? appProvider.lightTheme.toThemeData()
+              : appProvider.darkTheme.toThemeData(),
+          darkTheme: appProvider.getBrightness() == null ||
+                  appProvider.getBrightness() == Brightness.dark
+              ? appProvider.darkTheme.toThemeData()
+              : appProvider.lightTheme.toThemeData(),
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
             S.delegate,
@@ -186,11 +186,11 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          locale: globalProvider.locale,
+          locale: appProvider.locale,
           supportedLocales: S.delegate.supportedLocales,
           localeResolutionCallback: (locale, supportedLocales) {
-            if (globalProvider.locale != null) {
-              return globalProvider.locale;
+            if (appProvider.locale != null) {
+              return appProvider.locale;
             } else if (locale != null && supportedLocales.contains(locale)) {
               return locale;
             } else {

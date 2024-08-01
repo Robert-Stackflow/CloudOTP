@@ -38,7 +38,6 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
   void initState() {
     super.initState();
     _stateController = InputStateController(
-        controller: _controller,
         validate: (value) {
           if (value.isEmpty) {
             return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);
@@ -46,7 +45,6 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
           return Future.value(null);
         });
     _confirmStateController = InputStateController(
-        controller: _confirmController,
         validate: (value) {
           if (value != _controller.text) {
             return Future.value(S.current.encryptDatabasePasswordNotMatch);
