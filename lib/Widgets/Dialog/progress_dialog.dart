@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 
 import '../../Utils/lottie_util.dart';
+import '../../generated/l10n.dart';
 
 ProgressDialog showProgressDialog(
   BuildContext context, {
   String? msg,
   bool barrierDismissible = false,
+  bool showProgress = true,
 }) {
   ProgressDialog dialog =
       ProgressDialog(context: globalNavigatorKey.currentState!.context);
   dialog.show(
-    msg: msg ?? '加载中...',
+    msg: msg ?? S.current.loading,
     barrierDismissible: barrierDismissible,
-    showProgress: true,
+    showProgress: showProgress,
   );
   return dialog;
 }
@@ -169,7 +171,7 @@ class ProgressDialog {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '${_data.value.msg}${showProgress ? (_data.value.progress * 100).toStringAsFixed(1) : ''}%',
+                        '${_data.value.msg}${_data.value.showProgress ? '${(_data.value.progress * 100).toStringAsFixed(1)}%' : ''}',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.labelLarge,
@@ -215,6 +217,7 @@ class _LoadingDialogIndicatorState extends State<LoadingDialogIndicator>
     return LottieUtil.load(
       LottieUtil.getLoadingPath(context),
       size: 40,
+      scale: 1.8,
     );
   }
 

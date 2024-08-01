@@ -72,6 +72,7 @@ class DatabaseManager {
     await db.execute(Sql.createCategoryTable.sql);
     await db.execute(Sql.createConfigTable.sql);
     await db.execute(Sql.createCloudServiceConfigTable.sql);
+    await db.execute(Sql.createAutoBackupLogTable.sql);
   }
 
   static Future<void> createTable({

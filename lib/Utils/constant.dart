@@ -7,6 +7,8 @@ const defaultPhone = "";
 const defaultPassword = "";
 const defaultLofterID = "";
 
+const defaultMaxBackupCount = 50;
+
 const double kLoadExtentOffset = 1000;
 
 const Widget emptyWidget = SizedBox.shrink();

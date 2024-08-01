@@ -255,6 +255,18 @@ class InputItemState extends State<InputItem> {
                               readOnly: readOnly,
                               obscureText: obscureText,
                               maxLength: maxLength,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    letterSpacing: 1.1,
+                                    color: readOnly
+                                        ? Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.color
+                                        : null,
+                                  ),
                               maxLines: widget.tailingType ==
                                           InputItemTailingType.password ||
                                       (widget.obscureText != null &&

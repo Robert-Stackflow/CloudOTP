@@ -60,7 +60,8 @@ dependencies:
   cached_network_image: ^3.2.1 # 网络图片缓存
   flutter_cache_manager: ^3.3.1 # 缓存管理
   process_run: ^1.0.0+1 # 运行
-  webdav_client: ^1.2.2 # WebDAV
+  webdav_client:
+    path: third-party/webdav_client
   screen_capturer:
     path: third-party/screen_capturer
   # 工具

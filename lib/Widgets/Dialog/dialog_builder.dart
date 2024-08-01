@@ -11,13 +11,13 @@ class DialogBuilder {
   static showConfirmDialog(
     BuildContext context, {
     String? title,
-    required String message,
+    String? message,
     String? imagePath,
     String? confirmButtonText,
     String? cancelButtonText,
-    required VoidCallback onTapConfirm,
-    required VoidCallback onTapCancel,
-    required CustomDialogType customDialogType,
+    VoidCallback? onTapConfirm,
+    VoidCallback? onTapCancel,
+    CustomDialogType? customDialogType,
     Color? color,
     Color? textColor,
     Color? buttonTextColor,
@@ -31,7 +31,7 @@ class DialogBuilder {
     if (responsive && ResponsiveUtil.isLandscape()) {
       CustomConfirmDialog.show(
         context,
-        message: message,
+        message: message ?? "",
         imagePath: imagePath,
         title: title,
         color: color,
@@ -44,14 +44,14 @@ class DialogBuilder {
         align: Alignment.center,
         confirmButtonText: confirmButtonText ?? S.current.confirm,
         cancelButtonText: cancelButtonText ?? S.current.cancel,
-        onTapConfirm: onTapConfirm,
-        onTapCancel: onTapCancel,
-        customDialogType: customDialogType,
+        onTapConfirm: onTapConfirm ?? () {},
+        onTapCancel: onTapCancel ?? () {},
+        customDialogType: customDialogType ?? CustomDialogType.normal,
       );
     } else {
       CustomConfirmDialog.showAnimatedFromBottom(
         context,
-        message: message,
+        message: message ?? "",
         imagePath: imagePath,
         title: title,
         color: color,
@@ -64,9 +64,9 @@ class DialogBuilder {
         align: Alignment.bottomCenter,
         confirmButtonText: confirmButtonText ?? S.current.confirm,
         cancelButtonText: cancelButtonText ?? S.current.cancel,
-        onTapConfirm: onTapConfirm,
-        onTapCancel: onTapCancel,
-        customDialogType: customDialogType,
+        onTapConfirm: onTapConfirm ?? () {},
+        onTapCancel: onTapCancel ?? () {},
+        customDialogType: customDialogType ?? CustomDialogType.normal,
       );
     }
   }
@@ -136,6 +136,7 @@ class DialogBuilder {
     required Widget child,
     bool barrierDismissible = true,
     bool showClose = true,
+    Function(dynamic)? onThen,
   }) {
     showGeneralDialog(
       barrierDismissible: barrierDismissible,
@@ -152,6 +153,6 @@ class DialogBuilder {
       pageBuilder: (context, animation, secondaryAnimation) =>
           DialogWrapperWidget(
               key: dialogNavigatorKey, showClose: showClose, child: child),
-    );
+    ).then(onThen ?? (_) => {});
   }
 }

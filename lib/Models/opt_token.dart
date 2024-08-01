@@ -293,11 +293,11 @@ class OtpToken {
       counterString: map['counter'].toString(),
       periodString: map['period'].toString(),
       pinned: map['pinned'] == 1,
-      createTimeStamp: map['create_timestamp'],
-      editTimeStamp: map['edit_timestamp'],
+      createTimeStamp: map['create_timestamp'] ?? 0,
+      editTimeStamp: map['edit_timestamp'] ?? 0,
       remark: jsonDecode(map['remark'] ?? "{}"),
       copyTimes: map['copy_times'],
-      lastCopyTimeStamp: map['last_copy_timestamp'],
+      lastCopyTimeStamp: map['last_copy_timestamp'] ?? 0,
       pin: map['pin'],
     );
   }

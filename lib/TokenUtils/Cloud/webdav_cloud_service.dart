@@ -79,36 +79,42 @@ class WebDavCloudService extends CloudService {
   @override
   Future<dynamic> listFiles() async {
     var list = await client.readDir(_webdavPath);
-    for (var f in list) {
-      print('${f.name} ${f.path}');
-    }
     return list;
   }
 
   @override
-  Future<void> uploadFile(String fileName, Uint8List fileData) async {
+  Future<void> uploadFile(
+    String fileName,
+    Uint8List fileData, {
+    Function(int, int)? onProgress,
+  }) async {
     CancelToken c = CancelToken();
     await client.write(
       join(_webdavPath, fileName),
       fileData,
       onProgress: (c, t) {
-        print(c / t);
+        onProgress?.call(c, t);
       },
       cancelToken: c,
     );
   }
 
   @override
-  Future<Uint8List> downloadFile(String path) async {
+  Future<Uint8List> downloadFile(
+    String path, {
+    Function(int, int)? onProgress,
+  }) async {
     if (!path.startsWith(_webdavPath)) {
       path = join(_webdavPath, path);
     }
-    return Uint8List.fromList(await client.read(
-      path,
-      onProgress: (c, t) {
-        print(c / t);
-      },
-    ));
+    return Uint8List.fromList(
+      await client.read(
+        path,
+        onProgress: (c, t) {
+          onProgress?.call(c, t);
+        },
+      ),
+    );
   }
 
   @override

@@ -62,6 +62,8 @@ class HiveUtil {
 
   //Backup
   static const String enableAutoBackupKey = "enableAutoBackup";
+  static const String enableLocalBackupKey = "enableLocalBackup";
+  static const String maxBackupsCountKey = "maxBackupsCount";
   static const String enableCloudBackupKey = "enableCloudBackup";
   static const String backupPathKey = "backupPath";
   static const String useBackupPasswordToExportImportKey =
@@ -85,8 +87,16 @@ class HiveUtil {
   static initConfig() async {
     await HiveUtil.put(HiveUtil.inappWebviewKey, true);
     await HiveUtil.put(HiveUtil.enableSafeModeKey, true);
-    await HiveUtil.put(
-        HiveUtil.backupPathKey, await FileUtil.getBackupDir());
+    await HiveUtil.put(HiveUtil.maxBackupsCountKey, defaultMaxBackupCount);
+    await HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getBackupDir());
+  }
+
+  static getMaxBackupsCount() {
+    return getInt(HiveUtil.maxBackupsCountKey, defaultValue: defaultMaxBackupCount);
+  }
+
+  static Future<void> setMaxBackupsCount(int count) async {
+    await put(HiveUtil.maxBackupsCountKey, count);
   }
 
   static Future<String> regeneratePassword() async {
@@ -100,9 +110,14 @@ class HiveUtil {
         await ConfigDao.hasBackupPassword();
   }
 
-  static Future<bool> canBackup() async {
+  static Future<bool> canAutoBackup() async {
     return HiveUtil.getBool(HiveUtil.enableAutoBackupKey) &&
         Utils.isNotEmpty(HiveUtil.getString(HiveUtil.backupPathKey)) &&
+        await ConfigDao.hasBackupPassword();
+  }
+
+  static Future<bool> canBackup() async {
+    return Utils.isNotEmpty(HiveUtil.getString(HiveUtil.backupPathKey)) &&
         await ConfigDao.hasBackupPassword();
   }
 
@@ -121,7 +136,8 @@ class HiveUtil {
         EncryptDatabaseStatus.values.length)];
   }
 
-  static Future<void> setEncryptDatabaseStatus(EncryptDatabaseStatus status) async {
+  static Future<void> setEncryptDatabaseStatus(
+      EncryptDatabaseStatus status) async {
     await HiveUtil.put(HiveUtil.encryptDatabaseStatusKey, status.index);
   }
 

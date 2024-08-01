@@ -272,11 +272,15 @@ class Utils {
     } else if (diff.inDays > 7) {
       return dateFormat2.format(date);
     } else if (diff.inDays > 0) {
-      return "${diff.inDays + 1}天前";
+      return S.current.dayAgo(diff.inDays + 1);
     } else if (diff.inHours > 0) {
       return "${date.hour < 10 ? "0${date.hour}" : date.hour}:${date.minute < 10 ? "0${date.minute}" : date.minute}";
+    } else if (diff.inSeconds > 60) {
+      return S.current.minuteAgo(diff.inMinutes);
+    } else if (diff.inSeconds > 3) {
+      return S.current.secondAgo(diff.inSeconds);
     } else {
-      return "${date.minute}分钟前";
+      return S.current.rightnow;
     }
   }
 

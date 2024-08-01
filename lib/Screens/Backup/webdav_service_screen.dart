@@ -2,14 +2,21 @@ import 'dart:typed_data';
 
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
+import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/iprint.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
+import 'package:cloudotp/Widgets/BottomSheet/input_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/BottomSheet/star_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/BottomSheet/webdav_backups_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
+import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
-import 'package:webdav_client/webdav_client.dart' as webdav;
+import 'package:webdav_client/webdav_client.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
@@ -89,9 +96,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   }
 
   loadConfig() async {
-    // https://dav.jianguoyun.com/dav/
-    // 2014027378@qq.com
-    // a2uk28sqhdijtbet
     _cloudServiceConfig = await CloudServiceConfigDao.getWebdavConfig();
     if (_cloudServiceConfig != null) {
       _endpointController.text = _cloudServiceConfig!.endpoint ?? "";
@@ -103,7 +107,9 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
         return;
       } else {
         _webDavCloudService = WebDavCloudService(_cloudServiceConfig!);
-        ping(showSuccessToast: false);
+        Future.delayed(const Duration(milliseconds: 300), () {
+          ping(showSuccessToast: false);
+        });
       }
     } else {
       _cloudServiceConfig =
@@ -313,13 +319,51 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                       fontSizeDelta: 2,
                       onTap: () async {
                         CustomLoadingDialog.showLoading(
-                            title: S.current.webDavPulling);
-                        List<webdav.File> files =
-                            await _webDavCloudService!.listFiles();
-                        CustomLoadingDialog.dismissLoading();
-                        if (files.isNotEmpty) {
-                        } else {
-                          IToast.show(S.current.webDavNoBackupFile);
+                            title: S.current.webDavPulling, dismissible: true);
+                        try {
+                          List<WebDavFile> files =
+                              await _webDavCloudService!.listFiles();
+                          CustomLoadingDialog.dismissLoading();
+                          CloudServiceConfigDao.updateLastPullTime(
+                              _cloudServiceConfig!);
+                          files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
+                          if (files.isNotEmpty) {
+                            BottomSheetBuilder.showBottomSheet(
+                              context,
+                              responsive: true,
+                              (context) => WebDavBackupsBottomSheet(
+                                files: files,
+                                onSelected: (selectedFile) async {
+                                  var dialog = showProgressDialog(
+                                    context,
+                                    msg: S.current.webDavPulling,
+                                    showProgress: true,
+                                  );
+                                  Uint8List res =
+                                      await _webDavCloudService!.downloadFile(
+                                    selectedFile.name!,
+                                    onProgress: (c, t) {
+                                      dialog.updateProgress(progress: c / t);
+                                    },
+                                  );
+                                  dialog.updateMessage(
+                                    msg: S.current.importing,
+                                    showProgress: false,
+                                  );
+                                  ImportTokenUtil.importBackupFile(
+                                    res,
+                                    showLoading: false,
+                                  );
+                                  dialog.dismiss();
+                                },
+                              ),
+                            );
+                          } else {
+                            IToast.show(S.current.webDavNoBackupFile);
+                          }
+                        } catch (e) {
+                          CustomLoadingDialog.dismissLoading();
+                          IToast.show(S.current.webDavPullFailed);
                         }
                       },
                     ),
@@ -332,24 +376,10 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                       text: S.current.webDavPushBackup,
                       fontSizeDelta: 2,
                       onTap: () async {
-                        CustomLoadingDialog.showLoading(
-                            title: S.current.backuping);
-                        Uint8List? encryptedData =
-                            await ExportTokenUtil.getBackupFile();
-                        if (encryptedData == null) {
-                          IToast.showTop(S.current.backupFailed);
-                          return;
-                        } else {
-                          CustomLoadingDialog.dismissLoading();
-                          CustomLoadingDialog.showLoading(
-                              title: S.current.webDavPushing);
-                          await _webDavCloudService!.uploadFile(
-                            ExportTokenUtil.getExportFileName("bin"),
-                            encryptedData,
-                          );
-                          CustomLoadingDialog.dismissLoading();
-                          IToast.showTop(S.current.backupSuccess);
-                        }
+                        ExportTokenUtil.backupEncryptToWebDav(
+                          config: _cloudServiceConfig!,
+                          webDavCloudService: _webDavCloudService!,
+                        );
                       },
                     ),
                   ),

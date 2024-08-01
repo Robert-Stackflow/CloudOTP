@@ -1,13 +1,16 @@
 import 'dart:typed_data';
 
 import 'package:cloudotp/Database/config_dao.dart';
+import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
@@ -16,6 +19,7 @@ import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../Database/cloud_service_config_dao.dart';
 import '../../Database/database_manager.dart';
 import '../../Database/token_dao.dart';
 import '../../Models/github_response.dart';
@@ -58,6 +62,7 @@ class _SettingScreenState extends State<SettingScreen>
   bool _enableGuesturePasswd =
       HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);
   bool _enableAutoBackup = HiveUtil.getBool(HiveUtil.enableAutoBackupKey);
+  bool _enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
   bool _enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
   bool _useBackupPasswordToExportImport =
       HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey);
@@ -86,6 +91,8 @@ class _SettingScreenState extends State<SettingScreen>
   String _autoBackupPassword = "";
   EncryptDatabaseStatus _encryptDatabaseStatus =
       HiveUtil.getEncryptDatabaseStatus();
+  bool _cloudBackupConfigured = false;
+  int _maxBackupsCount = HiveUtil.getMaxBackupsCount();
 
   @override
   void initState() {
@@ -98,6 +105,7 @@ class _SettingScreenState extends State<SettingScreen>
         _autoBackupPassword = config.backupPassword;
       });
     });
+    loadWebDavConfig();
   }
 
   @override
@@ -266,6 +274,26 @@ class _SettingScreenState extends State<SettingScreen>
     ];
   }
 
+  bool get canBackup => _autoBackupPassword.isNotEmpty;
+
+  bool get canLocalBackup =>
+      _autoBackupPath.isNotEmpty && _autoBackupPassword.isNotEmpty;
+
+  bool get canCloudBackup => _cloudBackupConfigured;
+
+  bool get canImmediateBackup =>
+      canBackup &&
+      ((canLocalBackup && _enableLocalBackup) ||
+          (canCloudBackup && _enableCloudBackup));
+
+  loadWebDavConfig() async {
+    CloudServiceConfig? cloudServiceConfig =
+        await CloudServiceConfigDao.getWebdavConfig();
+    setState(() {
+      _cloudBackupConfigured = cloudServiceConfig != null;
+    });
+  }
+
   _backupSettings() {
     return [
       const SizedBox(height: 10),
@@ -273,35 +301,15 @@ class _SettingScreenState extends State<SettingScreen>
           context: context, title: S.current.backupSetting),
       ItemBuilder.buildRadioItem(
         context: context,
-        value: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty
-            ? false
-            : _enableAutoBackup,
+        value: canBackup ? _enableAutoBackup : false,
         title: S.current.autoBackup,
         description: S.current.autoBackupTip,
-        disabled: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty,
+        disabled: !canBackup,
         onTap: () {
           setState(() {
             _enableAutoBackup = !_enableAutoBackup;
             HiveUtil.put(HiveUtil.enableAutoBackupKey, _enableAutoBackup);
           });
-        },
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.autoBackupPath,
-        tip: _autoBackupPath,
-        onTap: () async {
-          String? selectedDirectory =
-              await FilePicker.platform.getDirectoryPath(
-            dialogTitle: S.current.autoBackupPath,
-            lockParentWindow: true,
-          );
-          if (selectedDirectory != null) {
-            setState(() {
-              _autoBackupPath = selectedDirectory;
-              HiveUtil.put(HiveUtil.backupPathKey, selectedDirectory);
-            });
-          }
         },
       ),
       ItemBuilder.buildEntryItem(
@@ -354,46 +362,7 @@ class _SettingScreenState extends State<SettingScreen>
       ),
       ItemBuilder.buildRadioItem(
         context: context,
-        value: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty
-            ? false
-            : _enableAutoBackup,
-        title: S.current.enableCloudBackup,
-        description: S.current.enableCloudBackupTip,
-        disabled: _autoBackupPath.isEmpty || _autoBackupPassword.isEmpty,
-        onTap: () {
-          setState(() {
-            _enableCloudBackup = !_enableCloudBackup;
-            HiveUtil.put(HiveUtil.enableCloudBackupKey, _enableCloudBackup);
-          });
-        },
-      ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.cloudBackupServiceSetting,
-        description: S.current.cloudBackupServiceSettingTip,
-        onTap: () async {
-          RouteUtil.pushDialogRoute(
-            context,
-            const WebDavServiceScreen(),
-            showClose: false,
-          );
-        },
-      ),
-      Visibility(
-        visible: _autoBackupPath.isNotEmpty && _autoBackupPassword.isNotEmpty,
-        child: ItemBuilder.buildEntryItem(
-          context: context,
-          title: S.current.immediatelyBackup,
-          description: S.current.immediatelyBackupTip,
-          onTap: () async {
-            ExportTokenUtil.backupEncryptFile(showLoading: true);
-          },
-        ),
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
         value: _useBackupPasswordToExportImport,
-        bottomRadius: true,
         title: S.current.useBackupPasswordToExportImport,
         description: S.current.useBackupPasswordToExportImportTip,
         disabled: _autoBackupPassword.isEmpty,
@@ -404,6 +373,145 @@ class _SettingScreenState extends State<SettingScreen>
             HiveUtil.put(HiveUtil.useBackupPasswordToExportImportKey,
                 _useBackupPasswordToExportImport);
           });
+        },
+      ),
+      Visibility(
+        visible: canImmediateBackup,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.maxBackupCount,
+          description: S.current.maxBackupCountTip,
+          tip: _maxBackupsCount.toString(),
+          onTap: () async {
+            var stateController = InputStateController(
+              controller: TextEditingController(),
+              validate: (text) {
+                if (text.isEmpty) {
+                  return Future.value(S.current.maxBackupCountCannotBeEmpty);
+                }
+                if (int.tryParse(text) == null) {
+                  return Future.value(S.current.maxBackupCountTooLong);
+                }
+                return Future.value(null);
+              },
+            );
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              responsive: true,
+              (context) => InputBottomSheet(
+                title: S.current.maxBackupCount,
+                text: _maxBackupsCount.toString(),
+                message: S.current.maxBackupCountTip,
+                hint: S.current.inputMaxBackupCount,
+                inputFormatters: [RegexInputFormatter.onlyNumber],
+                preventPop: true,
+                stateController: stateController,
+                onConfirm: (text) async {},
+                onValidConfirm: (text) async {
+                  int currentBackupsCount =
+                      await ExportTokenUtil.getBackupsCount();
+                  int count = int.parse(text);
+                  onValid() {
+                    HiveUtil.put(HiveUtil.maxBackupsCountKey, count);
+                    setState(() {
+                      _maxBackupsCount = count;
+                    });
+                    stateController.pop?.call();
+                    ExportTokenUtil.deleteOldBackup();
+                  }
+
+                  if (currentBackupsCount > count) {
+                    DialogBuilder.showConfirmDialog(
+                      context,
+                      title: S.current.maxBackupCountWarning,
+                      message: S.current
+                          .maxBackupCountWarningMessage(currentBackupsCount),
+                      onTapConfirm: () {
+                        onValid();
+                      },
+                      onTapCancel: () {},
+                    );
+                  } else {
+                    onValid();
+                  }
+                },
+              ),
+            );
+          },
+        ),
+      ),
+      Visibility(
+        visible: canImmediateBackup,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.immediatelyBackup,
+          description: S.current.immediatelyBackupTip,
+          onTap: () async {
+            ExportTokenUtil.backupEncryptToFile(
+                showLoading: true, showToast: true);
+          },
+        ),
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: canBackup ? _enableLocalBackup : false,
+        title: S.current.enableLocalBackup,
+        description: S.current.enableLocalBackupTip,
+        disabled: !canLocalBackup,
+        onTap: () {
+          setState(() {
+            _enableLocalBackup = !_enableLocalBackup;
+            HiveUtil.put(HiveUtil.enableLocalBackupKey, _enableLocalBackup);
+          });
+        },
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        title: S.current.autoBackupPath,
+        tip: _autoBackupPath,
+        onTap: () async {
+          String? selectedDirectory =
+              await FilePicker.platform.getDirectoryPath(
+            dialogTitle: S.current.autoBackupPath,
+            lockParentWindow: true,
+          );
+          if (selectedDirectory != null) {
+            setState(() {
+              _autoBackupPath = selectedDirectory;
+              HiveUtil.put(HiveUtil.backupPathKey, selectedDirectory);
+            });
+          }
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: canBackup ? _enableCloudBackup : false,
+        title: S.current.enableCloudBackup,
+        description: S.current.enableCloudBackupTip,
+        onTap: () {
+          setState(() {
+            _enableCloudBackup = !_enableCloudBackup;
+            HiveUtil.put(HiveUtil.enableCloudBackupKey, _enableCloudBackup);
+          });
+        },
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        title: S.current.cloudBackupServiceSetting,
+        bottomRadius: true,
+        tip: _cloudBackupConfigured
+            ? S.current.haveSetCloudBackupService("WebDav")
+            : S.current.notCloudBackupService,
+        description: S.current.cloudBackupServiceSettingTip,
+        onTap: () async {
+          RouteUtil.pushDialogRoute(
+            context,
+            const WebDavServiceScreen(),
+            showClose: false,
+            onThen: (value) {
+              loadWebDavConfig();
+            },
+          );
         },
       ),
     ];

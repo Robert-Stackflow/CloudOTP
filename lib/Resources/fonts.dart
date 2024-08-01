@@ -108,8 +108,11 @@ enum FontEnum {
     }
   }
 
-  static void loadFont(BuildContext context, FontEnum item,
-      {bool autoRestartApp = false}) async {
+  static void loadFont(
+    BuildContext context,
+    FontEnum item, {
+    bool autoRestartApp = false,
+  }) async {
     var dialog = showProgressDialog(context, msg: S.current.alreadyDownload);
     await HiveUtil.put(HiveUtil.fontFamilyKey, item.index);
     await FontEnum.downloadFont(

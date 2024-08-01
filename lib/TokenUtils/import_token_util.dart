@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import '../Database/category_dao.dart';
+import '../Database/config_dao.dart';
 import '../Models/category.dart';
 import '../Utils/utils.dart';
 import '../generated/l10n.dart';
@@ -172,20 +173,14 @@ class ImportTokenUtil {
         IToast.showTop(S.current.fileNotExist);
         return true;
       } else {
-        Backup backup = await compute((_) async {
-          Uint8List content = file.readAsBytesSync();
-          return await BackupEncryptionV1().decrypt(content, password);
+        Uint8List content = await compute((_) async {
+          return file.readAsBytesSync();
         }, null);
-        ImportAnalysis analysis = ImportAnalysis();
-        analysis.parseSuccess = backup.tokens.length;
-        analysis.parseCategorySuccess = backup.categories.length;
-        analysis.importSuccess = await mergeTokens(backup.tokens);
-        analysis.importCategorySuccess =
-            await mergeCategories(backup.categories);
-        analysis.showToast(S.current.fileDoesNotContainToken);
+        await importUint8List(content, password: password);
         return true;
       }
-    } catch (e, t) {
+    } catch (e,t) {
+      IPrint.debug("$e\n$t");
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
         return false;
@@ -198,6 +193,52 @@ class ImportTokenUtil {
         CustomLoadingDialog.dismissLoading();
       }
     }
+  }
+
+  static Future<bool> importBackupFile(
+    Uint8List content, {
+    String? password,
+    bool showLoading = true,
+    String? loadingText,
+  }) async {
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(
+          title: loadingText ?? S.current.importing);
+    }
+    try {
+      await importUint8List(content, password: password);
+      return true;
+    } catch (e, t) {
+      IPrint.debug("$e\n$t");
+      if (e is BackupBaseException) {
+        IToast.showTop(e.intlMessage);
+        return false;
+      } else {
+        IToast.showTop(S.current.importFailed);
+        return true;
+      }
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
+    }
+  }
+
+  static Future<bool> importUint8List(
+    Uint8List content, {
+    String? password,
+  }) async {
+    String tmpPassword = password ?? await ConfigDao.getBackupPassword();
+    Backup backup = await compute((_) async {
+      return await BackupEncryptionV1().decrypt(content, tmpPassword);
+    }, null);
+    ImportAnalysis analysis = ImportAnalysis();
+    analysis.parseSuccess = backup.tokens.length;
+    analysis.parseCategorySuccess = backup.categories.length;
+    analysis.importSuccess = await mergeTokens(backup.tokens);
+    analysis.importCategorySuccess = await mergeCategories(backup.categories);
+    analysis.showToast(S.current.fileDoesNotContainToken);
+    return true;
   }
 
   static importText(

@@ -70,17 +70,23 @@ class RouteUtil {
     ).then(onThen ?? (_) => {});
   }
 
-  static pushDialogRoute(BuildContext context, Widget page,
-      {bool barrierDismissible = true, bool showClose = true}) {
+  static pushDialogRoute(
+    BuildContext context,
+    Widget page, {
+    bool barrierDismissible = true,
+    bool showClose = true,
+    Function(dynamic)? onThen,
+  }) {
     if (ResponsiveUtil.isLandscape()) {
       DialogBuilder.showPageDialog(
         context,
         child: page,
         barrierDismissible: barrierDismissible,
         showClose: showClose,
+        onThen: onThen,
       );
     } else {
-      pushCupertinoRoute(context, page);
+      pushCupertinoRoute(context, page, onThen: onThen);
     }
   }
 }

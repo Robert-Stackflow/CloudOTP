@@ -36,6 +36,30 @@ class CloudServiceConfigDao {
     });
   }
 
+  static Future<int> updateLastBackupTime(CloudServiceConfig config) async {
+    final db = await DatabaseManager.getDataBase();
+    config.lastBackupTimestamp = DateTime.now().millisecondsSinceEpoch;
+    int id = await db.update(
+      tableName,
+      config.toMap(),
+      where: 'id = ?',
+      whereArgs: [config.id],
+    );
+    return id;
+  }
+
+  static Future<int> updateLastPullTime(CloudServiceConfig config) async {
+    final db = await DatabaseManager.getDataBase();
+    config.lastFetchTimestamp = DateTime.now().millisecondsSinceEpoch;
+    int id = await db.update(
+      tableName,
+      config.toMap(),
+      where: 'id = ?',
+      whereArgs: [config.id],
+    );
+    return id;
+  }
+
   static Future<int> updateConfig(CloudServiceConfig config) async {
     final db = await DatabaseManager.getDataBase();
     config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
@@ -58,7 +82,8 @@ class CloudServiceConfigDao {
     return result;
   }
 
-  static Future<CloudServiceConfig?> getSpecifyConfig(CloudServiceType type) async {
+  static Future<CloudServiceConfig?> getSpecifyConfig(
+      CloudServiceType type) async {
     final db = await DatabaseManager.getDataBase();
     List<Map<String, dynamic>> maps = await db.query(
       tableName,

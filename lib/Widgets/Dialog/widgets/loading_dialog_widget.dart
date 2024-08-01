@@ -10,12 +10,13 @@ class LoadingDialogWidget extends StatefulWidget {
 
   final double scale;
 
-  const LoadingDialogWidget(
-      {super.key,
-      this.dismissible = false,
-      this.title,
-      this.size = 40,
-      this.scale = 1.0});
+  const LoadingDialogWidget({
+    super.key,
+    this.dismissible = false,
+    this.title,
+    this.size = 40,
+    this.scale = 1.0,
+  });
 
   @override
   State<StatefulWidget> createState() => LoadingDialogWidgetState();

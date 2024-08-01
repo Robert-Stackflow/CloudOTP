@@ -57,6 +57,14 @@ enum Sql {
         last_backup_timestamp INTEGER NOT NULL,
         remark TEXT NOT NULL
       );
+    '''),
+  createAutoBackupLogTable('''
+      CREATE TABLE auto_update_log (
+        id INTEGER PRIMARY KEY,
+        start_timestamp INTEGER NOT NULL,
+        end_timestamp INTEGER NOT NULL,
+        status INTEGER NOT NULL
+      );
     ''');
 
   const Sql(this.sql);
