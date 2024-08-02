@@ -84,6 +84,8 @@
   "autoCopyNextCodeTip": "当前代码即将过期时，点击自动复制下一个代码；仅当点击复制开启时有效",
   "autoHideCode": "自动隐藏代码",
   "autoHideCodeTip": "当前代码过期后，自动隐藏代码；点击后可以再次显示代码",
+  "defaultHideCode": "默认隐藏代码",
+  "defaultHideCodeTip": "打开应用或更改令牌时，默认隐藏代码",
   "resetCopyTimes": "重置复制次数",
   "resetCopyTimesTip": "重置所有令牌的复制次数",
   "resetSuccess": "重置成功",

@@ -65,17 +65,6 @@ enum LayoutType {
         return 110;
     }
   }
-
-  double get childAspectRatio {
-    switch (this) {
-      case LayoutType.Simple:
-        return 1.8;
-      case LayoutType.Compact:
-        return 1.8;
-      case LayoutType.Tile:
-        return 3.2;
-    }
-  }
 }
 
 enum OrderType {
@@ -364,7 +353,15 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
+        preferredHeight: layoutType.height,
       ),
+      cacheExtent: 9999,
+      itemDragEnable: (index) {
+        if (tokens[index].pinnedInt == 1) {
+          return false;
+        }
+        return true;
+      },
       onReorder: (int oldIndex, int newIndex) async {
         setState(() {
           final item = tokens.removeAt(oldIndex);

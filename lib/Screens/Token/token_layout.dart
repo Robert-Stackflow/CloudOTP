@@ -45,7 +45,7 @@ class TokenLayout extends StatefulWidget {
 
 class TokenLayoutState extends State<TokenLayout>
     with TickerProviderStateMixin {
-  bool _showCode = true;
+  bool _showCode = !HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
   Timer? _timer;
   final double _autoCopyNextCodeProgressThrehold = 0.25;
   final String placeholderText = "*";
@@ -413,7 +413,7 @@ class TokenLayoutState extends State<TokenLayout>
                   borderRadius: BorderRadius.circular(5),
                   backgroundColor: Colors.grey.withOpacity(0.3),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 13),
               ],
             ),
           ),
@@ -426,7 +426,7 @@ class TokenLayoutState extends State<TokenLayout>
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            ? Theme.of(context).primaryColor.withOpacity(0.1)
             : Theme.of(context).canvasColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
@@ -523,7 +523,7 @@ class TokenLayoutState extends State<TokenLayout>
                   borderRadius: BorderRadius.circular(5),
                   backgroundColor: Colors.grey.withOpacity(0.3),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 13),
               ],
             ),
           ),
@@ -663,7 +663,7 @@ class TokenLayoutState extends State<TokenLayout>
                   borderRadius: BorderRadius.circular(5),
                   backgroundColor: Colors.grey.withOpacity(0.3),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 13),
               ],
             ),
           ),

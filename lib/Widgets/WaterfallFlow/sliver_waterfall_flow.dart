@@ -38,6 +38,7 @@ abstract class SliverWaterfallFlowDelegate extends ExtendedListDelegate {
   const SliverWaterfallFlowDelegate({
     this.mainAxisSpacing = 0.0,
     this.crossAxisSpacing = 0.0,
+    this.preferredHeight = 0.0,
     super.lastChildLayoutTypeBuilder,
     super.collectGarbage,
     super.viewportBuilder,
@@ -50,6 +51,8 @@ abstract class SliverWaterfallFlowDelegate extends ExtendedListDelegate {
 
   /// The number of logical pixels between each child along the cross axis.
   final double crossAxisSpacing;
+
+  final double preferredHeight;
 
   /// Return the offset of the child in the non-scrolling axis.
   double getCrossAxisOffset(
@@ -129,21 +132,14 @@ class SliverWaterfallFlowDelegateWithFixedCrossAxisCount
   /// must be greater than zero.
   const SliverWaterfallFlowDelegateWithFixedCrossAxisCount({
     required this.crossAxisCount,
-    double mainAxisSpacing = 0.0,
-    double crossAxisSpacing = 0.0,
-    LastChildLayoutTypeBuilder? lastChildLayoutTypeBuilder,
-    CollectGarbage? collectGarbage,
-    ViewportBuilder? viewportBuilder,
-    bool closeToTrailing = false,
-  })  : assert(crossAxisCount > 0),
-        super(
-          mainAxisSpacing: mainAxisSpacing,
-          crossAxisSpacing: crossAxisSpacing,
-          lastChildLayoutTypeBuilder: lastChildLayoutTypeBuilder,
-          collectGarbage: collectGarbage,
-          viewportBuilder: viewportBuilder,
-          closeToTrailing: closeToTrailing,
-        );
+    super.preferredHeight = 0.0,
+    super.mainAxisSpacing,
+    super.crossAxisSpacing,
+    super.lastChildLayoutTypeBuilder,
+    super.collectGarbage,
+    super.viewportBuilder,
+    super.closeToTrailing,
+  }) : assert(crossAxisCount > 0);
 
   /// The number of children in the cross axis.
   final int crossAxisCount;
@@ -197,13 +193,14 @@ class SliverWaterfallFlowDelegateWithMaxCrossAxisExtent
   /// [mainAxisSpacing], and [crossAxisSpacing] arguments must not be negative.
   const SliverWaterfallFlowDelegateWithMaxCrossAxisExtent({
     required this.maxCrossAxisExtent,
+    super.preferredHeight = 0.0,
     super.mainAxisSpacing,
     super.crossAxisSpacing,
     super.lastChildLayoutTypeBuilder,
     super.collectGarbage,
     super.viewportBuilder,
     super.closeToTrailing,
-  })  : assert(maxCrossAxisExtent >= 0);
+  }) : assert(maxCrossAxisExtent >= 0);
 
   /// The maximum extent of tiles in the cross axis.
   ///
@@ -289,7 +286,7 @@ class RenderSliverWaterfallFlow extends RenderSliverMultiBoxAdaptor
   RenderSliverWaterfallFlow({
     required super.childManager,
     required SliverWaterfallFlowDelegate gridDelegate,
-  })  : _gridDelegate = gridDelegate;
+  }) : _gridDelegate = gridDelegate;
 
   /// It stores parent data of the leading and trailing.
   _CrossAxisChildrenData? _previousCrossAxisChildrenData;
@@ -297,6 +294,7 @@ class RenderSliverWaterfallFlow extends RenderSliverMultiBoxAdaptor
   /// The delegate that controls the size and position of the children.
   SliverWaterfallFlowDelegate get gridDelegate => _gridDelegate;
   SliverWaterfallFlowDelegate _gridDelegate;
+
   set gridDelegate(SliverWaterfallFlowDelegate value) {
     if (_gridDelegate == value) {
       return;

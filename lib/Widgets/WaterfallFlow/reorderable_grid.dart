@@ -4,6 +4,7 @@ import 'package:cloudotp/Widgets/WaterfallFlow/sliver.dart';
 import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 typedef IndexedValueGetter<T> = T Function(int index);
 
@@ -58,7 +59,7 @@ class ReorderableGrid extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.autoScroll,
     this.onReorderStart,
-  })  : assert(itemCount >= 0);
+  }) : assert(itemCount >= 0);
 
   /// Called, as needed, to build grid item widgets.
   ///
@@ -308,7 +309,7 @@ class SliverReorderableGrid extends StatefulWidget {
   ///
   /// The [itemCount] must be greater than or equal to zero.
   const SliverReorderableGrid({
-    Key? key,
+    super.key,
     required this.itemBuilder,
     required this.itemCount,
     required this.onReorder,
@@ -318,8 +319,7 @@ class SliverReorderableGrid extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll = true,
     this.scrollDirection = Axis.vertical,
-  })  : assert(itemCount >= 0),
-        super(key: key);
+  }) : assert(itemCount >= 0);
 
   /// {@macro flutter.widgets.reorderable_list.itemBuilder}
   final IndexedWidgetBuilder itemBuilder;
@@ -750,6 +750,7 @@ class SliverReorderableGridState extends State<SliverReorderableGrid>
       index: index,
       capturedThemes:
           InheritedTheme.capture(from: context, to: overlay.context),
+      preferredHeight: widget.gridDelegate.preferredHeight,
       child: child,
     );
   }
@@ -775,11 +776,13 @@ class _ReorderableItem extends StatefulWidget {
     required this.index,
     required this.child,
     required this.capturedThemes,
+    this.preferredHeight = 0.0,
   }) : super(key: key);
 
   final int index;
   final Widget child;
   final CapturedThemes capturedThemes;
+  final double preferredHeight;
 
   @override
   _ReorderableItemState createState() => _ReorderableItemState();
@@ -791,11 +794,14 @@ class _ReorderableItemState extends State<_ReorderableItem> {
   Offset _startOffset = Offset.zero;
   Offset _targetOffset = Offset.zero;
   AnimationController? _offsetAnimation;
+  Size? childSize;
 
   Key get key => widget.key!;
+
   int get index => widget.index;
 
   bool get dragging => _dragging;
+
   set dragging(bool dragging) {
     if (mounted) {
       setState(() {
@@ -831,8 +837,20 @@ class _ReorderableItemState extends State<_ReorderableItem> {
 
   @override
   Widget build(BuildContext context) {
+    GlobalKey globalKey = widget.child.key as GlobalKey;
+    if (globalKey.currentContext != null &&
+        globalKey.currentState != null &&
+        globalKey.currentState!.mounted) {
+      RenderBox renderBox =
+          globalKey.currentContext!.findRenderObject() as RenderBox;
+      childSize = renderBox.size;
+    }
     if (_dragging) {
-      return const SizedBox.shrink();
+      if (childSize != null) {
+        return SizedBox(width: childSize!.width, height: childSize!.height);
+      } else {
+        return SizedBox(width: 180, height: widget.preferredHeight);
+      }
     }
     _listState._registerItem(this);
     return Transform(
@@ -1137,7 +1155,6 @@ Offset _overlayOrigin(BuildContext context) {
 
 class _DragItemProxy extends StatelessWidget {
   const _DragItemProxy({
-    Key? key,
     required this.listState,
     required this.index,
     required this.child,
@@ -1145,7 +1162,7 @@ class _DragItemProxy extends StatelessWidget {
     required this.size,
     required this.animation,
     required this.proxyDecorator,
-  }) : super(key: key);
+  });
 
   final SliverReorderableGridState listState;
   final int index;

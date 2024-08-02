@@ -41,6 +41,7 @@ class HiveUtil {
   static const String autoDisplayNextCodeKey = "autoDisplayNextCode";
   static const String autoCopyNextCodeKey = "autoCopyNextCode";
   static const String autoHideCodeKey = "autoHideCode";
+  static const String defaultHideCodeKey = "defaultHideCode";
 
   //Appearance
   static const String enableLandscapeInTabletKey = "enableLandscapeInTablet";

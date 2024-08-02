@@ -83,6 +83,7 @@ class _SettingScreenState extends State<SettingScreen>
   bool autoDisplayNextCode = HiveUtil.getBool(HiveUtil.autoDisplayNextCodeKey);
   bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
   bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
+  bool defaultHideCode = HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
   String _autoBackupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
   String _autoBackupPassword = "";
   EncryptDatabaseStatus _encryptDatabaseStatus =
@@ -253,6 +254,18 @@ class _SettingScreenState extends State<SettingScreen>
           setState(() {
             autoHideCode = !autoHideCode;
             HiveUtil.put(HiveUtil.autoHideCodeKey, autoHideCode);
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: defaultHideCode,
+        title: S.current.defaultHideCode,
+        description: S.current.defaultHideCodeTip,
+        onTap: () {
+          setState(() {
+            defaultHideCode = !defaultHideCode;
+            HiveUtil.put(HiveUtil.defaultHideCodeKey, defaultHideCode);
           });
         },
       ),

@@ -16,14 +16,14 @@ typedef IndexedValueGetter<T> = T Function(int index);
 /// The most commonly used grid layouts are [ReorderableGridView.count], which creates a
 /// layout with a fixed number of tiles in the cross axis, and
 /// [ReorderableGridView.extent], which creates a layout with tiles that have a maximum
-/// cross-axis extent. A custom [SliverGridDelegate] can produce an arbitrary 2D
+/// cross-axis extent. A custom [SliverWaterfallFlowDelegate] can produce an arbitrary 2D
 /// arrangement of children, including arrangements that are unaligned or
 /// overlapping.
 ///
 /// To create a grid with a large (or infinite) number of children, use the
 /// [ReorderableGridView.builder] constructor with either a
-/// [SliverGridDelegateWithFixedCrossAxisCount] or a
-/// [SliverGridDelegateWithMaxCrossAxisExtent] for the [gridDelegate].
+/// [SliverWaterfallFlowDelegateWithFixedCrossAxisCount] or a
+/// [SliverWaterfallFlowDelegateWithMaxCrossAxisExtent] for the [gridDelegate].
 ///
 /// To create a linear array of reorderable children, use a [ReorderableList].
 ///
@@ -194,7 +194,7 @@ typedef IndexedValueGetter<T> = T Function(int index);
 ///     context: context,
 ///     removeTop: true,
 ///     child: ReorderableGridView.builder(
-///       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+///       gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
 ///         crossAxisCount: 3,
 ///       ),
 ///       itemCount: 300,
@@ -219,16 +219,16 @@ typedef IndexedValueGetter<T> = T Function(int index);
 ///    size of the viewport.
 ///  * [CustomScrollView], which is a scrollable widget that creates custom
 ///    scroll effects using slivers.
-///  * [SliverGridDelegateWithFixedCrossAxisCount], which creates a layout with
+///  * [SliverWaterfallFlowDelegateWithFixedCrossAxisCount], which creates a layout with
 ///    a fixed number of tiles in the cross axis.
-///  * [SliverGridDelegateWithMaxCrossAxisExtent], which creates a layout with
+///  * [SliverWaterfallFlowDelegateWithMaxCrossAxisExtent], which creates a layout with
 ///    tiles that have a maximum cross-axis extent.
 ///  * [ScrollNotification] and [NotificationListener], which can be used to watch
 ///    the scroll position without using a [ScrollController].
 ///  * The [catalog of layout widgets](https://flutter.dev/widgets/layout/).
 class ReorderableGridView extends StatefulWidget {
   /// Creates a scrollable, 2D array of widgets with a custom
-  /// [SliverGridDelegate].
+  /// [SliverWaterfallFlowDelegate].
   ///
   /// The [gridDelegate] argument must not be null.
   ///
@@ -287,7 +287,7 @@ class ReorderableGridView extends StatefulWidget {
   /// [SliverChildBuilderDelegate.addRepaintBoundaries] property. Both must not
   /// be null.
   const ReorderableGridView.builder({
-    Key? key,
+    super.key,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
     this.controller,
@@ -310,13 +310,12 @@ class ReorderableGridView extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll,
     this.onReorderStart,
-  })  : assert(itemCount >= 0),
-        super(key: key);
+  })  : assert(itemCount >= 0);
 
   /// Creates a scrollable, 2D array of widgets with a fixed number of tiles in
   /// the cross axis.
   ///
-  /// Uses a [SliverGridDelegateWithFixedCrossAxisCount] as the [gridDelegate].
+  /// Uses a [SliverWaterfallFlowDelegateWithFixedCrossAxisCount] as the [gridDelegate].
   ///
   /// The `addAutomaticKeepAlives` argument corresponds to the
   /// [SliverChildListDelegate.addAutomaticKeepAlives] property. The
@@ -328,7 +327,7 @@ class ReorderableGridView extends StatefulWidget {
   ///
   ///  * [SliverGrid.count], the equivalent constructor for [SliverGrid].
   ReorderableGridView.count({
-    Key? key,
+    super.key,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
     this.controller,
@@ -363,13 +362,12 @@ class ReorderableGridView extends StatefulWidget {
           'All children of this widget must have a key.',
         ),
         itemBuilder = ((BuildContext context, int index) => children[index]),
-        itemCount = children.length,
-        super(key: key);
+        itemCount = children.length;
 
   /// Creates a scrollable, 2D array of widgets with tiles that each have a
   /// maximum cross-axis extent.
   ///
-  /// Uses a [SliverGridDelegateWithMaxCrossAxisExtent] as the [gridDelegate].
+  /// Uses a [SliverWaterfallFlowDelegateWithMaxCrossAxisExtent] as the [gridDelegate].
   ///
   /// The `addAutomaticKeepAlives` argument corresponds to the
   /// [SliverChildListDelegate.addAutomaticKeepAlives] property. The
@@ -381,7 +379,7 @@ class ReorderableGridView extends StatefulWidget {
   ///
   ///  * [SliverGrid.extent], the equivalent constructor for [SliverGrid].
   ReorderableGridView.extent({
-    Key? key,
+    super.key,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
     this.controller,
@@ -416,8 +414,7 @@ class ReorderableGridView extends StatefulWidget {
           'All children of this widget must have a key.',
         ),
         itemBuilder = ((BuildContext context, int index) => children[index]),
-        itemCount = children.length,
-        super(key: key);
+        itemCount = children.length;
 
   /// A delegate that controls the layout of the children within the [ReorderableGridView].
   ///
