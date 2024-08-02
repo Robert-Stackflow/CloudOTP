@@ -1,8 +1,8 @@
+import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
 
 class RouteUtil {
   static pushMaterialRoute(BuildContext context, Widget page) {
@@ -75,6 +75,8 @@ class RouteUtil {
     Widget page, {
     bool barrierDismissible = true,
     bool showClose = true,
+    double? preferMinWidth,
+    double? preferMinHeight,
     Function(dynamic)? onThen,
   }) {
     if (ResponsiveUtil.isLandscape()) {
@@ -84,6 +86,8 @@ class RouteUtil {
         barrierDismissible: barrierDismissible,
         showClose: showClose,
         onThen: onThen,
+        preferMinWidth: preferMinWidth,
+        preferMinHeight: preferMinHeight,
       );
     } else {
       pushCupertinoRoute(context, page, onThen: onThen);

@@ -1,15 +1,20 @@
+import 'dart:math';
+
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Screens/Token/category_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
+import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../Screens/Token/add_token_screen.dart';
-import '../../Utils/iprint.dart';
+import '../../Utils/hive_util.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/shortcuts_util.dart';
 import '../../generated/l10n.dart';
+import 'keymap_widget.dart';
 
 class KeyboardHandler extends StatefulWidget {
   const KeyboardHandler({
@@ -31,29 +36,49 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
     super.initState();
   }
 
+  focus() {
+    _focusNode.requestFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = defaultCloudOTPShortcuts;
-    final theme = Theme.of(context);
     final shortcuts = Map.fromEntries(
-        s.map((e) => MapEntry(e.triggerForPlatform(theme.platform), e.intent)));
-    final loc = S.current;
+        s.map((e) => MapEntry(e.triggerForPlatform(), e.intent)));
     final showHelpShortcut = <Type, Action<Intent>>{
       KeyboardShortcutHelpIntent: CallbackAction(
         onInvoke: (_) {
-          final descr = s
-              .map((e) => [
-                    e.triggerForPlatform(theme.platform).debugDescribeKeys(),
-                    e.label(loc)
-                  ].join(CharConstants.colon + CharConstants.space))
-              .join(CharConstants.newLine);
-          IToast.show("Keyboard Shortcuts:\n$descr");
+          while (Navigator.of(rootContext).canPop()) {
+            return null;
+          }
+          double width = MediaQuery.sizeOf(context).width - 200;
+          double height = MediaQuery.sizeOf(context).height - 200;
+          double preferWidth = min(width, 600);
+          double preferHeight = min(height, 400);
+
+          DialogBuilder.showPageDialog(
+            rootContext,
+            preferMinWidth: preferWidth,
+            preferMinHeight: preferHeight,
+            showClose: false,
+            child: KeyboardWidget(
+              bindings: defaultCloudOTPShortcuts,
+              title: Text(
+                S.current.shortcut,
+                style: Theme.of(rootContext).textTheme.titleLarge,
+              ),
+            ),
+          );
           return null;
         },
       ),
       LockIntent: CallbackAction(
         onInvoke: (_) {
-          IToast.show("Lock");
+          if (HiveUtil.canLock()) {
+            mainScreenState?.jumpToPinVerify();
+          } else {
+            IToast.showTop(S.current.noGestureLock);
+          }
           return null;
         },
       ),
@@ -65,20 +90,21 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
       ),
       SearchIntent: CallbackAction(
         onInvoke: (_) {
-          IToast.show("Search");
+          mainScreenState?.focusSearch();
           return null;
         },
       ),
       AddTokenIntent: CallbackAction(
         onInvoke: (_) {
-          RouteUtil.pushDialogRoute(context, const AddTokenScreen(),
+          RouteUtil.pushDialogRoute(rootContext, const AddTokenScreen(),
               showClose: false);
           return null;
         },
       ),
       ImportExportIntent: CallbackAction(
         onInvoke: (_) {
-          RouteUtil.pushDialogRoute(context, const ImportExportTokenScreen());
+          RouteUtil.pushDialogRoute(
+              rootContext, const ImportExportTokenScreen());
           return null;
         },
       ),
@@ -90,7 +116,7 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
       ),
       CategoryIntent: CallbackAction(
         onInvoke: (_) {
-          RouteUtil.pushDialogRoute(context, const CategoryScreen(),
+          RouteUtil.pushDialogRoute(rootContext, const CategoryScreen(),
               showClose: false);
           return null;
         },
@@ -98,6 +124,21 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
       ChangeLayoutTypeIntent: CallbackAction(
         onInvoke: (_) {
           homeScreenState?.changeLayoutType();
+          return null;
+        },
+      ),
+      BackIntent: CallbackAction(
+        onInvoke: (_) {
+          mainScreenState?.goBack();
+          return null;
+        },
+      ),
+      HomeIntent: CallbackAction(
+        onInvoke: (_) {
+          while (Navigator.of(rootContext).canPop()) {
+            Navigator.of(rootContext).pop();
+          }
+          mainScreenState?.goHome();
           return null;
         },
       ),
@@ -109,6 +150,16 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
         child: Focus(
           focusNode: _focusNode,
           autofocus: true,
+          canRequestFocus: true,
+          descendantsAreFocusable: true,
+          onKeyEvent: (node, event) {
+            if (event.logicalKey == LogicalKeyboardKey.escape) {
+              if (Navigator.of(rootContext).canPop()) {
+                Navigator.of(rootContext).pop();
+              }
+            }
+            return KeyEventResult.ignored;
+          },
           child: widget.child,
         ),
       ),
@@ -126,7 +177,7 @@ class LoggingShortcutManager extends ShortcutManager {
     LogicalKeySet? keysPressed,
   }) {
     final KeyEventResult result = super.handleKeypress(context, event);
-    IPrint.debug('handleKeyPress($event, $keysPressed) result: $result');
+    // IPrint.debug('handleKeyPress($event, $keysPressed) result: $result');
     return result;
   }
 }

@@ -21,7 +21,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
@@ -29,7 +28,6 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zxing2/qrcode.dart';
 
-import '../Database/database_manager.dart';
 import '../Resources/fonts.dart';
 import '../TokenUtils/import_token_util.dart';
 import '../Utils/app_provider.dart';
@@ -40,11 +38,8 @@ import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
 import '../Utils/utils.dart';
-import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
-import '../Widgets/Item/input_item.dart';
 import '../Widgets/Scaffold/my_scaffold.dart';
 import '../Widgets/Window/window_button.dart';
 import '../generated/l10n.dart';
@@ -79,6 +74,7 @@ class MainScreenState extends State<MainScreen>
   bool _isStayOnTop = false;
   bool _hasJumpedToPinVerify = false;
   TextEditingController searchController = TextEditingController();
+  FocusNode searchFocusNode = FocusNode();
 
   @override
   void onWindowMinimize() {
@@ -154,6 +150,15 @@ class MainScreenState extends State<MainScreen>
     }
   }
 
+  focusSearch() {
+    searchFocusNode.requestFocus();
+    searchFocusNode.addListener(() {
+      if (!searchFocusNode.hasFocus) {
+        keyboardHandlerState?.focus();
+      }
+    });
+  }
+
   @override
   void initState() {
     trayManager.addListener(this);
@@ -207,19 +212,19 @@ class MainScreenState extends State<MainScreen>
     }
   }
 
-  void jumpToPinVerify({bool autoAuth = false}) {
-    if (HiveUtil.shouldAutoLock()) {
-      _hasJumpedToPinVerify = true;
-      RouteUtil.pushCupertinoRoute(
-          context,
-          PinVerifyScreen(
-            onSuccess: () {},
-            isModal: true,
-            autoAuth: autoAuth,
-          ), onThen: (_) {
-        _hasJumpedToPinVerify = false;
-      });
-    }
+  void jumpToPinVerify({
+    bool autoAuth = false,
+  }) {
+    _hasJumpedToPinVerify = true;
+    RouteUtil.pushCupertinoRoute(
+        context,
+        PinVerifyScreen(
+          onSuccess: () {},
+          isModal: true,
+          autoAuth: autoAuth,
+        ), onThen: (_) {
+      _hasJumpedToPinVerify = false;
+    });
   }
 
   @override
@@ -634,10 +639,7 @@ class MainScreenState extends State<MainScreen>
                             : Colors.grey,
                       ),
                       onTap: () {
-                        if (canPopByKey) {
-                          desktopNavigatorState?.pop();
-                        }
-                        appProvider.canPopByProvider = canPopByKey;
+                        goBack();
                       },
                     ),
                   ),
@@ -652,10 +654,7 @@ class MainScreenState extends State<MainScreen>
                     color: Theme.of(context).iconTheme.color,
                   ),
                   onTap: () {
-                    while (desktopNavigatorState!.canPop()) {
-                      desktopNavigatorState?.pop();
-                    }
-                    appProvider.canPopByProvider = false;
+                    goHome();
                   },
                 ),
                 const SizedBox(width: 8),
@@ -666,6 +665,7 @@ class MainScreenState extends State<MainScreen>
                     borderRadius: 8,
                     bottomMargin: 18,
                     hintFontSizeDelta: 1,
+                    focusNode: searchFocusNode,
                     controller: searchController,
                     background: Colors.grey.withAlpha(40),
                     hintText: S.current.searchToken,
@@ -749,6 +749,20 @@ class MainScreenState extends State<MainScreen>
     );
   }
 
+  goBack() {
+    if (canPopByKey) {
+      desktopNavigatorState?.pop();
+    }
+    appProvider.canPopByProvider = canPopByKey;
+  }
+
+  goHome() {
+    while (desktopNavigatorState!.canPop()) {
+      desktopNavigatorState?.pop();
+    }
+    appProvider.canPopByProvider = false;
+  }
+
   void cancleTimer() {
     if (_timer != null) {
       _timer!.cancel();
@@ -760,7 +774,9 @@ class MainScreenState extends State<MainScreen>
       _timer = Timer(
         Duration(minutes: appProvider.autoLockTime),
         () {
-          jumpToPinVerify();
+          if (HiveUtil.shouldAutoLock()) {
+            jumpToPinVerify();
+          }
         },
       );
     }
@@ -816,16 +832,7 @@ class MainScreenState extends State<MainScreen>
       windowManager.restore();
     } else if (menuItem.key == 'lock_window') {
       if (HiveUtil.canLock()) {
-        _hasJumpedToPinVerify = true;
-        RouteUtil.pushCupertinoRoute(
-            context,
-            PinVerifyScreen(
-              onSuccess: () {},
-              isModal: true,
-              autoAuth: false,
-            ), onThen: (_) {
-          _hasJumpedToPinVerify = false;
-        });
+        jumpToPinVerify();
       } else {
         windowManager.show();
         windowManager.focus();

@@ -137,6 +137,8 @@ class DialogBuilder {
     bool barrierDismissible = true,
     bool showClose = true,
     Function(dynamic)? onThen,
+    double? preferMinWidth,
+    double? preferMinHeight,
   }) {
     showGeneralDialog(
       barrierDismissible: barrierDismissible,
@@ -152,7 +154,12 @@ class DialogBuilder {
       },
       pageBuilder: (context, animation, secondaryAnimation) =>
           DialogWrapperWidget(
-              key: dialogNavigatorKey, showClose: showClose, child: child),
+        key: dialogNavigatorKey,
+        showClose: showClose,
+        preferMinWidth: preferMinWidth,
+        preferMinHeight: preferMinHeight,
+        child: child,
+      ),
     ).then(onThen ?? (_) => {});
   }
 }

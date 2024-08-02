@@ -53,12 +53,15 @@ Future<void> runMyApp(List<String> args) async {
   late Widget home;
   if (!DatabaseManager.initialized) {
     home = const DatabaseDecryptScreen();
-  } else if (HiveUtil.shouldAutoLock()) {
-    home = const PinVerifyScreen();
+  } else if (HiveUtil.canLock()) {
+    home = const PinVerifyScreen(
+      isModal: true,
+      autoAuth: true,
+    );
   } else {
     home = MainScreen(key: mainScreenKey);
   }
-  runApp(MyApp(home: KeyboardHandler(child: home)));
+  runApp(MyApp(home: KeyboardHandler(key: keyboardHandlerKey, child: home)));
   FlutterNativeSplash.remove();
 }
 

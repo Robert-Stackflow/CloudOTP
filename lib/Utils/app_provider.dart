@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../Screens/home_screen.dart';
+import '../Widgets/Custom/keyboard_handler.dart';
 import '../generated/l10n.dart';
 import 'enums.dart';
 import 'hive_util.dart';
@@ -33,9 +34,15 @@ GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 
 GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
+GlobalKey<KeyboardHandlerState> keyboardHandlerKey =
+    GlobalKey<KeyboardHandlerState>();
+
 HomeScreenState? get homeScreenState => homeScreenKey.currentState;
 
 MainScreenState? get mainScreenState => mainScreenKey.currentState;
+
+KeyboardHandlerState? get keyboardHandlerState =>
+    keyboardHandlerKey.currentState;
 
 BuildContext get rootContext => globalNavigatorState!.context;
 

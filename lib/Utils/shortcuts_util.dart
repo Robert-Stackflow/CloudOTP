@@ -1,10 +1,12 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 
 import '../generated/l10n.dart';
 
-typedef LabelProvider = String Function(S loc);
+typedef LocalizationsProvider = String Function(S);
 
 class LockIntent extends Intent {
   const LockIntent();
@@ -42,6 +44,14 @@ class ChangeDayNightModeIntent extends Intent {
   const ChangeDayNightModeIntent();
 }
 
+class BackIntent extends Intent {
+  const BackIntent();
+}
+
+class HomeIntent extends Intent {
+  const HomeIntent();
+}
+
 final defaultCloudOTPShortcuts = [
   CloudOTPShortcut.all(
     key: HotKey(
@@ -49,7 +59,23 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const AddTokenIntent(),
-    label: (loc) => "Add Token",
+    labelProvider: (s) => s.addToken,
+  ),
+  CloudOTPShortcut.all(
+    key: HotKey(
+      key: LogicalKeyboardKey.arrowLeft,
+      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+    ).singleActivator,
+    intent: const BackIntent(),
+    labelProvider: (s) => s.back,
+  ),
+  CloudOTPShortcut.all(
+    key: HotKey(
+      key: LogicalKeyboardKey.keyH,
+      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+    ).singleActivator,
+    intent: const HomeIntent(),
+    labelProvider: (s) => s.home,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -57,7 +83,7 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const ImportExportIntent(),
-    label: (loc) => "Import/Export",
+    labelProvider: (s) => s.exportImport,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -65,7 +91,7 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const CategoryIntent(),
-    label: (loc) => "Category",
+    labelProvider: (s) => s.category,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -73,7 +99,7 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const ChangeLayoutTypeIntent(),
-    label: (loc) => "Change Layout Type",
+    labelProvider: (s) => s.changeLayoutType,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -81,7 +107,7 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const ChangeDayNightModeIntent(),
-    label: (loc) => "Change Day/Night Mode",
+    labelProvider: (s) => s.changeDayNightMode,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -89,7 +115,7 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const SettingIntent(),
-    label: (loc) => "Setting",
+    labelProvider: (s) => s.setting,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -97,7 +123,7 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const SearchIntent(),
-    label: (loc) => "Search",
+    labelProvider: (s) => s.searchToken,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -105,14 +131,14 @@ final defaultCloudOTPShortcuts = [
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const LockIntent(),
-    label: (loc) => "Lock",
+    labelProvider: (s) => s.lock,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
       key: LogicalKeyboardKey.f1,
     ).singleActivator,
     intent: const KeyboardShortcutHelpIntent(),
-    label: (loc) => "Keyboard Shortcut Help",
+    labelProvider: (s) => s.shortcutHelp,
   ),
 ];
 
@@ -122,28 +148,70 @@ class CloudOTPShortcut {
     required this.linux,
     required this.windows,
     required this.intent,
-    required this.label,
+    required this.labelProvider,
   });
 
   CloudOTPShortcut.all({
-    required ShortcutActivator key,
+    required SingleActivator key,
     required Intent intent,
-    required LabelProvider label,
+    required LocalizationsProvider labelProvider,
   }) : this(
           mac: key,
           linux: key,
           windows: key,
           intent: intent,
-          label: label,
+          labelProvider: labelProvider,
         );
 
-  final ShortcutActivator mac;
-  final ShortcutActivator linux;
-  final ShortcutActivator windows;
+  final SingleActivator mac;
+  final SingleActivator linux;
+  final SingleActivator windows;
   final Intent intent;
-  final LabelProvider label;
+  final LocalizationsProvider labelProvider;
 
-  ShortcutActivator triggerForPlatform(TargetPlatform platform) {
+  bool get isControlPressed => triggerForPlatform().control;
+
+  bool get isMetaPressed => triggerForPlatform().meta;
+
+  bool get isShiftPressed => triggerForPlatform().shift;
+
+  bool get isAltPressed => triggerForPlatform().alt;
+
+  String get triggerLabel {
+    SingleActivator tr = triggerForPlatform();
+    LogicalKeyboardKey key = tr.trigger;
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      return "←";
+    } else if (key == LogicalKeyboardKey.arrowRight) {
+      return "→";
+    } else if (key == LogicalKeyboardKey.arrowUp) {
+      return "↑";
+    } else if (key == LogicalKeyboardKey.arrowDown) {
+      return "↓";
+    } else if (key == LogicalKeyboardKey.delete) {
+      return "\u232B";
+    } else if (key == LogicalKeyboardKey.enter) {
+      return '\u2B90';
+    } else {
+      return key.keyLabel;
+    }
+  }
+
+  SingleActivator triggerForPlatform() {
+    late TargetPlatform platform;
+    if (Platform.isAndroid) {
+      platform = TargetPlatform.android;
+    } else if (Platform.isIOS) {
+      platform = TargetPlatform.iOS;
+    } else if (Platform.isLinux) {
+      platform = TargetPlatform.linux;
+    } else if (Platform.isMacOS) {
+      platform = TargetPlatform.macOS;
+    } else if (Platform.isWindows) {
+      platform = TargetPlatform.windows;
+    } else {
+      platform = TargetPlatform.windows;
+    }
     switch (platform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
