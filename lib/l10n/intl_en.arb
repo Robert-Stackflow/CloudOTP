@@ -91,6 +91,8 @@
   "autoHideCodeTip": "After the current code expires, the code is automatically hidden; click to display the code again",
   "defaultHideCode": "Default hide code",
   "defaultHideCodeTip": "When opening the app or changing the token, the code is hidden by default",
+  "dragToReorder": "Drag to reorder immediately",
+  "dragToReorderTip": "When turned on, drag to reorder immediately; otherwise, press and hold to reorder after dragging",
   "resetCopyTimes": "Reset the number of copies",
   "resetCopyTimesTip": "Reset the number of copies for all tokens",
   "resetSuccess": "Reset success",

@@ -84,6 +84,8 @@ class _SettingScreenState extends State<SettingScreen>
   bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
   bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
   bool defaultHideCode = HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
+  bool dragToReorder = HiveUtil.getBool(HiveUtil.dragToReorderKey,
+      defaultValue: !ResponsiveUtil.isMobile());
   String _autoBackupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
   String _autoBackupPassword = "";
   EncryptDatabaseStatus _encryptDatabaseStatus =
@@ -266,6 +268,19 @@ class _SettingScreenState extends State<SettingScreen>
           setState(() {
             defaultHideCode = !defaultHideCode;
             HiveUtil.put(HiveUtil.defaultHideCodeKey, defaultHideCode);
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: dragToReorder,
+        title: S.current.dragToReorder,
+        description: S.current.dragToReorderTip,
+        onTap: () {
+          setState(() {
+            dragToReorder = !dragToReorder;
+            appProvider.dragToReorder = dragToReorder;
+            HiveUtil.put(HiveUtil.dragToReorderKey, dragToReorder);
           });
         },
       ),

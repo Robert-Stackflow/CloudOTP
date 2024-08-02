@@ -15,6 +15,7 @@ import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
 
 import '../Database/token_dao.dart';
 import '../Models/category.dart';
@@ -347,56 +348,61 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   _buildMainContent() {
-    Widget gridView = ReorderableGridView.builder(
-      padding: const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 30),
-      gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        preferredHeight: layoutType.height,
+    Widget gridView = Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.dragToReorder,
+      builder: (context, dragToReorder, child) => ReorderableGridView.builder(
+        padding:
+            const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 30),
+        gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          preferredHeight: layoutType.height,
+        ),
+        dragToReorder: dragToReorder,
+        cacheExtent: 9999,
+        itemDragEnable: (index) {
+          if (tokens[index].pinnedInt == 1) {
+            return false;
+          }
+          return true;
+        },
+        onReorder: (int oldIndex, int newIndex) async {
+          setState(() {
+            final item = tokens.removeAt(oldIndex);
+            tokens.insert(newIndex, item);
+          });
+          for (int i = 0; i < tokens.length; i++) {
+            tokens[i].seq = i;
+          }
+          tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
+          await TokenDao.updateTokens(tokens);
+          changeOrderType(type: OrderType.Default, doPerformSort: false);
+        },
+        proxyDecorator: (Widget child, int index, Animation<double> animation) {
+          return Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor,
+                  offset: const Offset(0, 4),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ).scale(2),
+              ],
+            ),
+            child: child,
+          );
+        },
+        itemCount: tokens.length,
+        itemBuilder: (context, index) {
+          return TokenLayout(
+            key: ValueKey("${tokens[index].id} ${tokens[index].issuer}"),
+            token: tokens[index],
+            layoutType: layoutType,
+          );
+        },
       ),
-      cacheExtent: 9999,
-      itemDragEnable: (index) {
-        if (tokens[index].pinnedInt == 1) {
-          return false;
-        }
-        return true;
-      },
-      onReorder: (int oldIndex, int newIndex) async {
-        setState(() {
-          final item = tokens.removeAt(oldIndex);
-          tokens.insert(newIndex, item);
-        });
-        for (int i = 0; i < tokens.length; i++) {
-          tokens[i].seq = i;
-        }
-        tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-        await TokenDao.updateTokens(tokens);
-        changeOrderType(type: OrderType.Default, doPerformSort: false);
-      },
-      proxyDecorator: (Widget child, int index, Animation<double> animation) {
-        return Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).shadowColor,
-                offset: const Offset(0, 4),
-                blurRadius: 10,
-                spreadRadius: 1,
-              ).scale(2),
-            ],
-          ),
-          child: child,
-        );
-      },
-      itemCount: tokens.length,
-      itemBuilder: (context, index) {
-        return TokenLayout(
-          key: ValueKey(tokens[index].toMap().toString()),
-          token: tokens[index],
-          layoutType: layoutType,
-        );
-      },
     );
     // return gridView;
     return EasyRefresh(

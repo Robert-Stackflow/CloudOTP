@@ -1,4 +1,5 @@
 import 'package:cloudotp/Resources/theme_color_data.dart';
+import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
@@ -30,7 +31,11 @@ MyScaffoldState? get homeScaffoldState => homeScaffoldKey.currentState;
 
 GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 
+GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
+
 HomeScreenState? get homeScreenState => homeScreenKey.currentState;
+
+MainScreenState? get mainScreenState => mainScreenKey.currentState;
 
 BuildContext get rootContext => globalNavigatorState!.context;
 
@@ -70,6 +75,17 @@ class AppProvider with ChangeNotifier {
 
   set canPopByProvider(bool value) {
     _canPopByProvider = value;
+    notifyListeners();
+  }
+
+  bool _dragToReorder = HiveUtil.getBool(HiveUtil.dragToReorderKey,
+      defaultValue: !ResponsiveUtil.isMobile());
+
+  bool get dragToReorder => _dragToReorder;
+
+  set dragToReorder(bool value) {
+    _dragToReorder = value;
+    HiveUtil.put(HiveUtil.dragToReorderKey, value);
     notifyListeners();
   }
 

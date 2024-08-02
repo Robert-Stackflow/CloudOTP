@@ -26,6 +26,7 @@ import 'TokenUtils/token_image_util.dart';
 import 'Utils/constant.dart';
 import 'Utils/notification_util.dart';
 import 'Utils/responsive_util.dart';
+import 'Widgets/Custom/keyboard_handler.dart';
 import 'generated/l10n.dart';
 
 Future<void> main(List<String> args) async {
@@ -55,9 +56,9 @@ Future<void> runMyApp(List<String> args) async {
   } else if (HiveUtil.shouldAutoLock()) {
     home = const PinVerifyScreen();
   } else {
-    home = const MainScreen();
+    home = MainScreen(key: mainScreenKey);
   }
-  runApp(MyApp(home: home));
+  runApp(MyApp(home: KeyboardHandler(child: home)));
   FlutterNativeSplash.remove();
 }
 

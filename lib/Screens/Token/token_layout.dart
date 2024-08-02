@@ -438,12 +438,9 @@ class TokenLayoutState extends State<TokenLayout>
             if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
               if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
                   currentProgress < _autoCopyNextCodeProgressThrehold) {
-                Utils.copy(context, getNextCode(),
-                    toastText: S.current.alreadyCopiedNextCode);
-                TokenDao.incTokenCopyTimes(widget.token);
+                _processCopyNextCode();
               } else {
-                Utils.copy(context, getCurrentCode());
-                TokenDao.incTokenCopyTimes(widget.token);
+                _processCopyCode();
               }
             }
           },

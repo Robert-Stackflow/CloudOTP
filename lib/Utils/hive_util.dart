@@ -5,6 +5,7 @@ import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/enums.dart';
 import 'package:cloudotp/Utils/file_util.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -30,6 +31,7 @@ class HiveUtil {
   static const String autoCompleteParameterKey = "autoCompleteParameter";
   static const String localeKey = "locale";
   static const String recordWindowStateKey = "recordWindowState";
+  static const String dragToReorderKey = "dragToReorder";
   static const String windowSizeKey = "windowSize";
   static const String windowPositionKey = "windowPosition";
   static const String enableCloseToTrayKey = "enableCloseToTray";
@@ -90,6 +92,7 @@ class HiveUtil {
     await HiveUtil.put(HiveUtil.enableSafeModeKey, true);
     await HiveUtil.put(HiveUtil.maxBackupsCountKey, defaultMaxBackupCount);
     await HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getBackupDir());
+    await HiveUtil.put(HiveUtil.dragToReorderKey, !ResponsiveUtil.isMobile());
   }
 
   static getMaxBackupsCount() {

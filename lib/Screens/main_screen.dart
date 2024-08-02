@@ -162,7 +162,6 @@ class MainScreenState extends State<MainScreen>
     WidgetsBinding.instance.addObserver(this);
     initDeepLinks();
     FontEnum.downloadFont(showToast: false);
-    if (ResponsiveUtil.isDesktop()) initHotKey();
     if (HiveUtil.getBool(HiveUtil.autoCheckUpdateKey)) fetchReleases();
     darkModeController = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -221,20 +220,6 @@ class MainScreenState extends State<MainScreen>
         _hasJumpedToPinVerify = false;
       });
     }
-  }
-
-  initHotKey() async {
-    HotKey hotKey = HotKey(
-      key: PhysicalKeyboardKey.keyC,
-      modifiers: [HotKeyModifier.alt],
-      scope: HotKeyScope.inapp,
-    );
-    await hotKeyManager.register(
-      hotKey,
-      keyDownHandler: (hotKey) {
-        RouteUtil.pushDesktopFadeRoute(const SettingScreen());
-      },
-    );
   }
 
   @override
@@ -572,24 +557,25 @@ class MainScreenState extends State<MainScreen>
                   },
                 ),
                 ItemBuilder.buildDynamicIconButton(
-                    context: context,
-                    icon: darkModeWidget,
-                    onTap: changeMode,
-                    onChangemode: (context, themeMode, child) {
-                      if (darkModeController.duration != null) {
-                        if (themeMode == ActiveThemeMode.light) {
-                          darkModeController.forward();
-                        } else if (themeMode == ActiveThemeMode.dark) {
+                  context: context,
+                  icon: darkModeWidget,
+                  onTap: changeMode,
+                  onChangemode: (context, themeMode, child) {
+                    if (darkModeController.duration != null) {
+                      if (themeMode == ActiveThemeMode.light) {
+                        darkModeController.forward();
+                      } else if (themeMode == ActiveThemeMode.dark) {
+                        darkModeController.reverse();
+                      } else {
+                        if (Utils.isDark(context)) {
                           darkModeController.reverse();
                         } else {
-                          if (Utils.isDark(context)) {
-                            darkModeController.reverse();
-                          } else {
-                            darkModeController.forward();
-                          }
+                          darkModeController.forward();
                         }
                       }
-                    }),
+                    }
+                  },
+                ),
                 const SizedBox(width: 6),
                 ItemBuilder.buildDynamicIconButton(
                   context: context,

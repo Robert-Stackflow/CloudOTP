@@ -12,13 +12,11 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   # 控件
-  lottie: ^3.1.2
+  lottie: ^3.1.2 # Lottie动画
   animations: ^2.0.11 # 动画
   fluttertoast: ^8.2.6 # 吐司
   flutter_widget_from_html: ^0.15.0 # 将HTML渲染成组件
   modal_bottom_sheet: ^3.0.0 # 底部弹窗
-  group_button:
-    path: third-party/group_button
   pretty_qr_code: ^3.3.0
   path_drawing: ^1.0.1 # 路径绘制
   flutter_inappwebview: ^6.0.0 # Webview
@@ -26,6 +24,8 @@ dependencies:
   flutter_layout_grid: ^2.0.7
   zxing2: ^0.2.3 # 二维码
   image: ^4.2.0 # 图片
+  group_button:
+    path: third-party/group_button
   context_menus:
     path: third-party/context_menus
   # 系统

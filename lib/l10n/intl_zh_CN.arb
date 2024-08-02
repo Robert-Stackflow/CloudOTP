@@ -226,6 +226,8 @@
   "exitApp": "退出CloudOTP",
   "autoMemoryWindowPositionAndSize": "记忆窗口位置和大小",
   "autoMemoryWindowPositionAndSizeTip": "关闭后，每次打开CloudOTP都会居中显示且具有默认窗口大小",
+  "dragToReorder": "拖动立即重新排序",
+  "dragToReorderTip": "开启后，拖动则立即排序；否则长按拖动后进行排序",
   "mobileSetting": "移动端设置",
   "useDesktopLayoutWhenLandscape": "横屏时启用桌面端布局",
   "haveToRestartWhenChange": "更改后需要重启",

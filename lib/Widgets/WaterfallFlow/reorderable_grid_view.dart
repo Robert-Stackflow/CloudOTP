@@ -243,6 +243,7 @@ class ReorderableGridView extends StatefulWidget {
     this.reverse = false,
     this.controller,
     this.primary,
+    this.dragToReorder = false,
     this.physics,
     this.shrinkWrap = false,
     this.padding,
@@ -292,6 +293,7 @@ class ReorderableGridView extends StatefulWidget {
     this.reverse = false,
     this.controller,
     this.primary,
+    this.dragToReorder = false,
     this.physics,
     this.shrinkWrap = false,
     this.padding,
@@ -310,7 +312,7 @@ class ReorderableGridView extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll,
     this.onReorderStart,
-  })  : assert(itemCount >= 0);
+  }) : assert(itemCount >= 0);
 
   /// Creates a scrollable, 2D array of widgets with a fixed number of tiles in
   /// the cross axis.
@@ -334,6 +336,7 @@ class ReorderableGridView extends StatefulWidget {
     this.primary,
     this.physics,
     this.shrinkWrap = false,
+    this.dragToReorder = false,
     this.padding,
     required int crossAxisCount,
     required this.onReorder,
@@ -384,6 +387,7 @@ class ReorderableGridView extends StatefulWidget {
     this.reverse = false,
     this.controller,
     this.primary,
+    this.dragToReorder = false,
     this.physics,
     this.shrinkWrap = false,
     this.padding,
@@ -440,6 +444,9 @@ class ReorderableGridView extends StatefulWidget {
 
   /// {@macro flutter.widgets.scroll_view.shrinkWrap}
   final bool shrinkWrap;
+
+  ///When true, drag to reorder immediately; otherwise, press and hold to reorder after dragging",
+  final bool dragToReorder;
 
   /// {@macro flutter.widgets.scroll_view.anchor}
   final double anchor;
@@ -581,21 +588,22 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
       case TargetPlatform.linux:
       case TargetPlatform.windows:
       case TargetPlatform.macOS:
-        return ReorderableGridDragStartListener(
-          key: itemGlobalKey,
-          index: index,
-          enabled: enable,
-          child: itemWithSemantics,
-        );
       case TargetPlatform.iOS:
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
-        return ReorderableGridDelayedDragStartListener(
-          key: itemGlobalKey,
-          index: index,
-          enabled: enable,
-          child: itemWithSemantics,
-        );
+        return widget.dragToReorder
+            ? ReorderableGridDragStartListener(
+                key: itemGlobalKey,
+                index: index,
+                enabled: enable,
+                child: itemWithSemantics,
+              )
+            : ReorderableGridDelayedDragStartListener(
+                key: itemGlobalKey,
+                index: index,
+                enabled: enable,
+                child: itemWithSemantics,
+              );
     }
   }
 
