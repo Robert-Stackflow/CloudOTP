@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/opt_token.dart';
@@ -23,6 +24,7 @@ import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import '../Scaffold/my_appbar.dart';
+import '../Scaffold/my_popupmenu.dart';
 import '../Selectable/my_selection_area.dart';
 import '../Selectable/my_selection_toolbar.dart';
 import '../Selectable/selection_transformer.dart';
@@ -31,6 +33,25 @@ import '../TextDrawable/text_drawable_widget.dart';
 enum TailingType { none, clear, password, icon, text, widget }
 
 class ItemBuilder {
+  static Widget getFilterWidget({
+    Widget? child,
+    double sigmaX = 12,
+    double sigmaY = 12,
+    bool hasColor = true,
+    EdgeInsets? padding,
+  }) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: sigmaX, sigmaY: sigmaY),
+        child: Container(
+          color: Colors.grey.withOpacity(0.1),
+          padding: padding,
+          child: child,
+        ),
+      ),
+    );
+  }
+
   static PreferredSizeWidget buildSimpleAppBar({
     String title = "",
     Key? key,
@@ -734,6 +755,101 @@ class ItemBuilder {
         ),
       ),
     );
+  }
+
+  static Widget buildPopupMenuButton({
+    required BuildContext context,
+    required dynamic icon,
+    Function()? onTap,
+    Function()? onLongPress,
+    Color? background,
+    EdgeInsets? padding,
+    required MyPopupMenuItemBuilder itemBuilder,
+    MyPopupMenuItemSelected? onSelected,
+  }) {
+    return MyPopupMenuButton(
+      onSelected: onSelected,
+      itemBuilder: itemBuilder,
+      padding:
+          padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      child: buildIconButton(
+        context: context,
+        icon: icon,
+        onTap: onTap,
+        onLongPress: onLongPress,
+      ),
+    );
+  }
+
+  static List<MyPopupMenuItem> buildPopupMenuItems(
+    BuildContext context,
+    GenericContextMenu menu,
+  ) {
+    return menu.buttonConfigs.map((config) {
+      if (config == null ||
+          config.type == ContextMenuButtonConfigType.divider) {
+        return MyPopupMenuItem(
+          child: ItemBuilder.buildDivider(
+            context,
+            width: 1.5,
+            vertical: 6,
+            horizontal: 4,
+          ),
+        );
+      }
+      bool isCheckbox = config.type == ContextMenuButtonConfigType.checkbox;
+      bool showCheck = isCheckbox && config.checked;
+      Widget checkIcon = Row(
+        children: [
+          Opacity(
+            opacity: showCheck ? 1 : 0,
+            child: Icon(
+              Icons.check_rounded,
+              size: ResponsiveUtil.isMobile() ? null : 16,
+              color: Theme.of(context).iconTheme.color,
+            ),
+          ),
+          SizedBox(width: showCheck ? 8 : 4),
+        ],
+      );
+      return MyPopupMenuItem(
+        child: Material(
+          borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            onTap: () {
+              config.onPressed?.call();
+              if (globalNavigatorState!.canPop()) {
+                globalNavigatorState?.pop();
+              }
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: EdgeInsets.only(
+                  left: showCheck ? 8 : 12, right: 12, top: 8, bottom: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  if (isCheckbox) checkIcon,
+                  if (config.icon != null) config.icon!,
+                  Text(
+                    config.label,
+                    style: Theme.of(context).textTheme.bodyMedium?.apply(
+                          fontSizeDelta: ResponsiveUtil.isMobile() ? 2 : 0,
+                          color:
+                              config.type == ContextMenuButtonConfigType.warning
+                                  ? Colors.red
+                                  : null,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }).toList();
   }
 
   static buildContextMenuOverlay(Widget child) {

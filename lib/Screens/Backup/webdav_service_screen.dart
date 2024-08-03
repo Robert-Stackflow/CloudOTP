@@ -4,12 +4,9 @@ import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/iprint.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:cloudotp/Widgets/BottomSheet/input_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/BottomSheet/star_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/webdav_backups_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
@@ -22,6 +19,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
@@ -171,7 +169,9 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
           const SizedBox(width: 5),
         ],
       ),
-      body: _buildBody(),
+      body: EasyRefresh(
+        child: _buildBody(),
+      ),
     );
   }
 
@@ -208,30 +208,29 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   _buildBody() {
     return ListView(
       physics: const BouncingScrollPhysics(),
-      shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       children: [
         Column(
           children: [
-            Container(
-              constraints: const BoxConstraints(maxWidth: 82),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border:
-                    Border.all(color: Colors.grey.withOpacity(0.1), width: 0.5),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/logo.png',
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
+            // Container(
+            //   constraints: const BoxConstraints(maxWidth: 82),
+            //   alignment: Alignment.center,
+            //   decoration: BoxDecoration(
+            //     borderRadius: BorderRadius.circular(16),
+            //     border:
+            //         Border.all(color: Colors.grey.withOpacity(0.1), width: 0.5),
+            //   ),
+            //   child: ClipRRect(
+            //     borderRadius: BorderRadius.circular(16),
+            //     child: Image.asset(
+            //       'assets/logo.png',
+            //       height: 80,
+            //       width: 80,
+            //       fit: BoxFit.contain,
+            //     ),
+            //   ),
+            // ),
+            // const SizedBox(height: 20),
             ItemBuilder.buildContainerItem(
               context: context,
               topRadius: true,

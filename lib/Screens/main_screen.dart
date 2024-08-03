@@ -757,6 +757,9 @@ class MainScreenState extends State<MainScreen>
   }
 
   goHome() {
+    while (Navigator.of(rootContext).canPop()) {
+      Navigator.of(rootContext).pop();
+    }
     while (desktopNavigatorState!.canPop()) {
       desktopNavigatorState?.pop();
     }

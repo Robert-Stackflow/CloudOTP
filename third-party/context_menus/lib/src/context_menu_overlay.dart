@@ -41,7 +41,9 @@ class ContextMenuOverlay extends StatefulWidget {
   ContextMenuOverlayState createState() => ContextMenuOverlayState();
 
   static ContextMenuOverlayState of(BuildContext context) {
-    final state = (context.dependOnInheritedWidgetOfExactType<_InheritedContextMenuOverlay>())?.state;
+    final state = (context
+            .dependOnInheritedWidgetOfExactType<_InheritedContextMenuOverlay>())
+        ?.state;
     if (state == null) {
       throw ('No ContextMenuOverlay was found. Check that you have inserted a ContextMenuOverlay above your ContextMenuRegion in the widget tree.');
     }
@@ -49,8 +51,10 @@ class ContextMenuOverlay extends StatefulWidget {
   }
 }
 
-class ContextMenuOverlayState extends State<ContextMenuOverlay> {
-  static ContextMenuButtonStyle defaultButtonStyle = const ContextMenuButtonStyle();
+class ContextMenuOverlayState extends State<ContextMenuOverlay>
+    with SingleTickerProviderStateMixin {
+  static ContextMenuButtonStyle defaultButtonStyle =
+      const ContextMenuButtonStyle();
 
   Widget? _currentMenu;
   Size? _prevSize;
@@ -63,7 +67,13 @@ class ContextMenuOverlayState extends State<ContextMenuOverlay> {
 
   ContextMenuCardBuilder? get cardBuilder => widget.cardBuilder;
 
-  ContextMenuButtonStyle get buttonStyle => widget.buttonStyle ?? defaultButtonStyle;
+  ContextMenuButtonStyle get buttonStyle =>
+      widget.buttonStyle ?? defaultButtonStyle;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,57 +86,62 @@ class ContextMenuOverlayState extends State<ContextMenuOverlay> {
         // will make sure it always stays in bounds.
         double dx = 0, dy = 0;
         if (_mousePos.dx > (_prevSize?.width ?? 0) / 2) dx = -_menuSize.width;
-        if (_mousePos.dy > (_prevSize?.height ?? 0) / 2) dy = -_menuSize.height;
+        if (_mousePos.dy > (_prevSize?.height ?? 0) / 2) {
+          dy = -_menuSize.height;
+        }
         // The final menuPos, is mousePos + quadrant offset
         Offset menuPos = _mousePos + Offset(dx, dy);
-        // TODO: Add compensation for edge of screen: if we are offscreen, get us back in bounds.
+        // Add compensation for edge of screen: if we are offscreen, get us back in bounds.
         Widget? menuToShow = _currentMenu;
         TextDirection? dir = Directionality.maybeOf(context);
         return Directionality(
           textDirection: dir ?? TextDirection.ltr,
           child: _InheritedContextMenuOverlay(
-              state: this,
-              child: ColoredBox(
-                color: Colors.transparent,
-                child: Listener(
-                  onPointerDown: (e) => _mousePos = e.localPosition,
-                  // Listen for Notifications coming up from the app
-                  child: Stack(
-                    alignment: Alignment.topLeft,
-                    children: [
-                      // Child is the contents of the overlay, usually the entire app.
-                      widget.child,
-                      // Show the menu?
-                      if (menuToShow != null) ...[
-                        Positioned.fill(child: Container(color: Colors.transparent)),
+            state: this,
+            child: ColoredBox(
+              color: Colors.transparent,
+              child: Listener(
+                onPointerDown: (e) => _mousePos = e.localPosition,
+                // Listen for Notifications coming up from the app
+                child: Stack(
+                  alignment: Alignment.topLeft,
+                  children: [
+                    // Child is the contents of the overlay, usually the entire app.
+                    widget.child,
+                    // Show the menu?
+                    if (menuToShow != null) ...[
+                      Positioned.fill(
+                          child: Container(color: Colors.transparent)),
 
-                        /// Underlay, blocks all taps to the main content.
-                        GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onPanStart: (_) => hide(),
-                          onTap: () => hide(),
-                          onSecondaryTapDown: (_) => hide(),
-                          child: Container(),
-                        ),
+                      /// Underlay, blocks all taps to the main content.
+                      GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onPanStart: (_) => hide(),
+                        onTap: () => hide(),
+                        onSecondaryTapDown: (_) => hide(),
+                        child: Container(),
+                      ),
 
-                        /// Position the menu contents
-                        Transform.translate(
-                          offset: menuPos,
-                          child: Opacity(
-                            opacity: _menuSize != Size.zero ? 1 : 0,
-                            // Use a measure size widget so we can offset the child properly
-                            child: MeasuredSizeWidget(
-                              key: ObjectKey(menuToShow),
-                              onChange: _handleMenuSizeChanged,
-                              child: IntrinsicWidth(child: IntrinsicHeight(child: menuToShow)),
-                            ),
+                      /// Position the menu contents
+                      Transform.translate(
+                        offset: menuPos,
+                        child: Opacity(
+                          opacity: _menuSize != Size.zero ? 1 : 0,
+                          // Use a measure size widget so we can offset the child properly
+                          child: MeasuredSizeWidget(
+                            key: ObjectKey(menuToShow),
+                            onChange: _handleMenuSizeChanged,
+                            child: IntrinsicWidth(
+                                child: IntrinsicHeight(child: menuToShow)),
                           ),
                         ),
-                      ]
-                    ],
-                  ),
+                      ),
+                    ]
+                  ],
                 ),
-              )),
+              ),
+            ),
+          ),
         );
       },
     );

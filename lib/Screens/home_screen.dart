@@ -12,7 +12,6 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
-import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -20,9 +19,12 @@ import 'package:provider/provider.dart';
 import '../Database/token_dao.dart';
 import '../Models/category.dart';
 import '../Utils/app_provider.dart';
+import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
+import '../Widgets/Custom/animated_search_bar.dart';
 import '../Widgets/Custom/custom_tab_indicator.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
+import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
 import '../Widgets/WaterfallFlow/reorderable_grid_view.dart';
 import '../generated/l10n.dart';
 import 'Token/category_screen.dart';
@@ -213,72 +215,100 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             )
           : null,
-      body: _buildMainContent(),
+      drawerEdgeDragWidth: 30,
+      body: ResponsiveUtil.isLandscape() ? _buildMainContent() : _buildBody(),
       drawer: _buildDrawer(),
     );
   }
 
   _buildBody() {
-    return CustomScrollView(
-      slivers: [
-        ItemBuilder.buildSliverAppBar(
-          context: context,
-          floating: true,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          flexibleSpace: Placeholder(),
-          title: Text(
-            appName,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.apply(fontWeightDelta: 2),
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          Selector<AppProvider, bool>(
+            selector: (context, provider) => provider.hideAppbarWhenScrolling,
+            builder: (context, hideAppbarWhenScrolling, child) =>
+                ItemBuilder.buildSliverAppBar(
+              context: context,
+              floating: hideAppbarWhenScrolling,
+              pinned: !hideAppbarWhenScrolling,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              // title: Text(
+              //   appName,
+              //   style: Theme.of(context)
+              //       .textTheme
+              //       .titleMedium
+              //       ?.apply(fontWeightDelta: 2),
+              // ),
+              title: AnimatedSearchBar(
+                label: appName,
+                labelStyle: Theme.of(context)
+                    .textTheme
+                    .titleMedium!
+                    .apply(fontWeightDelta: 2),
+                onChanged: (value) {
+                  performSearch(value);
+                },
+              ),
+              expandedHeight: kToolbarHeight,
+              collapsedHeight: kToolbarHeight,
+              leading: Icons.menu_rounded,
+              onLeadingTap: () {
+                homeScaffoldState?.openDrawer();
+              },
+              actions: [
+                // ItemBuilder.buildIconButton(
+                //   context: context,
+                //   icon: Icon(Icons.search_rounded,
+                //       color: Theme.of(context).iconTheme.color),
+                //   onTap: () {},
+                // ),
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: Icon(Icons.qr_code_scanner_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  onTap: () {
+                    RouteUtil.pushCupertinoRoute(
+                        context, const ScanTokenScreen());
+                  },
+                ),
+                const SizedBox(width: 5),
+                ItemBuilder.buildPopupMenuButton(
+                  context: context,
+                  icon: Icon(Icons.dashboard_outlined,
+                      color: Theme.of(context).iconTheme.color),
+                  itemBuilder: (context) {
+                    return ItemBuilder.buildPopupMenuItems(
+                      context,
+                      MainScreenState.buildLayoutContextMenuButtons(),
+                    );
+                  },
+                  onSelected: (_) {
+                    globalNavigatorState?.pop();
+                  },
+                ),
+                const SizedBox(width: 5),
+                ItemBuilder.buildPopupMenuButton(
+                  context: context,
+                  icon: Icon(Icons.sort_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  itemBuilder: (context) {
+                    return ItemBuilder.buildPopupMenuItems(
+                      context,
+                      MainScreenState.buildSortContextMenuButtons(),
+                    );
+                  },
+                  onSelected: (_) {
+                    globalNavigatorState?.pop();
+                  },
+                ),
+                const SizedBox(width: 5),
+              ],
+            ),
           ),
-          expandedHeight: 30,
-          leading: Icons.menu_rounded,
-          onLeadingTap: () {
-            homeScaffoldState?.openDrawer();
-          },
-          actions: [
-            ItemBuilder.buildIconButton(
-              context: context,
-              icon: Icon(Icons.search_rounded,
-                  color: Theme.of(context).iconTheme.color),
-              onTap: () {},
-            ),
-            ItemBuilder.buildIconButton(
-              context: context,
-              icon: Icon(Icons.qr_code_scanner_rounded,
-                  color: Theme.of(context).iconTheme.color),
-              onTap: () {
-                RouteUtil.pushCupertinoRoute(context, const ScanTokenScreen());
-              },
-            ),
-            const SizedBox(width: 5),
-            ItemBuilder.buildIconButton(
-              context: context,
-              icon: Icon(Icons.dashboard_outlined,
-                  color: Theme.of(context).iconTheme.color),
-              onTap: () {
-                context.contextMenuOverlay
-                    .show(MainScreenState.buildLayoutContextMenuButtons());
-              },
-            ),
-            ItemBuilder.buildIconButton(
-              context: context,
-              icon: Icon(Icons.sort_rounded,
-                  color: Theme.of(context).iconTheme.color),
-              onTap: () {
-                context.contextMenuOverlay
-                    .show(MainScreenState.buildSortContextMenuButtons());
-              },
-            ),
-            const SizedBox(width: 5),
-          ],
-        ),
-        SliverFillRemaining(
-          child: _buildMainContent(),
-        ),
-      ],
+        ];
+      },
+      body: _buildMainContent(),
     );
   }
 
@@ -407,6 +437,13 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // return gridView;
     return EasyRefresh(
       onRefresh: refresh,
+      header: LottieCupertinoHeader(
+        backgroundColor: Theme.of(context).canvasColor,
+        indicator:
+            LottieUtil.load(LottieUtil.getLoadingPath(context), scale: 1.5),
+        hapticFeedback: true,
+        triggerOffset: 10,
+      ),
       refreshOnStart: true,
       child: tokens.isEmpty
           ? ListView(

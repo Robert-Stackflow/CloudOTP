@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
+import 'package:flutter/material.dart';
 
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
@@ -28,48 +28,50 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
       child: Scaffold(
         appBar: ItemBuilder.buildSimpleAppBar(
             title: S.current.selectTheme, context: context, transparent: true),
-        body: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          children: [
-            const SizedBox(height: 10),
-            ItemBuilder.buildCaptionItem(
-                context: context, title: S.current.lightTheme),
-            ItemBuilder.buildContainerItem(
-              context: context,
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: IntrinsicHeight(
-                    child: Row(
-                      children: _buildLightThemeList(),
+        body: EasyRefresh(
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            children: [
+              const SizedBox(height: 10),
+              ItemBuilder.buildCaptionItem(
+                  context: context, title: S.current.lightTheme),
+              ItemBuilder.buildContainerItem(
+                context: context,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: IntrinsicHeight(
+                      child: Row(
+                        children: _buildLightThemeList(),
+                      ),
                     ),
                   ),
                 ),
+                bottomRadius: true,
               ),
-              bottomRadius: true,
-            ),
-            const SizedBox(height: 10),
-            ItemBuilder.buildCaptionItem(
-                context: context, title: S.current.darkTheme),
-            ItemBuilder.buildContainerItem(
-              context: context,
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: IntrinsicHeight(
-                    child: Row(
-                      children: _buildDarkThemeList(),
+              const SizedBox(height: 10),
+              ItemBuilder.buildCaptionItem(
+                  context: context, title: S.current.darkTheme),
+              ItemBuilder.buildContainerItem(
+                context: context,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: IntrinsicHeight(
+                      child: Row(
+                        children: _buildDarkThemeList(),
+                      ),
                     ),
                   ),
                 ),
+                bottomRadius: true,
               ),
-              bottomRadius: true,
-            ),
-            const SizedBox(height: 10),
-          ],
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
     );

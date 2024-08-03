@@ -5,6 +5,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:file_picker/file_picker.dart';
@@ -73,7 +74,9 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                 const SizedBox(width: 5),
               ],
       ),
-      body: _buildBody(),
+      body: EasyRefresh(
+        child: _buildBody(),
+      ),
     );
   }
 

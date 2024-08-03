@@ -1,11 +1,12 @@
 import 'dart:io';
+import 'dart:math';
 
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 
@@ -90,6 +91,11 @@ class KeyboardWidgetState extends State<KeyboardWidget> {
     super.initState();
     _focusNode = FocusNode();
     _focusNode.requestFocus();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        keyboardHandlerState?.focus();
+      }
+    });
   }
 
   @override
@@ -336,7 +342,6 @@ class KeyboardWidgetState extends State<KeyboardWidget> {
           widget.title,
           const SizedBox(height: 20),
           Focus(
-            canRequestFocus: true,
             descendantsAreFocusable: true,
             skipTraversal: false,
             focusNode: _focusNode,
@@ -358,11 +363,42 @@ class KeyboardWidgetState extends State<KeyboardWidget> {
       ),
     );
 
-    return GestureDetector(
-      onTap: () {
-        _hideOverlay();
-      },
-      child: grid,
+    double width = MediaQuery.sizeOf(context).width - 200;
+    double height = MediaQuery.sizeOf(context).height - 200;
+    double preferWidth = min(width, 600);
+    double preferHeight = min(height, 400);
+    double preferHorizontalMargin =
+        width > preferWidth ? (width - preferWidth) / 2 : 0;
+    double preferVerticalMargin =
+        height > preferHeight ? (height - preferHeight) / 2 : 0;
+
+    return Positioned(
+      child: GestureDetector(
+        onTap: () {
+          _hideOverlay();
+        },
+        child: Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(
+            horizontal: preferHorizontalMargin,
+            vertical: preferVerticalMargin,
+          ),
+          width: MediaQuery.sizeOf(context).width,
+          height: MediaQuery.sizeOf(context).height,
+          decoration: const BoxDecoration(color: Colors.black26),
+          child: Material(
+            color: Colors.transparent,
+            child: Center(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                alignment: Alignment.center,
+                child: grid,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -372,13 +408,11 @@ class KeyboardWidgetState extends State<KeyboardWidget> {
   }
 
   void _hideOverlay() {
-    try {
-      dialogNavigatorState?.popPage();
-    } finally {}
     setState(() {
       if (widget.callbackOnHide != null) {
         widget.callbackOnHide!();
       }
     });
+    _focusNode.unfocus();
   }
 }

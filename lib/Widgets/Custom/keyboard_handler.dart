@@ -1,16 +1,14 @@
-import 'dart:math';
-
-import 'package:cloudotp/Screens/Setting/setting_screen.dart';
-import 'package:cloudotp/Screens/Token/category_screen.dart';
-import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
+import '../../Screens/Setting/setting_screen.dart';
 import '../../Screens/Token/add_token_screen.dart';
+import '../../Screens/Token/category_screen.dart';
+import '../../Screens/Token/import_export_token_screen.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/itoast.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/shortcuts_util.dart';
 import '../../generated/l10n.dart';
@@ -40,40 +38,32 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
     _focusNode.requestFocus();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final s = defaultCloudOTPShortcuts;
-    final shortcuts = Map.fromEntries(
-        s.map((e) => MapEntry(e.triggerForPlatform(), e.intent)));
-    final showHelpShortcut = <Type, Action<Intent>>{
+  Map<Type, Action<Intent>> generalActions(BuildContext context) {
+    return {
       KeyboardShortcutHelpIntent: CallbackAction(
         onInvoke: (_) {
-          while (Navigator.of(rootContext).canPop()) {
-            return null;
-          }
-          double width = MediaQuery.sizeOf(context).width - 200;
-          double height = MediaQuery.sizeOf(context).height - 200;
-          double preferWidth = min(width, 600);
-          double preferHeight = min(height, 400);
-
-          DialogBuilder.showPageDialog(
-            rootContext,
-            preferMinWidth: preferWidth,
-            preferMinHeight: preferHeight,
-            showClose: false,
-            child: KeyboardWidget(
-              bindings: defaultCloudOTPShortcuts,
-              title: Text(
-                S.current.shortcut,
-                style: Theme.of(rootContext).textTheme.titleLarge,
-              ),
-            ),
+          late OverlayEntry entry;
+          entry = OverlayEntry(
+            builder: (context) {
+              return KeyboardWidget(
+                bindings: defaultCloudOTPShortcuts,
+                callbackOnHide: () {
+                  entry.remove();
+                },
+                title: Text(
+                  S.current.shortcut,
+                  style: Theme.of(rootContext).textTheme.titleLarge,
+                ),
+              );
+            },
           );
+          Overlay.of(context).insert(entry);
           return null;
         },
       ),
       LockIntent: CallbackAction(
         onInvoke: (_) {
+          mainScreenState?.goHome();
           if (HiveUtil.canLock()) {
             mainScreenState?.jumpToPinVerify();
           } else {
@@ -82,85 +72,104 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
           return null;
         },
       ),
-      SettingIntent: CallbackAction(
-        onInvoke: (_) {
-          RouteUtil.pushDesktopFadeRoute(const SettingScreen());
-          return null;
-        },
-      ),
-      SearchIntent: CallbackAction(
-        onInvoke: (_) {
-          mainScreenState?.focusSearch();
-          return null;
-        },
-      ),
-      AddTokenIntent: CallbackAction(
-        onInvoke: (_) {
-          RouteUtil.pushDialogRoute(rootContext, const AddTokenScreen(),
-              showClose: false);
-          return null;
-        },
-      ),
-      ImportExportIntent: CallbackAction(
-        onInvoke: (_) {
-          RouteUtil.pushDialogRoute(
-              rootContext, const ImportExportTokenScreen());
-          return null;
-        },
-      ),
-      ChangeDayNightModeIntent: CallbackAction(
-        onInvoke: (_) {
-          mainScreenState?.changeMode();
-          return null;
-        },
-      ),
-      CategoryIntent: CallbackAction(
-        onInvoke: (_) {
-          RouteUtil.pushDialogRoute(rootContext, const CategoryScreen(),
-              showClose: false);
-          return null;
-        },
-      ),
-      ChangeLayoutTypeIntent: CallbackAction(
-        onInvoke: (_) {
-          homeScreenState?.changeLayoutType();
-          return null;
-        },
-      ),
-      BackIntent: CallbackAction(
-        onInvoke: (_) {
-          mainScreenState?.goBack();
-          return null;
-        },
-      ),
       HomeIntent: CallbackAction(
         onInvoke: (_) {
-          while (Navigator.of(rootContext).canPop()) {
-            Navigator.of(rootContext).pop();
-          }
           mainScreenState?.goHome();
           return null;
         },
       ),
+      EscapeIntent: CallbackAction(
+        onInvoke: (_) {
+          if (Navigator.of(rootContext).canPop()) {
+            Navigator.of(rootContext).pop();
+          }
+          return null;
+        },
+      ),
     };
+  }
+
+  static Map<Type, Action<Intent>> mainScreenShortcuts = {
+    SettingIntent: CallbackAction(
+      onInvoke: (_) {
+        RouteUtil.pushDesktopFadeRoute(const SettingScreen());
+        return null;
+      },
+    ),
+    SearchIntent: CallbackAction(
+      onInvoke: (_) {
+        mainScreenState?.focusSearch();
+        return null;
+      },
+    ),
+    AddTokenIntent: CallbackAction(
+      onInvoke: (_) {
+        RouteUtil.pushDialogRoute(rootContext, const AddTokenScreen(),
+            showClose: false);
+        return null;
+      },
+    ),
+    ImportExportIntent: CallbackAction(
+      onInvoke: (_) {
+        RouteUtil.pushDialogRoute(rootContext, const ImportExportTokenScreen());
+        return null;
+      },
+    ),
+    ChangeDayNightModeIntent: CallbackAction(
+      onInvoke: (_) {
+        mainScreenState?.changeMode();
+        return null;
+      },
+    ),
+    CategoryIntent: CallbackAction(
+      onInvoke: (_) {
+        RouteUtil.pushDialogRoute(rootContext, const CategoryScreen(),
+            showClose: false);
+        return null;
+      },
+    ),
+    ChangeLayoutTypeIntent: CallbackAction(
+      onInvoke: (_) {
+        homeScreenState?.changeLayoutType();
+        return null;
+      },
+    ),
+    BackIntent: CallbackAction(
+      onInvoke: (_) {
+        mainScreenState?.goBack();
+        return null;
+      },
+    ),
+  };
+
+  @override
+  Widget build(BuildContext context) {
     return Shortcuts.manager(
-      manager: LoggingShortcutManager(shortcuts: shortcuts),
-      child: Actions(
-        actions: showHelpShortcut,
-        child: Focus(
-          focusNode: _focusNode,
-          autofocus: true,
-          canRequestFocus: true,
-          descendantsAreFocusable: true,
-          onKeyEvent: (node, event) {
-            if (event.logicalKey == LogicalKeyboardKey.escape) {
-              if (Navigator.of(rootContext).canPop()) {
-                Navigator.of(rootContext).pop();
-              }
-            }
-            return KeyEventResult.ignored;
+      manager: LoggingShortcutManager(
+          shortcuts: Map.fromEntries(defaultCloudOTPShortcuts
+              .map((e) => MapEntry(e.triggerForPlatform(), e.intent)))),
+      child: Selector<AppProvider, Map<Type, Action<Intent>>>(
+        selector: (context, appProvider) => appProvider.dynamicShortcuts,
+        builder: (context, dynamicShortcuts, child) => Actions(
+          actions: {
+            ...dynamicShortcuts,
+            ...generalActions(context),
           },
-          child: widget.child,
+          child: Focus(
+            focusNode: _focusNode,
+            autofocus: true,
+            canRequestFocus: true,
+            descendantsAreFocusable: true,
+            onKeyEvent: (node, event) {
+              if (event.logicalKey == LogicalKeyboardKey.escape) {
+                if (Navigator.of(rootContext).canPop()) {
+                  Navigator.of(rootContext).pop();
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: widget.child,
+          ),
         ),
       ),
     );

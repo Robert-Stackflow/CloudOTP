@@ -48,6 +48,10 @@ class BackIntent extends Intent {
   const BackIntent();
 }
 
+class EscapeIntent extends Intent {
+  const EscapeIntent();
+}
+
 class HomeIntent extends Intent {
   const HomeIntent();
 }
@@ -76,6 +80,13 @@ final defaultCloudOTPShortcuts = [
     ).singleActivator,
     intent: const HomeIntent(),
     labelProvider: (s) => s.home,
+  ),
+  CloudOTPShortcut.all(
+    key: HotKey(
+      key: LogicalKeyboardKey.escape,
+    ).singleActivator,
+    intent: const EscapeIntent(),
+    labelProvider: (s) => s.escape,
   ),
   CloudOTPShortcut.all(
     key: HotKey(

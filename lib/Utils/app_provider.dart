@@ -96,6 +96,27 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _hideAppbarWhenScrolling =
+      HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
+
+  bool get hideAppbarWhenScrolling => _hideAppbarWhenScrolling;
+
+  set hideAppbarWhenScrolling(bool value) {
+    _hideAppbarWhenScrolling = value;
+    HiveUtil.put(HiveUtil.hideAppbarWhenScrollingKey, value);
+    notifyListeners();
+  }
+
+  Map<Type, Action<Intent>> _dynamicShortcuts =
+      KeyboardHandlerState.mainScreenShortcuts;
+
+  Map<Type, Action<Intent>> get dynamicShortcuts => _dynamicShortcuts;
+
+  set dynamicShortcuts(Map<Type, Action<Intent>> value) {
+    _dynamicShortcuts = value;
+    notifyListeners();
+  }
+
   ThemeColorData _lightTheme = HiveUtil.getLightTheme();
 
   ThemeColorData get lightTheme => _lightTheme;

@@ -13,6 +13,7 @@ import '../../TokenUtils/check_token_util.dart';
 import '../../TokenUtils/token_image_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
+import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
@@ -228,7 +229,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           const SizedBox(width: 5),
         ],
       ),
-      body: _buildBody(),
+      body: EasyRefresh(
+        child: _buildBody(),
+      ),
     );
   }
 
@@ -260,7 +263,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   _buildBody() {
     return ListView(
       physics: const BouncingScrollPhysics(),
-      shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       children: [
         Column(

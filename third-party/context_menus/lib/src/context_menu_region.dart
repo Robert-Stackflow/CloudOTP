@@ -7,15 +7,16 @@ enum ContextMenuShowBehavior { tap, secondaryTap, longPress }
 
 /// Wraps any widget in a GestureDetector and calls [ContextMenuOverlay].show
 class ContextMenuRegion extends StatelessWidget {
-  const ContextMenuRegion(
-      {super.key,
-      required this.child,
-      required this.contextMenu,
-      this.isEnabled = true,
-      this.behavior = const [
-        ContextMenuShowBehavior.secondaryTap,
-        ContextMenuShowBehavior.longPress
-      ]});
+  const ContextMenuRegion({
+    super.key,
+    required this.child,
+    required this.contextMenu,
+    this.isEnabled = true,
+    this.behavior = const [
+      ContextMenuShowBehavior.secondaryTap,
+      ContextMenuShowBehavior.longPress
+    ],
+  });
 
   final Widget child;
   final Widget contextMenu;

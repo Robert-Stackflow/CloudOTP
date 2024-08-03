@@ -20,10 +20,10 @@ class GenericContextMenu extends StatefulWidget {
   final List<ContextMenuButtonConfig?> buttonConfigs;
 
   @override
-  _GenericContextMenuState createState() => _GenericContextMenuState();
+  GenericContextMenuState createState() => GenericContextMenuState();
 }
 
-class _GenericContextMenuState extends State<GenericContextMenu>
+class GenericContextMenuState extends State<GenericContextMenu>
     with ContextMenuStateMixin {
   @override
   Widget build(BuildContext context) {

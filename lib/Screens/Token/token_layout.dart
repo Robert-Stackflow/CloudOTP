@@ -4,9 +4,9 @@ import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/TokenUtils/Otp/mobile_otp.dart';
-import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/TokenUtils/Otp/steam_totp.dart';
 import 'package:cloudotp/TokenUtils/Otp/yandex_otp.dart';
+import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
@@ -229,7 +229,7 @@ class TokenLayoutState extends State<TokenLayout>
     } else {
       BottomSheetBuilder.showBottomSheet(
         context,
-        responsive: true,
+        responsive: false,
         (context) => TokenOptionBottomSheet(
           isPinned: widget.token.pinned,
           nextCode: getNextCode(),

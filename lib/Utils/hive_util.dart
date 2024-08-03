@@ -46,6 +46,7 @@ class HiveUtil {
   static const String defaultHideCodeKey = "defaultHideCode";
 
   //Appearance
+  static const String hideAppbarWhenScrollingKey = "hideAppbarWhenScrolling";
   static const String enableLandscapeInTabletKey = "enableLandscapeInTablet";
   static const String fontFamilyKey = "fontFamily";
   static const String lightThemeIndexKey = "lightThemeIndex";

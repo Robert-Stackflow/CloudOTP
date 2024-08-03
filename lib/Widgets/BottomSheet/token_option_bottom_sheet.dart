@@ -1,7 +1,7 @@
 import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
+
 import '../../generated/l10n.dart';
 
 class TokenOptionBottomSheet extends StatefulWidget {
@@ -44,28 +44,23 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      runAlignment: WrapAlignment.center,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
-            borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isLandscape()
-                    ? const Radius.circular(20)
-                    : Radius.zero),
-          ),
-          child: _buildPrimaryButtons(),
-        ),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).canvasColor,
+        borderRadius: BorderRadius.vertical(
+            top: const Radius.circular(20),
+            bottom: ResponsiveUtil.isLandscape()
+                ? const Radius.circular(20)
+                : Radius.zero),
+      ),
+      child: _buildPrimaryButtons(),
     );
   }
 
   _buildPrimaryButtons() {
     return ListView(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       scrollDirection: Axis.vertical,
       children: [
         ItemBuilder.buildEntryItem(

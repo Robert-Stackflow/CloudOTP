@@ -92,6 +92,8 @@ class _SettingScreenState extends State<SettingScreen>
       HiveUtil.getEncryptDatabaseStatus();
   bool _cloudBackupConfigured = false;
   int _maxBackupsCount = HiveUtil.getMaxBackupsCount();
+  bool hideAppbarWhenScrolling =
+      HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
 
   @override
   void initState() {
@@ -180,7 +182,6 @@ class _SettingScreenState extends State<SettingScreen>
       ItemBuilder.buildEntryItem(
         context: context,
         title: S.current.fontFamily,
-        bottomRadius: true,
         tip: _currentFont.intlFontName,
         onTap: () {
           BottomSheetBuilder.showListBottomSheet(
@@ -200,6 +201,19 @@ class _SettingScreenState extends State<SettingScreen>
               onCloseTap: () => Navigator.pop(context),
             ),
           );
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: hideAppbarWhenScrolling,
+        bottomRadius: true,
+        title: S.current.hideAppbarWhenScrolling,
+        description: S.current.hideAppbarWhenScrollingTip,
+        onTap: () {
+          setState(() {
+            hideAppbarWhenScrolling = !hideAppbarWhenScrolling;
+            appProvider.hideAppbarWhenScrolling = hideAppbarWhenScrolling;
+          });
         },
       ),
     ];
