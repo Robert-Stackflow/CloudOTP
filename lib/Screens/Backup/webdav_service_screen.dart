@@ -310,6 +310,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                     child: ItemBuilder.buildFramedButton(
                       context,
                       text: S.current.webDavPullBackup,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       outline: Theme.of(context).primaryColor,
                       color: Theme.of(context).primaryColor,
                       fontSizeDelta: 2,
@@ -346,7 +347,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                                     msg: S.current.importing,
                                     showProgress: false,
                                   );
-                                  ImportTokenUtil.importBackupFile(
+                                  await ImportTokenUtil.importBackupFile(
                                     res,
                                     showLoading: false,
                                   );
@@ -368,6 +369,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                   Expanded(
                     child: ItemBuilder.buildRoundButton(
                       context,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       background: Theme.of(context).primaryColor,
                       text: S.current.webDavPushBackup,
                       fontSizeDelta: 2,
@@ -383,6 +385,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                   Expanded(
                     child: ItemBuilder.buildRoundButton(
                       context,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       background: Colors.red,
                       text: S.current.webDavLogout,
                       fontSizeDelta: 2,

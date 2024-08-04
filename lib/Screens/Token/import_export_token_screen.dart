@@ -156,43 +156,42 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             }
           },
         ),
-        ItemBuilder.buildEntryItem(
-          context: context,
-          title: S.current.importOldEncryptFile,
-          description: S.current.importOldEncryptFileHint(appName),
-          onTap: () async {
-            FilePickerResult? result = await FilePicker.platform.pickFiles(
-              dialogTitle: S.current.importOldEncryptFileTitle,
-              type: FileType.custom,
-              allowedExtensions: ['db'],
-              lockParentWindow: true,
-            );
-            if (result != null) {
-              operation() {
-                _showImportPasswordDialog(
-                    (controller, stateController, password) async {
-                  bool success = await ImportTokenUtil.importOldEncryptFile(
-                      result.files.single.path!, password);
-                  if (success) {
-                    stateController.pop?.call();
-                  } else {
-                    stateController
-                        .setError(S.current.encryptDatabasePasswordWrong);
-                  }
-                });
-              }
-
-              if (await HiveUtil.canImportOrExportUseBackupPassword()) {
-                bool success = await ImportTokenUtil.importOldEncryptFile(
-                    result.files.single.path!,
-                    await ConfigDao.getBackupPassword());
-                if (!success) operation();
-              } else {
-                operation();
-              }
-            }
-          },
-        ),
+        // ItemBuilder.buildEntryItem(
+        //   context: context,
+        //   title: S.current.importOldEncryptFile,
+        //   description: S.current.importOldEncryptFileHint(appName),
+        //   onTap: () async {
+        //     FilePickerResult? result = await FilePicker.platform.pickFiles(
+        //       dialogTitle: S.current.importOldEncryptFileTitle,
+        //       type: FileType.any,
+        //       lockParentWindow: true,
+        //     );
+        //     if (result != null) {
+        //       operation() {
+        //         _showImportPasswordDialog(
+        //             (controller, stateController, password) async {
+        //           bool success = await ImportTokenUtil.importOldEncryptFile(
+        //               result.files.single.path!, password);
+        //           if (success) {
+        //             stateController.pop?.call();
+        //           } else {
+        //             stateController
+        //                 .setError(S.current.encryptDatabasePasswordWrong);
+        //           }
+        //         });
+        //       }
+        //
+        //       if (await HiveUtil.canImportOrExportUseBackupPassword()) {
+        //         bool success = await ImportTokenUtil.importOldEncryptFile(
+        //             result.files.single.path!,
+        //             await ConfigDao.getBackupPassword());
+        //         if (!success) operation();
+        //       } else {
+        //         operation();
+        //       }
+        //     }
+        //   },
+        // ),
         ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.importUriFile,
@@ -200,7 +199,8 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           onTap: () async {
             FilePickerResult? result = await FilePicker.platform.pickFiles(
               dialogTitle: S.current.importUriFileTitle,
-              type: FileType.any,
+              type: FileType.custom,
+              allowedExtensions: ['txt'],
               lockParentWindow: true,
             );
             if (result != null) {
@@ -229,17 +229,51 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           title: S.current.exportEncryptFile,
           description: S.current.exportEncryptFileHint(appName),
           onTap: () async {
-            String? result = await FilePicker.platform.saveFile(
-              dialogTitle: S.current.exportEncryptFileTitle,
-              fileName: ExportTokenUtil.getExportFileName("bin"),
-              type: FileType.custom,
-              allowedExtensions: ['bin'],
-              lockParentWindow: true,
-            );
-            if (result != null) {
+            if (ResponsiveUtil.isDesktop()) {
+              String? result = await FilePicker.platform.saveFile(
+                dialogTitle: S.current.exportEncryptFileTitle,
+                fileName: ExportTokenUtil.getExportFileName("bin"),
+                type: FileType.custom,
+                allowedExtensions: ['bin'],
+                lockParentWindow: true,
+              );
+              if (result != null) {
+                if (await HiveUtil.canImportOrExportUseBackupPassword()) {
+                  ExportTokenUtil.exportEncryptFile(
+                      result, await ConfigDao.getBackupPassword());
+                } else {
+                  InputStateController stateController = InputStateController(
+                    validate: (value) {
+                      if (value.isEmpty) {
+                        return Future.value(
+                            S.current.encryptDatabasePasswordCannotBeEmpty);
+                      }
+                      return Future.value(null);
+                    },
+                  );
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (context) => InputBottomSheet(
+                      title: S.current.setExportPasswordTitle,
+                      message: S.current.setExportPasswordTip,
+                      hint: S.current.setExportPasswordHint,
+                      tailingType: InputItemTailingType.password,
+                      inputFormatters: [
+                        RegexInputFormatter.onlyNumberAndLetter,
+                      ],
+                      stateController: stateController,
+                      onValidConfirm: (password) {
+                        ExportTokenUtil.exportEncryptFile(result, password);
+                      },
+                    ),
+                  );
+                }
+              }
+            } else {
               if (await HiveUtil.canImportOrExportUseBackupPassword()) {
-                ExportTokenUtil.exportEncryptFile(
-                    result, await ConfigDao.getBackupPassword());
+                ExportTokenUtil.exportEncryptToMobileDirectory(
+                    password: await ConfigDao.getBackupPassword());
               } else {
                 InputStateController stateController = InputStateController(
                   validate: (value) {
@@ -262,8 +296,9 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                       RegexInputFormatter.onlyNumberAndLetter,
                     ],
                     stateController: stateController,
-                    onValidConfirm: (password) {
-                      ExportTokenUtil.exportEncryptFile(result, password);
+                    onValidConfirm: (password) async {
+                      ExportTokenUtil.exportEncryptToMobileDirectory(
+                          password: password);
                     },
                   ),
                 );
@@ -282,15 +317,19 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               title: S.current.exportUriClearWarningTitle,
               message: S.current.exportUriClearWarningTip,
               onTapConfirm: () async {
-                String? result = await FilePicker.platform.saveFile(
-                  dialogTitle: S.current.exportUriFileTitle,
-                  fileName: ExportTokenUtil.getExportFileName("txt"),
-                  type: FileType.custom,
-                  allowedExtensions: ['txt'],
-                  lockParentWindow: true,
-                );
-                if (result != null) {
-                  ExportTokenUtil.exportUriFile(result);
+                if (ResponsiveUtil.isDesktop()) {
+                  String? result = await FilePicker.platform.saveFile(
+                    dialogTitle: S.current.exportUriFileTitle,
+                    fileName: ExportTokenUtil.getExportFileName("txt"),
+                    type: FileType.custom,
+                    allowedExtensions: ['txt'],
+                    lockParentWindow: true,
+                  );
+                  if (result != null) {
+                    ExportTokenUtil.exportUriFile(result);
+                  }
+                } else {
+                  ExportTokenUtil.exportUriToMobileDirectory();
                 }
               },
               onTapCancel: () {},

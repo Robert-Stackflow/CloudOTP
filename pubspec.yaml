@@ -110,14 +110,14 @@ msix_config:
 flutter_native_splash:
   color: "#FFFFFF"
   color_dark: "#121212"
-  image: "assets/logo-transparent.png"
+  image: "assets/logo-transparent-small.png"
   android: true
   ios: true
 
   android_12:
-    image: assets/logo-transparent.png
+    image: assets/logo-transparent-small.png
     icon_background_color: "#FFFFFF"
-    image_dark: assets/logo-transparent.png
+    image_dark: assets/logo-transparent-small.png
     icon_background_color_dark: "#121212"
 
 flutter_intl:
@@ -134,3 +134,5 @@ flutter:
     - assets/logo-transparent.ico
     - assets/logo-transparent.png
     - assets/logo-transparent.svg
+    - assets/logo-transparent.png
+    - assets/logo-transparent-small.png

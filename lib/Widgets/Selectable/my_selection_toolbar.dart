@@ -167,9 +167,7 @@ class MyMobileTextSelectionToolbar extends StatelessWidget {
     return _CupertinoTextSelectionToolbarShape(
       anchorAbove: anchorAbove,
       anchorBelow: anchorBelow,
-      shadowColor: CupertinoTheme.brightnessOf(context) == Brightness.light
-          ? CupertinoColors.black.withOpacity(0.1)
-          : null,
+      shadowColor: Theme.of(context).shadowColor,
       child: ColoredBox(
         color: backgroundColor ?? _kToolbarBackgroundColor.resolveFrom(context),
         child: child,
@@ -457,9 +455,11 @@ class _RenderCupertinoTextSelectionToolbarShape extends RenderShiftedBox {
     // If configured, paint the shadow beneath the shape.
     if (_shadowColor != null) {
       final BoxShadow boxShadow = BoxShadow(
-        color: _shadowColor!,
-        blurRadius: 15.0,
-      );
+        color: shadowColor!,
+        offset: const Offset(0, 4),
+        blurRadius: 10,
+        spreadRadius: 1,
+      ).scale(2);
       final RRect shadowRRect = RRect.fromLTRBR(
         rrect.left,
         rrect.top,
@@ -1464,9 +1464,7 @@ class MyDesktopTextSelectionToolbar extends StatelessWidget {
     return _CupertinoTextSelectionToolbarShape(
       anchorAbove: anchorAbove,
       anchorBelow: anchorBelow,
-      shadowColor: CupertinoTheme.brightnessOf(context) == Brightness.light
-          ? CupertinoColors.black.withOpacity(0.1)
-          : null,
+      shadowColor: Theme.of(context).shadowColor,
       child: ColoredBox(
         color: backgroundColor ?? _kToolbarBackgroundColor.resolveFrom(context),
         child: child,

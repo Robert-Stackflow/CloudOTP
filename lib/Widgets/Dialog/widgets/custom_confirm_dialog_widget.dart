@@ -136,8 +136,8 @@ class CustomConfirmDialogWidget extends StatelessWidget {
                     child: CustomDialogButton(
                       buttonTextColor: buttonTextColor ?? Colors.white,
                       onTap: () {
-                        onTapConfirm.call();
                         Navigator.pop(context);
+                        onTapConfirm.call();
                       },
                       text: confirmButtonText,
                       bgColor: CustomDialogColors.getBgColor(

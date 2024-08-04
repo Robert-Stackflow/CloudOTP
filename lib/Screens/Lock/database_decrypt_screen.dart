@@ -94,6 +94,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
         ItemBuilder.buildRoundButton(
           context,
           text: S.current.confirm,
+          fontSizeDelta: 2,
           background: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
           onTap: () async {

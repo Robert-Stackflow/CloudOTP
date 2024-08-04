@@ -329,7 +329,10 @@ class _SettingScreenState extends State<SettingScreen>
     CloudServiceConfig? cloudServiceConfig =
         await CloudServiceConfigDao.getWebdavConfig();
     setState(() {
-      _cloudBackupConfigured = cloudServiceConfig != null;
+      _cloudBackupConfigured = (cloudServiceConfig != null &&
+          Utils.isNotEmpty(cloudServiceConfig.account) &&
+          Utils.isNotEmpty(cloudServiceConfig.secret) &&
+          Utils.isNotEmpty(cloudServiceConfig.endpoint));
     });
   }
 

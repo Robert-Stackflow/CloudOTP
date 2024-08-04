@@ -179,11 +179,13 @@ class ImportTokenUtil {
         await importUint8List(content, password: password);
         return true;
       }
-    } catch (e,t) {
-      IPrint.debug("$e\n$t");
+    } catch (e) {
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
-        return false;
+        if (e is InvalidPasswordOrDataCorruptedException) {
+          return false;
+        }
+        return true;
       } else {
         IToast.showTop(S.current.importFailed);
         return true;

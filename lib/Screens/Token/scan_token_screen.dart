@@ -52,19 +52,29 @@ class ScanTokenScreenState extends State<ScanTokenScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _subscription = scannerController.barcodes.listen(_handleBarcode);
-    Permission.camera.onDeniedCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).onGrantedCallback(() async {
-      unawaited(scannerController.start());
-    }).onPermanentlyDeniedCallback(() {
-      IToast.showTop(S.current.hasRejectedCameraPermission);
-    }).onRestrictedCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).onLimitedCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).onProvisionalCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).request();
+    Permission.camera
+        .onDeniedCallback(() {
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .onGrantedCallback(() async {
+          unawaited(scannerController.start());
+        })
+        .onPermanentlyDeniedCallback(() {
+          IToast.showTop(S.current.hasRejectedCameraPermission);
+        })
+        .onRestrictedCallback(() {
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .onLimitedCallback(() {
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .onProvisionalCallback(() {
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .request()
+        .then((_) {
+          unawaited(scannerController.start());
+        });
   }
 
   _handleBarcode(BarcodeCapture barcodeCapture, [bool autoPopup = true]) async {

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudotp/Database/category_dao.dart';
@@ -11,13 +12,13 @@ import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/iprint.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 
 import '../Database/cloud_service_config_dao.dart';
 import '../Database/config_dao.dart';
 import '../Models/category.dart';
-import '../Utils/constant.dart';
 import '../Utils/itoast.dart';
 import '../Utils/utils.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
@@ -45,6 +46,34 @@ class ExportTokenUtil {
       CustomLoadingDialog.dismissLoading();
     }
     IToast.showTop(S.current.exportSuccess);
+  }
+
+  static exportUriToMobileDirectory({
+    bool showLoading = true,
+  }) async {
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.exporting);
+    }
+    List<OtpToken> tokens = await TokenDao.listTokens();
+    Uint8List res = await compute((_) async {
+      List<String> uris =
+          tokens.map((e) => OtpTokenParser.toUri(e).toString()).toList();
+      String content = uris.join("\n");
+      return utf8.encode(content);
+    }, null);
+    String? filePath = await FilePicker.platform.saveFile(
+      dialogTitle: S.current.exportUriFileTitle,
+      fileName: ExportTokenUtil.getExportFileName("txt"),
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+      bytes: res,
+    );
+    if (showLoading) {
+      CustomLoadingDialog.dismissLoading();
+    }
+    if (filePath != null) {
+      IToast.showTop(S.current.exportSuccess);
+    }
   }
 
   static Future<Uint8List?> getUint8List({
@@ -212,6 +241,35 @@ class ExportTokenUtil {
       dialog.dismiss();
       CloudServiceConfigDao.updateLastBackupTime(config);
       IToast.showTop(S.current.backupSuccess);
+    }
+  }
+
+  static exportEncryptToMobileDirectory({
+    Uint8List? encryptedData,
+    String? password,
+  }) async {
+    var dialog = showProgressDialog(
+      rootContext,
+      msg: S.current.exporting,
+      showProgress: false,
+    );
+    encryptedData ??= await ExportTokenUtil.getUint8List(password: password);
+    if (encryptedData == null) {
+      IToast.showTop(S.current.exportFailed);
+      dialog.dismiss();
+      return;
+    } else {
+      String? filePath = await FilePicker.platform.saveFile(
+        dialogTitle: S.current.exportEncryptFileTitle,
+        fileName: ExportTokenUtil.getExportFileName("bin"),
+        type: FileType.custom,
+        bytes: encryptedData,
+        allowedExtensions: ['bin'],
+      );
+      dialog.dismiss();
+      if (filePath != null) {
+        IToast.showTop(S.current.exportSuccess);
+      }
     }
   }
 }

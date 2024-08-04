@@ -39,7 +39,7 @@ class AnimatedSearchBar extends StatefulWidget {
     ),
     this.searchDecoration,
     this.animationDuration = const Duration(milliseconds: 350),
-    this.searchStyle = const TextStyle(color: Colors.black),
+    this.searchStyle,
     this.cursorColor,
     this.duration = const Duration(milliseconds: 300),
     this.height = 40,
@@ -60,7 +60,7 @@ class AnimatedSearchBar extends StatefulWidget {
   final TextStyle labelStyle;
   final InputDecoration? searchDecoration;
   final Duration animationDuration;
-  final TextStyle searchStyle;
+  final TextStyle? searchStyle;
   final Color? cursorColor;
   final Duration duration;
   final double height;
@@ -133,7 +133,8 @@ class AnimatedSearchBarState extends State<AnimatedSearchBar> {
                               keyboardType: TextInputType.text,
                               textInputAction: widget.textInputAction,
                               textAlign: widget.labelTextAlign,
-                              style: widget.searchStyle,
+                              style: widget.searchStyle ??
+                                  Theme.of(context).textTheme.titleMedium,
                               minLines: 1,
                               cursorColor: widget.cursorColor ??
                                   Theme.of(context).primaryColor,
