@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "CloudOTP"
-#define MyAppVersion "1.11.0"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "Cloudchewie"
 #define MyAppURL "https://apps.cloudchewie.com/cloudotp"
 #define MyAppExeName "CloudOTP.exe"
@@ -10,7 +10,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{BED24EC1-0C45-4AED-94C7-69F3A620CFCD}
+AppId={{995DE131-B3EC-42C0-A645-F6A99544CD5C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 VersionInfoVersion = {#MyAppVersion}
@@ -33,7 +33,7 @@ DisableProgramGroupPage=yes
 LicenseFile=D:\Repositories\CloudOTP\LICENSE
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequiredOverridesAllowed=commandline
-OutputDir=D:\Ruida\Downloads
+OutputDir=C:\Users\dell\Downloads
 OutputBaseFilename={#MyAppName}-{#MyAppVersion}
 SetupIconFile=D:\Repositories\CloudOTP\assets\logo-transparent.ico
 Compression=lzma

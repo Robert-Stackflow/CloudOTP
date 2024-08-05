@@ -343,6 +343,7 @@
   "categoryNameCannotBeEmpty": "Category name cannot be empty",
   "addCategory": "Create a new category",
   "categoryNameDuplicate": "The category name is the same as an existing category",
+  "editCategoryTokens": "Edit category tokens",
   "noCategory": "No category yet",
   "editCategoryName": "Edit category name",
   "deleteCategory": "Delete category",

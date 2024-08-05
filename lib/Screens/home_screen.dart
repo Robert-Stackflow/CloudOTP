@@ -12,6 +12,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
+import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -19,12 +20,18 @@ import 'package:provider/provider.dart';
 import '../Database/token_dao.dart';
 import '../Models/category.dart';
 import '../Utils/app_provider.dart';
+import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
+import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../Widgets/BottomSheet/input_bottom_sheet.dart';
+import '../Widgets/BottomSheet/select_token_bottom_sheet.dart';
 import '../Widgets/Custom/animated_search_bar.dart';
 import '../Widgets/Custom/custom_tab_indicator.dart';
+import '../Widgets/Dialog/dialog_builder.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
+import '../Widgets/Item/input_item.dart';
 import '../Widgets/WaterfallFlow/reorderable_grid_view.dart';
 import '../generated/l10n.dart';
 import 'Token/category_screen.dart';
@@ -134,6 +141,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     initAppName();
     initTab();
     refresh();
+    appProvider.addListener(() {
+      initTab();
+    });
   }
 
   initAppName() {
@@ -189,15 +199,128 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  _buildTabContextMenuButtons(TokenCategory? category) {
+    addCategory() async {
+      BottomSheetBuilder.showBottomSheet(
+        context,
+        responsive: true,
+        (context) => InputBottomSheet(
+          title: S.current.addCategory,
+          hint: S.current.inputCategory,
+          stateController: InputStateController(
+            validate: (text) async {
+              if (text.isEmpty) {
+                return S.current.categoryNameCannotBeEmpty;
+              }
+              if (await CategoryDao.isCategoryExist(text)) {
+                return S.current.categoryNameDuplicate;
+              }
+              return null;
+            },
+          ),
+          maxLength: 32,
+          onValidConfirm: (text) async {
+            await CategoryDao.insertCategory(TokenCategory.title(title: text));
+            refresh();
+          },
+        ),
+      );
+    }
+
+    if (category == null) {
+      return GenericContextMenu(
+        buttonConfigs: [
+          ContextMenuButtonConfig(S.current.addCategory, onPressed: () {
+            addCategory();
+          }),
+        ],
+      );
+    }
+    return GenericContextMenu(
+      buttonConfigs: [
+        ContextMenuButtonConfig(S.current.editCategoryName, onPressed: () {
+          BottomSheetBuilder.showBottomSheet(
+            context,
+            responsive: true,
+            (context) => InputBottomSheet(
+              title: S.current.editCategoryName,
+              hint: S.current.inputCategory,
+              maxLength: 32,
+              text: category.title,
+              stateController: InputStateController(
+                validate: (text) async {
+                  if (text.isEmpty) {
+                    return S.current.categoryNameCannotBeEmpty;
+                  }
+                  if (text != category.title &&
+                      await CategoryDao.isCategoryExist(text)) {
+                    return S.current.categoryNameDuplicate;
+                  }
+                  return null;
+                },
+              ),
+              onValidConfirm: (text) async {
+                category.title = text;
+                await CategoryDao.updateCategory(category);
+                refresh();
+              },
+            ),
+          );
+        }),
+        ContextMenuButtonConfig(S.current.editCategoryTokens, onPressed: () {
+          BottomSheetBuilder.showBottomSheet(
+            context,
+            responsive: true,
+            (context) => SelectTokenBottomSheet(category: category),
+          );
+        }),
+        ContextMenuButtonConfig.divider(),
+        ContextMenuButtonConfig(S.current.addCategory, onPressed: () {
+          addCategory();
+        }),
+        ContextMenuButtonConfig.warning(
+          S.current.deleteCategory,
+          onPressed: () {
+            DialogBuilder.showConfirmDialog(
+              context,
+              title: S.current.deleteCategory,
+              message: S.current.deleteCategoryHint(category.title),
+              confirmButtonText: S.current.confirm,
+              cancelButtonText: S.current.cancel,
+              onTapConfirm: () async {
+                await CategoryDao.deleteCategory(category);
+                IToast.showTop(S.current.deleteCategorySuccess(category.title));
+                refresh();
+              },
+              onTapCancel: () {},
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  _buildTab(TokenCategory? category) {
+    return Tab(
+      child: ContextMenuRegion(
+        behavior: ResponsiveUtil.isDesktop()
+            ? const [ContextMenuShowBehavior.secondaryTap]
+            : const [],
+        contextMenu: _buildTabContextMenuButtons(category),
+        child: Text(category?.title ?? S.current.allTokens),
+      ),
+    );
+  }
+
   initTab() {
     tabList.clear();
-    tabList.add(Tab(text: S.current.allTokens));
+    tabList.add(_buildTab(null));
     for (var category in categories) {
-      tabList.add(Tab(text: category.title));
+      tabList.add(_buildTab(category));
     }
+    setState(() {});
     _tabController = TabController(length: tabList.length, vsync: this);
     _tabController.index = _currentTabIndex;
-    setState(() {});
   }
 
   @override
@@ -437,13 +560,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // return gridView;
     return EasyRefresh(
       onRefresh: refresh,
-      header: LottieCupertinoHeader(
-        backgroundColor: Theme.of(context).canvasColor,
-        indicator:
-            LottieUtil.load(LottieUtil.getLoadingPath(context), scale: 1.5),
-        hapticFeedback: true,
-        triggerOffset: 10,
-      ),
       refreshOnStart: true,
       child: tokens.isEmpty
           ? ListView(
@@ -462,8 +578,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       overlayColor: WidgetStateProperty.all(Colors.transparent),
       tabs: tabList,
       labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-      dividerHeight: 0,
       isScrollable: true,
+      dividerHeight: 0,
       tabAlignment: TabAlignment.start,
       physics: const BouncingScrollPhysics(),
       labelStyle:

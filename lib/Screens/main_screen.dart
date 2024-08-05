@@ -601,7 +601,7 @@ class MainScreenState extends State<MainScreen>
                     RouteUtil.pushDesktopFadeRoute(const AboutSettingScreen());
                   },
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 6),
               ],
             ),
           ],

@@ -24,6 +24,8 @@ dependencies:
   flutter_layout_grid: ^2.0.7
   zxing2: ^0.2.3 # 二维码
   image: ^4.2.0 # 图片
+#  reorderable_tabbar:
+#    path: third-party/reorderable_tabbar
   group_button:
     path: third-party/group_button
   context_menus:

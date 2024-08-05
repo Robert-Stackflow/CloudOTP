@@ -343,6 +343,7 @@
   "inputCategory": "输入分类名称",
   "categoryNameCannotBeEmpty": "分类名称不能为空",
   "categoryNameDuplicate": "分类名称与已有分类重复",
+  "editCategoryTokens": "更改令牌列表",
   "noCategory": "暂无分类",
   "shortcut": "快捷键",
   "shortcutHelp": "快捷键帮助",
