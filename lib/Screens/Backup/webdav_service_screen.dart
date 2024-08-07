@@ -18,6 +18,7 @@ import 'package:webdav_client/webdav_client.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
 import '../../Utils/utils.dart';
+import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -328,7 +329,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                             BottomSheetBuilder.showBottomSheet(
                               context,
                               responsive: true,
-                              (context) => WebDavBackupsBottomSheet(
+                              (dialogContext) => WebDavBackupsBottomSheet(
                                 files: files,
                                 onSelected: (selectedFile) async {
                                   var dialog = showProgressDialog(
@@ -343,15 +344,70 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                                       dialog.updateProgress(progress: c / t);
                                     },
                                   );
+
                                   dialog.updateMessage(
                                     msg: S.current.importing,
                                     showProgress: false,
                                   );
-                                  await ImportTokenUtil.importBackupFile(
+
+                                  bool success =
+                                      await ImportTokenUtil.importBackupFile(
                                     res,
                                     showLoading: false,
                                   );
                                   dialog.dismiss();
+                                  if (!success) {
+                                    InputStateController stateController =
+                                        InputStateController(
+                                      validate: (value) {
+                                        if (value.isEmpty) {
+                                          return Future.value(S.current
+                                              .autoBackupPasswordCannotBeEmpty);
+                                        }
+                                        return Future.value(null);
+                                      },
+                                    );
+                                    BottomSheetBuilder.showBottomSheet(
+                                      context,
+                                      responsive: true,
+                                      (context) => InputBottomSheet(
+                                        stateController: stateController,
+                                        title:
+                                            S.current.inputImportPasswordTitle,
+                                        message:
+                                            S.current.inputImportPasswordTip,
+                                        hint: S.current.inputImportPasswordHint,
+                                        inputFormatters: [
+                                          RegexInputFormatter
+                                              .onlyNumberAndLetter,
+                                        ],
+                                        tailingType:
+                                            InputItemTailingType.password,
+                                        preventPop: true,
+                                        onValidConfirm: (password) async {
+                                          dialog.show(
+                                            msg: S.current.importing,
+                                            showProgress: false,
+                                          );
+                                          bool success = await ImportTokenUtil
+                                              .importBackupFile(
+                                            password: password,
+                                            res,
+                                            showLoading: false,
+                                          );
+                                          dialog.dismiss();
+                                          if (success) {
+                                            IToast.show(
+                                                S.current.importSuccess);
+                                            stateController.pop?.call();
+                                          } else {
+                                            stateController.setError(S.current
+                                                .invalidPasswordOrDataCorrupted);
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  }
                                 },
                               ),
                             );

@@ -61,7 +61,8 @@ class Client {
   // }
 
   /// Read all files in a folder
-  Future<List<WebDavFile>> readDir(String path, [CancelToken? cancelToken]) async {
+  Future<List<WebDavFile>> readDir(String path,
+      [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
     var resp = await this
         .c
@@ -187,6 +188,7 @@ class Client {
     Uint8List data, {
     void Function(int count, int total)? onProgress,
     CancelToken? cancelToken,
+    void Function()? onSucess,
   }) {
     return this.c.wdWriteWithBytes(
           this,
@@ -194,6 +196,7 @@ class Client {
           data,
           onProgress: onProgress,
           cancelToken: cancelToken,
+          onSucess: onSucess,
         );
   }
 

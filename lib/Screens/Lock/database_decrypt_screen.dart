@@ -58,6 +58,18 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
     );
   }
 
+  onSubmit() async {
+    try {
+      await DatabaseManager.initDataBase(_controller.text);
+    } catch (e) {
+      _stateController.setError(S.current.encryptDatabasePasswordWrong);
+    }
+    if (DatabaseManager.initialized) {
+      Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
+          ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+    }
+  }
+
   _buildBody() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -84,6 +96,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
             leadingType: InputItemLeadingType.none,
             hint: S.current.inputEncryptDatabasePassword,
             topRadius: true,
+            onSubmit: (_) => onSubmit(),
             bottomRadius: true,
             inputFormatters: [
               RegexInputFormatter.onlyNumberAndLetter,
@@ -97,17 +110,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
           fontSizeDelta: 2,
           background: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
-          onTap: () async {
-            try {
-              await DatabaseManager.initDataBase(_controller.text);
-            } catch (e) {
-              _stateController.setError(S.current.encryptDatabasePasswordWrong);
-            }
-            if (DatabaseManager.initialized) {
-              Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
-                  ItemBuilder.buildContextMenuOverlay(const MainScreen())));
-            }
-          },
+          onTap: onSubmit,
         ),
       ],
     );

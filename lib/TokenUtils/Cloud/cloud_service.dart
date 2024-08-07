@@ -5,6 +5,12 @@ abstract class CloudService {
 
   Future<dynamic> listFiles();
 
+  Future<dynamic> listBackups();
+
+  Future<int> getBackupsCount();
+
+  Future<void> deleteOldBackup(int maxCount);
+
   Future<void> uploadFile(String fileName, Uint8List fileData);
 
   Future<Uint8List> downloadFile(String path);

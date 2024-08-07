@@ -2,6 +2,8 @@ import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
+import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
+import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
@@ -91,6 +93,7 @@ class _SettingScreenState extends State<SettingScreen>
   EncryptDatabaseStatus _encryptDatabaseStatus =
       HiveUtil.getEncryptDatabaseStatus();
   bool _cloudBackupConfigured = false;
+  CloudServiceConfig? _cloudServiceConfig;
   int _maxBackupsCount = HiveUtil.getMaxBackupsCount();
   bool hideAppbarWhenScrolling =
       HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
@@ -326,14 +329,39 @@ class _SettingScreenState extends State<SettingScreen>
           (canCloudBackup && _enableCloudBackup));
 
   loadWebDavConfig() async {
-    CloudServiceConfig? cloudServiceConfig =
-        await CloudServiceConfigDao.getWebdavConfig();
+    _cloudServiceConfig = await CloudServiceConfigDao.getWebdavConfig();
     setState(() {
-      _cloudBackupConfigured = (cloudServiceConfig != null &&
-          Utils.isNotEmpty(cloudServiceConfig.account) &&
-          Utils.isNotEmpty(cloudServiceConfig.secret) &&
-          Utils.isNotEmpty(cloudServiceConfig.endpoint));
+      _cloudBackupConfigured = (_cloudServiceConfig != null &&
+          Utils.isNotEmpty(_cloudServiceConfig!.account) &&
+          Utils.isNotEmpty(_cloudServiceConfig!.secret) &&
+          Utils.isNotEmpty(_cloudServiceConfig!.endpoint));
     });
+  }
+
+  getBackupsCount() async {
+    int currentLocalBackupsCount = await ExportTokenUtil.getBackupsCount();
+    late int currentCloudBackupsCount;
+    if (!_enableCloudBackup ||
+        !_cloudBackupConfigured ||
+        _cloudServiceConfig == null) {
+      currentCloudBackupsCount = 0;
+    } else {
+      WebDavCloudService webDavCloudService =
+          WebDavCloudService(_cloudServiceConfig!);
+      currentCloudBackupsCount = await webDavCloudService.getBackupsCount();
+    }
+    return [currentLocalBackupsCount, currentCloudBackupsCount];
+  }
+
+  deleteOldBackups(int maxBackupsCount) async {
+    await ExportTokenUtil.deleteOldBackup();
+    if (_enableCloudBackup &&
+        _cloudBackupConfigured &&
+        _cloudServiceConfig != null) {
+      WebDavCloudService webDavCloudService =
+          WebDavCloudService(_cloudServiceConfig!);
+      await webDavCloudService.deleteOldBackup(maxBackupsCount);
+    }
   }
 
   _backupSettings() {
@@ -433,7 +461,7 @@ class _SettingScreenState extends State<SettingScreen>
         child: ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.maxBackupCount,
-          description: S.current.maxBackupCountTip(0),
+          description: S.current.maxBackupCountTip,
           tip: _maxBackupsCount.toString(),
           onTap: () async {
             var stateController = InputStateController(
@@ -447,22 +475,21 @@ class _SettingScreenState extends State<SettingScreen>
                 return Future.value(null);
               },
             );
-            int currentBackupsCount = await ExportTokenUtil.getBackupsCount();
+            List<int> counts = await getBackupsCount();
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,
               (context) => InputBottomSheet(
                 title: S.current.maxBackupCount,
                 text: _maxBackupsCount.toString(),
-                message: S.current.maxBackupCountTip(currentBackupsCount),
+                message:
+                    '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0], counts[1])}',
                 hint: S.current.inputMaxBackupCount,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 preventPop: true,
                 stateController: stateController,
                 onConfirm: (text) async {},
                 onValidConfirm: (text) async {
-                  int currentBackupsCount =
-                      await ExportTokenUtil.getBackupsCount();
                   int count = int.parse(text);
                   onValid() {
                     HiveUtil.put(HiveUtil.maxBackupsCountKey, count);
@@ -470,15 +497,15 @@ class _SettingScreenState extends State<SettingScreen>
                       _maxBackupsCount = count;
                     });
                     stateController.pop?.call();
-                    ExportTokenUtil.deleteOldBackup();
+                    deleteOldBackups(count);
                   }
 
-                  if (currentBackupsCount > count) {
+                  if (count > 0 && (counts[0] > count || counts[1] > count)) {
                     DialogBuilder.showConfirmDialog(
                       context,
                       title: S.current.maxBackupCountWarning,
                       message: S.current
-                          .maxBackupCountWarningMessage(currentBackupsCount),
+                          .maxBackupCountWarningMessage(counts[0], counts[1]),
                       onTapConfirm: () {
                         onValid();
                       },

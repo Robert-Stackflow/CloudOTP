@@ -27,6 +27,12 @@ import '../generated/l10n.dart';
 import 'Backup/backup_encrypt_interface.dart';
 
 class ExportTokenUtil {
+  static isBackup(String filePath) {
+    String fileName = basename(filePath);
+    String fileExtension = extension(filePath);
+    return fileName.startsWith("CloudOTP-Backup-") && fileExtension == ".bin";
+  }
+
   static exportUriFile(
     String filePath, {
     bool showLoading = true,
@@ -191,10 +197,7 @@ class ExportTokenUtil {
     List<FileSystemEntity> files = directory.listSync();
     List<FileSystemEntity> backups = files.where((element) {
       if (element is File) {
-        String fileName = basename(element.path);
-        String fileExtension = extension(element.path);
-        return fileName.startsWith("CloudOTP-Backup-") &&
-            fileExtension == ".bin";
+        return isBackup(element.path);
       }
       return false;
     }).toList();

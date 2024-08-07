@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:webdav_client/webdav_client.dart';
@@ -43,10 +44,10 @@ class WebDavCloudService extends CloudService {
     client.setConnectTimeout(8000);
     client.setSendTimeout(8000);
     client.setReceiveTimeout(8000);
-    CloudServiceStatus status = await ping();
-    if (status == CloudServiceStatus.success) {
-      await client.mkdir(_webdavPath);
-    }
+    // CloudServiceStatus status = await ping();
+    // if (status == CloudServiceStatus.success) {
+    //   await client.mkdir(_webdavPath);
+    // }
   }
 
   Future<CloudServiceStatus> ping() async {
@@ -80,6 +81,20 @@ class WebDavCloudService extends CloudService {
   Future<dynamic> listFiles() async {
     var list = await client.readDir(_webdavPath);
     return list;
+  }
+
+  @override
+  Future<dynamic> listBackups() async {
+    var list = await client.readDir(_webdavPath);
+    list = list
+        .where((element) => ExportTokenUtil.isBackup(element.path ?? ""))
+        .toList();
+    return list;
+  }
+
+  @override
+  Future<int> getBackupsCount() async {
+    return (await listBackups()).length;
   }
 
   @override
@@ -133,5 +148,18 @@ class WebDavCloudService extends CloudService {
   @override
   Future<void> signOut() {
     throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteOldBackup(int maxCount) async {
+    List<WebDavFile> list = await listBackups();
+    list.sort((a, b) {
+      if (a.mTime == null || b.mTime == null) return 0;
+      return a.mTime!.compareTo(b.mTime!);
+    });
+    while (list.length > maxCount) {
+      var file = list.removeAt(0);
+      await deleteFile(file.path!);
+    }
   }
 }

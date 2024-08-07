@@ -453,6 +453,7 @@ class WdDio with DioMixin implements Dio {
     String path,
     Uint8List data, {
     void Function(int count, int total)? onProgress,
+    void Function()? onSucess,
     CancelToken? cancelToken,
   }) async {
     // fix auth error
@@ -476,6 +477,7 @@ class WdDio with DioMixin implements Dio {
     );
     var status = resp.statusCode;
     if (status == 200 || status == 201 || status == 204) {
+      onSucess?.call();
       return;
     }
     throw newResponseError(resp);

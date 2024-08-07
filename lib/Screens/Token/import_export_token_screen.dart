@@ -88,7 +88,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
     InputStateController stateController = InputStateController(
       validate: (value) {
         if (value.isEmpty) {
-          return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);
+          return Future.value(S.current.autoBackupPasswordCannotBeEmpty);
         }
         return Future.value(null);
       },

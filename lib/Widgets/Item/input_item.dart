@@ -96,6 +96,7 @@ class InputItem extends StatefulWidget {
     this.leadingMinWidth,
     this.maxLines,
     this.minLines,
+    this.onSubmit,
   });
 
   final TextInputAction? textInputAction;
@@ -124,6 +125,7 @@ class InputItem extends StatefulWidget {
   final int? maxLength;
   final List<TextInputFormatter> inputFormatters;
   final double? leadingMinWidth;
+  final Function(String)? onSubmit;
 
   @override
   State<StatefulWidget> createState() => InputItemState();
@@ -255,6 +257,7 @@ class InputItemState extends State<InputItem> {
                               readOnly: readOnly,
                               obscureText: obscureText,
                               maxLength: maxLength,
+                              onSubmitted: widget.onSubmit,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
