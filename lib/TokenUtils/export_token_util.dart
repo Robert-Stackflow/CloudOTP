@@ -27,7 +27,7 @@ import '../generated/l10n.dart';
 import 'Backup/backup_encrypt_interface.dart';
 
 class ExportTokenUtil {
-  static isBackup(String filePath) {
+  static bool isBackup(String filePath) {
     String fileName = basename(filePath);
     String fileExtension = extension(filePath);
     return fileName.startsWith("CloudOTP-Backup-") && fileExtension == ".bin";
@@ -144,7 +144,7 @@ class ExportTokenUtil {
     return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}.$extension";
   }
 
-  static backupEncryptToFile({
+  static backupLocalAndCloud({
     bool showLoading = false,
     bool showToast = false,
     Uint8List? encryptedData,
@@ -184,36 +184,43 @@ class ExportTokenUtil {
     }
   }
 
-  static Future<int> getBackupsCount() async {
-    return (await getBackups()).length;
-  }
-
-  static Future<List<FileSystemEntity>> getBackups() async {
-    String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
-    Directory directory = Directory(backupPath);
-    if (!directory.existsSync()) {
-      return [];
+  static backupEncryptToFile({
+    bool showLoading = false,
+    bool showToast = false,
+    Uint8List? encryptedData,
+  }) async {
+    if (!await HiveUtil.canBackup()) return;
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.backuping);
     }
-    List<FileSystemEntity> files = directory.listSync();
-    List<FileSystemEntity> backups = files.where((element) {
-      if (element is File) {
-        return isBackup(element.path);
+    try {
+      encryptedData ??= await getUint8List();
+      if (encryptedData == null) {
+        if (showToast) IToast.showTop(S.current.backupFailed);
+        return;
+      } else {
+        String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+        Directory directory = Directory(backupPath);
+        if (!directory.existsSync()) {
+          directory.createSync(recursive: true);
+        }
+        await compute((_) async {
+          File file = File("${directory.path}/${getExportFileName("bin")}");
+          file.writeAsBytesSync(encryptedData!);
+        }, null);
+        ExportTokenUtil.deleteOldBackup();
+        if (showToast) IToast.showTop(S.current.backupSuccess);
       }
-      return false;
-    }).toList();
-    return backups;
-  }
-
-  static Future<void> deleteOldBackup() async {
-    int maxBackupCount = HiveUtil.getMaxBackupsCount();
-    if (maxBackupCount == 0) return;
-    List<FileSystemEntity> backups = await getBackups();
-    backups.sort((a, b) {
-      return a.statSync().modified.compareTo(b.statSync().modified);
-    });
-    while (backups.length > maxBackupCount) {
-      FileSystemEntity file = backups.removeAt(0);
-      file.deleteSync();
+    } catch (e) {
+      if (e is BackupBaseException) {
+        if (showToast) IToast.showTop(e.intlMessage);
+      } else {
+        if (showToast) IToast.showTop(S.current.backupFailed);
+      }
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
     }
   }
 
@@ -273,6 +280,39 @@ class ExportTokenUtil {
       if (filePath != null) {
         IToast.showTop(S.current.exportSuccess);
       }
+    }
+  }
+
+  static Future<int> getBackupsCount() async {
+    return (await getBackups()).length;
+  }
+
+  static Future<List<FileSystemEntity>> getBackups() async {
+    String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+    Directory directory = Directory(backupPath);
+    if (!directory.existsSync()) {
+      return [];
+    }
+    List<FileSystemEntity> files = directory.listSync();
+    List<FileSystemEntity> backups = files.where((element) {
+      if (element is File) {
+        return isBackup(element.path);
+      }
+      return false;
+    }).toList();
+    return backups;
+  }
+
+  static Future<void> deleteOldBackup() async {
+    int maxBackupCount = HiveUtil.getMaxBackupsCount();
+    if (maxBackupCount == 0) return;
+    List<FileSystemEntity> backups = await getBackups();
+    backups.sort((a, b) {
+      return a.statSync().modified.compareTo(b.statSync().modified);
+    });
+    while (backups.length > maxBackupCount) {
+      FileSystemEntity file = backups.removeAt(0);
+      file.deleteSync();
     }
   }
 }

@@ -331,6 +331,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                               responsive: true,
                               (dialogContext) => WebDavBackupsBottomSheet(
                                 files: files,
+                                cloudService: _webDavCloudService!,
                                 onSelected: (selectedFile) async {
                                   var dialog = showProgressDialog(
                                     context,

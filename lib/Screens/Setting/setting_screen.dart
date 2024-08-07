@@ -2,7 +2,6 @@ import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
-import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
@@ -348,7 +347,11 @@ class _SettingScreenState extends State<SettingScreen>
     } else {
       WebDavCloudService webDavCloudService =
           WebDavCloudService(_cloudServiceConfig!);
-      currentCloudBackupsCount = await webDavCloudService.getBackupsCount();
+      try {
+        currentCloudBackupsCount = await webDavCloudService.getBackupsCount();
+      } catch (e) {
+        currentCloudBackupsCount = 0;
+      }
     }
     return [currentLocalBackupsCount, currentCloudBackupsCount];
   }
@@ -451,8 +454,11 @@ class _SettingScreenState extends State<SettingScreen>
           title: S.current.immediatelyBackup,
           description: S.current.immediatelyBackupTip,
           onTap: () async {
-            ExportTokenUtil.backupEncryptToFile(
+            await ExportTokenUtil.backupEncryptToFile(
                 showLoading: true, showToast: true);
+            await ExportTokenUtil.backupEncryptToWebDav(
+                config: _cloudServiceConfig!,
+                webDavCloudService: WebDavCloudService(_cloudServiceConfig!));
           },
         ),
       ),
@@ -475,7 +481,9 @@ class _SettingScreenState extends State<SettingScreen>
                 return Future.value(null);
               },
             );
+            CustomLoadingDialog.showLoading(title: S.current.loading);
             List<int> counts = await getBackupsCount();
+            CustomLoadingDialog.dismissLoading();
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,

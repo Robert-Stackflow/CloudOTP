@@ -96,7 +96,7 @@ class HiveUtil {
     await HiveUtil.put(HiveUtil.dragToReorderKey, !ResponsiveUtil.isMobile());
   }
 
-  static getMaxBackupsCount() {
+  static int getMaxBackupsCount() {
     return getInt(HiveUtil.maxBackupsCountKey, defaultValue: defaultMaxBackupCount);
   }
 

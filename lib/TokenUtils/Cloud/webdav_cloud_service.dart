@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
+import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:webdav_client/webdav_client.dart';
@@ -85,7 +86,7 @@ class WebDavCloudService extends CloudService {
 
   @override
   Future<dynamic> listBackups() async {
-    var list = await client.readDir(_webdavPath);
+    var list = await listFiles();
     list = list
         .where((element) => ExportTokenUtil.isBackup(element.path ?? ""))
         .toList();
@@ -112,6 +113,7 @@ class WebDavCloudService extends CloudService {
       },
       cancelToken: c,
     );
+    deleteOldBackup();
   }
 
   @override
@@ -141,17 +143,14 @@ class WebDavCloudService extends CloudService {
   }
 
   @override
-  Future<void> authenticate() {
-    throw UnimplementedError();
-  }
+  Future<void> authenticate() async {}
 
   @override
-  Future<void> signOut() {
-    throw UnimplementedError();
-  }
+  Future<void> signOut() async {}
 
   @override
-  Future<void> deleteOldBackup(int maxCount) async {
+  Future<void> deleteOldBackup([int? maxCount]) async {
+    maxCount ??= HiveUtil.getMaxBackupsCount();
     List<WebDavFile> list = await listBackups();
     list.sort((a, b) {
       if (a.mTime == null || b.mTime == null) return 0;

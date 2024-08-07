@@ -1,5 +1,9 @@
+import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
+import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
+import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
 
@@ -11,10 +15,12 @@ class WebDavBackupsBottomSheet extends StatefulWidget {
     super.key,
     required this.files,
     required this.onSelected,
+    required this.cloudService,
   });
 
   final List<WebDavFile> files;
   final Function(WebDavFile) onSelected;
+  final WebDavCloudService cloudService;
 
   @override
   WebDavBackupsBottomSheetState createState() =>
@@ -22,8 +28,11 @@ class WebDavBackupsBottomSheet extends StatefulWidget {
 }
 
 class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
+  late List<WebDavFile> files;
+
   @override
   void initState() {
+    files = widget.files;
     super.initState();
   }
 
@@ -71,8 +80,8 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
   _buildButtons() {
     return ListView.builder(
       shrinkWrap: true,
-      itemBuilder: (context, index) => _buildItem(widget.files[index]),
-      itemCount: widget.files.length,
+      itemBuilder: (context, index) => _buildItem(files[index]),
+      itemCount: files.length,
     );
   }
 
@@ -84,10 +93,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          Navigator.pop(context);
-          widget.onSelected(file);
-        },
+        onTap: () {},
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 10),
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -101,8 +107,6 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.cloud_download_outlined),
-              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,6 +121,33 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
                     ),
                   ],
                 ),
+              ),
+              ItemBuilder.buildIconButton(
+                context: context,
+                icon: const Icon(Icons.cloud_download_outlined),
+                onTap: () async {
+                  Navigator.pop(context);
+                  widget.onSelected(file);
+                },
+              ),
+              const SizedBox(width: 5),
+              ItemBuilder.buildIconButton(
+                context: context,
+                icon:
+                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                onTap: () async {
+                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  try {
+                    await widget.cloudService.deleteFile(file.path ?? "");
+                    setState(() {
+                      files.remove(file);
+                    });
+                    IToast.showTop(S.current.deleteSuccess);
+                  } catch (_) {
+                    IToast.showTop(S.current.deleteFailed);
+                  }
+                  CustomLoadingDialog.dismissLoading();
+                },
               ),
             ],
           ),
