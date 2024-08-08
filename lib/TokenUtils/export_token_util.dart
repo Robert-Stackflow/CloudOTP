@@ -175,14 +175,32 @@ class ExportTokenUtil {
     }
   }
 
+  static autoBackup({
+    bool showLoading = false,
+    bool showToast = false,
+  }) async {
+    CloudServiceConfig? config = await CloudServiceConfigDao.getWebdavConfig();
+    AutoBackupLog log = AutoBackupLog.init(type: AutoBackupType.localAndCloud);
+    appProvider.pushAutoBackupLog(log);
+    autoBackupQueue.add(
+      () => ExportTokenUtil.backupEncryptToLocalAndCloud(
+        showLoading: showLoading,
+        showToast: showToast,
+        config: config,
+        log: log,
+        cloudService: config != null ? WebDavCloudService(config) : null,
+      ),
+    );
+  }
+
   static backupEncryptToLocalAndCloud({
     Uint8List? encryptedData,
     bool showLoading = true,
     bool showToast = true,
     CloudServiceConfig? config,
     CloudService? cloudService,
+    required AutoBackupLog log,
   }) async {
-    AutoBackupLog log = AutoBackupLog.init(type: AutoBackupType.cloud);
     if (!await HiveUtil.canBackup()) return;
     ProgressDialog? dialog;
     if (showLoading) {
@@ -192,14 +210,14 @@ class ExportTokenUtil {
       );
     }
     try {
-      log.status = AutoBackupStatus.encrypting;
+      log.addStatus(AutoBackupStatus.encrypting);
       encryptedData ??= await getUint8List();
       if (encryptedData == null) {
-        log.status = AutoBackupStatus.encryptFailed;
+        log.addStatus(AutoBackupStatus.encryptFailed);
         if (showToast) IToast.showTop(S.current.backupFailed);
         return;
       } else {
-        log.status = AutoBackupStatus.saving;
+        log.addStatus(AutoBackupStatus.saving);
         String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
         Directory directory = Directory(backupPath);
         if (!directory.existsSync()) {
@@ -209,7 +227,7 @@ class ExportTokenUtil {
         await file.writeAsBytes(encryptedData);
         await ExportTokenUtil.deleteOldBackup();
         if (cloudService != null) {
-          log.status = AutoBackupStatus.uploading;
+          log.addStatus(AutoBackupStatus.uploading);
           if (showLoading && dialog != null) {
             dialog.updateMessage(
                 msg: S.current.webDavPushing, showProgress: true);
@@ -227,15 +245,15 @@ class ExportTokenUtil {
         if (config != null) {
           CloudServiceConfigDao.updateLastBackupTime(config);
         }
-        log.status = AutoBackupStatus.success;
+        log.addStatus(AutoBackupStatus.success);
         if (showToast) IToast.showTop(S.current.backupSuccess);
       }
     } catch (e, t) {
       if (e is BackupBaseException) {
-        log.status = AutoBackupStatus.encryptFailed;
+        log.addStatus(AutoBackupStatus.encryptFailed);
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
-        log.status = AutoBackupStatus.failed;
+        log.addStatus(AutoBackupStatus.failed);
         if (showToast) IToast.showTop(S.current.backupFailed);
       }
     } finally {
@@ -249,21 +267,16 @@ class ExportTokenUtil {
     bool showToast = false,
     Uint8List? encryptedData,
   }) async {
-    AutoBackupLog log =
-        AutoBackupLog.init(type: AutoBackupType.local, isAutoBackup: false);
     if (!await HiveUtil.canBackup()) return;
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.backuping);
     }
     try {
-      log.status = AutoBackupStatus.encrypting;
       encryptedData ??= await getUint8List();
       if (encryptedData == null) {
-        log.status = AutoBackupStatus.encryptFailed;
         if (showToast) IToast.showTop(S.current.backupFailed);
         return;
       } else {
-        log.status = AutoBackupStatus.saving;
         String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
         Directory directory = Directory(backupPath);
         if (!directory.existsSync()) {
@@ -274,19 +287,15 @@ class ExportTokenUtil {
           file.writeAsBytesSync(encryptedData!);
         }, null);
         ExportTokenUtil.deleteOldBackup();
-        log.status = AutoBackupStatus.success;
         if (showToast) IToast.showTop(S.current.backupSuccess);
       }
     } catch (e) {
       if (e is BackupBaseException) {
-        log.status = AutoBackupStatus.encryptFailed;
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
-        log.status = AutoBackupStatus.failed;
         if (showToast) IToast.showTop(S.current.backupFailed);
       }
     } finally {
-      AutoBackupLogDao.insertLog(log);
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
       }
@@ -300,8 +309,6 @@ class ExportTokenUtil {
     required CloudServiceConfig config,
     required CloudService cloudService,
   }) async {
-    AutoBackupLog log =
-        AutoBackupLog.init(type: AutoBackupType.cloud, isAutoBackup: false);
     if (!await HiveUtil.canBackup()) return;
     ProgressDialog? dialog;
     if (showLoading) {
@@ -311,10 +318,8 @@ class ExportTokenUtil {
       );
     }
     try {
-      log.status = AutoBackupStatus.encrypting;
       encryptedData ??= await getUint8List();
       if (encryptedData == null) {
-        log.status = AutoBackupStatus.encryptFailed;
         if (showToast) IToast.showTop(S.current.backupFailed);
         return;
       } else {
@@ -322,7 +327,6 @@ class ExportTokenUtil {
           dialog.updateMessage(
               msg: S.current.webDavPushing, showProgress: true);
         }
-        log.status = AutoBackupStatus.uploading;
         await cloudService.uploadFile(
           ExportTokenUtil.getExportFileName("bin"),
           encryptedData,
@@ -332,20 +336,16 @@ class ExportTokenUtil {
             }
           },
         );
-        log.status = AutoBackupStatus.success;
         CloudServiceConfigDao.updateLastBackupTime(config);
         if (showToast) IToast.showTop(S.current.backupSuccess);
       }
     } catch (e) {
       if (e is BackupBaseException) {
-        log.status = AutoBackupStatus.encryptFailed;
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
-        log.status = AutoBackupStatus.failed;
         if (showToast) IToast.showTop(S.current.backupFailed);
       }
     } finally {
-      AutoBackupLogDao.insertLog(log);
       if (showLoading && dialog != null) dialog.dismiss();
     }
   }

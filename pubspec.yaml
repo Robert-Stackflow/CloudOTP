@@ -76,6 +76,7 @@ dependencies:
   palette_generator: ^0.3.3+3 # 获取主色调
   vector_math: ^2.1.4
   restart_app: ^1.2.1 # 重启APP
+  queue: ^3.1.0+2 # 队列
   # 平台适配
   responsive_builder: ^0.7.1 # 响应式布局
   tray_manager: ^0.2.3 # 托盘图标

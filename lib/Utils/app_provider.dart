@@ -1,9 +1,12 @@
+import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:queue/queue.dart';
 import 'package:tuple/tuple.dart';
 
 import '../Screens/home_screen.dart';
@@ -51,15 +54,26 @@ bool get canPopByKey =>
 
 RouteObserver<PageRoute> routeObserver = RouteObserver();
 
+Queue autoBackupQueue = Queue();
+
 AppProvider appProvider = AppProvider();
 
 class AppProvider with ChangeNotifier {
-  String _captchaToken = "";
+  final List<AutoBackupLog> _autoBackupLogs = [];
 
-  String get captchaToken => _captchaToken;
+  List<AutoBackupLog> get autoBackupLogs => _autoBackupLogs;
 
-  set captchaToken(String value) {
-    _captchaToken = value;
+  pushAutoBackupLog(AutoBackupLog value) {
+    _autoBackupLogs.add(value);
+    notifyListeners();
+  }
+
+  LoadingStatus _autoBackupStatus = LoadingStatus.none;
+
+  LoadingStatus get autoBackupStatus => _autoBackupStatus;
+
+  set autoBackupStatus(LoadingStatus value) {
+    _autoBackupStatus = value;
     notifyListeners();
   }
 

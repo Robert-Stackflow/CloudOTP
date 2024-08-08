@@ -103,7 +103,6 @@ class WindowButton extends StatelessWidget {
     if (kIsWeb) {
       return emptyWidget;
     } else {
-      // Don't show button on macOS
       if (Platform.isMacOS) {
         return emptyWidget;
       }
@@ -121,18 +120,18 @@ class WindowButton extends StatelessWidget {
             (iconBuilder != null) ? iconBuilder!(buttonContext) : emptyWidget;
         double borderSize = 0;
         double defaultPadding = (30 - borderSize) / 3 - (borderSize / 2);
-        // Used when buttonContext.backgroundColor is null, allowing the AnimatedContainer to fade-out smoothly.
         var fadeOutColor =
             getBackgroundColor(MouseState()..isMouseOver = true).withOpacity(0);
         var padding = this.padding ?? EdgeInsets.all(defaultPadding);
         var animationMs =
             mouseState.isMouseOver ? (animate ? 100 : 0) : (animate ? 200 : 0);
         Widget iconWithPadding = Padding(
-            padding: padding,
-            child: Transform.rotate(
-              angle: rotateAngle,
-              child: icon,
-            ));
+          padding: padding,
+          child: Transform.rotate(
+            angle: rotateAngle,
+            child: icon,
+          ),
+        );
         iconWithPadding = AnimatedContainer(
             curve: Curves.easeOut,
             duration: Duration(milliseconds: animationMs),

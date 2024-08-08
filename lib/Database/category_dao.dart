@@ -1,4 +1,5 @@
 import 'package:cloudotp/Database/token_dao.dart';
+import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../Models/category.dart';
@@ -17,6 +18,7 @@ class CategoryDao {
       category.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 

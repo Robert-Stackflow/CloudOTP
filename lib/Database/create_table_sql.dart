@@ -63,7 +63,7 @@ enum Sql {
         id INTEGER PRIMARY KEY,
         start_timestamp INTEGER NOT NULL,
         end_timestamp INTEGER NOT NULL,
-        status INTEGER NOT NULL,
+        status TEXT NOT NULL,
         type INTEGER NOT NULL,
         is_auto_backup INTEGER NOT NULL
       );

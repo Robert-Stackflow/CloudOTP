@@ -444,12 +444,7 @@ class _SettingScreenState extends State<SettingScreen>
           title: S.current.immediatelyBackup,
           description: S.current.immediatelyBackupTip,
           onTap: () async {
-            ExportTokenUtil.backupEncryptToLocalAndCloud(
-              config: _cloudServiceConfig,
-              cloudService: _cloudBackupConfigured
-                  ? WebDavCloudService(_cloudServiceConfig!)
-                  : null,
-            );
+            ExportTokenUtil.autoBackup(showToast: true, showLoading: true);
           },
         ),
       ),

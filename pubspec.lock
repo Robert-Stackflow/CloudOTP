@@ -1355,6 +1355,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.2"
+  queue:
+    dependency: "direct main"
+    description:
+      name: queue
+      sha256: "9a41ecadc15db79010108c06eae229a45c56b18db699760f34e8c9ac9b831ff9"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.1.0+2"
   quiver:
     dependency: transitive
     description:

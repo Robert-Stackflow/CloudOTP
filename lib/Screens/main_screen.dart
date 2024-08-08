@@ -13,6 +13,7 @@ import 'package:cloudotp/Utils/constant.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
+import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Window/window_caption.dart';
@@ -675,6 +676,17 @@ class MainScreenState extends State<MainScreen>
                   ),
                 ),
                 const Spacer(),
+                ItemBuilder.buildRoundIconButton(
+                  context: context,
+                  normalBackground: Colors.transparent,
+                  icon: Selector<AppProvider, LoadingStatus>(
+                    selector: (context, appProvider) =>
+                        appProvider.autoBackupStatus,
+                    builder: (context, autoBackupStatus, child) =>
+                        LoadingIcon(status: autoBackupStatus),
+                  ),
+                  onTap: () {},
+                ),
                 const SizedBox(width: 3),
                 if (ResponsiveUtil.isDesktop())
                   Row(
@@ -684,7 +696,7 @@ class MainScreenState extends State<MainScreen>
                         colors: _isStayOnTop
                             ? MyColors.getStayOnTopButtonColors(context)
                             : MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         onPressed: () {
                           setState(() {
                             _isStayOnTop = !_isStayOnTop;
@@ -695,24 +707,24 @@ class MainScreenState extends State<MainScreen>
                       const SizedBox(width: 3),
                       MinimizeWindowButton(
                         colors: MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       const SizedBox(width: 3),
                       _isMaximized
                           ? RestoreWindowButton(
                               colors: MyColors.getNormalButtonColors(context),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(8),
                               onPressed: ResponsiveUtil.maximizeOrRestore,
                             )
                           : MaximizeWindowButton(
                               colors: MyColors.getNormalButtonColors(context),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(8),
                               onPressed: ResponsiveUtil.maximizeOrRestore,
                             ),
                       const SizedBox(width: 3),
                       CloseWindowButton(
                         colors: MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         onPressed: () {
                           if (HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {
                             windowManager.hide();
