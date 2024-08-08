@@ -3,6 +3,8 @@ import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../TokenUtils/export_token_util.dart';
+
 class TokenDao {
   static const String tableName = "otp_token";
 
@@ -15,6 +17,7 @@ class TokenDao {
       token.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 
@@ -31,6 +34,7 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
+    ExportTokenUtil.autoBackup();
     return results.length;
   }
 
@@ -59,6 +63,7 @@ class TokenDao {
       where: 'id = ?',
       whereArgs: [token.id],
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 
@@ -75,6 +80,7 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
+    ExportTokenUtil.autoBackup();
     return results.length;
   }
 
@@ -130,6 +136,7 @@ class TokenDao {
       where: 'id = ?',
       whereArgs: [token.id],
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 

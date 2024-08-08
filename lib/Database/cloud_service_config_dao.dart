@@ -1,4 +1,5 @@
 import '../Models/cloud_service_config.dart';
+import '../TokenUtils/export_token_util.dart';
 import 'database_manager.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -15,6 +16,7 @@ class CloudServiceConfigDao {
       config.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 
@@ -69,6 +71,7 @@ class CloudServiceConfigDao {
       where: 'id = ?',
       whereArgs: [config.id],
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 
@@ -79,6 +82,7 @@ class CloudServiceConfigDao {
       where: 'id = ?',
       whereArgs: [id],
     );
+    ExportTokenUtil.autoBackup();
     return result;
   }
 

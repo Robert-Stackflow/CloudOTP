@@ -35,6 +35,7 @@ class CategoryDao {
       );
     }
     List<dynamic> results = await batch.commit();
+    ExportTokenUtil.autoBackup();
     return results.length;
   }
 
@@ -63,10 +64,14 @@ class CategoryDao {
       where: 'id = ?',
       whereArgs: [category.id],
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 
-  static Future<int> updateCategories(List<TokenCategory> category) async {
+  static Future<int> updateCategories(
+    List<TokenCategory> category, {
+    bool backup = false,
+  }) async {
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (TokenCategory category in category) {
@@ -79,6 +84,7 @@ class CategoryDao {
       );
     }
     List<dynamic> results = await batch.commit();
+    if (backup) ExportTokenUtil.autoBackup();
     return results.length;
   }
 
@@ -89,6 +95,7 @@ class CategoryDao {
       where: 'id = ?',
       whereArgs: [category.id],
     );
+    ExportTokenUtil.autoBackup();
     return id;
   }
 
@@ -154,7 +161,11 @@ class CategoryDao {
   }
 
   static Future<void> updateCategoriesForToken(
-      int tokenId, List<int> unseletedIds, List<int> newSeletedIds) async {
+    int tokenId,
+    List<int> unseletedIds,
+    List<int> newSeletedIds, {
+    bool backup = false,
+  }) async {
     List<TokenCategory> unselectedCategories = [];
     List<TokenCategory> newSeletedCategories = [];
     for (int id in unseletedIds) {
@@ -171,5 +182,6 @@ class CategoryDao {
     }
     await updateCategories(unselectedCategories);
     await updateCategories(newSeletedCategories);
+    if (backup) ExportTokenUtil.autoBackup();
   }
 }

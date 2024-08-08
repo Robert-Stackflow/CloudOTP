@@ -137,6 +137,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
                     widget.token.id,
                     unselectedCategoryIds,
                     newSelectedCategoryIds,
+                    backup: true,
                   );
                   homeScreenState?.refresh();
                   IToast.showTop(S.current.saveSuccess);

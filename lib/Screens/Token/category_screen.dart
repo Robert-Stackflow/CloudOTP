@@ -142,7 +142,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                 for (int i = 0; i < categories.length; i++) {
                   categories[i].seq = i;
                 }
-                CategoryDao.updateCategories(categories);
+                CategoryDao.updateCategories(categories, backup: true);
                 refresh();
               },
               proxyDecorator:
