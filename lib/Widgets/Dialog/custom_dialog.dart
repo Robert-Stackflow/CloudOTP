@@ -713,7 +713,7 @@ class CustomLoadingDialog {
   }) {
     showDialog(
       barrierDismissible: dismissible,
-      context: globalNavigatorKey.currentState!.context,
+      context: rootContext,
       builder: (context) {
         return LoadingDialogWidget(
           dismissible: dismissible,
@@ -727,6 +727,6 @@ class CustomLoadingDialog {
 
   static Future<void> dismissLoading() async {
     return Future.sync(
-        () => Navigator.pop(globalNavigatorKey.currentState!.context));
+        () => Navigator.pop(rootContext));
   }
 }

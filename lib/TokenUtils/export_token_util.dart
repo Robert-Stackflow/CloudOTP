@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cloudotp/Database/auto_backup_log_dao.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
+import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup.dart';
@@ -25,12 +27,17 @@ import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/Dialog/progress_dialog.dart';
 import '../generated/l10n.dart';
 import 'Backup/backup_encrypt_interface.dart';
+import 'Cloud/cloud_service.dart';
 
 class ExportTokenUtil {
   static bool isBackup(String filePath) {
     String fileName = basename(filePath);
     String fileExtension = extension(filePath);
     return fileName.startsWith("CloudOTP-Backup-") && fileExtension == ".bin";
+  }
+
+  static String getExportFileName(String extension) {
+    return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}.$extension";
   }
 
   static exportUriFile(
@@ -140,126 +147,11 @@ class ExportTokenUtil {
     }
   }
 
-  static String getExportFileName(String extension) {
-    return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}.$extension";
-  }
-
-  static backupLocalAndCloud({
-    bool showLoading = false,
-    bool showToast = false,
-    Uint8List? encryptedData,
-  }) async {
-    if (!await HiveUtil.canBackup()) return;
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.backuping);
-    }
-    try {
-      encryptedData ??= await getUint8List();
-      if (encryptedData == null) {
-        if (showToast) IToast.showTop(S.current.backupFailed);
-        return;
-      } else {
-        String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
-        Directory directory = Directory(backupPath);
-        if (!directory.existsSync()) {
-          directory.createSync(recursive: true);
-        }
-        await compute((_) async {
-          File file = File("${directory.path}/${getExportFileName("bin")}");
-          file.writeAsBytesSync(encryptedData!);
-        }, null);
-        ExportTokenUtil.deleteOldBackup();
-        if (showToast) IToast.showTop(S.current.backupSuccess);
-      }
-    } catch (e) {
-      if (e is BackupBaseException) {
-        if (showToast) IToast.showTop(e.intlMessage);
-      } else {
-        if (showToast) IToast.showTop(S.current.backupFailed);
-      }
-    } finally {
-      if (showLoading) {
-        CustomLoadingDialog.dismissLoading();
-      }
-    }
-  }
-
-  static backupEncryptToFile({
-    bool showLoading = false,
-    bool showToast = false,
-    Uint8List? encryptedData,
-  }) async {
-    if (!await HiveUtil.canBackup()) return;
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.backuping);
-    }
-    try {
-      encryptedData ??= await getUint8List();
-      if (encryptedData == null) {
-        if (showToast) IToast.showTop(S.current.backupFailed);
-        return;
-      } else {
-        String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
-        Directory directory = Directory(backupPath);
-        if (!directory.existsSync()) {
-          directory.createSync(recursive: true);
-        }
-        await compute((_) async {
-          File file = File("${directory.path}/${getExportFileName("bin")}");
-          file.writeAsBytesSync(encryptedData!);
-        }, null);
-        ExportTokenUtil.deleteOldBackup();
-        if (showToast) IToast.showTop(S.current.backupSuccess);
-      }
-    } catch (e) {
-      if (e is BackupBaseException) {
-        if (showToast) IToast.showTop(e.intlMessage);
-      } else {
-        if (showToast) IToast.showTop(S.current.backupFailed);
-      }
-    } finally {
-      if (showLoading) {
-        CustomLoadingDialog.dismissLoading();
-      }
-    }
-  }
-
-  static backupEncryptToWebDav({
-    Uint8List? encryptedData,
-    required CloudServiceConfig config,
-    required WebDavCloudService webDavCloudService,
-  }) async {
-    var dialog = showProgressDialog(
-      rootContext,
-      msg: S.current.backuping,
-      showProgress: false,
-    );
-    encryptedData ??= await ExportTokenUtil.getUint8List();
-    if (encryptedData == null) {
-      IToast.showTop(S.current.backupFailed);
-      dialog.dismiss();
-      return;
-    } else {
-      dialog.updateMessage(msg: S.current.webDavPushing, showProgress: true);
-      await webDavCloudService.uploadFile(
-        ExportTokenUtil.getExportFileName("bin"),
-        encryptedData,
-        onProgress: (c, t) {
-          dialog.updateProgress(progress: c / t);
-        },
-      );
-      dialog.dismiss();
-      CloudServiceConfigDao.updateLastBackupTime(config);
-      IToast.showTop(S.current.backupSuccess);
-    }
-  }
-
   static exportEncryptToMobileDirectory({
     Uint8List? encryptedData,
     String? password,
   }) async {
     var dialog = showProgressDialog(
-      rootContext,
       msg: S.current.exporting,
       showProgress: false,
     );
@@ -280,6 +172,181 @@ class ExportTokenUtil {
       if (filePath != null) {
         IToast.showTop(S.current.exportSuccess);
       }
+    }
+  }
+
+  static backupEncryptToLocalAndCloud({
+    Uint8List? encryptedData,
+    bool showLoading = true,
+    bool showToast = true,
+    CloudServiceConfig? config,
+    CloudService? cloudService,
+  }) async {
+    AutoBackupLog log = AutoBackupLog.init(type: AutoBackupType.cloud);
+    if (!await HiveUtil.canBackup()) return;
+    ProgressDialog? dialog;
+    if (showLoading) {
+      dialog = showProgressDialog(
+        msg: S.current.backuping,
+        showProgress: false,
+      );
+    }
+    try {
+      log.status = AutoBackupStatus.encrypting;
+      encryptedData ??= await getUint8List();
+      if (encryptedData == null) {
+        log.status = AutoBackupStatus.encryptFailed;
+        if (showToast) IToast.showTop(S.current.backupFailed);
+        return;
+      } else {
+        log.status = AutoBackupStatus.saving;
+        String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+        Directory directory = Directory(backupPath);
+        if (!directory.existsSync()) {
+          directory.createSync(recursive: true);
+        }
+        File file = File("${directory.path}/${getExportFileName("bin")}");
+        await file.writeAsBytes(encryptedData);
+        await ExportTokenUtil.deleteOldBackup();
+        if (cloudService != null) {
+          log.status = AutoBackupStatus.uploading;
+          if (showLoading && dialog != null) {
+            dialog.updateMessage(
+                msg: S.current.webDavPushing, showProgress: true);
+          }
+          await cloudService.uploadFile(
+            ExportTokenUtil.getExportFileName("bin"),
+            encryptedData,
+            onProgress: (c, t) {
+              if (showLoading && dialog != null) {
+                dialog.updateProgress(progress: c / t);
+              }
+            },
+          );
+        }
+        if (config != null) {
+          CloudServiceConfigDao.updateLastBackupTime(config);
+        }
+        log.status = AutoBackupStatus.success;
+        if (showToast) IToast.showTop(S.current.backupSuccess);
+      }
+    } catch (e, t) {
+      if (e is BackupBaseException) {
+        log.status = AutoBackupStatus.encryptFailed;
+        if (showToast) IToast.showTop(e.intlMessage);
+      } else {
+        log.status = AutoBackupStatus.failed;
+        if (showToast) IToast.showTop(S.current.backupFailed);
+      }
+    } finally {
+      AutoBackupLogDao.insertLog(log);
+      if (showLoading && dialog != null) dialog.dismiss();
+    }
+  }
+
+  static backupEncryptToLocal({
+    bool showLoading = false,
+    bool showToast = false,
+    Uint8List? encryptedData,
+  }) async {
+    AutoBackupLog log =
+        AutoBackupLog.init(type: AutoBackupType.local, isAutoBackup: false);
+    if (!await HiveUtil.canBackup()) return;
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.backuping);
+    }
+    try {
+      log.status = AutoBackupStatus.encrypting;
+      encryptedData ??= await getUint8List();
+      if (encryptedData == null) {
+        log.status = AutoBackupStatus.encryptFailed;
+        if (showToast) IToast.showTop(S.current.backupFailed);
+        return;
+      } else {
+        log.status = AutoBackupStatus.saving;
+        String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+        Directory directory = Directory(backupPath);
+        if (!directory.existsSync()) {
+          directory.createSync(recursive: true);
+        }
+        await compute((_) async {
+          File file = File("${directory.path}/${getExportFileName("bin")}");
+          file.writeAsBytesSync(encryptedData!);
+        }, null);
+        ExportTokenUtil.deleteOldBackup();
+        log.status = AutoBackupStatus.success;
+        if (showToast) IToast.showTop(S.current.backupSuccess);
+      }
+    } catch (e) {
+      if (e is BackupBaseException) {
+        log.status = AutoBackupStatus.encryptFailed;
+        if (showToast) IToast.showTop(e.intlMessage);
+      } else {
+        log.status = AutoBackupStatus.failed;
+        if (showToast) IToast.showTop(S.current.backupFailed);
+      }
+    } finally {
+      AutoBackupLogDao.insertLog(log);
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
+    }
+  }
+
+  static backupEncryptToCloud({
+    Uint8List? encryptedData,
+    bool showLoading = true,
+    bool showToast = true,
+    required CloudServiceConfig config,
+    required CloudService cloudService,
+  }) async {
+    AutoBackupLog log =
+        AutoBackupLog.init(type: AutoBackupType.cloud, isAutoBackup: false);
+    if (!await HiveUtil.canBackup()) return;
+    ProgressDialog? dialog;
+    if (showLoading) {
+      dialog = showProgressDialog(
+        msg: S.current.backuping,
+        showProgress: false,
+      );
+    }
+    try {
+      log.status = AutoBackupStatus.encrypting;
+      encryptedData ??= await getUint8List();
+      if (encryptedData == null) {
+        log.status = AutoBackupStatus.encryptFailed;
+        if (showToast) IToast.showTop(S.current.backupFailed);
+        return;
+      } else {
+        if (showLoading && dialog != null) {
+          dialog.updateMessage(
+              msg: S.current.webDavPushing, showProgress: true);
+        }
+        log.status = AutoBackupStatus.uploading;
+        await cloudService.uploadFile(
+          ExportTokenUtil.getExportFileName("bin"),
+          encryptedData,
+          onProgress: (c, t) {
+            if (showLoading && dialog != null) {
+              dialog.updateProgress(progress: c / t);
+            }
+          },
+        );
+        log.status = AutoBackupStatus.success;
+        CloudServiceConfigDao.updateLastBackupTime(config);
+        if (showToast) IToast.showTop(S.current.backupSuccess);
+      }
+    } catch (e) {
+      if (e is BackupBaseException) {
+        log.status = AutoBackupStatus.encryptFailed;
+        if (showToast) IToast.showTop(e.intlMessage);
+      } else {
+        log.status = AutoBackupStatus.failed;
+        if (showToast) IToast.showTop(S.current.backupFailed);
+      }
+    } finally {
+      AutoBackupLogDao.insertLog(log);
+      if (showLoading && dialog != null) dialog.dismiss();
     }
   }
 

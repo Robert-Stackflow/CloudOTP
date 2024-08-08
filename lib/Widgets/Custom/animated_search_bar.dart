@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../Item/item_builder.dart';
+
 /// A customizable animated search bar widget for Flutter applications.
 class AnimatedSearchBar extends StatefulWidget {
   /// Creates an `AnimatedSearchBar` widget.
@@ -130,6 +132,11 @@ class AnimatedSearchBarState extends State<AnimatedSearchBar> {
                             child: TextFormField(
                               focusNode: _fnSearch,
                               controller: _conSearch,
+                              contextMenuBuilder:
+                                  (contextMenuContext, details) =>
+                                      ItemBuilder.editTextContextMenuBuilder(
+                                          contextMenuContext, details,
+                                          context: context),
                               keyboardType: TextInputType.text,
                               textInputAction: widget.textInputAction,
                               textAlign: widget.labelTextAlign,

@@ -11,9 +11,16 @@ abstract class CloudService {
 
   Future<void> deleteOldBackup(int maxCount);
 
-  Future<void> uploadFile(String fileName, Uint8List fileData);
+  Future<void> uploadFile(
+    String fileName,
+    Uint8List fileData, {
+    Function(int, int)? onProgress,
+  });
 
-  Future<Uint8List> downloadFile(String path);
+  Future<Uint8List> downloadFile(
+    String path, {
+    Function(int, int)? onProgress,
+  });
 
   Future<void> deleteFile(String path);
 

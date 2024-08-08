@@ -5,13 +5,12 @@ import '../../Utils/lottie_util.dart';
 import '../../generated/l10n.dart';
 
 ProgressDialog showProgressDialog(
-  BuildContext context, {
+   {
   String? msg,
   bool barrierDismissible = false,
   bool showProgress = true,
 }) {
-  ProgressDialog dialog =
-      ProgressDialog(context: globalNavigatorKey.currentState!.context);
+  ProgressDialog dialog = ProgressDialog(context: rootContext);
   dialog.show(
     msg: msg ?? S.current.loading,
     barrierDismissible: barrierDismissible,
@@ -116,7 +115,7 @@ class ProgressDialog {
 
   void dismiss() {
     if (_dialogIsOpen) {
-      Navigator.pop(globalNavigatorKey.currentState!.context);
+      Navigator.pop(rootContext);
       _dialogIsOpen = false;
     }
   }

@@ -96,6 +96,8 @@ class _SettingScreenState extends State<SettingScreen>
   int _maxBackupsCount = HiveUtil.getMaxBackupsCount();
   bool hideAppbarWhenScrolling =
       HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
+  bool hideBottombarWhenScrolling =
+      HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
 
   @override
   void initState() {
@@ -185,6 +187,7 @@ class _SettingScreenState extends State<SettingScreen>
         context: context,
         title: S.current.fontFamily,
         tip: _currentFont.intlFontName,
+        bottomRadius: true,
         onTap: () {
           BottomSheetBuilder.showListBottomSheet(
             context,
@@ -203,19 +206,6 @@ class _SettingScreenState extends State<SettingScreen>
               onCloseTap: () => Navigator.pop(context),
             ),
           );
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: hideAppbarWhenScrolling,
-        bottomRadius: true,
-        title: S.current.hideAppbarWhenScrolling,
-        description: S.current.hideAppbarWhenScrollingTip,
-        onTap: () {
-          setState(() {
-            hideAppbarWhenScrolling = !hideAppbarWhenScrolling;
-            appProvider.hideAppbarWhenScrolling = hideAppbarWhenScrolling;
-          });
         },
       ),
     ];
@@ -454,11 +444,12 @@ class _SettingScreenState extends State<SettingScreen>
           title: S.current.immediatelyBackup,
           description: S.current.immediatelyBackupTip,
           onTap: () async {
-            await ExportTokenUtil.backupEncryptToFile(
-                showLoading: true, showToast: true);
-            await ExportTokenUtil.backupEncryptToWebDav(
-                config: _cloudServiceConfig!,
-                webDavCloudService: WebDavCloudService(_cloudServiceConfig!));
+            ExportTokenUtil.backupEncryptToLocalAndCloud(
+              config: _cloudServiceConfig,
+              cloudService: _cloudBackupConfigured
+                  ? WebDavCloudService(_cloudServiceConfig!)
+                  : null,
+            );
           },
         ),
       ),
@@ -852,6 +843,28 @@ class _SettingScreenState extends State<SettingScreen>
             });
           },
         ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: hideAppbarWhenScrolling,
+        title: S.current.hideAppbarWhenScrolling,
+        onTap: () {
+          setState(() {
+            hideAppbarWhenScrolling = !hideAppbarWhenScrolling;
+            appProvider.hideAppbarWhenScrolling = hideAppbarWhenScrolling;
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: hideBottombarWhenScrolling,
+        title: S.current.hideBottombarWhenScrolling,
+        onTap: () {
+          setState(() {
+            hideBottombarWhenScrolling = !hideBottombarWhenScrolling;
+            appProvider.hideBottombarWhenScrolling = hideBottombarWhenScrolling;
+          });
+        },
+      ),
       ItemBuilder.buildRadioItem(
         value: inAppBrowser,
         context: context,

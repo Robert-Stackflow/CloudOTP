@@ -1,5 +1,6 @@
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
@@ -10,7 +11,6 @@ import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
-import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,6 @@ import '../Database/token_dao.dart';
 import '../Models/category.dart';
 import '../Utils/app_provider.dart';
 import '../Utils/itoast.dart';
-import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/input_bottom_sheet.dart';
@@ -30,8 +29,9 @@ import '../Widgets/Custom/animated_search_bar.dart';
 import '../Widgets/Custom/custom_tab_indicator.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
+import '../Widgets/Hidable/scroll_to_hide.dart';
 import '../Widgets/Item/input_item.dart';
+import '../Widgets/Scaffold/my_scaffold.dart';
 import '../Widgets/WaterfallFlow/reorderable_grid_view.dart';
 import '../generated/l10n.dart';
 import 'Token/category_screen.dart';
@@ -134,13 +134,17 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Tab> tabList = [];
   int _currentTabIndex = 0;
   String _searchKey = "";
+  ScrollController _scrollController = ScrollController();
+  final ScrollController _nestScrollController = ScrollController();
+  final EasyRefreshController _refreshController =
+      EasyRefreshController(controlFinishRefresh: true);
 
   @override
   void initState() {
     super.initState();
     initAppName();
-    initTab();
-    refresh();
+    initTab(true);
+    refresh(true);
     appProvider.addListener(() {
       initTab();
     });
@@ -154,9 +158,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  refresh() async {
+  refresh([bool isInit = false]) async {
     if (!mounted) return;
-    await getCategories();
+    await getCategories(isInit);
     await getTokens();
   }
 
@@ -183,7 +187,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  getCategories() async {
+  getCategories([bool isInit = false]) async {
     int oldId = currentCategoryId;
     await CategoryDao.listCategories().then((value) {
       setState(() {
@@ -194,9 +198,281 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         } else {
           _currentTabIndex = ids.indexOf(oldId) + 1;
         }
-        initTab();
+        initTab(isInit);
       });
     });
+  }
+
+  initTab([bool isInit = false]) {
+    tabList.clear();
+    tabList.add(_buildTab(null));
+    int categoryId = HiveUtil.getSelectedCategoryId();
+    for (var category in categories) {
+      tabList.add(_buildTab(category));
+      if (category.id == categoryId && isInit) {
+        _currentTabIndex = categories.indexOf(category) + 1;
+      }
+    }
+    setState(() {});
+    _tabController = TabController(length: tabList.length, vsync: this);
+    _tabController.index = _currentTabIndex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MyScaffold(
+      key: homeScaffoldKey,
+      resizeToAvoidBottomInset: false,
+      appBar: ResponsiveUtil.isLandscape()
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(54),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: _buildTabBar(),
+              ),
+            )
+          : null,
+      body: ResponsiveUtil.isLandscape()
+          ? _buildMainContent()
+          : _buildMobileBody(),
+      drawer: _buildDrawer(),
+      bottomNavigationBar:
+          ResponsiveUtil.isLandscape() ? null : _buildMobileBottombar(),
+    );
+  }
+
+  _buildMobileBody() {
+    return NestedScrollView(
+      controller: _nestScrollController,
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          _buildMobileAppbar(),
+        ];
+      },
+      body: Builder(
+        builder: (context) {
+          _scrollController = PrimaryScrollController.of(context);
+          return _buildMainContent();
+        },
+      ),
+    );
+  }
+
+  _buildMobileAppbar() {
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.hideAppbarWhenScrolling,
+      builder: (context, hideAppbarWhenScrolling, child) =>
+          ItemBuilder.buildSliverAppBar(
+        context: context,
+        floating: hideAppbarWhenScrolling,
+        pinned: !hideAppbarWhenScrolling,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: AnimatedSearchBar(
+          label: appName,
+          labelStyle: Theme.of(context)
+              .textTheme
+              .titleMedium!
+              .apply(fontWeightDelta: 2),
+          onChanged: (value) {
+            performSearch(value);
+          },
+        ),
+        expandedHeight: kToolbarHeight,
+        collapsedHeight: kToolbarHeight,
+        leading: Icons.menu_rounded,
+        onLeadingTap: () {
+          homeScaffoldState?.openDrawer();
+        },
+        actions: [
+          ItemBuilder.buildIconButton(
+            context: context,
+            icon: Icon(Icons.qr_code_scanner_rounded,
+                color: Theme.of(context).iconTheme.color),
+            onTap: () {
+              RouteUtil.pushCupertinoRoute(context, const ScanTokenScreen());
+            },
+          ),
+          const SizedBox(width: 5),
+          ItemBuilder.buildPopupMenuButton(
+            context: context,
+            icon: Icon(Icons.dashboard_outlined,
+                color: Theme.of(context).iconTheme.color),
+            itemBuilder: (context) {
+              return ItemBuilder.buildPopupMenuItems(
+                context,
+                MainScreenState.buildLayoutContextMenuButtons(),
+              );
+            },
+            onSelected: (_) {
+              globalNavigatorState?.pop();
+            },
+          ),
+          const SizedBox(width: 5),
+          ItemBuilder.buildPopupMenuButton(
+            context: context,
+            icon: Icon(Icons.sort_rounded,
+                color: Theme.of(context).iconTheme.color),
+            itemBuilder: (context) {
+              return ItemBuilder.buildPopupMenuItems(
+                context,
+                MainScreenState.buildSortContextMenuButtons(),
+              );
+            },
+            onSelected: (_) {
+              globalNavigatorState?.pop();
+            },
+          ),
+          const SizedBox(width: 5),
+        ],
+      ),
+    );
+  }
+
+  _buildMobileBottombar() {
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.hideBottombarWhenScrolling,
+      builder: (context, hideBottombarWhenScrolling, child) => ScrollToHide(
+        enabled: hideBottombarWhenScrolling,
+        scrollController: _scrollController,
+        height: kToolbarHeight,
+        duration: const Duration(milliseconds: 300),
+        hideDirection: Axis.vertical,
+        child: Container(
+          alignment: Alignment.centerLeft,
+          decoration: BoxDecoration(
+            color: MyTheme.getBackground(context),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor.withAlpha(127),
+                blurRadius: Utils.isDark(context) ? 50 : 10,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: _buildTabBar(const EdgeInsets.symmetric(horizontal: 10)),
+        ),
+      ),
+    );
+  }
+
+  _buildMainContent() {
+    Widget gridView = Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.dragToReorder,
+      builder: (context, dragToReorder, child) => ReorderableGridView.builder(
+        controller: _scrollController,
+        padding:
+            const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
+        gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          preferredHeight: layoutType.height,
+        ),
+        dragToReorder: dragToReorder,
+        cacheExtent: 9999,
+        itemDragEnable: (index) {
+          if (tokens[index].pinnedInt == 1) {
+            return false;
+          }
+          return true;
+        },
+        onReorder: (int oldIndex, int newIndex) async {
+          setState(() {
+            final item = tokens.removeAt(oldIndex);
+            tokens.insert(newIndex, item);
+          });
+          for (int i = 0; i < tokens.length; i++) {
+            tokens[i].seq = i;
+          }
+          tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
+          await TokenDao.updateTokens(tokens);
+          changeOrderType(type: OrderType.Default, doPerformSort: false);
+        },
+        proxyDecorator: (Widget child, int index, Animation<double> animation) {
+          return Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor,
+                  offset: const Offset(0, 4),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ).scale(2),
+              ],
+            ),
+            child: child,
+          );
+        },
+        itemCount: tokens.length,
+        itemBuilder: (context, index) {
+          return TokenLayout(
+            key: ValueKey("${tokens[index].id} ${tokens[index].issuer}"),
+            token: tokens[index],
+            layoutType: layoutType,
+          );
+        },
+      ),
+    );
+    // return gridView;
+    return EasyRefresh(
+      child: tokens.isEmpty
+          ? ListView(
+              controller: _scrollController,
+              children: [
+                ItemBuilder.buildEmptyPlaceholder(
+                    context: context, text: S.current.noToken),
+              ],
+            )
+          : gridView,
+    );
+  }
+
+  _buildTabBar([EdgeInsetsGeometry? padding]) {
+    return TabBar(
+      controller: _tabController,
+      overlayColor: WidgetStateProperty.all(Colors.transparent),
+      tabs: tabList,
+      labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+      isScrollable: true,
+      dividerHeight: 0,
+      padding: padding,
+      tabAlignment: TabAlignment.start,
+      physics: const BouncingScrollPhysics(),
+      labelStyle:
+          Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+      unselectedLabelStyle:
+          Theme.of(context).textTheme.titleMedium?.apply(color: Colors.grey),
+      indicator: CustomTabIndicator(
+        borderColor: Theme.of(context).primaryColor,
+      ),
+      onTap: (index) {
+        setState(() {
+          _refreshController.finishRefresh();
+          if (_nestScrollController.hasClients) {
+            _nestScrollController.animateTo(0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut);
+          }
+          _currentTabIndex = index;
+          getTokens();
+          HiveUtil.setSelectedCategoryId(currentCategoryId);
+        });
+      },
+    );
+  }
+
+  _buildTab(TokenCategory? category) {
+    return Tab(
+      child: ContextMenuRegion(
+        behavior: ResponsiveUtil.isDesktop()
+            ? const [ContextMenuShowBehavior.secondaryTap]
+            : const [],
+        contextMenu: _buildTabContextMenuButtons(category),
+        child: Text(category?.title ?? S.current.allTokens),
+      ),
+    );
   }
 
   _buildTabContextMenuButtons(TokenCategory? category) {
@@ -300,139 +576,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  _buildTab(TokenCategory? category) {
-    return Tab(
-      child: ContextMenuRegion(
-        behavior: ResponsiveUtil.isDesktop()
-            ? const [ContextMenuShowBehavior.secondaryTap]
-            : const [],
-        contextMenu: _buildTabContextMenuButtons(category),
-        child: Text(category?.title ?? S.current.allTokens),
-      ),
-    );
-  }
-
-  initTab() {
-    tabList.clear();
-    tabList.add(_buildTab(null));
-    for (var category in categories) {
-      tabList.add(_buildTab(category));
-    }
-    setState(() {});
-    _tabController = TabController(length: tabList.length, vsync: this);
-    _tabController.index = _currentTabIndex;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MyScaffold(
-      key: homeScaffoldKey,
-      resizeToAvoidBottomInset: false,
-      appBar: ResponsiveUtil.isLandscape()
-          ? PreferredSize(
-              preferredSize: const Size.fromHeight(54),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: _buildTabBar(),
-              ),
-            )
-          : null,
-      drawerEdgeDragWidth: 30,
-      body: ResponsiveUtil.isLandscape() ? _buildMainContent() : _buildBody(),
-      drawer: _buildDrawer(),
-    );
-  }
-
-  _buildBody() {
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          Selector<AppProvider, bool>(
-            selector: (context, provider) => provider.hideAppbarWhenScrolling,
-            builder: (context, hideAppbarWhenScrolling, child) =>
-                ItemBuilder.buildSliverAppBar(
-              context: context,
-              floating: hideAppbarWhenScrolling,
-              pinned: !hideAppbarWhenScrolling,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              // title: Text(
-              //   appName,
-              //   style: Theme.of(context)
-              //       .textTheme
-              //       .titleMedium
-              //       ?.apply(fontWeightDelta: 2),
-              // ),
-              title: AnimatedSearchBar(
-                label: appName,
-                labelStyle: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .apply(fontWeightDelta: 2),
-                onChanged: (value) {
-                  performSearch(value);
-                },
-              ),
-              expandedHeight: kToolbarHeight,
-              collapsedHeight: kToolbarHeight,
-              leading: Icons.menu_rounded,
-              onLeadingTap: () {
-                homeScaffoldState?.openDrawer();
-              },
-              actions: [
-                // ItemBuilder.buildIconButton(
-                //   context: context,
-                //   icon: Icon(Icons.search_rounded,
-                //       color: Theme.of(context).iconTheme.color),
-                //   onTap: () {},
-                // ),
-                ItemBuilder.buildIconButton(
-                  context: context,
-                  icon: Icon(Icons.qr_code_scanner_rounded,
-                      color: Theme.of(context).iconTheme.color),
-                  onTap: () {
-                    RouteUtil.pushCupertinoRoute(
-                        context, const ScanTokenScreen());
-                  },
-                ),
-                const SizedBox(width: 5),
-                ItemBuilder.buildPopupMenuButton(
-                  context: context,
-                  icon: Icon(Icons.dashboard_outlined,
-                      color: Theme.of(context).iconTheme.color),
-                  itemBuilder: (context) {
-                    return ItemBuilder.buildPopupMenuItems(
-                      context,
-                      MainScreenState.buildLayoutContextMenuButtons(),
-                    );
-                  },
-                  onSelected: (_) {
-                    globalNavigatorState?.pop();
-                  },
-                ),
-                const SizedBox(width: 5),
-                ItemBuilder.buildPopupMenuButton(
-                  context: context,
-                  icon: Icon(Icons.sort_rounded,
-                      color: Theme.of(context).iconTheme.color),
-                  itemBuilder: (context) {
-                    return ItemBuilder.buildPopupMenuItems(
-                      context,
-                      MainScreenState.buildSortContextMenuButtons(),
-                    );
-                  },
-                  onSelected: (_) {
-                    globalNavigatorState?.pop();
-                  },
-                ),
-                const SizedBox(width: 5),
-              ],
-            ),
-          ),
-        ];
-      },
-      body: _buildMainContent(),
-    );
+  performSearch(String searchKey) {
+    _searchKey = searchKey;
+    getTokens();
   }
 
   changeLayoutType([LayoutType? type]) {
@@ -498,109 +644,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         break;
     }
     tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-  }
-
-  _buildMainContent() {
-    Widget gridView = Selector<AppProvider, bool>(
-      selector: (context, provider) => provider.dragToReorder,
-      builder: (context, dragToReorder, child) => ReorderableGridView.builder(
-        padding:
-            const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 30),
-        gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          preferredHeight: layoutType.height,
-        ),
-        dragToReorder: dragToReorder,
-        cacheExtent: 9999,
-        itemDragEnable: (index) {
-          if (tokens[index].pinnedInt == 1) {
-            return false;
-          }
-          return true;
-        },
-        onReorder: (int oldIndex, int newIndex) async {
-          setState(() {
-            final item = tokens.removeAt(oldIndex);
-            tokens.insert(newIndex, item);
-          });
-          for (int i = 0; i < tokens.length; i++) {
-            tokens[i].seq = i;
-          }
-          tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-          await TokenDao.updateTokens(tokens);
-          changeOrderType(type: OrderType.Default, doPerformSort: false);
-        },
-        proxyDecorator: (Widget child, int index, Animation<double> animation) {
-          return Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).shadowColor,
-                  offset: const Offset(0, 4),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ).scale(2),
-              ],
-            ),
-            child: child,
-          );
-        },
-        itemCount: tokens.length,
-        itemBuilder: (context, index) {
-          return TokenLayout(
-            key: ValueKey("${tokens[index].id} ${tokens[index].issuer}"),
-            token: tokens[index],
-            layoutType: layoutType,
-          );
-        },
-      ),
-    );
-    // return gridView;
-    return EasyRefresh(
-      onRefresh: refresh,
-      refreshOnStart: true,
-      child: tokens.isEmpty
-          ? ListView(
-              children: [
-                ItemBuilder.buildEmptyPlaceholder(
-                    context: context, text: S.current.noToken),
-              ],
-            )
-          : gridView,
-    );
-  }
-
-  _buildTabBar() {
-    return TabBar(
-      controller: _tabController,
-      overlayColor: WidgetStateProperty.all(Colors.transparent),
-      tabs: tabList,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-      isScrollable: true,
-      dividerHeight: 0,
-      tabAlignment: TabAlignment.start,
-      physics: const BouncingScrollPhysics(),
-      labelStyle:
-          Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
-      unselectedLabelStyle:
-          Theme.of(context).textTheme.titleMedium?.apply(color: Colors.grey),
-      indicator: CustomTabIndicator(
-        borderColor: Theme.of(context).primaryColor,
-      ),
-      onTap: (index) {
-        setState(() {
-          _currentTabIndex = index;
-          getTokens();
-        });
-      },
-    );
-  }
-
-  performSearch(String searchKey) {
-    _searchKey = searchKey;
-    getTokens();
   }
 
   _buildDrawer() {

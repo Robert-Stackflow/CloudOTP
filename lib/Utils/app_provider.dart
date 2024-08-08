@@ -107,6 +107,17 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _hideBottombarWhenScrolling =
+      HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
+
+  bool get hideBottombarWhenScrolling => _hideBottombarWhenScrolling;
+
+  set hideBottombarWhenScrolling(bool value) {
+    _hideBottombarWhenScrolling = value;
+    HiveUtil.put(HiveUtil.hideBottombarWhenScrollingKey, value);
+    notifyListeners();
+  }
+
   Map<Type, Action<Intent>> _dynamicShortcuts =
       KeyboardHandlerState.mainScreenShortcuts;
 

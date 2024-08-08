@@ -28,6 +28,7 @@ class HiveUtil {
   //General
   static const String layoutTypeKey = "layoutType";
   static const String orderTypeKey = "orderType";
+  static const String selectedCategoryIdKey = "selectedCategoryId";
   static const String autoCompleteParameterKey = "autoCompleteParameter";
   static const String localeKey = "locale";
   static const String recordWindowStateKey = "recordWindowState";
@@ -47,6 +48,8 @@ class HiveUtil {
 
   //Appearance
   static const String hideAppbarWhenScrollingKey = "hideAppbarWhenScrolling";
+  static const String hideBottombarWhenScrollingKey =
+      "hideBottombarWhenScrolling";
   static const String enableLandscapeInTabletKey = "enableLandscapeInTablet";
   static const String fontFamilyKey = "fontFamily";
   static const String lightThemeIndexKey = "lightThemeIndex";
@@ -97,7 +100,8 @@ class HiveUtil {
   }
 
   static int getMaxBackupsCount() {
-    return getInt(HiveUtil.maxBackupsCountKey, defaultValue: defaultMaxBackupCount);
+    return getInt(HiveUtil.maxBackupsCountKey,
+        defaultValue: defaultMaxBackupCount);
   }
 
   static Future<void> setMaxBackupsCount(int count) async {
@@ -133,6 +137,14 @@ class HiveUtil {
   static LayoutType getLayoutType() {
     return LayoutType.values[Utils.patchEnum(
         HiveUtil.getInt(HiveUtil.layoutTypeKey), LayoutType.values.length)];
+  }
+
+  static setSelectedCategoryId(int id) {
+    HiveUtil.put(HiveUtil.selectedCategoryIdKey, id);
+  }
+
+  static int getSelectedCategoryId() {
+    return HiveUtil.getInt(HiveUtil.selectedCategoryIdKey);
   }
 
   static EncryptDatabaseStatus getEncryptDatabaseStatus() {

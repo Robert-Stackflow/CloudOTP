@@ -675,6 +675,7 @@ class MainScreenState extends State<MainScreen>
                   ),
                 ),
                 const Spacer(),
+                const SizedBox(width: 3),
                 if (ResponsiveUtil.isDesktop())
                   Row(
                     children: [

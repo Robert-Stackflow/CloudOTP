@@ -317,7 +317,9 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                       fontSizeDelta: 2,
                       onTap: () async {
                         CustomLoadingDialog.showLoading(
-                            title: S.current.webDavPulling, dismissible: true);
+                          title: S.current.webDavPulling,
+                          dismissible: true,
+                        );
                         try {
                           List<WebDavFile> files =
                               await _webDavCloudService!.listFiles();
@@ -334,7 +336,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                                 cloudService: _webDavCloudService!,
                                 onSelected: (selectedFile) async {
                                   var dialog = showProgressDialog(
-                                    context,
                                     msg: S.current.webDavPulling,
                                     showProgress: true,
                                   );
@@ -431,9 +432,9 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                       text: S.current.webDavPushBackup,
                       fontSizeDelta: 2,
                       onTap: () async {
-                        ExportTokenUtil.backupEncryptToWebDav(
+                        ExportTokenUtil.backupEncryptToCloud(
                           config: _cloudServiceConfig!,
-                          webDavCloudService: _webDavCloudService!,
+                          cloudService: _webDavCloudService!,
                         );
                       },
                     ),
