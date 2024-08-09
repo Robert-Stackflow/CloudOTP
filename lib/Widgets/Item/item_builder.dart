@@ -158,7 +158,7 @@ class ItemBuilder {
     bool center = false,
     bool floating = false,
     bool pinned = false,
-    IconData? leading,
+    Widget? leading,
     Color? leadingColor,
     Function()? onLeadingTap,
     Color? backgroundColor,
@@ -181,10 +181,7 @@ class ItemBuilder {
               margin: const EdgeInsets.only(left: 5),
               child: ItemBuilder.buildIconButton(
                 context: context,
-                icon: Icon(
-                  leading,
-                  color: leadingColor ?? Theme.of(context).iconTheme.color,
-                ),
+                icon: leading,
                 onTap: onLeadingTap,
               ),
             )

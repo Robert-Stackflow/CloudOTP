@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
@@ -21,57 +22,107 @@ class BackupLogScreen extends StatefulWidget {
 class BackupLogScreenState extends State<BackupLogScreen> {
   @override
   Widget build(BuildContext context) {
+    return ResponsiveUtil.isLandscape()
+        ? _buildDesktopBody()
+        : Scaffold(
+            appBar: ItemBuilder.buildAppBar(
+              context: context,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              title: Text(
+                S.current.backupLogs,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium!
+                    .apply(fontWeightDelta: 2),
+              ),
+              center: true,
+              leading: Icons.arrow_back_rounded,
+              onLeadingTap: () {
+                Navigator.pop(context);
+              },
+              actions: [
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: Icon(
+                    Icons.cleaning_services_outlined,
+                    color: Theme.of(context).iconTheme.color,
+                    size: 20,
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  onTap: clear,
+                ),
+                const SizedBox(width: 5),
+              ],
+            ),
+            body: _buildBody(),
+          );
+  }
+
+  _buildDesktopBody() {
     return Container(
       decoration: BoxDecoration(
         color: MyTheme.getBackground(context),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor,
-            spreadRadius: 1,
+            color: Theme.of(rootContext).shadowColor,
+            offset: const Offset(0, 4),
             blurRadius: 10,
-            offset: const Offset(0, -4),
-          ).scale(2),
+            spreadRadius: 1,
+          ).scale(2)
         ],
       ),
-      width: min(300, MediaQuery.sizeOf(context).width - 80),
-      height: min(appProvider.autoBackupLogs.isEmpty ? 200 : 400,
-          MediaQuery.sizeOf(context).height - 80),
+      width: !ResponsiveUtil.isLandscape()
+          ? null
+          : min(300, MediaQuery.sizeOf(context).width - 80),
+      height: !ResponsiveUtil.isLandscape()
+          ? null
+          : min(appProvider.autoBackupLogs.isEmpty ? 200 : 400,
+              MediaQuery.sizeOf(context).height - 80),
       child: _buildBody(),
     );
   }
 
+  clear() {
+    appProvider.clearAutoBackupLogs();
+    appProvider.autoBackupLoadingStatus = LoadingStatus.none;
+    if (ResponsiveUtil.isLandscape()) {
+      context.contextMenuOverlay.hide();
+    }
+  }
+
   _buildBody() {
     return ListView(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(
+          horizontal: 10, vertical: ResponsiveUtil.isLandscape() ? 10 : 0),
+      physics: ResponsiveUtil.isLandscape()
+          ? null
+          : const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
       children: [
-        Row(
-          children: [
-            const SizedBox(width: 5),
-            Text(
-              S.current.backupLogs,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.apply(fontWeightDelta: 2),
-            ),
-            const Spacer(),
-            ItemBuilder.buildIconButton(
-              context: context,
-              icon: const Icon(
-                Icons.cleaning_services_outlined,
-                size: 16,
+        if (ResponsiveUtil.isLandscape())
+          Row(
+            children: [
+              const SizedBox(width: 5),
+              Text(
+                S.current.backupLogs,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.apply(fontWeightDelta: 2),
               ),
-              onTap: () {
-                appProvider.clearAutoBackupLogs();
-                appProvider.autoBackupLoadingStatus = LoadingStatus.none;
-                context.contextMenuOverlay.hide();
-              },
-            ),
-            const SizedBox(width: 5),
-          ],
-        ),
-        const SizedBox(height: 10),
+              const Spacer(),
+              ItemBuilder.buildIconButton(
+                context: context,
+                icon: const Icon(
+                  Icons.cleaning_services_outlined,
+                  size: 16,
+                ),
+                onTap: clear,
+              ),
+            ],
+          ),
+        if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
         ...List.generate(
           appProvider.autoBackupLogs.length,
           (index) {
@@ -81,9 +132,12 @@ class BackupLogScreenState extends State<BackupLogScreen> {
           },
         ),
         if (appProvider.autoBackupLogs.isEmpty)
-          ItemBuilder.buildEmptyPlaceholder(
-            context: context,
-            text: S.current.noBackupLogs,
+          Container(
+            margin: const EdgeInsets.only(top: 20),
+            child: ItemBuilder.buildEmptyPlaceholder(
+              context: context,
+              text: S.current.noBackupLogs,
+            ),
           ),
       ],
     );
@@ -107,7 +161,9 @@ class BackupLogItemState extends State<BackupLogItem> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: MyTheme.getCardBackground(context),
+        color: ResponsiveUtil.isLandscape()
+            ? MyTheme.getCardBackground(context)
+            : Theme.of(context).canvasColor,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),

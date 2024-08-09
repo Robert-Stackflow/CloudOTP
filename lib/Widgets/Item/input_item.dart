@@ -97,6 +97,8 @@ class InputItem extends StatefulWidget {
     this.maxLines,
     this.minLines,
     this.onSubmit,
+    this.showBorder = true,
+    this.showErrorLine = true,
   });
 
   final TextInputAction? textInputAction;
@@ -126,6 +128,8 @@ class InputItem extends StatefulWidget {
   final List<TextInputFormatter> inputFormatters;
   final double? leadingMinWidth;
   final Function(String)? onSubmit;
+  final bool showBorder;
+  final bool showErrorLine;
 
   @override
   State<StatefulWidget> createState() => InputItemState();
@@ -217,102 +221,110 @@ class InputItemState extends State<InputItem> {
           bottom: bottomRadius ? const Radius.circular(10) : Radius.zero,
         ),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (leading != null)
+          if (leading != null)
+            Container(
+              margin: const EdgeInsets.only(top: 5),
+              child: leading,
+            ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Container(
-                  margin: const EdgeInsets.only(top: 5),
-                  child: leading,
-                ),
-              Expanded(
-                child: Column(children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: state == InputState.error
-                              ? Colors.red
-                              : Theme.of(context).dividerColor,
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Expanded(
-                          child: Material(
-                            color: Colors.transparent,
-                            child: TextField(
-                              focusNode: focusNode,
-                              controller: controller,
-                              textInputAction: textInputAction,
-                              keyboardType: keyboardType,
-                              readOnly: readOnly,
-                              obscureText: obscureText,
-                              maxLength: maxLength,
-                              onSubmitted: widget.onSubmit,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    letterSpacing: 1.1,
-                                    color: readOnly
-                                        ? Theme.of(context)
-                                            .textTheme
-                                            .labelSmall
-                                            ?.color
-                                        : null,
-                                  ),
-                              maxLines: widget.tailingType ==
-                                          InputItemTailingType.password ||
-                                      (widget.obscureText != null &&
-                                          widget.obscureText!)
-                                  ? 1
-                                  : widget.maxLines,
-                              minLines: minLines,
-                              inputFormatters: [
-                                if (maxLength != null && maxLength! > 0)
-                                  LengthLimitingTextInputFormatter(maxLength),
-                                ...inputFormatters
-                              ],
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                isCollapsed: true,
-                                hintText: hint,
-                                contentPadding: EdgeInsets.only(
-                                    top: 8, left: leading != null ? 10 : 5),
-                                counterText: '',
-                                counter: Container(),
-                                hintStyle: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.apply(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.color),
-                                prefixIcon: null,
-                              ),
-                              contextMenuBuilder:
-                                  (contextMenuContext, details) =>
-                                      ItemBuilder.editTextContextMenuBuilder(
-                                          contextMenuContext, details,
-                                          context: context),
-                            ),
-                          ),
-                        ),
-                        if (tailing != null) tailing,
-                      ],
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: widget.showBorder
+                          ? BorderSide(
+                              color: state == InputState.error
+                                  ? Colors.red
+                                  : focusNode?.hasFocus ?? false
+                                      ? Theme.of(context).primaryColor
+                                      : Theme.of(context).dividerColor,
+                              width: 0.5,
+                            )
+                          : BorderSide.none,
                     ),
                   ),
-                  const SizedBox(height: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Expanded(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: TextField(
+                            focusNode: focusNode,
+                            controller: controller,
+                            textInputAction: textInputAction,
+                            keyboardType: keyboardType,
+                            readOnly: readOnly,
+                            obscureText: obscureText,
+                            maxLength: maxLength,
+                            onSubmitted: widget.onSubmit,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  letterSpacing: 1.1,
+                                  color: readOnly
+                                      ? Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.color
+                                      : null,
+                                ),
+                            maxLines: widget.tailingType ==
+                                        InputItemTailingType.password ||
+                                    (widget.obscureText != null &&
+                                        widget.obscureText!)
+                                ? 1
+                                : widget.maxLines,
+                            minLines: minLines,
+                            inputFormatters: [
+                              if (maxLength != null && maxLength! > 0)
+                                LengthLimitingTextInputFormatter(maxLength),
+                              ...inputFormatters
+                            ],
+                            cursorColor: Theme.of(context).primaryColor,
+                            cursorHeight: 24,
+                            cursorRadius: const Radius.circular(5),
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              isCollapsed: true,
+                              hintText: hint,
+                              contentPadding: EdgeInsets.only(
+                                  top: 8, left: leading != null ? 10 : 5),
+                              counterText: '',
+                              counter: Container(),
+                              hintStyle: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.apply(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color),
+                              prefixIcon: null,
+                            ),
+                            contextMenuBuilder: (contextMenuContext, details) =>
+                                ItemBuilder.editTextContextMenuBuilder(
+                                    contextMenuContext, details,
+                                    context: context),
+                          ),
+                        ),
+                      ),
+                      if (tailing != null) tailing,
+                    ],
+                  ),
+                ),
+                if (widget.showErrorLine) const SizedBox(height: 5),
+                if (widget.showErrorLine)
                   Row(
                     children: [
                       const SizedBox(width: 5),
@@ -335,9 +347,8 @@ class InputItemState extends State<InputItem> {
                       const SizedBox(width: 5),
                     ],
                   ),
-                ]),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

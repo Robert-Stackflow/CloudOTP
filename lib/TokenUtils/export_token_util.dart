@@ -6,6 +6,7 @@ import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
+import 'package:cloudotp/Models/config.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_v1.dart';
@@ -97,8 +98,16 @@ class ExportTokenUtil {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
       List<OtpToken> tokens = await TokenDao.listTokens();
       List<TokenCategory> categories = await CategoryDao.listCategories();
+      Config config = await ConfigDao.getConfig();
+      List<CloudServiceConfig> cloudServiceConfigs =
+          await CloudServiceConfigDao.getConfigs();
       return await compute((_) async {
-        Backup backup = Backup(tokens: tokens, categories: categories);
+        Backup backup = Backup(
+          tokens: tokens,
+          categories: categories,
+          config: config,
+          cloudServiceConfigs: cloudServiceConfigs,
+        );
         BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
         Uint8List encryptedData =
             await backupEncryption.encrypt(backup, tmpPassword);

@@ -1,13 +1,14 @@
 import 'dart:io';
 
+import 'package:cloudotp/Database/cloud_service_config_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/iprint.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
+import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
@@ -31,12 +32,18 @@ class ImportAnalysis {
 
   int importCategorySuccess;
 
+  int importConfigSuccess;
+
+  int importCloudServiceConfigSuccess;
+
   ImportAnalysis({
     this.parseFailed = 0,
     this.parseSuccess = 0,
     this.importSuccess = 0,
     this.parseCategorySuccess = 0,
     this.importCategorySuccess = 0,
+    this.importConfigSuccess = 0,
+    this.importCloudServiceConfigSuccess = 0,
   });
 
   showToast([String noTokenToast = ""]) {

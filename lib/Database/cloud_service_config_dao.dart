@@ -17,7 +17,7 @@ class CloudServiceConfigDao {
       config.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigInserted);
+    // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigInserted);
     return id;
   }
 
@@ -72,7 +72,7 @@ class CloudServiceConfigDao {
       where: 'id = ?',
       whereArgs: [config.id],
     );
-    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigUpdated);
+    // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigUpdated);
     return id;
   }
 
@@ -83,7 +83,7 @@ class CloudServiceConfigDao {
       where: 'id = ?',
       whereArgs: [id],
     );
-    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigDeleted);
+    // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigDeleted);
     return result;
   }
 

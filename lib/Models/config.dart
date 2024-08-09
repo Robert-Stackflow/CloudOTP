@@ -26,4 +26,20 @@ class Config {
       remark: jsonDecode(map["remark"]),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "backup_password": backupPassword,
+      "remark": remark,
+    };
+  }
+
+  factory Config.fromJson(Map<String, dynamic> json) {
+    return Config(
+      id: json["id"],
+      backupPassword: json["backup_password"],
+      remark: json["remark"],
+    );
+  }
 }

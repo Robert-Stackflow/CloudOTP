@@ -119,4 +119,36 @@ class CloudServiceConfig {
       'remark': jsonEncode(remark),
     };
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type.index,
+      'endpoint': endpoint,
+      'account': account,
+      'secret': secret,
+      'token': token,
+      'create_timestamp': createTimestamp,
+      'edit_timestamp': editTimestamp,
+      'last_fetch_timestamp': lastFetchTimestamp,
+      'last_backup_timestamp': lastBackupTimestamp,
+      'remark': remark,
+    };
+  }
+
+  factory CloudServiceConfig.fromJson(Map<String, dynamic> json) {
+    return CloudServiceConfig(
+      id: json['id'],
+      type: CloudServiceType.values[json['type']],
+      endpoint: json['endpoint'],
+      account: json['account'],
+      secret: json['secret'],
+      token: json['token'],
+      createTimestamp: json['create_timestamp'],
+      editTimestamp: json['edit_timestamp'],
+      lastFetchTimestamp: json['last_fetch_timestamp'],
+      lastBackupTimestamp: json['last_backup_timestamp'],
+      remark: json['remark'],
+    );
+  }
 }

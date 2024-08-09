@@ -1,7 +1,7 @@
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
-import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
+import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
@@ -9,6 +9,7 @@ import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:cloudotp/Widgets/Custom/marquee_widget.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
@@ -25,7 +26,6 @@ import '../Utils/route_util.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../Widgets/BottomSheet/select_token_bottom_sheet.dart';
-import '../Widgets/Custom/animated_search_bar.dart';
 import '../Widgets/Custom/custom_tab_indicator.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
@@ -138,6 +138,13 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final ScrollController _nestScrollController = ScrollController();
   final EasyRefreshController _refreshController =
       EasyRefreshController(controlFinishRefresh: true);
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final PageController _marqueeController = PageController();
+  int _currentMarqueeIndex = 0;
+  late AnimationController _animationController;
+
+  bool get isSearchBarShown => _currentMarqueeIndex == 1;
 
   @override
   void initState() {
@@ -148,6 +155,14 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     appProvider.addListener(() {
       initTab();
     });
+    _searchController.addListener(() {
+      performSearch(_searchController.text);
+    });
+    _animationController = AnimationController(
+      vsync: this,
+      value: 1,
+      duration: const Duration(milliseconds: 300),
+    );
   }
 
   initAppName() {
@@ -235,10 +250,21 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           : null,
       body: ResponsiveUtil.isLandscape()
           ? _buildMainContent()
-          : _buildMobileBody(),
+          : PopScope(
+              canPop: _currentMarqueeIndex == 0,
+              onPopInvoked: (_) {
+                if (isSearchBarShown) {
+                  changeSearchBar(false);
+                }
+              },
+              child: _buildMobileBody(),
+            ),
       drawer: _buildDrawer(),
-      bottomNavigationBar:
-          ResponsiveUtil.isLandscape() ? null : _buildMobileBottombar(),
+      bottomNavigationBar: ResponsiveUtil.isLandscape() || categories.isEmpty
+          ? null
+          : _buildMobileBottombar(),
+      floatingActionButton:
+          ResponsiveUtil.isLandscape() ? null : _buildFloatingActionButton(),
     );
   }
 
@@ -259,6 +285,39 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  changeSearchBar(bool shown) {
+    setState(() {
+      _marqueeController.animateToPage(shown ? 1 : 0,
+          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      if (shown) {
+        _searchFocusNode.requestFocus();
+        _animationController.reverse();
+      } else {
+        _searchFocusNode.unfocus();
+        _animationController.forward();
+      }
+    });
+  }
+
+  _buildFloatingActionButton() {
+    return ScrollToHide(
+      scrollController: _scrollController,
+      height: kToolbarHeight,
+      duration: const Duration(milliseconds: 300),
+      hideDirection: Axis.vertical,
+      child: FloatingActionButton(
+        onPressed: () {
+          changeSearchBar(true);
+        },
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        backgroundColor: Theme.of(context).canvasColor,
+        child: Icon(Icons.search_rounded,
+            color: Theme.of(context).primaryColor, size: 28),
+      ),
+    );
+  }
+
   _buildMobileAppbar() {
     return Selector<AppProvider, bool>(
       selector: (context, provider) => provider.hideAppbarWhenScrolling,
@@ -268,63 +327,110 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         floating: hideAppbarWhenScrolling,
         pinned: !hideAppbarWhenScrolling,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        title: AnimatedSearchBar(
-          label: appName,
-          labelStyle: Theme.of(context)
-              .textTheme
-              .titleMedium!
-              .apply(fontWeightDelta: 2),
-          onChanged: (value) {
-            performSearch(value);
-          },
+        title: Container(
+          margin: const EdgeInsets.only(left: 5),
+          height: kToolbarHeight,
+          child: MarqueeWidget(
+            count: 2,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    appName,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium!
+                        .apply(fontWeightDelta: 2),
+                  ),
+                );
+              } else {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 16),
+                    child: InputItem(
+                      hint: S.current.searchToken,
+                      onSubmit: (text) {
+                        performSearch(text);
+                      },
+                      showErrorLine: false,
+                      focusNode: _searchFocusNode,
+                      controller: _searchController,
+                      backgroundColor: Colors.transparent,
+                    ),
+                  ),
+                );
+              }
+            },
+            autoPlay: false,
+            controller: _marqueeController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentMarqueeIndex = index;
+              });
+            },
+          ),
         ),
         expandedHeight: kToolbarHeight,
         collapsedHeight: kToolbarHeight,
-        leading: Icons.menu_rounded,
+        leading: AnimatedIcon(
+          icon: AnimatedIcons.arrow_menu,
+          color: Theme.of(context).iconTheme.color,
+          size: Theme.of(context).iconTheme.size,
+          progress: _animationController,
+        ),
         onLeadingTap: () {
-          homeScaffoldState?.openDrawer();
+          if (isSearchBarShown) {
+            changeSearchBar(false);
+          } else {
+            homeScaffoldState?.openDrawer();
+          }
         },
-        actions: [
-          ItemBuilder.buildIconButton(
-            context: context,
-            icon: Icon(Icons.qr_code_scanner_rounded,
-                color: Theme.of(context).iconTheme.color),
-            onTap: () {
-              RouteUtil.pushCupertinoRoute(context, const ScanTokenScreen());
-            },
-          ),
-          const SizedBox(width: 5),
-          ItemBuilder.buildPopupMenuButton(
-            context: context,
-            icon: Icon(Icons.dashboard_outlined,
-                color: Theme.of(context).iconTheme.color),
-            itemBuilder: (context) {
-              return ItemBuilder.buildPopupMenuItems(
-                context,
-                MainScreenState.buildLayoutContextMenuButtons(),
-              );
-            },
-            onSelected: (_) {
-              globalNavigatorState?.pop();
-            },
-          ),
-          const SizedBox(width: 5),
-          ItemBuilder.buildPopupMenuButton(
-            context: context,
-            icon: Icon(Icons.sort_rounded,
-                color: Theme.of(context).iconTheme.color),
-            itemBuilder: (context) {
-              return ItemBuilder.buildPopupMenuItems(
-                context,
-                MainScreenState.buildSortContextMenuButtons(),
-              );
-            },
-            onSelected: (_) {
-              globalNavigatorState?.pop();
-            },
-          ),
-          const SizedBox(width: 5),
-        ],
+        actions: isSearchBarShown
+            ? []
+            : [
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: Icon(Icons.qr_code_scanner_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  onTap: () {
+                    RouteUtil.pushCupertinoRoute(
+                        context, const ScanTokenScreen());
+                  },
+                ),
+                const SizedBox(width: 5),
+                ItemBuilder.buildPopupMenuButton(
+                  context: context,
+                  icon: Icon(Icons.dashboard_outlined,
+                      color: Theme.of(context).iconTheme.color),
+                  itemBuilder: (context) {
+                    return ItemBuilder.buildPopupMenuItems(
+                      context,
+                      MainScreenState.buildLayoutContextMenuButtons(),
+                    );
+                  },
+                  onSelected: (_) {
+                    globalNavigatorState?.pop();
+                  },
+                ),
+                const SizedBox(width: 5),
+                ItemBuilder.buildPopupMenuButton(
+                  context: context,
+                  icon: Icon(Icons.sort_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  itemBuilder: (context) {
+                    return ItemBuilder.buildPopupMenuItems(
+                      context,
+                      MainScreenState.buildSortContextMenuButtons(),
+                    );
+                  },
+                  onSelected: (_) {
+                    globalNavigatorState?.pop();
+                  },
+                ),
+                const SizedBox(width: 5),
+              ],
       ),
     );
   }
@@ -341,7 +447,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Container(
           alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
-            color: MyTheme.getBackground(context),
+            color: Theme.of(context).canvasColor,
             boxShadow: [
               BoxShadow(
                 color: Theme.of(context).shadowColor.withAlpha(127),
@@ -699,13 +805,23 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               ItemBuilder.buildEntryItem(
                 context: context,
-                bottomRadius: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(context, const CategoryScreen());
                 },
                 title: S.current.category,
                 showLeading: true,
                 leading: Icons.category_outlined,
+              ),
+              ItemBuilder.buildEntryItem(
+                context: context,
+                bottomRadius: true,
+                onTap: () {
+                  RouteUtil.pushCupertinoRoute(
+                      context, const BackupLogScreen());
+                },
+                title: S.current.backupLogs,
+                showLeading: true,
+                leading: Icons.history_rounded,
               ),
               const SizedBox(height: 10),
               ItemBuilder.buildEntryItem(
