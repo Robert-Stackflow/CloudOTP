@@ -65,7 +65,9 @@ enum Sql {
         end_timestamp INTEGER NOT NULL,
         status TEXT NOT NULL,
         type INTEGER NOT NULL,
-        is_auto_backup INTEGER NOT NULL
+        trigger_type INTEGER NOT NULL,
+        cloud_service_type INTEGER,
+        backup_path TEXT NOT NULL
       );
     ''');
 

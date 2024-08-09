@@ -70,7 +70,7 @@ class CustomInfoDialogWidget extends StatelessWidget {
             children: [
               if (!noImage)
                 Image.asset(
-                  imagePath ?? AssetUtil.infoIcon,
+                  imagePath ?? AssetUtil.emptyIcon,
                   package: imagePath != null ? null : 'panara_dialogs',
                   width: 84,
                   height: 84,

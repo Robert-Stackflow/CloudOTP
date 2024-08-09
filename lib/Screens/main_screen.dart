@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:app_links/app_links.dart';
 import 'package:cloudotp/Resources/colors.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
+import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
@@ -679,20 +680,27 @@ class MainScreenState extends State<MainScreen>
                 ItemBuilder.buildRoundIconButton(
                   context: context,
                   normalBackground: Colors.transparent,
+                  padding: EdgeInsets.zero,
                   icon: Selector<AppProvider, LoadingStatus>(
                     selector: (context, appProvider) =>
-                        appProvider.autoBackupStatus,
-                    builder: (context, autoBackupStatus, child) =>
-                        LoadingIcon(status: autoBackupStatus),
+                        appProvider.autoBackupLoadingStatus,
+                    builder: (context, autoBackupLoadingStatus, child) =>
+                        LoadingIcon(
+                      status: autoBackupLoadingStatus,
+                      normalIcon: const Icon(Icons.history_rounded),
+                    ),
                   ),
-                  onTap: () {},
+                  onTap: () {
+                    context.contextMenuOverlay.show(const BackupLogScreen());
+                  },
                 ),
                 const SizedBox(width: 3),
                 if (ResponsiveUtil.isDesktop())
                   Row(
                     children: [
                       StayOnTopWindowButton(
-                        rotateAngle: _isStayOnTop ? pi / 4 : 0,
+                        context: context,
+                        rotateAngle: _isStayOnTop ? 0 : -pi / 4,
                         colors: _isStayOnTop
                             ? MyColors.getStayOnTopButtonColors(context)
                             : MyColors.getNormalButtonColors(context),

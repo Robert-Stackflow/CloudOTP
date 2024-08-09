@@ -64,15 +64,20 @@ class AppProvider with ChangeNotifier {
   List<AutoBackupLog> get autoBackupLogs => _autoBackupLogs;
 
   pushAutoBackupLog(AutoBackupLog value) {
-    _autoBackupLogs.add(value);
+    _autoBackupLogs.insert(0, value);
+    notifyListeners();
+  }
+
+  clearAutoBackupLogs() {
+    _autoBackupLogs.removeWhere((element) => element.lastStatus.isCompleted);
     notifyListeners();
   }
 
   LoadingStatus _autoBackupStatus = LoadingStatus.none;
 
-  LoadingStatus get autoBackupStatus => _autoBackupStatus;
+  LoadingStatus get autoBackupLoadingStatus => _autoBackupStatus;
 
-  set autoBackupStatus(LoadingStatus value) {
+  set autoBackupLoadingStatus(LoadingStatus value) {
     _autoBackupStatus = value;
     notifyListeners();
   }

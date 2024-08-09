@@ -73,7 +73,7 @@ class CustomConfirmDialogWidget extends StatelessWidget {
             children: [
               if (!noImage)
                 Image.asset(
-                  imagePath ?? AssetUtil.confirmIcon,
+                  imagePath ??AssetUtil.emptyIcon,
                   width: 84,
                   height: 84,
                   color: imagePath != null

@@ -1,3 +1,4 @@
+import '../Models/auto_backup_log.dart';
 import '../Models/cloud_service_config.dart';
 import '../TokenUtils/export_token_util.dart';
 import 'database_manager.dart';
@@ -16,7 +17,7 @@ class CloudServiceConfigDao {
       config.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigInserted);
     return id;
   }
 
@@ -71,7 +72,7 @@ class CloudServiceConfigDao {
       where: 'id = ?',
       whereArgs: [config.id],
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigUpdated);
     return id;
   }
 
@@ -82,7 +83,7 @@ class CloudServiceConfigDao {
       where: 'id = ?',
       whereArgs: [id],
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigDeleted);
     return result;
   }
 

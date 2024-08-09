@@ -4,14 +4,13 @@ import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 
 class AssetUtil {
-  static const String confirmIcon = "assets/icon/confirm.png";
-  static const String downloadWhiteIcon = "assets/icon/download_white.png";
-  static const String infoIcon = "assets/icon/info.png";
   static const String searchDarkIcon = "assets/icon/search_dark.png";
   static const String searchGreyIcon = "assets/icon/search_grey.png";
   static const String searchLightIcon = "assets/icon/search_light.png";
   static const String settingDarkIcon = "assets/icon/setting_dark.png";
   static const String settingLightIcon = "assets/icon/setting_light.png";
+  static const String pinDarkIcon = "assets/icon/pin_dark.png";
+  static const String pinLightIcon = "assets/icon/pin_light.png";
 
   static const String emptyIcon = "assets/icon/empty.png";
 

@@ -32,6 +32,7 @@ class DatabaseManager {
     if (_database == null) {
       String path = join(await FileUtil.getDatabaseDir(), _dbName);
       if (!await dbFactory.databaseExists(path)) {
+        print("Database not exist");
         password = await HiveUtil.regeneratePassword();
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);

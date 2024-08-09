@@ -32,6 +32,7 @@ class LoadingIcon extends StatefulWidget {
     this.animating = true,
     this.progress = 1.0,
     this.status = LoadingStatus.loading,
+    this.normalIcon,
   })  : assert(radius > 0.0),
         assert(progress >= 0.0),
         assert(progress <= 1.0);
@@ -41,6 +42,7 @@ class LoadingIcon extends StatefulWidget {
   final double progress;
   final bool animating;
   final LoadingStatus status;
+  final Widget? normalIcon;
 
   @override
   LoadingIconState createState() => LoadingIconState();
@@ -71,49 +73,50 @@ class LoadingIconState extends State<LoadingIcon>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: widget.radius * 2,
-      width: widget.radius * 2,
-      child: Builder(
-        builder: (BuildContext context) {
-          switch (widget.status) {
-            case LoadingStatus.none:
-              return const SizedBox.shrink();
-            case LoadingStatus.loading:
-              return CustomPaint(
-                painter: LoadingIconPainter(
-                  position: _controller,
-                  activeColor: widget.color ??
-                      CupertinoDynamicColor.resolve(
-                          CupertinoDynamicColor.withBrightness(
-                            color: Theme.of(context).primaryColor,
-                            darkColor:
-                                Theme.of(context).primaryColor.withOpacity(0.1),
-                          ),
-                          context),
-                  radius: widget.radius,
-                  progress: widget.progress,
-                ),
-              );
-            case LoadingStatus.success:
-              return const Icon(
-                Icons.done_rounded,
-                color: Colors.green,
-                size: 20,
-              );
-            case LoadingStatus.failedAndLoading:
-              return const Icon(
-                Icons.error_outline_rounded,
-                color: Colors.red,
-                size: 20,
-              );
-            case LoadingStatus.failed:
-              return const Icon(
-                Icons.error_outline_rounded,
-                color: Colors.red,
-                size: 20,
-              );
-          }
-        },
+      height: 40,
+      width: 40,
+      child: Center(
+        child: Builder(
+          builder: (BuildContext context) {
+            switch (widget.status) {
+              case LoadingStatus.none:
+              case LoadingStatus.success:
+                return widget.normalIcon ?? const SizedBox.shrink();
+              case LoadingStatus.loading:
+                return CustomPaint(
+                  painter: LoadingIconPainter(
+                    position: _controller,
+                    activeColor: widget.color ??
+                        CupertinoDynamicColor.resolve(
+                            CupertinoDynamicColor.withBrightness(
+                              color: Theme.of(context).primaryColor,
+                              darkColor: Theme.of(context)
+                                  .primaryColor
+                                  .withOpacity(0.1),
+                            ),
+                            context),
+                    radius: widget.radius,
+                    progress: widget.progress,
+                  ),
+                );
+              case LoadingStatus.success:
+                return const Icon(
+                  Icons.done_rounded,
+                  color: Colors.green,
+                );
+              case LoadingStatus.failedAndLoading:
+                return const Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.red,
+                );
+              case LoadingStatus.failed:
+                return const Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.red,
+                );
+            }
+          },
+        ),
       ),
     );
   }
@@ -164,9 +167,9 @@ class LoadingIconPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(LoadingIconPainter oldPainter) {
-    return oldPainter.position != position ||
-        oldPainter.activeColor != activeColor ||
-        oldPainter.progress != progress;
+  bool shouldRepaint(LoadingIconPainter oldDelegate) {
+    return oldDelegate.position != position ||
+        oldDelegate.activeColor != activeColor ||
+        oldDelegate.progress != progress;
   }
 }

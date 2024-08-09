@@ -1,4 +1,5 @@
 import 'package:cloudotp/Database/token_dao.dart';
+import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -18,7 +19,8 @@ class CategoryDao {
       category.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.categoriesInserted);
     return id;
   }
 
@@ -35,7 +37,8 @@ class CategoryDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.categoriesInserted);
     return results.length;
   }
 
@@ -64,7 +67,8 @@ class CategoryDao {
       where: 'id = ?',
       whereArgs: [category.id],
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.categoriesUpdated);
     return id;
   }
 
@@ -84,7 +88,10 @@ class CategoryDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    if (backup) ExportTokenUtil.autoBackup();
+    if (backup) {
+      ExportTokenUtil.autoBackup(
+          triggerType: AutoBackupTriggerType.categoriesUpdated);
+    }
     return results.length;
   }
 
@@ -95,7 +102,8 @@ class CategoryDao {
       where: 'id = ?',
       whereArgs: [category.id],
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.categoryDeleted);
     return id;
   }
 
@@ -182,6 +190,9 @@ class CategoryDao {
     }
     await updateCategories(unselectedCategories);
     await updateCategories(newSeletedCategories);
-    if (backup) ExportTokenUtil.autoBackup();
+    if (backup) {
+      ExportTokenUtil.autoBackup(
+          triggerType: AutoBackupTriggerType.categoriesUpdatedForToken);
+    }
   }
 }

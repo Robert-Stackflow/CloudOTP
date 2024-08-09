@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'dart:math';
 
+import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -164,14 +165,23 @@ class StayOnTopWindowButton extends WindowButton {
     super.colors,
     super.onPressed,
     super.borderRadius,
+    required BuildContext context,
     bool? animate,
     double? rotateAngle,
   }) : super(
-            animate: animate ?? false,
-            padding: EdgeInsets.zero,
-            rotateAngle: rotateAngle ?? 0,
-            iconBuilder: (buttonContext) => Icon(CupertinoIcons.pin,
-                size: 20, color: buttonContext.iconColor));
+          animate: animate ?? false,
+          padding: EdgeInsets.zero,
+          rotateAngle: rotateAngle ?? 0,
+          iconBuilder: (buttonContext) => Container(
+            padding: const EdgeInsets.all(8),
+            child: AssetUtil.loadDouble(
+              context,
+              AssetUtil.pinLightIcon,
+              AssetUtil.pinDarkIcon,
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
 }
 
 class MinimizeWindowButton extends WindowButton {

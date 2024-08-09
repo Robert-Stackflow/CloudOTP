@@ -3,6 +3,7 @@ import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../Models/auto_backup_log.dart';
 import '../TokenUtils/export_token_util.dart';
 
 class TokenDao {
@@ -17,7 +18,7 @@ class TokenDao {
       token.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokenInserted);
     return id;
   }
 
@@ -34,7 +35,7 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokensInserted);
     return results.length;
   }
 
@@ -63,7 +64,7 @@ class TokenDao {
       where: 'id = ?',
       whereArgs: [token.id],
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokenUpdated);
     return id;
   }
 
@@ -80,7 +81,7 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokensUpdated);
     return results.length;
   }
 
@@ -136,7 +137,7 @@ class TokenDao {
       where: 'id = ?',
       whereArgs: [token.id],
     );
-    ExportTokenUtil.autoBackup();
+    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokenDeleted);
     return id;
   }
 

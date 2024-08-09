@@ -1,6 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../Models/auto_backup_log.dart';
 import '../Models/config.dart';
+import '../TokenUtils/export_token_util.dart';
 import 'database_manager.dart';
 
 class ConfigDao {
@@ -16,6 +18,8 @@ class ConfigDao {
       config.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.configInited);
     return id;
   }
 
@@ -62,6 +66,8 @@ class ConfigDao {
       where: 'id = ?',
       whereArgs: [0],
     );
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.configUpdated);
     return id;
   }
 
@@ -75,6 +81,8 @@ class ConfigDao {
       where: 'id = ?',
       whereArgs: [0],
     );
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.configUpdated);
     return id;
   }
 
@@ -86,6 +94,8 @@ class ConfigDao {
       where: 'id = ?',
       whereArgs: [config.id],
     );
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.configUpdated);
     return id;
   }
 }

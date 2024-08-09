@@ -261,6 +261,12 @@ class Utils {
     return dateFormat.format(date);
   }
 
+  static String timestampToDateString(int timestamp) {
+    var date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    var dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+    return dateFormat.format(date);
+  }
+
   static String formatTimestamp(int timestamp) {
     var now = DateTime.now();
     var date = DateTime.fromMillisecondsSinceEpoch(timestamp);

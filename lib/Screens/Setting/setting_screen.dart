@@ -362,19 +362,6 @@ class _SettingScreenState extends State<SettingScreen>
       const SizedBox(height: 10),
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.backupSetting),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: canBackup ? _enableAutoBackup : false,
-        title: S.current.autoBackup,
-        description: S.current.autoBackupTip,
-        disabled: !canBackup,
-        onTap: () {
-          setState(() {
-            _enableAutoBackup = !_enableAutoBackup;
-            HiveUtil.put(HiveUtil.enableAutoBackupKey, _enableAutoBackup);
-          });
-        },
-      ),
       ItemBuilder.buildEntryItem(
         context: context,
         title: Utils.isNotEmpty(_autoBackupPassword)
@@ -431,9 +418,22 @@ class _SettingScreenState extends State<SettingScreen>
         onTap: () {
           setState(() {
             _useBackupPasswordToExportImport =
-                !_useBackupPasswordToExportImport;
+            !_useBackupPasswordToExportImport;
             HiveUtil.put(HiveUtil.useBackupPasswordToExportImportKey,
                 _useBackupPasswordToExportImport);
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: canBackup ? _enableAutoBackup : false,
+        title: S.current.autoBackup,
+        description: S.current.autoBackupTip,
+        disabled: !canBackup,
+        onTap: () {
+          setState(() {
+            _enableAutoBackup = !_enableAutoBackup;
+            HiveUtil.put(HiveUtil.enableAutoBackupKey, _enableAutoBackup);
           });
         },
       ),
@@ -444,7 +444,8 @@ class _SettingScreenState extends State<SettingScreen>
           title: S.current.immediatelyBackup,
           description: S.current.immediatelyBackupTip,
           onTap: () async {
-            ExportTokenUtil.autoBackup(showToast: true, showLoading: true);
+            ExportTokenUtil.autoBackup(
+                showToast: true, showLoading: true, force: true);
           },
         ),
       ),
@@ -473,11 +474,11 @@ class _SettingScreenState extends State<SettingScreen>
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,
-              (context) => InputBottomSheet(
+                  (context) => InputBottomSheet(
                 title: S.current.maxBackupCount,
                 text: _maxBackupsCount.toString(),
                 message:
-                    '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0], counts[1])}',
+                '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0], counts[1])}',
                 hint: S.current.inputMaxBackupCount,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 preventPop: true,
@@ -527,29 +528,33 @@ class _SettingScreenState extends State<SettingScreen>
           });
         },
       ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.autoBackupPath,
-        description: _autoBackupPath,
-        onTap: () async {
-          String? selectedDirectory =
-              await FilePicker.platform.getDirectoryPath(
-            dialogTitle: S.current.autoBackupPath,
-            lockParentWindow: true,
-          );
-          if (selectedDirectory != null) {
-            setState(() {
-              _autoBackupPath = selectedDirectory;
-              HiveUtil.put(HiveUtil.backupPathKey, selectedDirectory);
-            });
-          }
-        },
+      Visibility(
+        visible: canBackup && _enableLocalBackup,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.autoBackupPath,
+          description: _autoBackupPath,
+          onTap: () async {
+            String? selectedDirectory =
+                await FilePicker.platform.getDirectoryPath(
+              dialogTitle: S.current.autoBackupPath,
+              lockParentWindow: true,
+            );
+            if (selectedDirectory != null) {
+              setState(() {
+                _autoBackupPath = selectedDirectory;
+                HiveUtil.put(HiveUtil.backupPathKey, selectedDirectory);
+              });
+            }
+          },
+        ),
       ),
       ItemBuilder.buildRadioItem(
         context: context,
         value: canBackup ? _enableCloudBackup : false,
         title: S.current.enableCloudBackup,
         description: S.current.enableCloudBackupTip,
+        bottomRadius: !_enableCloudBackup || !canBackup,
         disabled: !canCloudBackup,
         onTap: () {
           setState(() {
@@ -558,24 +563,27 @@ class _SettingScreenState extends State<SettingScreen>
           });
         },
       ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.cloudBackupServiceSetting,
-        bottomRadius: true,
-        tip: _cloudBackupConfigured
-            ? S.current.haveSetCloudBackupService("WebDav")
-            : S.current.notCloudBackupService,
-        description: S.current.cloudBackupServiceSettingTip,
-        onTap: () async {
-          RouteUtil.pushDialogRoute(
-            context,
-            const WebDavServiceScreen(),
-            showClose: false,
-            onThen: (value) {
-              loadWebDavConfig();
-            },
-          );
-        },
+      Visibility(
+        visible: canBackup && _enableCloudBackup,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.cloudBackupServiceSetting,
+          bottomRadius: true,
+          tip: _cloudBackupConfigured
+              ? S.current.haveSetCloudBackupService("WebDav")
+              : S.current.notCloudBackupService,
+          description: S.current.cloudBackupServiceSettingTip,
+          onTap: () async {
+            RouteUtil.pushDialogRoute(
+              context,
+              const WebDavServiceScreen(),
+              showClose: false,
+              onThen: (value) {
+                loadWebDavConfig();
+              },
+            );
+          },
+        ),
       ),
     ];
   }

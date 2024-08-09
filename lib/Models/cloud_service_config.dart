@@ -4,11 +4,9 @@ enum CloudServiceType {
   Webdav,
   GoogleDrive,
   OneDrive,
-  Dropbox,
-}
+  Dropbox;
 
-extension CloudServiceTypeExtension on CloudServiceType {
-  String get name {
+  String get label {
     switch (this) {
       case CloudServiceType.Webdav:
         return 'WebDav';
@@ -51,6 +49,17 @@ class CloudServiceConfig {
   int lastFetchTimestamp;
   int lastBackupTimestamp;
   Map<String, dynamic> remark;
+
+  bool get isValid {
+    switch (type) {
+      case CloudServiceType.Webdav:
+        return endpoint != null && account != null && secret != null;
+      case CloudServiceType.GoogleDrive:
+      case CloudServiceType.OneDrive:
+      case CloudServiceType.Dropbox:
+        return token != null;
+    }
+  }
 
   CloudServiceConfig({
     required this.id,
