@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cloudotp/Database/cloud_service_config_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
@@ -8,9 +7,10 @@ import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as img;
+import 'package:zxing2/qrcode.dart';
 
 import '../Database/category_dao.dart';
 import '../Database/config_dao.dart';
@@ -64,8 +64,13 @@ class ImportAnalysis {
   }
 }
 
+RegExp otpauthMigrationReg =
+    RegExp(r"^otpauth-migration://offline\?data=(.*)$");
+RegExp otpauthReg = RegExp(r"^otpauth://([a-z]+)/([^?]*)(.*)$");
+RegExp motpReg = RegExp(r"^motp://([^?]+)\?secret=([a-fA-F\d]+)(.*)$");
+
 class ImportTokenUtil {
-  static parseData(
+  static parseRawUri(
     List<String> rawUris, {
     bool autoPopup = true,
     BuildContext? context,
@@ -74,9 +79,9 @@ class ImportTokenUtil {
     for (String line in rawUris) {
       Uri? uri = Uri.tryParse(line);
       if (uri != null &&
-          uri.scheme.isNotEmpty &&
-          uri.scheme == "otpauth" &&
-          uri.authority.isNotEmpty) {
+          (otpauthReg.hasMatch(line) ||
+              motpReg.hasMatch(line) ||
+              otpauthMigrationReg.hasMatch(line))) {
         validUris.add(line);
       }
     }
@@ -90,6 +95,38 @@ class ImportTokenUtil {
       }
     } else {
       IToast.showTop(S.current.noQrCodeToken);
+    }
+  }
+
+  static analyzeImage(Uint8List? imageBytes) async {
+    if (imageBytes == null || imageBytes.isEmpty) {
+      IToast.showTop(S.current.noQrCode);
+      return;
+    }
+    try {
+      img.Image image = img.decodeImage(imageBytes)!;
+      LuminanceSource source = RGBLuminanceSource(
+          image.width,
+          image.height,
+          image
+              .convert(numChannels: 4)
+              .getBytes(order: img.ChannelOrder.abgr)
+              .buffer
+              .asInt32List());
+      var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
+      var reader = QRCodeReader();
+      var result = reader.decode(bitmap);
+      if (Utils.isNotEmpty(result.text)) {
+        await ImportTokenUtil.parseRawUri([result.text]);
+      } else {
+        IToast.showTop(S.current.noQrCode);
+      }
+    } catch (e) {
+      if (e.runtimeType == NotFoundException) {
+        IToast.showTop(S.current.noQrCode);
+      } else {
+        IToast.showTop(S.current.parseQrCodeWrong);
+      }
     }
   }
 
@@ -269,10 +306,9 @@ class ImportTokenUtil {
     List<String> lines = content.split("\n");
     List<OtpToken> tokens = [];
     for (String line in lines) {
-      OtpToken? token =
-          OtpTokenParser.createFromUri(Uri.tryParse(line) ?? Uri());
-      if (token != null) {
-        tokens.add(token);
+      List<OtpToken> parsedTokens = OtpTokenParser.parseUri(line);
+      if (parsedTokens.isNotEmpty) {
+        tokens.addAll(parsedTokens);
         analysis.parseSuccess++;
       } else {
         analysis.parseFailed++;

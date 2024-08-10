@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
@@ -77,19 +78,24 @@ class ScanTokenScreenState extends State<ScanTokenScreen>
         });
   }
 
-  _handleBarcode(BarcodeCapture barcodeCapture, [bool autoPopup = true]) async {
+  _handleBarcode(
+    BarcodeCapture barcodeCapture, {
+    bool autoPopup = true,
+    bool addToAlready = true,
+  }) async {
     _subscription?.pause();
     List<Barcode> barcodes = barcodeCapture.barcodes;
     List<String> rawValues = [];
     for (Barcode barcode in barcodes) {
       if (Utils.isNotEmpty(barcode.rawValue) &&
-          !alreadyScanned.contains(barcode.rawValue!)) {
+          ((addToAlready && !alreadyScanned.contains(barcode.rawValue!)) ||
+              !addToAlready)) {
         rawValues.add(barcode.rawValue!);
-        alreadyScanned.add(barcode.rawValue!);
+        if (addToAlready) alreadyScanned.add(barcode.rawValue!);
       }
     }
     if (rawValues.isNotEmpty) {
-      await ImportTokenUtil.parseData(rawValues,
+      await ImportTokenUtil.parseRawUri(rawValues,
           autoPopup: autoPopup, context: context);
     }
     _subscription?.resume();
@@ -178,7 +184,7 @@ class ScanTokenScreenState extends State<ScanTokenScreen>
         children.add(AnalyzeImageFromGalleryButton(
           controller: scannerController,
           onDetect: (barcodes) {
-            _handleBarcode(barcodes, false);
+            _handleBarcode(barcodes, addToAlready: false, autoPopup: false);
           },
         ));
         return Row(
@@ -257,18 +263,10 @@ class AnalyzeImageFromGalleryButton extends StatelessWidget {
           lockParentWindow: true,
         );
         if (result == null) return;
-
-        final BarcodeCapture? barcodes =
-            await controller.analyzeImage(result.files.single.path!);
-
-        if (!context.mounted) {
-          return;
-        }
-        if (barcodes != null) {
-          onDetect(barcodes);
-        } else {
-          IToast.showTop(S.current.noQrCode);
-        }
+        File file = File(result.files.single.path!);
+        Uint8List? imageBytes = file.readAsBytesSync();
+        ImportTokenUtil.analyzeImage(imageBytes);
+        await file.delete();
       },
     );
   }

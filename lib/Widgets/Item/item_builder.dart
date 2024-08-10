@@ -263,6 +263,7 @@ class ItemBuilder {
     bool enableDeselect = false,
     bool disabled = false,
     bool isRadio = true,
+    double? radius,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return GroupButton(
@@ -283,6 +284,7 @@ class ItemBuilder {
             context,
             text: label,
             onTap: onTap,
+            radius: radius ?? 50,
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             background: selected
                 ? disabled
@@ -318,10 +320,11 @@ class ItemBuilder {
       buttonBuilder: (selected, token, context, onTap, disabled) {
         return ItemBuilder.buildRoundButton(
           context,
+          radius: 8,
           icon: ItemBuilder.buildTokenImage(token, size: 12),
           text: token.issuer,
           onTap: onTap,
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
           background: selected
               ? disabled
                   ? Theme.of(context).primaryColor.withAlpha(80)
@@ -603,7 +606,8 @@ class ItemBuilder {
     String tip = "",
     String description = "",
     Function()? onTap,
-    double padding = 18,
+    double verticalPadding = 18,
+    double horizontalPadding = 10,
     double trailingLeftMargin = 5,
     bool dividerPadding = true,
     IconData trailing = Icons.keyboard_arrow_right_rounded,
@@ -660,8 +664,8 @@ class ItemBuilder {
           child: Column(
             children: [
               Container(
-                padding:
-                    EdgeInsets.symmetric(vertical: padding, horizontal: 10),
+                padding: EdgeInsets.symmetric(
+                    vertical: verticalPadding, horizontal: horizontalPadding),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -814,10 +818,10 @@ class ItemBuilder {
           borderRadius: BorderRadius.circular(10),
           child: InkWell(
             onTap: () {
-              config.onPressed?.call();
               if (globalNavigatorState!.canPop()) {
                 globalNavigatorState?.pop();
               }
+              config.onPressed?.call();
             },
             borderRadius: BorderRadius.circular(10),
             child: Container(
@@ -830,6 +834,7 @@ class ItemBuilder {
                 children: [
                   if (isCheckbox) checkIcon,
                   if (config.icon != null) config.icon!,
+                  if (config.icon != null) const SizedBox(width: 8),
                   Text(
                     config.label,
                     style: Theme.of(context).textTheme.bodyMedium?.apply(
@@ -946,7 +951,7 @@ class ItemBuilder {
       onTap: null,
       leading: leading,
       trailing: trailing,
-      padding: 10,
+      verticalPadding: 10,
       isCaption: true,
       dividerPadding: false,
     );
@@ -1257,8 +1262,11 @@ class ItemBuilder {
 
   static buildTokenImage(OtpToken token, {double size = 80}) {
     if (Utils.isNotEmpty(token.imagePath)) {
-      return AssetUtil.loadBrand(token.imagePath,
-          width: size, height: size, fit: BoxFit.contain);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(5),
+        child: AssetUtil.loadBrand(token.imagePath,
+            width: size, height: size, fit: BoxFit.contain),
+      );
     } else {
       return TextDrawable(
         text: token.issuer,
@@ -1546,6 +1554,8 @@ class ItemBuilder {
                           contextMenuContext, details,
                           context: context),
                   onSubmitted: onSubmitted,
+                  cursorColor: Theme.of(context).primaryColor,
+                  cursorRadius: const Radius.circular(5),
                   style: Theme.of(context).textTheme.titleSmall,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.only(left: 8),
@@ -1594,6 +1604,8 @@ class ItemBuilder {
                           contextMenuContext, details,
                           context: context),
                   controller: controller,
+                  cursorColor: Theme.of(context).primaryColor,
+                  cursorRadius: const Radius.circular(5),
                   textInputAction: TextInputAction.search,
                   onSubmitted: onSubmitted,
                   style: Theme.of(context).textTheme.titleSmall?.apply(

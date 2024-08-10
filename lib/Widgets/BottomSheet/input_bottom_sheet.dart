@@ -218,7 +218,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 24),
           Expanded(
             child: SizedBox(
               height: 45,

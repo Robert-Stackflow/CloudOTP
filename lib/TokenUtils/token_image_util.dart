@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/utils.dart';
-import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:flutter/services.dart';
 
 class TokenImageUtil {
@@ -49,6 +48,18 @@ class TokenImageUtil {
         (logo) => cleanBrand(logo).split(".")[0].contains(issuer),
         orElse: () => "",
       );
+    }
+    if (brandLogo.isEmpty) {
+      switch (token.tokenType) {
+        case OtpTokenType.Steam:
+          brandLogo = "steam.png";
+          break;
+        case OtpTokenType.Yandex:
+          brandLogo = "yandex.png";
+          break;
+        default:
+          break;
+      }
     }
     return brandLogo.isEmpty ? null : brandLogo;
   }

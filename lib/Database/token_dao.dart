@@ -23,6 +23,7 @@ class TokenDao {
   }
 
   static Future<int> insertTokens(List<OtpToken> tokens) async {
+    if(tokens.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (OtpToken token in tokens) {
@@ -69,6 +70,7 @@ class TokenDao {
   }
 
   static Future<int> updateTokens(List<OtpToken> tokens) async {
+    if(tokens.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (OtpToken token in tokens) {

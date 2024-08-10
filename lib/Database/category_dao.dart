@@ -25,6 +25,7 @@ class CategoryDao {
   }
 
   static Future<int> insertCategories(List<TokenCategory> categories) async {
+    if(categories.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (TokenCategory category in categories) {
@@ -73,12 +74,13 @@ class CategoryDao {
   }
 
   static Future<int> updateCategories(
-    List<TokenCategory> category, {
+    List<TokenCategory> categories, {
     bool backup = false,
   }) async {
+    if(categories.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
-    for (TokenCategory category in category) {
+    for (TokenCategory category in categories) {
       category.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
       batch.update(
         tableName,

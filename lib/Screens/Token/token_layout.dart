@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
@@ -50,12 +51,23 @@ class TokenLayoutState extends State<TokenLayout>
   final double _autoCopyNextCodeProgressThrehold = 0.25;
   final String placeholderText = "*";
 
-  int get remainingMilliseconds =>
-      widget.token.period * 1000 -
-      (DateTime.now().millisecondsSinceEpoch % (widget.token.period * 1000));
+  int get remainingMilliseconds => widget.token.period == 0
+      ? 0
+      : widget.token.period * 1000 -
+          (DateTime.now().millisecondsSinceEpoch %
+              (widget.token.period * 1000));
 
-  double get currentProgress =>
-      remainingMilliseconds / (widget.token.period * 1000);
+  double get currentProgress => widget.token.period == 0
+      ? 0
+      : remainingMilliseconds / (widget.token.period * 1000);
+
+  bool get isYandex =>
+      // ignore: unnecessary_null_comparison
+      widget.token.tokenType == OtpTokenType.Yandex;
+
+  bool get isHOTP =>
+      // ignore: unnecessary_null_comparison
+      widget.token.tokenType == OtpTokenType.HOTP;
 
   @override
   void dispose() {
@@ -91,7 +103,7 @@ class TokenLayoutState extends State<TokenLayout>
       case OtpTokenType.TOTP:
         code = OTP.generateTOTPCodeString(
           widget.token.secret,
-          DateTime.now().millisecondsSinceEpoch - widget.token.period * 1000,
+          DateTime.now().millisecondsSinceEpoch,
           length: widget.token.digits.digit,
           interval: widget.token.period,
           algorithm: widget.token.algorithm.algorithm,
@@ -111,6 +123,8 @@ class TokenLayoutState extends State<TokenLayout>
         code = MOTP(
           secret: widget.token.secret,
           pin: widget.token.pin,
+          period: widget.token.period,
+          digits: widget.token.digits.digit,
         ).generate();
         break;
       case OtpTokenType.Steam:
@@ -132,7 +146,7 @@ class TokenLayoutState extends State<TokenLayout>
       case OtpTokenType.TOTP:
         code = OTP.generateTOTPCodeString(
           widget.token.secret,
-          DateTime.now().millisecondsSinceEpoch,
+          DateTime.now().millisecondsSinceEpoch + widget.token.period * 1000,
           length: widget.token.digits.digit,
           interval: widget.token.period,
           algorithm: widget.token.algorithm.algorithm,
@@ -158,13 +172,13 @@ class TokenLayoutState extends State<TokenLayout>
         break;
       case OtpTokenType.Steam:
         code = SteamTOTP(secret: widget.token.secret)
-            .generate(deltaMilliseconds: 30000);
+            .generate(deltaMilliseconds: widget.token.period * 1000);
         break;
       case OtpTokenType.Yandex:
         code = YandexOTP(
           pin: widget.token.pin,
           secret: widget.token.secret,
-        ).generate();
+        ).generate(deltaMilliseconds: widget.token.period * 1000);
         break;
     }
     return code;
@@ -392,7 +406,7 @@ class TokenLayoutState extends State<TokenLayout>
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
+                AutoSizeText(
                   _showCode
                       ? getCurrentCode()
                       : "*" * widget.token.digits.digit,
@@ -402,17 +416,21 @@ class TokenLayoutState extends State<TokenLayout>
                         letterSpacing: 10,
                         color: Theme.of(context).primaryColor,
                       ),
+                  maxLines: 1,
                 ),
                 const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: currentProgress,
-                  minHeight: 1,
-                  color: currentProgress > _autoCopyNextCodeProgressThrehold
-                      ? Theme.of(context).primaryColor
-                      : Colors.red,
-                  borderRadius: BorderRadius.circular(5),
-                  backgroundColor: Colors.grey.withOpacity(0.3),
-                ),
+                isHOTP
+                    ? const SizedBox(height: 1)
+                    : LinearProgressIndicator(
+                        value: currentProgress,
+                        minHeight: 1,
+                        color:
+                            currentProgress > _autoCopyNextCodeProgressThrehold
+                                ? Theme.of(context).primaryColor
+                                : Colors.red,
+                        borderRadius: BorderRadius.circular(5),
+                        backgroundColor: Colors.grey.withOpacity(0.3),
+                      ),
                 const SizedBox(height: 13),
               ],
             ),
@@ -486,10 +504,11 @@ class TokenLayoutState extends State<TokenLayout>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: AutoSizeText(
                         _showCode
                             ? getCurrentCode()
                             : placeholderText * widget.token.digits.digit,
+                        maxLines: 1,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
@@ -511,15 +530,18 @@ class TokenLayoutState extends State<TokenLayout>
                     ),
                   ],
                 ),
-                LinearProgressIndicator(
-                  value: currentProgress,
-                  minHeight: 1,
-                  color: currentProgress > _autoCopyNextCodeProgressThrehold
-                      ? Theme.of(context).primaryColor
-                      : Colors.red,
-                  borderRadius: BorderRadius.circular(5),
-                  backgroundColor: Colors.grey.withOpacity(0.3),
-                ),
+                isHOTP
+                    ? const SizedBox(height: 1)
+                    : LinearProgressIndicator(
+                        value: currentProgress,
+                        minHeight: 1,
+                        color:
+                            currentProgress > _autoCopyNextCodeProgressThrehold
+                                ? Theme.of(context).primaryColor
+                                : Colors.red,
+                        borderRadius: BorderRadius.circular(5),
+                        backgroundColor: Colors.grey.withOpacity(0.3),
+                      ),
                 const SizedBox(height: 13),
               ],
             ),
@@ -565,7 +587,7 @@ class TokenLayoutState extends State<TokenLayout>
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    ItemBuilder.buildTokenImage(widget.token, size: 40),
+                    ItemBuilder.buildTokenImage(widget.token, size: 36),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -617,10 +639,11 @@ class TokenLayoutState extends State<TokenLayout>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Flexible(
-                      child: Text(
+                      child: AutoSizeText(
                         _showCode
                             ? getCurrentCode()
                             : placeholderText * widget.token.digits.digit,
+                        maxLines: 1,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
@@ -651,15 +674,18 @@ class TokenLayoutState extends State<TokenLayout>
                     ),
                   ],
                 ),
-                LinearProgressIndicator(
-                  value: currentProgress,
-                  minHeight: 1,
-                  color: currentProgress > _autoCopyNextCodeProgressThrehold
-                      ? Theme.of(context).primaryColor
-                      : Colors.red,
-                  borderRadius: BorderRadius.circular(5),
-                  backgroundColor: Colors.grey.withOpacity(0.3),
-                ),
+                isHOTP
+                    ? const SizedBox(height: 1)
+                    : LinearProgressIndicator(
+                        value: currentProgress,
+                        minHeight: 1,
+                        color:
+                            currentProgress > _autoCopyNextCodeProgressThrehold
+                                ? Theme.of(context).primaryColor
+                                : Colors.red,
+                        borderRadius: BorderRadius.circular(5),
+                        backgroundColor: Colors.grey.withOpacity(0.3),
+                      ),
                 const SizedBox(height: 13),
               ],
             ),

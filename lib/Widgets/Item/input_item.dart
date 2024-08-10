@@ -172,7 +172,7 @@ class InputItemState extends State<InputItem> {
 
   TextInputType get keyboardType => widget.keyboardType ?? TextInputType.text;
 
-  FocusNode? get focusNode => widget.focusNode;
+  FocusNode? get focusNode => widget.focusNode ;
 
   bool get topRadius => widget.topRadius ?? false;
 
@@ -287,6 +287,7 @@ class InputItemState extends State<InputItem> {
                                 : widget.maxLines,
                             minLines: minLines,
                             inputFormatters: [
+                              TrimInputFormatter(),
                               if (maxLength != null && maxLength! > 0)
                                 LengthLimitingTextInputFormatter(maxLength),
                               ...inputFormatters
@@ -460,5 +461,16 @@ class RegexInputFormatter implements TextInputFormatter {
       return newValue;
     }
     return oldValue;
+  }
+}
+
+class TrimInputFormatter implements TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text.trimLeft(),
+      selection: newValue.selection,
+    );
   }
 }

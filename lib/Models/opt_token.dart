@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloudotp/Models/Proto/otp_migration.pb.dart';
 import 'package:otp/otp.dart';
 
 enum OtpTokenType {
@@ -14,6 +15,17 @@ enum OtpTokenType {
   final String key;
   final String label;
 
+  static OtpTokenType fromType(OtpMigrationType type) {
+    switch (type) {
+      case OtpMigrationType.TOTP:
+        return OtpTokenType.TOTP;
+      case OtpMigrationType.HOTP:
+        return OtpTokenType.HOTP;
+      default:
+        throw Exception("Invalid OtpTokenType");
+    }
+  }
+
   static OtpTokenType fromLabel(String label) {
     label = label.toUpperCase();
     switch (label) {
@@ -25,10 +37,10 @@ enum OtpTokenType {
         return OtpTokenType.MOTP;
       case "STEAM":
         return OtpTokenType.Steam;
-      case "YANDEX":
+      case "YAOTP":
         return OtpTokenType.Yandex;
       default:
-        return OtpTokenType.TOTP;
+        throw Exception("Invalid OtpTokenType");
     }
   }
 
@@ -45,14 +57,73 @@ enum OtpTokenType {
       case 4:
         return OtpTokenType.Yandex;
       default:
-        return OtpTokenType.TOTP;
+        throw Exception("Invalid OtpTokenType");
     }
+  }
+
+  String get authority {
+    return authoritys()[index];
+  }
+
+  static List<String> authoritys({bool toLowerCase = true}) {
+    return [
+      "TOTP",
+      "HOTP",
+      "MOTP",
+      "Steam",
+      "YaOTP",
+    ].map((e) => toLowerCase ? e.toLowerCase() : e).toList();
   }
 
   static List<String> labels({bool toLowerCase = false}) {
     return OtpTokenType.values
         .map((e) => toLowerCase ? e.label.toLowerCase() : e.label)
         .toList();
+  }
+
+  int get defaultPeriod {
+    switch (this) {
+      case OtpTokenType.TOTP:
+        return 30;
+      case OtpTokenType.HOTP:
+        return 0;
+      case OtpTokenType.MOTP:
+        return 30;
+      case OtpTokenType.Steam:
+        return 30;
+      case OtpTokenType.Yandex:
+        return 30;
+    }
+  }
+
+  int get maxPinLength {
+    switch (this) {
+      case OtpTokenType.TOTP:
+        return 0;
+      case OtpTokenType.HOTP:
+        return 0;
+      case OtpTokenType.MOTP:
+        return 4;
+      case OtpTokenType.Steam:
+        return 0;
+      case OtpTokenType.Yandex:
+        return 16;
+    }
+  }
+
+  OtpDigits get defaultDigits {
+    switch (this) {
+      case OtpTokenType.TOTP:
+        return OtpDigits.D6;
+      case OtpTokenType.HOTP:
+        return OtpDigits.D6;
+      case OtpTokenType.MOTP:
+        return OtpDigits.D6;
+      case OtpTokenType.Steam:
+        return OtpDigits.D5;
+      case OtpTokenType.Yandex:
+        return OtpDigits.D8;
+    }
   }
 }
 
@@ -67,6 +138,17 @@ enum OtpDigits {
   final int key;
   final String label;
 
+  static OtpDigits fromDigitCount(OtpMigrationDigitCount digitCount) {
+    switch (digitCount) {
+      case OtpMigrationDigitCount.SIX:
+        return OtpDigits.D6;
+      case OtpMigrationDigitCount.EIGHT:
+        return OtpDigits.D8;
+      default:
+        throw Exception("Invalid OtpDigits");
+    }
+  }
+
   static OtpDigits fromLabel(String label) {
     label = label.toUpperCase();
     switch (label) {
@@ -79,7 +161,7 @@ enum OtpDigits {
       case "8":
         return OtpDigits.D8;
       default:
-        return OtpDigits.D6;
+        throw Exception("Invalid OtpDigits");
     }
   }
 }
@@ -94,6 +176,19 @@ enum OtpAlgorithm {
   final String key;
   final String label;
 
+  static OtpAlgorithm fromAlgorithm(OtpMigrationAlgorithm algorithm) {
+    switch (algorithm) {
+      case OtpMigrationAlgorithm.SHA1:
+        return OtpAlgorithm.SHA1;
+      case OtpMigrationAlgorithm.SHA256:
+        return OtpAlgorithm.SHA256;
+      case OtpMigrationAlgorithm.SHA512:
+        return OtpAlgorithm.SHA512;
+      default:
+        throw Exception("Invalid OtpAlgorithm");
+    }
+  }
+
   static OtpAlgorithm fromLabel(String label) {
     label = label.toUpperCase();
     switch (label) {
@@ -104,7 +199,7 @@ enum OtpAlgorithm {
       case "SHA512":
         return OtpAlgorithm.SHA512;
       default:
-        return OtpAlgorithm.SHA1;
+        throw Exception("Invalid OtpAlgorithm");
     }
   }
 }

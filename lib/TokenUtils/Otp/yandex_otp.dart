@@ -38,8 +38,10 @@ class YandexOTP {
 
   String generate({
     int? counter,
+    int deltaMilliseconds = 0,
   }) {
-    counter ??= _timeToCounter(DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    counter ??= _timeToCounter(
+        (DateTime.now().millisecondsSinceEpoch + deltaMilliseconds) ~/ 1000);
 
     var hmacSha256 = Hmac(sha256, key);
     var counterBytes = ByteData(8)..setInt64(0, counter, Endian.big);

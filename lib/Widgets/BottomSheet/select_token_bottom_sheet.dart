@@ -78,16 +78,6 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
     );
   }
 
-  _buildButtons() {
-    return tokens.isNotEmpty
-        ? ItemBuilder.buildGroupTokenButtons(
-            tokens: tokens,
-            controller: controller,
-          )
-        : ItemBuilder.buildEmptyPlaceholder(
-            context: context, text: S.current.noToken);
-  }
-
   _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -100,6 +90,17 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
     );
   }
 
+  _buildButtons() {
+    return tokens.isNotEmpty
+        ? ItemBuilder.buildGroupTokenButtons(
+      tokens: tokens,
+      controller: controller,
+    )
+        : ItemBuilder.buildEmptyPlaceholder(
+        context: context, text: S.current.noToken);
+  }
+
+
   _buildFooter() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
@@ -108,28 +109,24 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Expanded(child: SizedBox(height: 50)),
-          const SizedBox(width: 20),
+          const Expanded(flex: 2, child: SizedBox(height: 50)),
           Expanded(
-            child: SizedBox(
-              height: 50,
-              child: ItemBuilder.buildRoundButton(
-                context,
-                background: Theme.of(context).primaryColor,
-                text: S.current.save,
-                onTap: () async {
-                  List<int> selectedIndexes =
-                      controller.selectedIndexes.toList();
-                  List<int> tokenIds =
-                      selectedIndexes.map((e) => tokens[e].id).toList();
-                  widget.category.tokenIds = tokenIds;
-                  await CategoryDao.updateCategory(widget.category);
-                  homeScreenState?.refresh();
-                  IToast.showTop(S.current.saveSuccess);
-                  Navigator.of(context).pop();
-                },
-                fontSizeDelta: 2,
-              ),
+            flex: 1,
+            child: ItemBuilder.buildRoundButton(
+              context,
+              background: Theme.of(context).primaryColor,
+              text: S.current.save,
+              onTap: () async {
+                List<int> selectedIndexes = controller.selectedIndexes.toList();
+                List<int> tokenIds =
+                    selectedIndexes.map((e) => tokens[e].id).toList();
+                widget.category.tokenIds = tokenIds;
+                await CategoryDao.updateCategory(widget.category);
+                homeScreenState?.refresh();
+                IToast.showTop(S.current.saveSuccess);
+                Navigator.of(context).pop();
+              },
+              fontSizeDelta: 2,
             ),
           ),
         ],

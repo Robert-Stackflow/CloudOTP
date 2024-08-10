@@ -9,6 +9,7 @@ import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:cloudotp/Widgets/BottomSheet/add_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Custom/marquee_widget.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
@@ -21,12 +22,14 @@ import 'package:provider/provider.dart';
 import '../Database/token_dao.dart';
 import '../Models/category.dart';
 import '../Utils/app_provider.dart';
+import '../Utils/asset_util.dart';
 import '../Utils/itoast.dart';
 import '../Utils/route_util.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../Widgets/BottomSheet/select_token_bottom_sheet.dart';
 import '../Widgets/Custom/custom_tab_indicator.dart';
+import '../Widgets/Custom/loading_icon.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/Hidable/scroll_to_hide.dart';
@@ -35,7 +38,6 @@ import '../Widgets/Scaffold/my_scaffold.dart';
 import '../Widgets/WaterfallFlow/reorderable_grid_view.dart';
 import '../generated/l10n.dart';
 import 'Token/category_screen.dart';
-import 'Token/scan_token_screen.dart';
 import 'Token/token_layout.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -293,6 +295,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _searchFocusNode.requestFocus();
         _animationController.reverse();
       } else {
+        _searchController.clear();
         _searchFocusNode.unfocus();
         _animationController.forward();
       }
@@ -307,13 +310,15 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       hideDirection: Axis.vertical,
       child: FloatingActionButton(
         onPressed: () {
-          changeSearchBar(true);
+          BottomSheetBuilder.showBottomSheet(
+            context,
+            (context) => const AddBottomSheet(),
+          );
         },
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        backgroundColor: Theme.of(context).canvasColor,
-        child: Icon(Icons.search_rounded,
-            color: Theme.of(context).primaryColor, size: 28),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 28),
       ),
     );
   }
@@ -327,8 +332,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         floating: hideAppbarWhenScrolling,
         pinned: !hideAppbarWhenScrolling,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        title: Container(
-          margin: const EdgeInsets.only(left: 5),
+        title: SizedBox(
           height: kToolbarHeight,
           child: MarqueeWidget(
             count: 2,
@@ -348,7 +352,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 return Align(
                   alignment: Alignment.centerLeft,
                   child: Container(
-                    margin: const EdgeInsets.only(right: 16),
+                    margin: const EdgeInsets.only(right: 24),
                     child: InputItem(
                       hint: S.current.searchToken,
                       onSubmit: (text) {
@@ -374,12 +378,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         expandedHeight: kToolbarHeight,
         collapsedHeight: kToolbarHeight,
-        leading: AnimatedIcon(
-          icon: AnimatedIcons.arrow_menu,
-          color: Theme.of(context).iconTheme.color,
-          size: Theme.of(context).iconTheme.size,
-          progress: _animationController,
-        ),
+        // leading: AnimatedIcon(
+        //   icon: AnimatedIcons.arrow_menu,
+        //   color: Theme.of(context).iconTheme.color,
+        //   size: Theme.of(context).iconTheme.size,
+        //   progress: _animationController,
+        // ),
         onLeadingTap: () {
           if (isSearchBarShown) {
             changeSearchBar(false);
@@ -392,11 +396,29 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             : [
                 ItemBuilder.buildIconButton(
                   context: context,
-                  icon: Icon(Icons.qr_code_scanner_rounded,
-                      color: Theme.of(context).iconTheme.color),
+                  padding: EdgeInsets.zero,
+                  icon: Selector<AppProvider, LoadingStatus>(
+                    selector: (context, appProvider) =>
+                        appProvider.autoBackupLoadingStatus,
+                    builder: (context, autoBackupLoadingStatus, child) =>
+                        LoadingIcon(
+                      status: autoBackupLoadingStatus,
+                      normalIcon: Icon(Icons.history_rounded,
+                          color: Theme.of(context).iconTheme.color),
+                    ),
+                  ),
                   onTap: () {
                     RouteUtil.pushCupertinoRoute(
-                        context, const ScanTokenScreen());
+                        context, const BackupLogScreen());
+                  },
+                ),
+                const SizedBox(width: 5),
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: Icon(Icons.search_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  onTap: () {
+                    changeSearchBar(true);
                   },
                 ),
                 const SizedBox(width: 5),
@@ -429,23 +451,86 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     globalNavigatorState?.pop();
                   },
                 ),
+                // const SizedBox(width: 5),
+                ItemBuilder.buildPopupMenuButton(
+                  context: context,
+                  icon: Icon(Icons.more_vert_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  itemBuilder: (context) {
+                    return ItemBuilder.buildPopupMenuItems(
+                      context,
+                      GenericContextMenu(
+                        buttonConfigs: [
+                          ContextMenuButtonConfig(
+                            S.current.exportImport,
+                            icon: Icon(Icons.import_export_rounded,
+                                color: Theme.of(context).iconTheme.color),
+                            onPressed: () {
+                              RouteUtil.pushCupertinoRoute(
+                                  context, const ImportExportTokenScreen());
+                            },
+                          ),
+                          ContextMenuButtonConfig(
+                            S.current.category,
+                            icon: Icon(Icons.category_outlined,
+                                color: Theme.of(context).iconTheme.color),
+                            onPressed: () {
+                              RouteUtil.pushCupertinoRoute(
+                                  context, const CategoryScreen());
+                            },
+                          ),
+                          ContextMenuButtonConfig(
+                            S.current.setting,
+                            icon: AssetUtil.loadDouble(
+                              context,
+                              AssetUtil.settingLightIcon,
+                              AssetUtil.settingDarkIcon,
+                            ),
+                            onPressed: () {
+                              RouteUtil.pushCupertinoRoute(
+                                  context, const SettingScreen());
+                            },
+                          ),
+                          ContextMenuButtonConfig(
+                            S.current.about,
+                            icon: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.asset(
+                                'assets/logo-transparent.png',
+                                height: 24,
+                                width: 24,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            onPressed: () {
+                              RouteUtil.pushCupertinoRoute(
+                                  context, const AboutSettingScreen());
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
                 const SizedBox(width: 5),
               ],
       ),
     );
   }
 
-  _buildMobileBottombar() {
+  _buildMobileBottombar({double verticalPadding = 5}) {
+    double height = kToolbarHeight + verticalPadding * 2;
     return Selector<AppProvider, bool>(
       selector: (context, provider) => provider.hideBottombarWhenScrolling,
       builder: (context, hideBottombarWhenScrolling, child) => ScrollToHide(
         enabled: hideBottombarWhenScrolling,
         scrollController: _scrollController,
-        height: kToolbarHeight,
+        height: height,
         duration: const Duration(milliseconds: 300),
         hideDirection: Axis.vertical,
         child: Container(
           alignment: Alignment.centerLeft,
+          height: height,
           decoration: BoxDecoration(
             color: Theme.of(context).canvasColor,
             boxShadow: [
@@ -456,7 +541,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(vertical: 5),
+          padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding),
           child: _buildTabBar(const EdgeInsets.symmetric(horizontal: 10)),
         ),
       ),
@@ -810,18 +895,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 },
                 title: S.current.category,
                 showLeading: true,
-                leading: Icons.category_outlined,
-              ),
-              ItemBuilder.buildEntryItem(
-                context: context,
                 bottomRadius: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const BackupLogScreen());
-                },
-                title: S.current.backupLogs,
-                showLeading: true,
-                leading: Icons.history_rounded,
+                leading: Icons.category_outlined,
               ),
               const SizedBox(height: 10),
               ItemBuilder.buildEntryItem(

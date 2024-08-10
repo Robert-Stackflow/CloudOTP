@@ -342,22 +342,18 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                   ItemBuilder.buildGroupTile(
                     context: context,
                     title: S.current.tokenType,
-                    disabled: _isEditing,
+                    // disabled: _isEditing,
                     controller: _typeController,
                     buttons: OtpTokenType.labels(),
                     onSelected: (value, index, isSelected) {
                       _otpToken.tokenType = index.otpTokenType;
-                      if (_otpToken.tokenType == OtpTokenType.MOTP) {
-                        _otpToken.periodString = "10";
-                        _periodController.text = "10";
-                      } else if (_otpToken.tokenType == OtpTokenType.Yandex) {
-                        _otpToken.periodString = "30";
-                        _periodController.text = "30";
+                      _otpToken.digits = index.otpTokenType.defaultDigits;
+                      _digitsController.selectIndex(_otpToken.digits.index);
+                      _periodController.text = _otpToken.periodString =
+                          _otpToken.tokenType.defaultPeriod.toString();
+                      if (_otpToken.tokenType == OtpTokenType.Yandex) {
                         _otpToken.digits = OtpDigits.D8;
                         _otpToken.algorithm = OtpAlgorithm.SHA256;
-                      } else {
-                        _otpToken.periodString = "30";
-                        _periodController.text = "30";
                       }
                       resetState();
                       setState(() {});
@@ -413,7 +409,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                       leadingType: InputItemLeadingType.text,
                       tailingType: InputItemTailingType.password,
                       hint: S.current.tokenPinHint,
-                      maxLength: 4,
+                      maxLength: _otpToken.tokenType.maxPinLength,
                       bottomRadius: true,
                       stateController: _pinStateController,
                     ),

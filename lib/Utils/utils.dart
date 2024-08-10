@@ -434,6 +434,7 @@ class Utils {
               message: S.current.doesImmediateUpdate +
                   S.current.updateLogAsFollow(
                       "<br/>${Utils.replaceLineBreak(latestReleaseItem.body ?? "")}"),
+              messageTextAlign: TextAlign.start,
               confirmButtonText: S.current.immediatelyDownload,
               cancelButtonText: S.current.updateLater,
               onTapConfirm: () {

@@ -71,6 +71,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildHeader(),
+              const SizedBox(height: 10),
               _buildButtons(),
               _buildFooter(),
             ],
@@ -80,17 +81,6 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
     );
   }
 
-  _buildButtons() {
-    return categories.isNotEmpty
-        ? ItemBuilder.buildGroupButtons(
-            isRadio: false,
-            enableDeselect: true,
-            buttons: categories.map((e) => e.title).toList(),
-            controller: controller,
-          )
-        : ItemBuilder.buildEmptyPlaceholder(
-            context: context, text: S.current.noCategory);
-  }
 
   _buildHeader() {
     return Container(
@@ -104,6 +94,19 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
     );
   }
 
+  _buildButtons() {
+    return categories.isNotEmpty
+        ? ItemBuilder.buildGroupButtons(
+      isRadio: false,
+      enableDeselect: true,
+      buttons: categories.map((e) => e.title).toList(),
+      controller: controller,
+      radius: 8,
+    )
+        : ItemBuilder.buildEmptyPlaceholder(
+        context: context, text: S.current.noCategory);
+  }
+
   _buildFooter() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
@@ -112,39 +115,35 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Expanded(child: SizedBox(height: 50)),
-          const SizedBox(width: 20),
+          const Expanded(flex: 2, child: SizedBox(height: 50)),
           Expanded(
-            child: SizedBox(
-              height: 50,
-              child: ItemBuilder.buildRoundButton(
-                context,
-                background: Theme.of(context).primaryColor,
-                text: S.current.save,
-                onTap: () async {
-                  List<int> selectedIndexes =
-                      controller.selectedIndexes.toList();
-                  List<int> allSelectedCategoryIds =
-                      selectedIndexes.map((e) => categories[e].id).toList();
-                  List<int> unselectedCategoryIds = oldCategoryIds
-                      .where((element) =>
-                          !allSelectedCategoryIds.contains(element))
-                      .toList();
-                  List<int> newSelectedCategoryIds = allSelectedCategoryIds
-                      .where((element) => !oldCategoryIds.contains(element))
-                      .toList();
-                  await CategoryDao.updateCategoriesForToken(
-                    widget.token.id,
-                    unselectedCategoryIds,
-                    newSelectedCategoryIds,
-                    backup: true,
-                  );
-                  homeScreenState?.refresh();
-                  IToast.showTop(S.current.saveSuccess);
-                  Navigator.of(context).pop();
-                },
-                fontSizeDelta: 2,
-              ),
+            flex: 1,
+            child: ItemBuilder.buildRoundButton(
+              context,
+              background: Theme.of(context).primaryColor,
+              text: S.current.save,
+              onTap: () async {
+                List<int> selectedIndexes = controller.selectedIndexes.toList();
+                List<int> allSelectedCategoryIds =
+                    selectedIndexes.map((e) => categories[e].id).toList();
+                List<int> unselectedCategoryIds = oldCategoryIds
+                    .where(
+                        (element) => !allSelectedCategoryIds.contains(element))
+                    .toList();
+                List<int> newSelectedCategoryIds = allSelectedCategoryIds
+                    .where((element) => !oldCategoryIds.contains(element))
+                    .toList();
+                await CategoryDao.updateCategoriesForToken(
+                  widget.token.id,
+                  unselectedCategoryIds,
+                  newSelectedCategoryIds,
+                  backup: true,
+                );
+                homeScreenState?.refresh();
+                IToast.showTop(S.current.saveSuccess);
+                Navigator.of(context).pop();
+              },
+              fontSizeDelta: 2,
             ),
           ),
         ],

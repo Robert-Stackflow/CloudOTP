@@ -24,8 +24,7 @@ dependencies:
   flutter_layout_grid: ^2.0.7
   zxing2: ^0.2.3 # 二维码
   image: ^4.2.0 # 图片
-#  reorderable_tabbar:
-#    path: third-party/reorderable_tabbar
+  auto_size_text: ^3.0.0
   group_button:
     path: third-party/group_button
   context_menus:
@@ -70,6 +69,8 @@ dependencies:
   steam_totp: ^0.0.1
   base32: ^2.1.3
   tuple: ^2.0.0 # 元组
+  protobuf: ^3.1.0 # Protobuf
+  protoc_plugin: ^21.1.2  # Protobuf
   crypto: ^3.0.3 # 加密
   encrypt: ^5.0.3 # 加密
   flutter_native_splash: ^2.4.1 # Splash屏

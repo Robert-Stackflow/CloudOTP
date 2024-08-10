@@ -13,6 +13,7 @@ class DialogBuilder {
     String? title,
     String? message,
     String? imagePath,
+    TextAlign messageTextAlign = TextAlign.center,
     String? confirmButtonText,
     String? cancelButtonText,
     VoidCallback? onTapConfirm,
@@ -32,6 +33,7 @@ class DialogBuilder {
       CustomConfirmDialog.show(
         context,
         message: message ?? "",
+        messageTextAlign: messageTextAlign,
         imagePath: imagePath,
         title: title,
         color: color,
@@ -54,6 +56,7 @@ class DialogBuilder {
         message: message ?? "",
         imagePath: imagePath,
         title: title,
+        messageTextAlign: messageTextAlign,
         color: color,
         textColor: textColor,
         buttonTextColor: buttonTextColor,

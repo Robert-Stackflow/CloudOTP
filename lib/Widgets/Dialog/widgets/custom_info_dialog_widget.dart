@@ -1,11 +1,11 @@
 import 'package:cloudotp/Resources/theme.dart';
+import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Utils/asset_util.dart';
 import '../../../Utils/utils.dart';
 import '../colors.dart';
 import '../custom_dialog.dart';
-import '../widgets/custom_dialog_button.dart';
 
 class CustomInfoDialogWidget extends StatelessWidget {
   final String? title;
@@ -21,6 +21,7 @@ class CustomInfoDialogWidget extends StatelessWidget {
   final Color? buttonTextColor;
   final EdgeInsets? padding;
   final EdgeInsets? margin;
+  final TextAlign? messageTextAlign;
 
   /// If you don't want any icon or image, you toggle it to true.
   final bool noImage;
@@ -44,11 +45,12 @@ class CustomInfoDialogWidget extends StatelessWidget {
     this.margin = const EdgeInsets.all(24),
     required this.noImage,
     this.align = Alignment.bottomCenter,
+    this.messageTextAlign = TextAlign.center,
   });
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    Theme.of(context);
     return Align(
       alignment: align,
       child: Material(
@@ -104,24 +106,31 @@ class CustomInfoDialogWidget extends StatelessWidget {
                     height: 1.5,
                     fontSize: 15,
                   ),
-                  textAlign: TextAlign.start,
+                  textAlign: messageTextAlign,
                 ),
               if (messageChild != null) messageChild!,
               const SizedBox(height: 15),
-              CustomDialogButton(
-                buttonTextColor: buttonTextColor ?? Colors.white,
-                text: buttonText,
-                onTap: () {
-                  onTapDismiss.call();
-                  Navigator.pop(context);
-                },
-                bgColor: CustomDialogColors.getBgColor(
-                  context,
-                  customDialogType,
-                  color ?? Theme.of(context).primaryColor,
-                ),
-                isOutlined: false,
-              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ItemBuilder.buildRoundButton(
+                      context,
+                      color: buttonTextColor ?? Colors.white,
+                      text: buttonText,
+                      fontSizeDelta: 2,
+                      onTap: () {
+                        onTapDismiss.call();
+                        Navigator.pop(context);
+                      },
+                      background: CustomDialogColors.getBgColor(
+                        context,
+                        customDialogType,
+                        color ?? Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              )
             ],
           ),
         ),

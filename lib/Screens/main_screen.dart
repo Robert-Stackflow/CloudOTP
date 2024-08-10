@@ -23,7 +23,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -391,7 +390,7 @@ class MainScreenState extends State<MainScreen>
             if (result == null) return;
             File file = File(result.files.single.path!);
             Uint8List? imageBytes = file.readAsBytesSync();
-            analyzeImage(imageBytes);
+            ImportTokenUtil.analyzeImage(imageBytes);
           },
         ),
         ContextMenuButtonConfig(
@@ -401,7 +400,7 @@ class MainScreenState extends State<MainScreen>
                 .readImageFromClipboard()
                 .then((value) {
               if (value != null) {
-                analyzeImage(value);
+                ImportTokenUtil.analyzeImage(value);
               } else {
                 IToast.showTop(S.current.clipboardNoImage);
               }
@@ -442,42 +441,10 @@ class MainScreenState extends State<MainScreen>
         imagePath: imagePath,
         silent: true,
       );
-      await analyzeImage(capturedData?.imageBytes);
+      await ImportTokenUtil.analyzeImage(capturedData?.imageBytes);
       File file = File(imagePath);
       if (file.existsSync()) file.delete();
     } finally {}
-  }
-
-  analyzeImage(Uint8List? imageBytes) async {
-    if (imageBytes == null || imageBytes.isEmpty) {
-      IToast.showTop(S.current.noQrCode);
-      return;
-    }
-    try {
-      img.Image image = img.decodeImage(imageBytes)!;
-      LuminanceSource source = RGBLuminanceSource(
-          image.width,
-          image.height,
-          image
-              .convert(numChannels: 4)
-              .getBytes(order: img.ChannelOrder.abgr)
-              .buffer
-              .asInt32List());
-      var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
-      var reader = QRCodeReader();
-      var result = reader.decode(bitmap);
-      if (Utils.isNotEmpty(result.text)) {
-        await ImportTokenUtil.parseData([result.text]);
-      } else {
-        IToast.showTop(S.current.noQrCode);
-      }
-    } catch (e) {
-      if (e.runtimeType == NotFoundException) {
-        IToast.showTop(S.current.noQrCode);
-      } else {
-        IToast.showTop(S.current.parseQrCodeWrong);
-      }
-    }
   }
 
   _sideBar() {
@@ -731,7 +698,7 @@ class MainScreenState extends State<MainScreen>
                             ),
                       const SizedBox(width: 3),
                       CloseWindowButton(
-                        colors: MyColors.getNormalButtonColors(context),
+                        colors: MyColors.getCloseButtonColors(context),
                         borderRadius: BorderRadius.circular(8),
                         onPressed: () {
                           if (HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {

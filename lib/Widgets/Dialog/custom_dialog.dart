@@ -355,6 +355,7 @@ class CustomConfirmDialog {
     String? title,
     required String message,
     String? imagePath,
+    TextAlign messageTextAlign = TextAlign.center,
     required String confirmButtonText,
     required String cancelButtonText,
     required VoidCallback onTapConfirm,
@@ -376,6 +377,7 @@ class CustomConfirmDialog {
           noImage: noImage,
           title: title,
           message: message,
+          messageTextAlign: messageTextAlign,
           confirmButtonText: confirmButtonText,
           cancelButtonText: cancelButtonText,
           onTapConfirm: onTapConfirm,
@@ -397,6 +399,7 @@ class CustomConfirmDialog {
     required String message,
     String? imagePath,
     required String confirmButtonText,
+    TextAlign messageTextAlign = TextAlign.center,
     required String cancelButtonText,
     required VoidCallback onTapConfirm,
     required VoidCallback onTapCancel,
@@ -430,6 +433,7 @@ class CustomConfirmDialog {
           confirmButtonText: confirmButtonText,
           cancelButtonText: cancelButtonText,
           onTapConfirm: onTapConfirm,
+          messageTextAlign: messageTextAlign,
           onTapCancel: onTapCancel,
           customDialogType: customDialogType,
           color: color,
@@ -450,6 +454,7 @@ class CustomConfirmDialog {
     String? imagePath,
     required String confirmButtonText,
     required String cancelButtonText,
+    TextAlign messageTextAlign = TextAlign.center,
     required VoidCallback onTapConfirm,
     required VoidCallback onTapCancel,
     required CustomDialogType customDialogType,
@@ -488,6 +493,7 @@ class CustomConfirmDialog {
           textColor: textColor,
           buttonTextColor: buttonTextColor,
           imagePath: imagePath,
+          messageTextAlign: messageTextAlign,
           margin: margin,
           padding: padding,
           noImage: noImage,
@@ -499,6 +505,7 @@ class CustomConfirmDialog {
     BuildContext context, {
     String? title,
     required String message,
+    TextAlign messageTextAlign = TextAlign.center,
     String? imagePath,
     required String confirmButtonText,
     required String cancelButtonText,
@@ -540,6 +547,7 @@ class CustomConfirmDialog {
           textColor: textColor,
           buttonTextColor: buttonTextColor,
           imagePath: imagePath,
+          messageTextAlign: messageTextAlign,
           margin: margin,
           padding: padding,
           noImage: noImage,
@@ -553,6 +561,7 @@ class CustomConfirmDialog {
     required String message,
     String? imagePath,
     required String confirmButtonText,
+    TextAlign messageTextAlign = TextAlign.center,
     required String cancelButtonText,
     required VoidCallback onTapConfirm,
     required VoidCallback onTapCancel,
@@ -592,6 +601,7 @@ class CustomConfirmDialog {
           textColor: textColor,
           buttonTextColor: buttonTextColor,
           imagePath: imagePath,
+          messageTextAlign: messageTextAlign,
           margin: margin,
           padding: padding,
           noImage: noImage,
@@ -605,6 +615,7 @@ class CustomConfirmDialog {
     required String message,
     String? imagePath,
     required String confirmButtonText,
+    TextAlign messageTextAlign = TextAlign.center,
     required String cancelButtonText,
     required VoidCallback onTapConfirm,
     required VoidCallback onTapCancel,
@@ -636,6 +647,7 @@ class CustomConfirmDialog {
           title: title,
           message: message,
           confirmButtonText: confirmButtonText,
+          messageTextAlign: messageTextAlign,
           cancelButtonText: cancelButtonText,
           onTapConfirm: onTapConfirm,
           onTapCancel: onTapCancel,
@@ -658,6 +670,7 @@ class CustomConfirmDialog {
     String? imagePath,
     required String confirmButtonText,
     required String cancelButtonText,
+    TextAlign messageTextAlign = TextAlign.center,
     required VoidCallback onTapConfirm,
     required VoidCallback onTapCancel,
     required CustomDialogType customDialogType,
@@ -687,6 +700,7 @@ class CustomConfirmDialog {
             CustomConfirmDialogWidget(
           title: title,
           message: message,
+          messageTextAlign: messageTextAlign,
           confirmButtonText: confirmButtonText,
           cancelButtonText: cancelButtonText,
           onTapConfirm: onTapConfirm,
@@ -719,14 +733,13 @@ class CustomLoadingDialog {
           dismissible: dismissible,
           title: title,
           size: size,
-          scale:scale,
+          scale: scale,
         );
       },
     );
   }
 
   static Future<void> dismissLoading() async {
-    return Future.sync(
-        () => Navigator.pop(rootContext));
+    return Future.sync(() => Navigator.pop(rootContext));
   }
 }
