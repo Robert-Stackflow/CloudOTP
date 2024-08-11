@@ -121,7 +121,7 @@ class _CategoryScreenState extends State<CategoryScreen>
       child: categories.isEmpty
           ? ListView(
               padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveUtil.isLandscape() ? 20 : 16,
+                  horizontal: ResponsiveUtil.isLandscape() ? 20 : 10,
                   vertical: 10),
               children: [
                 ItemBuilder.buildEmptyPlaceholder(
@@ -168,7 +168,7 @@ class _CategoryScreenState extends State<CategoryScreen>
   _buildCategoryItem(TokenCategory category) {
     return Container(
       key: ValueKey("${category.id}${category.title}"),
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).canvasColor,

@@ -27,7 +27,6 @@ import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zxing2/qrcode.dart';
 
 import '../Resources/fonts.dart';
 import '../TokenUtils/import_token_util.dart';
@@ -231,16 +230,18 @@ class MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return PopScope(
-      canPop: !appProvider.canPopByProvider,
-      onPopInvoked: (_) {
-        if (canPopByKey) {
-          desktopNavigatorState?.pop();
-        }
-        appProvider.canPopByProvider = canPopByKey;
-      },
-      child: _buildBodyByPlatform(),
-    );
+    return ResponsiveUtil.isLandscape()
+        ? PopScope(
+            canPop: !appProvider.canPopByProvider,
+            onPopInvoked: (_) {
+              if (canPopByKey) {
+                desktopNavigatorState?.pop();
+              }
+              appProvider.canPopByProvider = canPopByKey;
+            },
+            child: _buildBodyByPlatform(),
+          )
+        : _buildBodyByPlatform();
   }
 
   _buildBodyByPlatform() {
@@ -390,7 +391,7 @@ class MainScreenState extends State<MainScreen>
             if (result == null) return;
             File file = File(result.files.single.path!);
             Uint8List? imageBytes = file.readAsBytesSync();
-            ImportTokenUtil.analyzeImage(imageBytes);
+            ImportTokenUtil.analyzeImage(imageBytes, context: context);
           },
         ),
         ContextMenuButtonConfig(
@@ -400,7 +401,7 @@ class MainScreenState extends State<MainScreen>
                 .readImageFromClipboard()
                 .then((value) {
               if (value != null) {
-                ImportTokenUtil.analyzeImage(value);
+                ImportTokenUtil.analyzeImage(value, context: context);
               } else {
                 IToast.showTop(S.current.clipboardNoImage);
               }
@@ -441,7 +442,8 @@ class MainScreenState extends State<MainScreen>
         imagePath: imagePath,
         silent: true,
       );
-      await ImportTokenUtil.analyzeImage(capturedData?.imageBytes);
+      await ImportTokenUtil.analyzeImage(capturedData?.imageBytes,
+          context: context);
       File file = File(imagePath);
       if (file.existsSync()) file.delete();
     } finally {}

@@ -409,6 +409,7 @@
   "deleteCategoryHint": "确认删除分类「{category}」？删除分类后，分类内的令牌不会被删除",
   "deleteCategorySuccess": "分类「{category}」删除成功",
   "addToken": "添加令牌",
+  "addTokenByManual": "手动输入密钥",
   "saveSuccess": "保存成功",
   "saveFailed": "保存失败",
   "tokenType": "类型",

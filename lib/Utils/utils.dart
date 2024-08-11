@@ -245,8 +245,9 @@ class Utils {
   static void copy(
     BuildContext context,
     dynamic data, {
-    String? toastText = "已复制到剪贴板",
+    String? toastText,
   }) {
+    toastText ??= S.current.copySuccess;
     Clipboard.setData(ClipboardData(text: data.toString())).then((value) {
       if (Utils.isNotEmpty(toastText)) {
         IToast.showTop(toastText ?? "");

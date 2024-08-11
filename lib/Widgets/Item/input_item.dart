@@ -342,7 +342,7 @@ class InputItemState extends State<InputItem> {
                       ),
                       if (maxLength != null && maxLength! > 0)
                         Text(
-                          '${controller.text.length}/$maxLength',
+                          '${controller.text.characters.length}/$maxLength',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       const SizedBox(width: 5),

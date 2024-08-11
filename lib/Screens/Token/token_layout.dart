@@ -4,9 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
-import 'package:cloudotp/TokenUtils/Otp/mobile_otp.dart';
-import 'package:cloudotp/TokenUtils/Otp/steam_totp.dart';
-import 'package:cloudotp/TokenUtils/Otp/yandex_otp.dart';
+import 'package:cloudotp/TokenUtils/code_generator.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -18,11 +16,11 @@ import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
-import 'package:otp/otp.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
+import '../../Utils/constant.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
@@ -48,8 +46,6 @@ class TokenLayoutState extends State<TokenLayout>
     with TickerProviderStateMixin {
   bool _showCode = !HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
   Timer? _timer;
-  final double _autoCopyNextCodeProgressThrehold = 0.25;
-  final String placeholderText = "*";
 
   int get remainingMilliseconds => widget.token.period == 0
       ? 0
@@ -98,90 +94,11 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   String getCurrentCode() {
-    late String code;
-    switch (widget.token.tokenType) {
-      case OtpTokenType.TOTP:
-        code = OTP.generateTOTPCodeString(
-          widget.token.secret,
-          DateTime.now().millisecondsSinceEpoch,
-          length: widget.token.digits.digit,
-          interval: widget.token.period,
-          algorithm: widget.token.algorithm.algorithm,
-          isGoogle: true,
-        );
-        break;
-      case OtpTokenType.HOTP:
-        code = OTP.generateHOTPCodeString(
-          widget.token.secret,
-          widget.token.counter,
-          length: widget.token.digits.digit,
-          algorithm: widget.token.algorithm.algorithm,
-          isGoogle: true,
-        );
-        break;
-      case OtpTokenType.MOTP:
-        code = MOTP(
-          secret: widget.token.secret,
-          pin: widget.token.pin,
-          period: widget.token.period,
-          digits: widget.token.digits.digit,
-        ).generate();
-        break;
-      case OtpTokenType.Steam:
-        code = SteamTOTP(secret: widget.token.secret).generate();
-        break;
-      case OtpTokenType.Yandex:
-        code = YandexOTP(
-          pin: widget.token.pin,
-          secret: widget.token.secret,
-        ).generate();
-        break;
-    }
-    return code;
+    return CodeGenerator.getCurrentCode(widget.token);
   }
 
   getNextCode() {
-    late String code;
-    switch (widget.token.tokenType) {
-      case OtpTokenType.TOTP:
-        code = OTP.generateTOTPCodeString(
-          widget.token.secret,
-          DateTime.now().millisecondsSinceEpoch + widget.token.period * 1000,
-          length: widget.token.digits.digit,
-          interval: widget.token.period,
-          algorithm: widget.token.algorithm.algorithm,
-          isGoogle: true,
-        );
-        break;
-      case OtpTokenType.HOTP:
-        code = OTP.generateHOTPCodeString(
-          widget.token.secret,
-          widget.token.counter + 1,
-          length: widget.token.digits.digit,
-          algorithm: widget.token.algorithm.algorithm,
-          isGoogle: true,
-        );
-        break;
-      case OtpTokenType.MOTP:
-        code = MOTP(
-          secret: widget.token.secret,
-          pin: widget.token.pin,
-          period: widget.token.period,
-          digits: widget.token.digits.digit,
-        ).generate(deltaMilliseconds: widget.token.period * 1000);
-        break;
-      case OtpTokenType.Steam:
-        code = SteamTOTP(secret: widget.token.secret)
-            .generate(deltaMilliseconds: widget.token.period * 1000);
-        break;
-      case OtpTokenType.Yandex:
-        code = YandexOTP(
-          pin: widget.token.pin,
-          secret: widget.token.secret,
-        ).generate(deltaMilliseconds: widget.token.period * 1000);
-        break;
-    }
-    return code;
+    return CodeGenerator.getNextCode(widget.token);
   }
 
   _buildContextMenuButtons() {
@@ -222,10 +139,6 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
-  getTitle() {
-    return "${widget.token.issuer}:${widget.token.account}";
-  }
-
   _buildBody() {
     switch (widget.layoutType) {
       case LayoutType.Simple:
@@ -239,24 +152,16 @@ class TokenLayoutState extends State<TokenLayout>
 
   showContextMenu() {
     if (ResponsiveUtil.isLandscape()) {
-      context.contextMenuOverlay.show(_buildContextMenuButtons());
+      BottomSheetBuilder.showBottomSheet(
+        context,
+        responsive: true,
+        (context) => TokenOptionBottomSheet(token: widget.token),
+      );
     } else {
       BottomSheetBuilder.showBottomSheet(
         context,
-        responsive: false,
-        (context) => TokenOptionBottomSheet(
-          isPinned: widget.token.pinned,
-          nextCode: getNextCode(),
-          onCopyTokenCode: _processCopyCode,
-          onPinOrUnPinToken: _processPin,
-          onEditToken: _processEdit,
-          onEditTokenIcon: _processEditIcon,
-          onEditTokenCategory: _processEditCategory,
-          onDeleteToken: _processDelete,
-          onCopyNextTokenCode: _processCopyNextCode,
-          onViewTokenQrCode: _processViewQrCode,
-          onCopyTokenUri: _processCopyUri,
-        ),
+        responsive: true,
+        (context) => TokenOptionBottomSheet(token: widget.token),
       );
     }
   }
@@ -280,8 +185,8 @@ class TokenLayoutState extends State<TokenLayout>
     TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
     IToast.showTop(
       widget.token.pinned
-          ? S.current.alreadyUnPinnedToken(getTitle())
-          : S.current.alreadyPinnedToken(getTitle()),
+          ? S.current.alreadyUnPinnedToken(widget.token.title)
+          : S.current.alreadyPinnedToken(widget.token.title),
     );
     homeScreenState?.refresh();
   }
@@ -310,7 +215,7 @@ class TokenLayoutState extends State<TokenLayout>
   _processViewQrCode() {
     DialogBuilder.showInfoDialog(
       context,
-      title: getTitle(),
+      title: widget.token.title,
       onTapDismiss: () {},
       messageChild: Container(
         padding: const EdgeInsets.all(20),
@@ -342,11 +247,11 @@ class TokenLayoutState extends State<TokenLayout>
   _processDelete() {
     DialogBuilder.showConfirmDialog(
       context,
-      title: S.current.deleteTokenTitle(getTitle()),
-      message: S.current.deleteTokenMessage(getTitle()),
+      title: S.current.deleteTokenTitle(widget.token.title),
+      message: S.current.deleteTokenMessage(widget.token.title),
       onTapConfirm: () async {
         await TokenDao.deleteToken(widget.token);
-        IToast.showTop(S.current.deleteTokenSuccess(getTitle()));
+        IToast.showTop(S.current.deleteTokenSuccess(widget.token.title));
         homeScreenState?.refresh();
       },
       onTapCancel: () {},
@@ -369,7 +274,7 @@ class TokenLayoutState extends State<TokenLayout>
             });
             if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
               if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-                  currentProgress < _autoCopyNextCodeProgressThrehold) {
+                  currentProgress < autoCopyNextCodeProgressThrehold) {
                 Utils.copy(context, getNextCode(),
                     toastText: S.current.alreadyCopiedNextCode);
                 TokenDao.incTokenCopyTimes(widget.token);
@@ -425,7 +330,7 @@ class TokenLayoutState extends State<TokenLayout>
                         value: currentProgress,
                         minHeight: 1,
                         color:
-                            currentProgress > _autoCopyNextCodeProgressThrehold
+                            currentProgress > autoCopyNextCodeProgressThrehold
                                 ? Theme.of(context).primaryColor
                                 : Colors.red,
                         borderRadius: BorderRadius.circular(5),
@@ -455,7 +360,7 @@ class TokenLayoutState extends State<TokenLayout>
             });
             if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
               if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-                  currentProgress < _autoCopyNextCodeProgressThrehold) {
+                  currentProgress < autoCopyNextCodeProgressThrehold) {
                 _processCopyNextCode();
               } else {
                 _processCopyCode();
@@ -536,7 +441,7 @@ class TokenLayoutState extends State<TokenLayout>
                         value: currentProgress,
                         minHeight: 1,
                         color:
-                            currentProgress > _autoCopyNextCodeProgressThrehold
+                            currentProgress > autoCopyNextCodeProgressThrehold
                                 ? Theme.of(context).primaryColor
                                 : Colors.red,
                         borderRadius: BorderRadius.circular(5),
@@ -566,7 +471,7 @@ class TokenLayoutState extends State<TokenLayout>
             });
             if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
               if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-                  currentProgress < _autoCopyNextCodeProgressThrehold) {
+                  currentProgress < autoCopyNextCodeProgressThrehold) {
                 Utils.copy(context, getNextCode(),
                     toastText: S.current.alreadyCopiedNextCode);
                 TokenDao.incTokenCopyTimes(widget.token);
@@ -680,7 +585,7 @@ class TokenLayoutState extends State<TokenLayout>
                         value: currentProgress,
                         minHeight: 1,
                         color:
-                            currentProgress > _autoCopyNextCodeProgressThrehold
+                            currentProgress > autoCopyNextCodeProgressThrehold
                                 ? Theme.of(context).primaryColor
                                 : Colors.red,
                         borderRadius: BorderRadius.circular(5),

@@ -264,6 +264,7 @@ class ItemBuilder {
     bool disabled = false,
     bool isRadio = true,
     double? radius,
+    bool constraintWidth = true,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return GroupButton(
@@ -279,20 +280,20 @@ class ItemBuilder {
       buttons: buttons,
       buttonBuilder: (selected, label, context, onTap, disabled) {
         return SizedBox(
-          width: 80,
+          width: constraintWidth ? 80 : null,
           child: ItemBuilder.buildRoundButton(
             context,
             text: label,
             onTap: onTap,
             radius: radius ?? 50,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
             background: selected
                 ? disabled
                     ? Theme.of(context).primaryColor.withAlpha(80)
                     : Theme.of(context).primaryColor
                 : null,
             textStyle: Theme.of(context).textTheme.titleSmall?.apply(
-                fontSizeDelta: 1, color: selected ? Colors.white : null),
+                fontSizeDelta: 2, color: selected ? Colors.white : null),
           ),
         );
       },
@@ -712,13 +713,17 @@ class ItemBuilder {
                     isCaption || tip.isEmpty
                         ? Container()
                         : const SizedBox(width: 30),
-                    Text(
-                      tip,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.apply(fontSizeDelta: 1),
-                      maxLines: 1,
+                    Container(
+                      constraints: BoxConstraints(
+                          maxWidth: description.isNotEmpty ? 80 : 120),
+                      child: Text(
+                        tip,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelSmall
+                            ?.apply(fontSizeDelta: 1),
+                      ),
                     ),
                     SizedBox(width: showTrailing ? trailingLeftMargin : 0),
                     Visibility(
@@ -1455,7 +1460,9 @@ class ItemBuilder {
               children: [
                 if (icon != null) icon,
                 if (icon != null) const SizedBox(width: 5),
-                align ? Expanded(flex: 100, child: titleWidget) : titleWidget,
+                align
+                    ? Expanded(flex: 100, child: titleWidget)
+                    : Flexible(child: titleWidget),
                 if (align)
                   const Spacer(
                     flex: 1,

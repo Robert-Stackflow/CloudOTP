@@ -385,7 +385,7 @@ class KeyboardWidgetState extends State<KeyboardWidget> {
           ),
           width: MediaQuery.sizeOf(context).width,
           height: MediaQuery.sizeOf(context).height,
-          decoration: const BoxDecoration(color: Colors.black26),
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.35)),
           child: Material(
             color: Colors.transparent,
             child: Center(

@@ -99,6 +99,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
         ? ItemBuilder.buildGroupButtons(
       isRadio: false,
       enableDeselect: true,
+      constraintWidth: false,
       buttons: categories.map((e) => e.title).toList(),
       controller: controller,
       radius: 8,

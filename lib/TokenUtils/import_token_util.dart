@@ -16,6 +16,8 @@ import '../Database/category_dao.dart';
 import '../Database/config_dao.dart';
 import '../Models/category.dart';
 import '../Utils/utils.dart';
+import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import '../generated/l10n.dart';
 import 'Backup/backup.dart';
 import 'Backup/backup_encrypt_interface.dart';
@@ -70,11 +72,12 @@ RegExp otpauthReg = RegExp(r"^otpauth://([a-z]+)/([^?]*)(.*)$");
 RegExp motpReg = RegExp(r"^motp://([^?]+)\?secret=([a-fA-F\d]+)(.*)$");
 
 class ImportTokenUtil {
-  static parseRawUri(
+  static Future<List<OtpToken>> parseRawUri(
     List<String> rawUris, {
     bool autoPopup = true,
     BuildContext? context,
   }) async {
+    List<OtpToken> tokens = [];
     List<String> validUris = [];
     for (String line in rawUris) {
       Uri? uri = Uri.tryParse(line);
@@ -86,7 +89,7 @@ class ImportTokenUtil {
       }
     }
     if (validUris.isNotEmpty) {
-      await ImportTokenUtil.importText(
+      tokens = await ImportTokenUtil.importText(
         validUris.join("\n"),
         noTokenToast: S.current.imageDoesNotContainToken,
       );
@@ -96,12 +99,17 @@ class ImportTokenUtil {
     } else {
       IToast.showTop(S.current.noQrCodeToken);
     }
+    return tokens;
   }
 
-  static analyzeImage(Uint8List? imageBytes) async {
+  static Future<List<OtpToken>> analyzeImage(
+    Uint8List? imageBytes, {
+    required BuildContext context,
+  }) async {
+    List<OtpToken> tokens = [];
     if (imageBytes == null || imageBytes.isEmpty) {
       IToast.showTop(S.current.noQrCode);
-      return;
+      return [];
     }
     try {
       img.Image image = img.decodeImage(imageBytes)!;
@@ -117,7 +125,7 @@ class ImportTokenUtil {
       var reader = QRCodeReader();
       var result = reader.decode(bitmap);
       if (Utils.isNotEmpty(result.text)) {
-        await ImportTokenUtil.parseRawUri([result.text]);
+        tokens = await ImportTokenUtil.parseRawUri([result.text]);
       } else {
         IToast.showTop(S.current.noQrCode);
       }
@@ -128,6 +136,17 @@ class ImportTokenUtil {
         IToast.showTop(S.current.parseQrCodeWrong);
       }
     }
+    if (tokens.length == 1) {
+      BottomSheetBuilder.showBottomSheet(
+        context,
+        responsive: true,
+        (context) => TokenOptionBottomSheet(
+          token: tokens.first,
+          forceShowCode: true,
+        ),
+      );
+    }
+    return tokens;
   }
 
   static importUriFile(
@@ -289,7 +308,7 @@ class ImportTokenUtil {
     return true;
   }
 
-  static importText(
+  static Future<List<OtpToken>> importText(
     String content, {
     String emptyTip = "",
     String noTokenToast = "",
@@ -297,7 +316,7 @@ class ImportTokenUtil {
   }) async {
     if (Utils.isEmpty(content) && Utils.isNotEmpty(emptyTip)) {
       IToast.showTop(emptyTip);
-      return;
+      return [];
     }
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.importing);
@@ -319,6 +338,7 @@ class ImportTokenUtil {
       CustomLoadingDialog.dismissLoading();
     }
     analysis.showToast(noTokenToast);
+    return tokens;
   }
 
   static bool contain(OtpToken token, List<OtpToken> tokenList) {

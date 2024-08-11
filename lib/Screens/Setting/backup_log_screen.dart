@@ -175,7 +175,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                 }
               : null,
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(ResponsiveUtil.isLandscape() ? 8 : 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -187,7 +187,9 @@ class BackupLogItemState extends State<BackupLogItem> {
                   children: [
                     Text(
                       widget.log.triggerType.label,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.apply(
+                            fontSizeDelta: ResponsiveUtil.isLandscape() ? 0 : 1,
+                          ),
                     ),
                     const Spacer(),
                     ItemBuilder.buildRoundButton(
@@ -196,10 +198,9 @@ class BackupLogItemState extends State<BackupLogItem> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 4, vertical: 2),
                       text: widget.log.lastStatus.labelShort,
-                      textStyle: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.apply(color: Colors.white),
+                      textStyle: Theme.of(context).textTheme.labelSmall?.apply(
+                          color: Colors.white,
+                          fontSizeDelta: ResponsiveUtil.isLandscape() ? 0 : 1),
                       background: widget.log.lastStatus.color,
                     ),
                     const SizedBox(width: 5),
@@ -233,7 +234,10 @@ class BackupLogItemState extends State<BackupLogItem> {
   _buildList() {
     return ItemBuilder.buildHtmlWidget(
       context,
-      textStyle: Theme.of(context).textTheme.labelSmall,
+      textStyle: Theme.of(context)
+          .textTheme
+          .labelSmall
+          ?.apply(fontSizeDelta: ResponsiveUtil.isLandscape() ? 0 : 1),
       List.generate(
         widget.log.status.length,
         (i) {

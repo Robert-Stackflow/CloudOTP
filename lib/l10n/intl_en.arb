@@ -401,6 +401,7 @@
   "deleteCategoryHint": "Are you sure you want to delete the category {category}? After deleting a category, the tokens in the category will not be deleted",
   "deleteCategorySuccess": "Category {category} deleted successfully",
   "addToken": "Add token",
+  "addTokenByManual": "Add token manually",
   "saveSuccess": "Save successfully",
   "saveFailed": "Save failed",
   "tokenType": "Type",

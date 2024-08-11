@@ -17,6 +17,9 @@ const defaultWindowSize = Size(1120, 740);
 
 const minimumSize = Size(700, 540);
 
+const double autoCopyNextCodeProgressThrehold = 0.25;
+const String placeholderText = "*";
+
 String shareAppText = S.current.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";
 String feedbackSubject = S.current.feedbackSubject;

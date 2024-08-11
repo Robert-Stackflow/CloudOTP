@@ -41,7 +41,6 @@ class HiveUtil {
   static const String inappWebviewKey = "inappWebview";
 
   static const String clickToCopyKey = "clickToCopy";
-  static const String autoDisplayNextCodeKey = "autoDisplayNextCode";
   static const String autoCopyNextCodeKey = "autoCopyNextCode";
   static const String autoHideCodeKey = "autoHideCode";
   static const String defaultHideCodeKey = "defaultHideCode";

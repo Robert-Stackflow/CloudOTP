@@ -308,6 +308,10 @@ class OtpToken {
 
   int get period => int.tryParse(periodString) ?? 30;
 
+  String get title {
+    return "$issuer - $account";
+  }
+
   OtpToken({
     required this.id,
     required this.seq,

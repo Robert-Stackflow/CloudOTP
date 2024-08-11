@@ -255,7 +255,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           : PopScope(
               canPop: _currentMarqueeIndex == 0,
               onPopInvoked: (_) {
-                if (isSearchBarShown) {
+                if (mounted && isSearchBarShown) {
                   changeSearchBar(false);
                 }
               },
@@ -340,12 +340,19 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               if (index == 0) {
                 return Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    appName,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium!
-                        .apply(fontWeightDelta: 2),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (!isSearchBarShown) {
+                        changeSearchBar(true);
+                      }
+                    },
+                    child: Text(
+                      appName,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium!
+                          .apply(fontWeightDelta: 2),
+                    ),
                   ),
                 );
               } else {
@@ -413,15 +420,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   },
                 ),
                 const SizedBox(width: 5),
-                ItemBuilder.buildIconButton(
-                  context: context,
-                  icon: Icon(Icons.search_rounded,
-                      color: Theme.of(context).iconTheme.color),
-                  onTap: () {
-                    changeSearchBar(true);
-                  },
-                ),
-                const SizedBox(width: 5),
                 ItemBuilder.buildPopupMenuButton(
                   context: context,
                   icon: Icon(Icons.dashboard_outlined,
@@ -461,15 +459,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       context,
                       GenericContextMenu(
                         buttonConfigs: [
-                          ContextMenuButtonConfig(
-                            S.current.exportImport,
-                            icon: Icon(Icons.import_export_rounded,
-                                color: Theme.of(context).iconTheme.color),
-                            onPressed: () {
-                              RouteUtil.pushCupertinoRoute(
-                                  context, const ImportExportTokenScreen());
-                            },
-                          ),
                           ContextMenuButtonConfig(
                             S.current.category,
                             icon: Icon(Icons.category_outlined,

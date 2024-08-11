@@ -71,7 +71,7 @@ class CustomInfoDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromLeft(
             animation,
@@ -121,7 +121,7 @@ class CustomInfoDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromRight(
             animation,
@@ -171,7 +171,7 @@ class CustomInfoDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromTop(
             animation,
@@ -221,7 +221,7 @@ class CustomInfoDialog {
         context: context,
         barrierLabel: '',
         barrierColor: Colors.black.withOpacity(0.35),
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromBottom(
             animation,
@@ -271,7 +271,7 @@ class CustomInfoDialog {
         context: context,
         barrierLabel: '',
         barrierColor: Colors.black.withOpacity(0.35),
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.grow(
             animation,
@@ -321,7 +321,7 @@ class CustomInfoDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.shrink(
             animation,
@@ -418,7 +418,7 @@ class CustomConfirmDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromLeft(
             animation,
@@ -472,7 +472,7 @@ class CustomConfirmDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromRight(
             animation,
@@ -526,7 +526,7 @@ class CustomConfirmDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromTop(
             animation,
@@ -580,7 +580,7 @@ class CustomConfirmDialog {
         context: context,
         barrierLabel: '',
         barrierColor: Colors.black.withOpacity(0.35),
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.fromBottom(
             animation,
@@ -634,7 +634,7 @@ class CustomConfirmDialog {
         context: context,
         barrierColor: Colors.black.withOpacity(0.35),
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.grow(
             animation,
@@ -688,7 +688,7 @@ class CustomConfirmDialog {
         barrierColor: Colors.black.withOpacity(0.35),
         context: context,
         barrierLabel: '',
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 400),
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return CustomDialogAnimations.shrink(
             animation,

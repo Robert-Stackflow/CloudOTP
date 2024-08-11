@@ -81,7 +81,6 @@ class _SettingScreenState extends State<SettingScreen>
   String _cacheSize = "";
   bool inAppBrowser = HiveUtil.getBool(HiveUtil.inappWebviewKey);
   bool clipToCopy = HiveUtil.getBool(HiveUtil.clickToCopyKey);
-  bool autoDisplayNextCode = HiveUtil.getBool(HiveUtil.autoDisplayNextCodeKey);
   bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
   bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
   bool defaultHideCode = HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
@@ -119,8 +118,32 @@ class _SettingScreenState extends State<SettingScreen>
     return Container(
       color: Colors.transparent,
       child: Scaffold(
-        appBar: ItemBuilder.buildSimpleAppBar(
-            title: S.current.setting, context: context, transparent: true),
+        appBar: ResponsiveUtil.isLandscape()
+            ? ItemBuilder.buildSimpleAppBar(
+                title: S.current.setting,
+                context: context,
+                transparent: true,
+              )
+            : ItemBuilder.buildAppBar(
+                context: context,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                leading: Icons.arrow_back_rounded,
+                onLeadingTap: () {
+                  Navigator.pop(context);
+                },
+                title: Text(
+                  S.current.setting,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontWeightDelta: 2),
+                ),
+                center: true,
+                actions: [
+                  ItemBuilder.buildBlankIconButton(context),
+                  const SizedBox(width: 5),
+                ],
+              ),
         body: ListView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -225,18 +248,6 @@ class _SettingScreenState extends State<SettingScreen>
           setState(() {
             clipToCopy = !clipToCopy;
             HiveUtil.put(HiveUtil.clickToCopyKey, clipToCopy);
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: autoDisplayNextCode,
-        title: S.current.autoDisplayNextCode,
-        description: S.current.autoDisplayNextCodeTip,
-        onTap: () {
-          setState(() {
-            autoDisplayNextCode = !autoDisplayNextCode;
-            HiveUtil.put(HiveUtil.autoDisplayNextCodeKey, autoDisplayNextCode);
           });
         },
       ),
@@ -418,7 +429,7 @@ class _SettingScreenState extends State<SettingScreen>
         onTap: () {
           setState(() {
             _useBackupPasswordToExportImport =
-            !_useBackupPasswordToExportImport;
+                !_useBackupPasswordToExportImport;
             HiveUtil.put(HiveUtil.useBackupPasswordToExportImportKey,
                 _useBackupPasswordToExportImport);
           });
@@ -474,11 +485,11 @@ class _SettingScreenState extends State<SettingScreen>
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,
-                  (context) => InputBottomSheet(
+              (context) => InputBottomSheet(
                 title: S.current.maxBackupCount,
                 text: _maxBackupsCount.toString(),
                 message:
-                '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0], counts[1])}',
+                    '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0], counts[1])}',
                 hint: S.current.inputMaxBackupCount,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 preventPop: true,
