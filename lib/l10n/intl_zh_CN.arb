@@ -105,6 +105,8 @@
   "autoBackupPath": "本地备份位置",
   "backupLogs": "备份日志",
   "noBackupLogs": "暂无备份日志",
+  "haveNotSetBckupPassword": "尚未设置备份密码，无法备份",
+  "goToSetBackupPassword": "前往设置备份密码",
   "pendingBackup": "准备开始备份，将备份至{type}",
   "pendingBackupShort": "等待中",
   "encryptingBackupFile": "加密备份文件中...",

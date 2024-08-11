@@ -6,6 +6,7 @@ import 'package:group_button/group_button.dart';
 import '../../Database/token_dao.dart';
 import '../../Models/opt_token.dart';
 import '../../TokenUtils/token_image_util.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
 import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
@@ -118,7 +119,10 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
         context,
         radius: 8,
         align: true,
-        icon: AssetUtil.loadBrand(icons[index], width: 16, height: 16),
+        icon: ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: AssetUtil.loadBrand(icons[index], width: 20, height: 20),
+        ),
         text: icons[index].split(".")[0],
         onTap: () async {
           widget.token.imagePath = icons[index];
@@ -126,7 +130,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
           if (widget.doUpdate) {
             await TokenDao.updateToken(widget.token);
             IToast.showTop(S.current.saveSuccess);
-            // homeScreenState?.refresh();
+            homeScreenState?.refresh();
           }
           Navigator.of(context).pop();
         },

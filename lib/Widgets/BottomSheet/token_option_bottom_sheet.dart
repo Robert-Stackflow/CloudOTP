@@ -8,6 +8,7 @@ import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/WaterfallFlow/scroll_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 import '../../Database/token_dao.dart';
@@ -40,7 +41,10 @@ class TokenOptionBottomSheet extends StatefulWidget {
 }
 
 class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
-  bool _showCode = !HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
+  final ValueNotifier<double> _progressNotifier = ValueNotifier(1);
+  final ValueNotifier<String> _codeNotifier = ValueNotifier("");
+  final ValueNotifier<bool> _codeVisiableNotifier =
+      ValueNotifier(!HiveUtil.getBool(HiveUtil.defaultHideCodeKey));
   Timer? _timer;
 
   int get remainingMilliseconds => widget.token.period == 0
@@ -65,20 +69,19 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
 
   @override
   void initState() {
+    _codeNotifier.value = getCurrentCode();
     if (widget.forceShowCode != null) {
-      _showCode = widget.forceShowCode!;
+      _codeVisiableNotifier.value = widget.forceShowCode!;
     }
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (mounted) {
-        setState(() {});
-        getCurrentCode();
-        if (remainingMilliseconds <= 50 &&
-            HiveUtil.getBool(HiveUtil.autoHideCodeKey) &&
+        _progressNotifier.value = currentProgress;
+        _codeNotifier.value = getCurrentCode();
+        if (remainingMilliseconds <= 180 &&
+            appProvider.autoHideCode &&
             widget.forceShowCode != true) {
-          setState(() {
-            _showCode = false;
-          });
+          _codeVisiableNotifier.value = false;
         }
       }
     });
@@ -123,19 +126,31 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           ItemBuilder.buildClickItem(
             GestureDetector(
               onTap: () {
-                setState(() {
-                  _showCode = !_showCode;
-                });
+                _codeVisiableNotifier.value = !_codeVisiableNotifier.value;
+                HapticFeedback.lightImpact();
               },
-              child: AutoSizeText(
-                _showCode ? getCurrentCode() : "*" * widget.token.digits.digit,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 24,
-                      letterSpacing: 10,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                maxLines: 1,
+              child: ValueListenableBuilder(
+                valueListenable: _codeVisiableNotifier,
+                builder: (context, value, child) {
+                  return ValueListenableBuilder(
+                    valueListenable: _codeNotifier,
+                    builder: (context, value, child) {
+                      return AutoSizeText(
+                        _codeVisiableNotifier.value
+                            ? _codeNotifier.value
+                            : "*" * widget.token.digits.digit,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 24,
+                                  letterSpacing: 10,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                        maxLines: 1,
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ),
@@ -146,23 +161,34 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               height: 28,
               child: Stack(
                 children: [
-                  CircularProgressIndicator(
-                    value: currentProgress,
-                    color: currentProgress > autoCopyNextCodeProgressThrehold
-                        ? Theme.of(context).primaryColor
-                        : Colors.red,
-                    backgroundColor: Colors.grey.withOpacity(0.3),
+                  ValueListenableBuilder(
+                    valueListenable: _progressNotifier,
+                    builder: (context, value, child) {
+                      return CircularProgressIndicator(
+                        value: _progressNotifier.value,
+                        color: _progressNotifier.value >
+                                autoCopyNextCodeProgressThrehold
+                            ? Theme.of(context).primaryColor
+                            : Colors.red,
+                        backgroundColor: Colors.grey.withOpacity(0.3),
+                      );
+                    },
                   ),
                   Center(
-                    child: Text(
-                      (remainingMilliseconds / 1000).toStringAsFixed(0),
-                      style: Theme.of(context).textTheme.bodyMedium?.apply(
-                            color: currentProgress >
-                                    autoCopyNextCodeProgressThrehold
-                                ? Theme.of(context).primaryColor
-                                : Colors.red,
-                            fontWeightDelta: 2,
-                          ),
+                    child: ValueListenableBuilder(
+                      valueListenable: _progressNotifier,
+                      builder: (context, value, child) {
+                        return Text(
+                          (remainingMilliseconds / 1000).toStringAsFixed(0),
+                          style: Theme.of(context).textTheme.bodyMedium?.apply(
+                                color: currentProgress >
+                                        autoCopyNextCodeProgressThrehold
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.red,
+                                fontWeightDelta: 2,
+                              ),
+                        );
+                      },
                     ),
                   ),
                 ],

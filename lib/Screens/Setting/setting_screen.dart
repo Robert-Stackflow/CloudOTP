@@ -272,7 +272,7 @@ class _SettingScreenState extends State<SettingScreen>
         onTap: () {
           setState(() {
             autoHideCode = !autoHideCode;
-            HiveUtil.put(HiveUtil.autoHideCodeKey, autoHideCode);
+            appProvider.autoHideCode = autoHideCode;
           });
         },
       ),

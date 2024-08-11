@@ -44,8 +44,11 @@ class TokenLayout extends StatefulWidget {
 
 class TokenLayoutState extends State<TokenLayout>
     with TickerProviderStateMixin {
-  bool _showCode = !HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
   Timer? _timer;
+  final ValueNotifier<double> _progressNotifier = ValueNotifier(1);
+  final ValueNotifier<String> _codeNotifier = ValueNotifier("");
+  final ValueNotifier<bool> _codeVisiableNotifier =
+      ValueNotifier(!HiveUtil.getBool(HiveUtil.defaultHideCodeKey));
 
   int get remainingMilliseconds => widget.token.period == 0
       ? 0
@@ -74,18 +77,16 @@ class TokenLayoutState extends State<TokenLayout>
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (mounted) {
-        setState(() {});
-        getCurrentCode();
-        if (remainingMilliseconds <= 50 &&
-            HiveUtil.getBool(HiveUtil.autoHideCodeKey)) {
-          setState(() {
-            _showCode = false;
-          });
+        _progressNotifier.value = currentProgress;
+        _codeNotifier.value = getCurrentCode();
+        if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
+          _codeVisiableNotifier.value = false;
         }
       }
     });
+    _codeNotifier.value = getCurrentCode();
   }
 
   @override
@@ -268,22 +269,7 @@ class TokenLayoutState extends State<TokenLayout>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
-          onTap: () {
-            setState(() {
-              _showCode = true;
-            });
-            if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
-              if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-                  currentProgress < autoCopyNextCodeProgressThrehold) {
-                Utils.copy(context, getNextCode(),
-                    toastText: S.current.alreadyCopiedNextCode);
-                TokenDao.incTokenCopyTimes(widget.token);
-              } else {
-                Utils.copy(context, getCurrentCode());
-                TokenDao.incTokenCopyTimes(widget.token);
-              }
-            }
-          },
+          onTap: _processTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
             decoration: BoxDecoration(
@@ -311,31 +297,9 @@ class TokenLayoutState extends State<TokenLayout>
                   ],
                 ),
                 const SizedBox(height: 8),
-                AutoSizeText(
-                  _showCode
-                      ? getCurrentCode()
-                      : "*" * widget.token.digits.digit,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 24,
-                        letterSpacing: 10,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                  maxLines: 1,
-                ),
+                _buildCodeLayout(letterSpacing: 10),
                 const SizedBox(height: 8),
-                isHOTP
-                    ? const SizedBox(height: 1)
-                    : LinearProgressIndicator(
-                        value: currentProgress,
-                        minHeight: 1,
-                        color:
-                            currentProgress > autoCopyNextCodeProgressThrehold
-                                ? Theme.of(context).primaryColor
-                                : Colors.red,
-                        borderRadius: BorderRadius.circular(5),
-                        backgroundColor: Colors.grey.withOpacity(0.3),
-                      ),
+                isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
                 const SizedBox(height: 13),
               ],
             ),
@@ -343,6 +307,62 @@ class TokenLayoutState extends State<TokenLayout>
         ),
       ),
     );
+  }
+
+  _buildCodeLayout({
+    double letterSpacing = 5,
+  }) {
+    return ValueListenableBuilder(
+      valueListenable: _codeVisiableNotifier,
+      builder: (context, value, child) {
+        return ValueListenableBuilder(
+          valueListenable: _codeNotifier,
+          builder: (context, value, child) {
+            return AutoSizeText(
+              _codeVisiableNotifier.value
+                  ? _codeNotifier.value
+                  : "*" * widget.token.digits.digit,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 24,
+                    letterSpacing: letterSpacing,
+                    color: Theme.of(context).primaryColor,
+                  ),
+              maxLines: 1,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  _buildProgressBar() {
+    return ValueListenableBuilder(
+      valueListenable: _progressNotifier,
+      builder: (context, value, child) {
+        return LinearProgressIndicator(
+          value: _progressNotifier.value,
+          minHeight: 1,
+          color: _progressNotifier.value > autoCopyNextCodeProgressThrehold
+              ? Theme.of(context).primaryColor
+              : Colors.red,
+          borderRadius: BorderRadius.circular(5),
+          backgroundColor: Colors.grey.withOpacity(0.3),
+        );
+      },
+    );
+  }
+
+  _processTap() {
+    _codeVisiableNotifier.value = true;
+    if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
+      if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
+          currentProgress < autoCopyNextCodeProgressThrehold) {
+        _processCopyNextCode();
+      } else {
+        _processCopyCode();
+      }
+    }
   }
 
   _buildDetailLayout() {
@@ -354,19 +374,7 @@ class TokenLayoutState extends State<TokenLayout>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
-          onTap: () {
-            setState(() {
-              _showCode = true;
-            });
-            if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
-              if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-                  currentProgress < autoCopyNextCodeProgressThrehold) {
-                _processCopyNextCode();
-              } else {
-                _processCopyCode();
-              }
-            }
-          },
+          onTap: _processTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
             decoration: BoxDecoration(
@@ -408,21 +416,7 @@ class TokenLayoutState extends State<TokenLayout>
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: AutoSizeText(
-                        _showCode
-                            ? getCurrentCode()
-                            : placeholderText * widget.token.digits.digit,
-                        maxLines: 1,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 24,
-                                  letterSpacing: 5,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                      ),
-                    ),
+                    Expanded(child: _buildCodeLayout()),
                     ItemBuilder.buildIconButton(
                       context: context,
                       padding: const EdgeInsets.all(4),
@@ -435,18 +429,7 @@ class TokenLayoutState extends State<TokenLayout>
                     ),
                   ],
                 ),
-                isHOTP
-                    ? const SizedBox(height: 1)
-                    : LinearProgressIndicator(
-                        value: currentProgress,
-                        minHeight: 1,
-                        color:
-                            currentProgress > autoCopyNextCodeProgressThrehold
-                                ? Theme.of(context).primaryColor
-                                : Colors.red,
-                        borderRadius: BorderRadius.circular(5),
-                        backgroundColor: Colors.grey.withOpacity(0.3),
-                      ),
+                isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
                 const SizedBox(height: 13),
               ],
             ),
@@ -465,22 +448,7 @@ class TokenLayoutState extends State<TokenLayout>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
-          onTap: () {
-            setState(() {
-              _showCode = true;
-            });
-            if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
-              if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-                  currentProgress < autoCopyNextCodeProgressThrehold) {
-                Utils.copy(context, getNextCode(),
-                    toastText: S.current.alreadyCopiedNextCode);
-                TokenDao.incTokenCopyTimes(widget.token);
-              } else {
-                Utils.copy(context, getCurrentCode());
-                TokenDao.incTokenCopyTimes(widget.token);
-              }
-            }
-          },
+          onTap: _processTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
             decoration: BoxDecoration(
@@ -542,55 +510,9 @@ class TokenLayoutState extends State<TokenLayout>
                 const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: AutoSizeText(
-                        _showCode
-                            ? getCurrentCode()
-                            : placeholderText * widget.token.digits.digit,
-                        maxLines: 1,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 24,
-                                  letterSpacing: 5,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 3),
-                        child: Text(
-                          _showCode ? getNextCode() : "",
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 18,
-                                    letterSpacing: 5,
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .labelMedium
-                                        ?.color,
-                                  ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  children: [_buildCodeLayout()],
                 ),
-                isHOTP
-                    ? const SizedBox(height: 1)
-                    : LinearProgressIndicator(
-                        value: currentProgress,
-                        minHeight: 1,
-                        color:
-                            currentProgress > autoCopyNextCodeProgressThrehold
-                                ? Theme.of(context).primaryColor
-                                : Colors.red,
-                        borderRadius: BorderRadius.circular(5),
-                        backgroundColor: Colors.grey.withOpacity(0.3),
-                      ),
+                isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
                 const SizedBox(height: 13),
               ],
             ),

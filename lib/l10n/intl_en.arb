@@ -105,6 +105,8 @@
   "autoBackup": "Enable automatic backup",
   "backupLogs": "Backup logs",
   "noBackupLogs": "No backup logs",
+  "haveNotSetBckupPassword": "Backup password has not been set yet",
+  "goToSetBackupPassword": "Go to set backup password",
   "pendingBackup": "Prepare to start backup, back up to {type}",
   "pendingBackupShort": "Waiting",
   "encryptingBackupFile": "Encrypting backup file...",

@@ -2,13 +2,16 @@ import 'dart:math';
 
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Resources/theme.dart';
+import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 
+import '../../Database/config_dao.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 
@@ -20,6 +23,20 @@ class BackupLogScreen extends StatefulWidget {
 }
 
 class BackupLogScreenState extends State<BackupLogScreen> {
+  String _autoBackupPassword = "";
+
+  bool get canBackup => _autoBackupPassword.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    ConfigDao.getConfig().then((config) {
+      setState(() {
+        _autoBackupPassword = config.backupPassword;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveUtil.isLandscape()
@@ -41,16 +58,18 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                 Navigator.pop(context);
               },
               actions: [
-                ItemBuilder.buildIconButton(
-                  context: context,
-                  icon: Icon(
-                    Icons.cleaning_services_outlined,
-                    color: Theme.of(context).iconTheme.color,
-                    size: 20,
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  onTap: clear,
-                ),
+                canBackup && appProvider.autoBackupLogs.isNotEmpty
+                    ? ItemBuilder.buildIconButton(
+                        context: context,
+                        icon: Icon(
+                          Icons.cleaning_services_outlined,
+                          color: Theme.of(context).iconTheme.color,
+                          size: 20,
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        onTap: clear,
+                      )
+                    : ItemBuilder.buildBlankIconButton(context),
                 const SizedBox(width: 5),
               ],
             ),
@@ -104,22 +123,26 @@ class BackupLogScreenState extends State<BackupLogScreen> {
           Row(
             children: [
               const SizedBox(width: 5),
-              Text(
-                S.current.backupLogs,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.apply(fontWeightDelta: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  S.current.backupLogs,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontWeightDelta: 2),
+                ),
               ),
               const Spacer(),
-              ItemBuilder.buildIconButton(
-                context: context,
-                icon: const Icon(
-                  Icons.cleaning_services_outlined,
-                  size: 16,
+              if (canBackup && appProvider.autoBackupLogs.isNotEmpty)
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: const Icon(
+                    Icons.cleaning_services_outlined,
+                    size: 16,
+                  ),
+                  onTap: clear,
                 ),
-                onTap: clear,
-              ),
             ],
           ),
         if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
@@ -131,7 +154,34 @@ class BackupLogScreenState extends State<BackupLogScreen> {
             );
           },
         ),
-        if (appProvider.autoBackupLogs.isEmpty)
+        if (!canBackup)
+          Container(
+            margin: const EdgeInsets.only(top: 20),
+            child: Column(
+              children: [
+                Text(
+                  S.current.haveNotSetBckupPassword,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 10),
+                ItemBuilder.buildRoundButton(
+                  context,
+                  text: S.current.goToSetBackupPassword,
+                  background: Theme.of(context).primaryColor,
+                  onTap: () {
+                    if (ResponsiveUtil.isLandscape()) {
+                      context.contextMenuOverlay.hide();
+                      RouteUtil.pushDesktopFadeRoute(const SettingScreen());
+                    } else {
+                      RouteUtil.pushCupertinoRoute(
+                          context, const SettingScreen());
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        if (canBackup && appProvider.autoBackupLogs.isEmpty)
           Container(
             margin: const EdgeInsets.only(top: 20),
             child: ItemBuilder.buildEmptyPlaceholder(

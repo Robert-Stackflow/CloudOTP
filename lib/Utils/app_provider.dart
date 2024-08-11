@@ -82,6 +82,16 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
+
+  bool get autoHideCode => _autoHideCode;
+
+  set autoHideCode(bool value) {
+    _autoHideCode = value;
+    HiveUtil.put(HiveUtil.autoHideCodeKey, value);
+    notifyListeners();
+  }
+
   bool _enableLandscapeInTablet =
       HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
 
