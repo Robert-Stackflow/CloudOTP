@@ -682,7 +682,8 @@ class _SettingScreenState extends State<SettingScreen>
       ),
       ItemBuilder.buildEntryItem(
         context: context,
-        bottomRadius: true,
+        bottomRadius:
+            _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword,
         title: S.current.editEncryptDatabasePassword,
         description: S.current.encryptDatabaseTip,
         tip: _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword
@@ -713,6 +714,38 @@ class _SettingScreenState extends State<SettingScreen>
             ),
           );
         },
+      ),
+      Visibility(
+        visible: _encryptDatabaseStatus == EncryptDatabaseStatus.customPassword,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.clearEncryptDatabasePassword,
+          description: S.current.clearEncryptDatabasePasswordTip,
+          bottomRadius: true,
+          onTap: () {
+            DialogBuilder.showConfirmDialog(
+              context,
+              title: S.current.clearEncryptDatabasePassword,
+              message: S.current.clearEncryptDatabasePasswordTip,
+              onTapConfirm: () async {
+                bool res = await DatabaseManager.changePassword(
+                    await HiveUtil.regeneratePassword());
+                if (res) {
+                  HiveUtil.setEncryptDatabaseStatus(
+                      EncryptDatabaseStatus.defaultPassword);
+                  setState(() {
+                    _encryptDatabaseStatus =
+                        EncryptDatabaseStatus.defaultPassword;
+                  });
+                  IToast.showTop(S.current.clearEncryptDatabasePasswordSuccess);
+                } else {
+                  IToast.showTop(S.current.clearEncryptDatabasePasswordFailed);
+                }
+              },
+              onTapCancel: () {},
+            );
+          },
+        ),
       ),
     ];
   }

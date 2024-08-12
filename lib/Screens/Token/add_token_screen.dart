@@ -248,7 +248,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       } catch (e) {
         IToast.showTop(S.current.saveFailed);
       } finally {
-        homeScreenState?.refresh();
+        if (!_isEditing) {
+          homeScreenState?.insertToken(_otpToken);
+        }
         if (success) {
           if (ResponsiveUtil.isLandscape()) {
             dialogNavigatorState?.popPage();

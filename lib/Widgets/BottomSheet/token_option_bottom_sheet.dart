@@ -1,12 +1,12 @@
 import 'dart:async';
 
+import 'package:animated_reorderable/animated_reorderable.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:cloudotp/Widgets/WaterfallFlow/scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -23,7 +23,6 @@ import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import '../Dialog/dialog_builder.dart';
-import '../WaterfallFlow/sliver_waterfall_flow.dart';
 import 'bottom_sheet_builder.dart';
 
 class TokenOptionBottomSheet extends StatefulWidget {
@@ -337,10 +336,11 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               title: S.current.deleteTokenTitle(widget.token.title),
               message: S.current.deleteTokenMessage(widget.token.title),
               onTapConfirm: () async {
-                await TokenDao.deleteToken(widget.token);
-                IToast.showTop(
-                    S.current.deleteTokenSuccess(widget.token.title));
-                homeScreenState?.refresh();
+                TokenDao.deleteToken(widget.token).then((value) {
+                  IToast.showTop(
+                      S.current.deleteTokenSuccess(widget.token.title));
+                  homeScreenState?.removeToken(widget.token);
+                });
               },
               onTapCancel: () {},
             );

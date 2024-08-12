@@ -91,6 +91,7 @@ class TokenLayoutState extends State<TokenLayout>
 
   @override
   Widget build(BuildContext context) {
+    // print("rebuild token layout : ${widget.token.title}");
     return _buildContextMenuRegion();
   }
 
@@ -251,9 +252,11 @@ class TokenLayoutState extends State<TokenLayout>
       title: S.current.deleteTokenTitle(widget.token.title),
       message: S.current.deleteTokenMessage(widget.token.title),
       onTapConfirm: () async {
-        await TokenDao.deleteToken(widget.token);
+        // TokenDao.deleteToken(widget.token).then((value) {
+        //
+        // });
         IToast.showTop(S.current.deleteTokenSuccess(widget.token.title));
-        homeScreenState?.refresh();
+        homeScreenState?.removeToken(widget.token);
       },
       onTapCancel: () {},
       customDialogType: CustomDialogType.normal,
@@ -297,7 +300,8 @@ class TokenLayoutState extends State<TokenLayout>
                   ],
                 ),
                 const SizedBox(height: 8),
-                _buildCodeLayout(letterSpacing: 10),
+                _buildCodeLayout(
+                    letterSpacing: 10, alignment: Alignment.center),
                 const SizedBox(height: 8),
                 isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
                 const SizedBox(height: 13),
@@ -311,6 +315,7 @@ class TokenLayoutState extends State<TokenLayout>
 
   _buildCodeLayout({
     double letterSpacing = 5,
+    AlignmentGeometry alignment = Alignment.centerLeft,
   }) {
     return ValueListenableBuilder(
       valueListenable: _codeVisiableNotifier,
@@ -318,17 +323,22 @@ class TokenLayoutState extends State<TokenLayout>
         return ValueListenableBuilder(
           valueListenable: _codeNotifier,
           builder: (context, value, child) {
-            return AutoSizeText(
-              _codeVisiableNotifier.value
-                  ? _codeNotifier.value
-                  : "*" * widget.token.digits.digit,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 24,
-                    letterSpacing: letterSpacing,
-                    color: Theme.of(context).primaryColor,
-                  ),
-              maxLines: 1,
+            return Container(
+              constraints: const BoxConstraints(minHeight: 36),
+              alignment: alignment,
+              child: AutoSizeText(
+                _codeVisiableNotifier.value
+                    ? _codeNotifier.value
+                    : "*" * widget.token.digits.digit,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 24,
+                      letterSpacing: letterSpacing,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                maxLines: 1,
+              ),
             );
           },
         );
@@ -429,6 +439,7 @@ class TokenLayoutState extends State<TokenLayout>
                     ),
                   ],
                 ),
+                const SizedBox(height: 3),
                 isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
                 const SizedBox(height: 13),
               ],
@@ -512,6 +523,7 @@ class TokenLayoutState extends State<TokenLayout>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [_buildCodeLayout()],
                 ),
+                const SizedBox(height: 3),
                 isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
                 const SizedBox(height: 13),
               ],

@@ -18,12 +18,13 @@ class TokenDao {
       token.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokenInserted);
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.tokenInserted);
     return id;
   }
 
   static Future<int> insertTokens(List<OtpToken> tokens) async {
-    if(tokens.isEmpty) return 0;
+    if (tokens.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (OtpToken token in tokens) {
@@ -36,7 +37,8 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokensInserted);
+    ExportTokenUtil.autoBackup(
+        triggerType: AutoBackupTriggerType.tokensInserted);
     return results.length;
   }
 
@@ -69,8 +71,11 @@ class TokenDao {
     return id;
   }
 
-  static Future<int> updateTokens(List<OtpToken> tokens) async {
-    if(tokens.isEmpty) return 0;
+  static Future<int> updateTokens(
+    List<OtpToken> tokens, {
+    bool autoBackup = true,
+  }) async {
+    if (tokens.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (OtpToken token in tokens) {
@@ -83,7 +88,10 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokensUpdated);
+    if (autoBackup) {
+      ExportTokenUtil.autoBackup(
+          triggerType: AutoBackupTriggerType.tokensUpdated);
+    }
     return results.length;
   }
 
@@ -149,7 +157,7 @@ class TokenDao {
     final db = await DatabaseManager.getDataBase();
     final List<Map<String, dynamic>> maps = await db.query(
       tableName,
-      orderBy: "pinned DESC, seq ASC",
+      orderBy: "pinned DESC, seq DESC",
       where: searchKey.isEmpty ? null : 'issuer LIKE ?',
       whereArgs: searchKey.isEmpty ? null : ["%$searchKey%"],
     );

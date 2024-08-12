@@ -21,10 +21,11 @@ dependencies:
   path_drawing: ^1.0.1 # 路径绘制
   flutter_inappwebview: ^6.0.0 # Webview
   mobile_scanner: ^5.1.1 # 扫码
-  flutter_layout_grid: ^2.0.7
   zxing2: ^0.2.3 # 二维码
   image: ^4.2.0 # 图片
   auto_size_text: ^3.0.0
+  animated_reorderable:
+    path: third-party/animated_reorderable
   group_button:
     path: third-party/group_button
   context_menus:

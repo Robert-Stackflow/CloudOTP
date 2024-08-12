@@ -1,13 +1,13 @@
 import 'dart:math';
 
-import 'package:cloudotp/Widgets/WaterfallFlow/sliver.dart';
-import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
+import 'sliver.dart';
+import 'sliver_waterfall_flow.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:provider/provider.dart';
 
-typedef IndexedValueGetter<T> = T Function(int index);
+Duration animationDuration = const Duration(milliseconds: 500);
+
+enum UpdateGapType { drag, insert, remove }
 
 /// {@template reorderable_grid_view.reorderable_grid}
 /// A scrolling container that allows the user to interactively reorder the
@@ -284,6 +284,20 @@ class ReorderableGridState extends State<ReorderableGrid> {
   }
 }
 
+class GridItemsNotifier {
+  void Function(int index, [Function()? onAnimationCompleted])?
+      notifyItemRemoved;
+
+  void Function(List<int> index, [Function()? onAnimationCompleted])?
+      notifyItemsDeleted;
+
+  void Function(int index, int newIndex, [Function()? onAnimationCompleted])?
+      notifyItemMoved;
+
+  void Function(int newIndex, [Function()? onAnimationCompleted])?
+      notifyItemInserted;
+}
+
 /// A sliver grid that allows the user to interactively reorder the grid items.
 ///
 /// It is up to the application to wrap each child (or an internal part of the
@@ -320,7 +334,13 @@ class SliverReorderableGrid extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll = true,
     this.scrollDirection = Axis.vertical,
+    this.gridItemsNotifier,
+    this.childrenKeys = const [],
   }) : assert(itemCount >= 0);
+
+  final List<Key> childrenKeys;
+
+  final GridItemsNotifier? gridItemsNotifier;
 
   /// {@macro flutter.widgets.reorderable_list.itemBuilder}
   final IndexedWidgetBuilder itemBuilder;
@@ -440,6 +460,8 @@ class SliverReorderableGridState extends State<SliverReorderableGrid>
   Offset? _finalDropPosition;
   MultiDragGestureRecognizer? _recognizer;
   bool _autoScrolling = false;
+  int? _notifyInsetIndex;
+  int? _notifyRemovedIndex;
 
   @override
   void didUpdateWidget(covariant SliverReorderableGrid oldWidget) {
@@ -453,6 +475,41 @@ class SliverReorderableGridState extends State<SliverReorderableGrid>
   void dispose() {
     _dragInfo?.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.gridItemsNotifier?.notifyItemRemoved =
+        (int index, [Function()? onAnimationCompleted]) {
+      _notifyRemovedIndex = index;
+      for (final _ReorderableItemState item in _items.values) {
+        if (_notifyRemovedIndex != null) {
+          item.updateForGap(index, true, updateGapType: UpdateGapType.remove);
+        }
+      }
+      Future.delayed(
+          Duration(milliseconds: animationDuration.inMilliseconds + 100), () {
+        _notifyRemovedIndex = null;
+        onAnimationCompleted?.call();
+        _resetItemGap();
+      });
+    };
+    widget.gridItemsNotifier?.notifyItemInserted =
+        (int index, [Function()? onAnimationCompleted]) {
+      _notifyInsetIndex = index;
+      for (final _ReorderableItemState item in _items.values) {
+        if (_notifyInsetIndex != null) {
+          item.updateForGap(index, true, updateGapType: UpdateGapType.insert);
+        }
+      }
+      Future.delayed(
+          Duration(milliseconds: animationDuration.inMilliseconds + 100), () {
+        _notifyInsetIndex = null;
+        onAnimationCompleted?.call();
+        _resetItemGap();
+      });
+    };
   }
 
   /// Initiate the dragging of the item at [index] that was started with
@@ -730,6 +787,27 @@ class SliverReorderableGridState extends State<SliverReorderableGrid>
     return _itemOffsetAt(index + direction) - _itemOffsetAt(index);
   }
 
+  double deltaHeight = 0.0;
+
+  double deltaWidth = 0.0;
+
+  Offset _calculateRemoveOffset(int index) {
+    if (_notifyRemovedIndex == null) return Offset.zero;
+
+    final int direction = _notifyRemovedIndex! >= index ? 0 : -1;
+
+    return _itemOffsetAt(index + direction) - _itemOffsetAt(index);
+  }
+
+  Offset _calculateInsertOffset(int index) {
+    if (_notifyInsetIndex == null || index == _items.length - 1) {
+      return Offset.zero;
+    }
+
+    final int direction = _notifyInsetIndex! > index ? 0 : 1;
+    return _itemOffsetAt(index + direction) - _itemOffsetAt(index);
+  }
+
   Offset _itemOffsetAt(int index) {
     final box = _items[index]?.context.findRenderObject() as RenderBox?;
     if (box == null) return Offset.zero;
@@ -790,7 +868,7 @@ class _ReorderableItem extends StatefulWidget {
 }
 
 class _ReorderableItemState extends State<_ReorderableItem> {
-  late SliverReorderableGridState _listState;
+  late SliverReorderableGridState _reorderableGridState;
 
   Offset _startOffset = Offset.zero;
   Offset _targetOffset = Offset.zero;
@@ -815,15 +893,15 @@ class _ReorderableItemState extends State<_ReorderableItem> {
 
   @override
   void initState() {
-    _listState = SliverReorderableGrid.of(context);
-    _listState._registerItem(this);
+    _reorderableGridState = SliverReorderableGrid.of(context);
+    _reorderableGridState._registerItem(this);
     super.initState();
   }
 
   @override
   void dispose() {
     _offsetAnimation?.dispose();
-    _listState._unregisterItem(index, this);
+    _reorderableGridState._unregisterItem(index, this);
     super.dispose();
   }
 
@@ -831,8 +909,8 @@ class _ReorderableItemState extends State<_ReorderableItem> {
   void didUpdateWidget(covariant _ReorderableItem oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.index != widget.index) {
-      _listState._unregisterItem(oldWidget.index, this);
-      _listState._registerItem(this);
+      _reorderableGridState._unregisterItem(oldWidget.index, this);
+      _reorderableGridState._registerItem(this);
     }
   }
 
@@ -846,14 +924,14 @@ class _ReorderableItemState extends State<_ReorderableItem> {
           globalKey.currentContext!.findRenderObject() as RenderBox;
       childSize = renderBox.size;
     }
-    if (_dragging) {
+    if (_dragging || _reorderableGridState._notifyRemovedIndex == index) {
       if (childSize != null) {
         return SizedBox(width: childSize!.width, height: childSize!.height);
       } else {
-        return SizedBox(width: 190, height: widget.preferredHeight);
+        return SizedBox(width: 200, height: widget.preferredHeight);
       }
     }
-    _listState._registerItem(this);
+    _reorderableGridState._registerItem(this);
     return Transform(
       transform: Matrix4.translationValues(offset.dx, offset.dy, 0.0),
       child: widget.child,
@@ -862,7 +940,7 @@ class _ReorderableItemState extends State<_ReorderableItem> {
 
   @override
   void deactivate() {
-    _listState._unregisterItem(index, this);
+    _reorderableGridState._unregisterItem(index, this);
     super.deactivate();
   }
 
@@ -875,19 +953,40 @@ class _ReorderableItemState extends State<_ReorderableItem> {
     return _targetOffset;
   }
 
-  void updateForGap(int gapIndex, bool animate) {
+  void updateForGap(
+    int gapIndex,
+    bool animate, {
+    UpdateGapType updateGapType = UpdateGapType.drag,
+  }) {
     if (!mounted) return;
 
-    final Offset newTargetOffset = _listState._calculateNextDragOffset(index);
+    late final Offset newTargetOffset;
+
+    switch (updateGapType) {
+      case UpdateGapType.drag:
+        newTargetOffset = _reorderableGridState._calculateNextDragOffset(index);
+        break;
+      case UpdateGapType.remove:
+        newTargetOffset = _reorderableGridState._calculateRemoveOffset(index);
+        if (_reorderableGridState._notifyRemovedIndex == index) {
+          setState(() {});
+        }
+        break;
+      case UpdateGapType.insert:
+        newTargetOffset = _reorderableGridState._calculateInsertOffset(index);
+        setState(() {});
+        break;
+    }
 
     if (newTargetOffset == _targetOffset) return;
+
     _targetOffset = newTargetOffset;
 
     if (animate) {
       if (_offsetAnimation == null) {
         _offsetAnimation = AnimationController(
-          vsync: _listState,
-          duration: const Duration(milliseconds: 250),
+          vsync: _reorderableGridState,
+          duration: animationDuration,
         )
           ..addListener(rebuild)
           ..addStatusListener((AnimationStatus status) {
@@ -1064,7 +1163,7 @@ class _DragInfo extends Drag {
   }) {
     final RenderBox itemRenderBox =
         item.context.findRenderObject()! as RenderBox;
-    listState = item._listState;
+    listState = item._reorderableGridState;
     index = item.index;
     child = item.widget.child;
     capturedThemes = item.widget.capturedThemes;
@@ -1098,7 +1197,7 @@ class _DragInfo extends Drag {
   void startDrag() {
     _proxyAnimation = AnimationController(
       vsync: tickerProvider,
-      duration: const Duration(milliseconds: 250),
+      duration: animationDuration,
     )
       ..addStatusListener((AnimationStatus status) {
         if (status == AnimationStatus.dismissed) {

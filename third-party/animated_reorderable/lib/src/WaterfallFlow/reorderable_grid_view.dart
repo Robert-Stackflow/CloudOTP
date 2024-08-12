@@ -1,7 +1,7 @@
 import 'dart:ui' show lerpDouble;
 
-import 'package:cloudotp/Widgets/WaterfallFlow/reorderable_grid.dart';
-import 'package:cloudotp/Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
+import 'reorderable_grid.dart';
+import 'sliver_waterfall_flow.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -240,6 +240,8 @@ class ReorderableGridView extends StatefulWidget {
   ReorderableGridView({
     super.key,
     this.scrollDirection = Axis.vertical,
+    this.gridItemsNotifier,
+    this.childrenKeys = const [],
     this.reverse = false,
     this.controller,
     this.primary,
@@ -266,7 +268,8 @@ class ReorderableGridView extends StatefulWidget {
           'All children of this widget must have a key.',
         ),
         itemBuilder = ((BuildContext context, int index) => children[index]),
-        itemCount = children.length;
+        itemCount = children.length,
+        childrenDelegate = SliverChildListDelegate(children);
 
   /// Creates a scrollable, 2D array of widgets that are created on demand.
   ///
@@ -287,9 +290,11 @@ class ReorderableGridView extends StatefulWidget {
   /// `addRepaintBoundaries` argument corresponds to the
   /// [SliverChildBuilderDelegate.addRepaintBoundaries] property. Both must not
   /// be null.
-  const ReorderableGridView.builder({
+  ReorderableGridView.builder({
     super.key,
     this.scrollDirection = Axis.vertical,
+    this.gridItemsNotifier,
+    this.childrenKeys = const [],
     this.reverse = false,
     this.controller,
     this.primary,
@@ -312,7 +317,11 @@ class ReorderableGridView extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll,
     this.onReorderStart,
-  }) : assert(itemCount >= 0);
+  })  : childrenDelegate = SliverChildBuilderDelegate(
+          itemBuilder,
+          childCount: itemCount,
+        ),
+        assert(itemCount >= 0);
 
   /// Creates a scrollable, 2D array of widgets with a fixed number of tiles in
   /// the cross axis.
@@ -331,6 +340,8 @@ class ReorderableGridView extends StatefulWidget {
   ReorderableGridView.count({
     super.key,
     this.scrollDirection = Axis.vertical,
+    this.gridItemsNotifier,
+    this.childrenKeys = const [],
     this.reverse = false,
     this.controller,
     this.primary,
@@ -360,6 +371,7 @@ class ReorderableGridView extends StatefulWidget {
           mainAxisSpacing: mainAxisSpacing,
           crossAxisSpacing: crossAxisSpacing,
         ),
+        childrenDelegate = SliverChildListDelegate(children),
         assert(
           children.every((Widget w) => w.key != null),
           'All children of this widget must have a key.',
@@ -385,6 +397,8 @@ class ReorderableGridView extends StatefulWidget {
     super.key,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
+    this.gridItemsNotifier,
+    this.childrenKeys = const [],
     this.controller,
     this.primary,
     this.dragToReorder = false,
@@ -413,6 +427,7 @@ class ReorderableGridView extends StatefulWidget {
           mainAxisSpacing: mainAxisSpacing,
           crossAxisSpacing: crossAxisSpacing,
         ),
+        childrenDelegate = SliverChildListDelegate(children),
         assert(
           children.every((Widget w) => w.key != null),
           'All children of this widget must have a key.',
@@ -427,8 +442,14 @@ class ReorderableGridView extends StatefulWidget {
   /// implicitly.
   final SliverWaterfallFlowDelegate gridDelegate;
 
+  final SliverChildDelegate childrenDelegate;
+
   /// {@macro flutter.widgets.scroll_view.scrollDirection}
   final Axis scrollDirection;
+
+  final GridItemsNotifier? gridItemsNotifier;
+
+  final List<Key> childrenKeys;
 
   /// {@macro flutter.widgets.scroll_view.reverse}
   final bool reverse;
@@ -647,6 +668,8 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
             itemBuilder: _itemBuilder,
             gridDelegate: widget.gridDelegate,
             itemCount: widget.itemCount,
+            childrenKeys: widget.childrenKeys,
+            gridItemsNotifier: widget.gridItemsNotifier,
             onReorder: widget.onReorder,
             onReorderStart: widget.onReorderStart,
             proxyDecorator: widget.proxyDecorator ?? _proxyDecorator,

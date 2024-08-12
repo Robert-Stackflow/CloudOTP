@@ -190,35 +190,39 @@ class ExportTokenUtil {
     bool force = false,
     AutoBackupTriggerType triggerType = AutoBackupTriggerType.manual,
   }) async {
-    if (!force && !await HiveUtil.canAutoBackup()) return;
-    CloudServiceConfig? config = await CloudServiceConfigDao.getWebdavConfig();
-    bool enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
-    bool enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey) &&
-        config?.isValid == true;
-    late AutoBackupType type;
-    if (enableLocalBackup && enableCloudBackup) {
-      type = AutoBackupType.localAndCloud;
-    } else if (enableLocalBackup) {
-      type = AutoBackupType.local;
-    } else if (enableCloudBackup) {
-      type = AutoBackupType.cloud;
-    } else {
-      return;
-    }
-    AutoBackupLog log =
-        AutoBackupLog.init(type: type, triggerType: triggerType);
-    appProvider.pushAutoBackupLog(log);
-    autoBackupQueue.add(
-      () => ExportTokenUtil.backupEncryptToLocalAndCloud(
-        showLoading: showLoading,
-        showToast: showToast,
-        config: config,
-        log: log,
-        cloudService: config != null && config.isValid
-            ? WebDavCloudService(config)
-            : null,
-      ),
-    );
+    Future.delayed(const Duration(seconds: 1), () async {
+      if (!force && !await HiveUtil.canAutoBackup()) return;
+      CloudServiceConfig? config =
+          await CloudServiceConfigDao.getWebdavConfig();
+      bool enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
+      bool enableCloudBackup =
+          HiveUtil.getBool(HiveUtil.enableCloudBackupKey) &&
+              config?.isValid == true;
+      late AutoBackupType type;
+      if (enableLocalBackup && enableCloudBackup) {
+        type = AutoBackupType.localAndCloud;
+      } else if (enableLocalBackup) {
+        type = AutoBackupType.local;
+      } else if (enableCloudBackup) {
+        type = AutoBackupType.cloud;
+      } else {
+        return;
+      }
+      AutoBackupLog log =
+          AutoBackupLog.init(type: type, triggerType: triggerType);
+      appProvider.pushAutoBackupLog(log);
+      autoBackupQueue.add(
+        () => ExportTokenUtil.backupEncryptToLocalAndCloud(
+          showLoading: showLoading,
+          showToast: showToast,
+          config: config,
+          log: log,
+          cloudService: config != null && config.isValid
+              ? WebDavCloudService(config)
+              : null,
+        ),
+      );
+    });
   }
 
   static backupEncryptToLocalAndCloud({
