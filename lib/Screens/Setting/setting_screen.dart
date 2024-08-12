@@ -308,7 +308,7 @@ class _SettingScreenState extends State<SettingScreen>
         description: S.current.resetCopyTimesTip,
         onTap: () async {
           await TokenDao.resetTokenCopyTimes();
-          homeScreenState?.refresh();
+          homeScreenState?.resetCopyTimes();
           IToast.showTop(S.current.resetSuccess);
         },
       ),

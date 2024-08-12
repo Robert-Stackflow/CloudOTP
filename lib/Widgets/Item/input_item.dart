@@ -287,7 +287,7 @@ class InputItemState extends State<InputItem> {
                                 : widget.maxLines,
                             minLines: minLines,
                             inputFormatters: [
-                              TrimInputFormatter(),
+                              // TrimInputFormatter(),
                               if (maxLength != null && maxLength! > 0)
                                 LengthLimitingTextInputFormatter(maxLength),
                               ...inputFormatters

@@ -1,4 +1,3 @@
-import 'package:animated_reorderable/animated_reorderable.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
@@ -35,6 +34,9 @@ import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/Hidable/scroll_to_hide.dart';
 import '../Widgets/Item/input_item.dart';
 import '../Widgets/Scaffold/my_scaffold.dart';
+import '../Widgets/WaterfallFlow/reorderable_grid.dart';
+import '../Widgets/WaterfallFlow/reorderable_grid_view.dart';
+import '../Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
 import '../generated/l10n.dart';
 import 'Token/category_screen.dart';
 import 'Token/token_layout.dart';
@@ -133,6 +135,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<TokenCategory> categories = [];
   late TabController _tabController;
   List<Tab> tabList = [];
+  Map<int, GlobalKey<TokenLayoutState>> tokenKeyMap = {};
   int _currentTabIndex = 0;
   String _searchKey = "";
   ScrollController _scrollController = ScrollController();
@@ -148,15 +151,24 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   bool get isSearchBarShown => _currentMarqueeIndex == 1;
 
+  int get currentCategoryId {
+    if (_currentTabIndex == 0) {
+      return -1;
+    } else {
+      if (_currentTabIndex - 1 < 0 ||
+          _currentTabIndex - 1 >= categories.length) {
+        return -1;
+      }
+      return categories[_currentTabIndex - 1].id;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     initAppName();
     initTab(true);
     refresh(true);
-    // appProvider.addListener(() {
-    //   initTab();
-    // });
     _searchController.addListener(() {
       performSearch(_searchController.text);
     });
@@ -175,9 +187,19 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  updateToken(
+    OtpToken token, {
+    bool pinnedStateChanged = false,
+  }) {
+    int updateIndex = tokens.indexWhere((element) => element.id == token.id);
+    tokens[updateIndex] = token;
+    tokenKeyMap[updateIndex]?.currentState?.updateInfo();
+    if (pinnedStateChanged) performSort();
+  }
+
   removeToken(OtpToken token) {
-    int removeIndex = tokens.indexOf(token);
-    tokens.remove(token);
+    int removeIndex = tokens.indexWhere((element) => element.id == token.id);
+    if (removeIndex != -1) tokens.removeAt(removeIndex);
     gridItemsNotifier.notifyItemRemoved?.call(removeIndex, () {
       setState(() {});
     });
@@ -228,23 +250,31 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  changeCategoriesForToken(OtpToken token, List<int> unselectedCategoryIds,
+      List<int> selectedCategoryIds) {
+    if (unselectedCategoryIds.contains(currentCategoryId)) {
+      removeToken(token);
+    }
+    if (selectedCategoryIds.contains(currentCategoryId)) {
+      insertToken(token);
+    }
+  }
+
+  changeTokensForCategory(TokenCategory category) {
+    if (category.id == currentCategoryId && currentCategoryId != -1) {
+      getTokens();
+    }
+  }
+
+  refreshCategories() async {
+    await getCategories();
+  }
+
   refresh([bool isInit = false]) async {
-    print("refresh");
+    print("refresh : $isInit");
     if (!mounted) return;
     await getCategories(isInit);
     await getTokens();
-  }
-
-  int get currentCategoryId {
-    if (_currentTabIndex == 0) {
-      return -1;
-    } else {
-      if (_currentTabIndex - 1 < 0 ||
-          _currentTabIndex - 1 >= categories.length) {
-        return -1;
-      }
-      return categories[_currentTabIndex - 1].id;
-    }
   }
 
   getTokens() async {
@@ -254,23 +284,22 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ).then((value) {
       tokens = value;
       performSort();
-      setState(() {});
     });
   }
 
   getCategories([bool isInit = false]) async {
     int oldId = currentCategoryId;
-    await CategoryDao.listCategories().then((value) {
-      setState(() {
-        categories = value;
-        List<int> ids = categories.map((e) => e.id).toList();
-        if (!ids.contains(oldId)) {
-          _currentTabIndex = 0;
-        } else {
-          _currentTabIndex = ids.indexOf(oldId) + 1;
-        }
-        initTab(isInit);
-      });
+    await CategoryDao.listCategories().then((value) async {
+      categories = value;
+      List<int> ids = categories.map((e) => e.id).toList();
+      if (!ids.contains(oldId)) {
+        _currentTabIndex = 0;
+        await getTokens();
+      } else {
+        _currentTabIndex = ids.indexOf(oldId) + 1;
+      }
+      initTab(isInit);
+      setState(() {});
     });
   }
 
@@ -592,81 +621,56 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   _buildMainContent() {
-    ReorderableGridView gridView = ReorderableGridView.builder(
-      controller: _scrollController,
-      gridItemsNotifier: gridItemsNotifier,
-      padding: const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
-      gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        preferredHeight: layoutType.height,
-      ),
-      // dragToReorder: dragToReorder,
-      cacheExtent: 9999,
-      itemDragEnable: (index) {
-        if (tokens[index].pinnedInt == 1) {
-          return false;
-        }
-        return true;
-      },
-      onReorder: (int oldIndex, int newIndex) async {
-        setState(() {
-          final item = tokens.removeAt(oldIndex);
-          tokens.insert(newIndex, item);
-        });
-        for (int i = 0; i < tokens.length; i++) {
-          tokens[i].seq = tokens.length - i;
-        }
-        tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-        await TokenDao.updateTokens(tokens, autoBackup: false);
-        changeOrderType(type: OrderType.Default, doPerformSort: false);
-      },
-      proxyDecorator: (Widget child, int index, Animation<double> animation) {
-        return Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).shadowColor,
-                offset: const Offset(0, 4),
-                blurRadius: 10,
-                spreadRadius: 1,
-              ).scale(2),
-            ],
-          ),
-          child: child,
-        );
-      },
-      itemCount: tokens.length,
-      itemBuilder: (context, index) {
-        return TokenLayout(
-          key: ValueKey(
-              "${tokens[index].id} ${tokens[index].issuer} ${tokens[index].imagePath}"),
-          token: tokens[index],
-          layoutType: layoutType,
-        );
-      },
-    );
-    Widget finalWidget = Selector<AppProvider, bool>(
+    Widget gridView = Selector<AppProvider, bool>(
       selector: (context, provider) => provider.dragToReorder,
-      builder: (context, dragToReorder, child) => gridView,
-    );
-    Widget animated = AnimatedReorderable.grid(
-      keyGetter: (index) => ValueKey(tokens[index].id * 1000),
-      onReorder: (permutations) => permutations.apply(tokens),
-      gridView: GridView.builder(
+      builder: (context, dragToReorder, child) => ReorderableGridView.builder(
         controller: _scrollController,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: ResponsiveUtil.isDesktop() ? 4 : 2,
+        gridItemsNotifier: gridItemsNotifier,
+        padding:
+            const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
+        gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
-          childAspectRatio: 1.5,
+          preferredHeight: layoutType.height,
         ),
+        dragToReorder: dragToReorder,
+        cacheExtent: 9999,
+        itemDragEnable: (index) {
+          if (tokens[index].pinnedInt == 1) {
+            return false;
+          }
+          return true;
+        },
+        onReorder: (int oldIndex, int newIndex) async {
+          setState(() {});
+          final item = tokens.removeAt(oldIndex);
+          tokens.insert(newIndex, item);
+          for (int i = 0; i < tokens.length; i++) {
+            tokens[i].seq = tokens.length - i;
+          }
+          await TokenDao.updateTokens(tokens, autoBackup: false);
+          changeOrderType(type: OrderType.Default, doPerformSort: true);
+        },
+        proxyDecorator: (Widget child, int index, Animation<double> animation) {
+          return Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor,
+                  offset: const Offset(0, 4),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ).scale(2),
+              ],
+            ),
+            child: child,
+          );
+        },
         itemCount: tokens.length,
         itemBuilder: (context, index) {
           return TokenLayout(
-            key: ValueKey(
-                "${tokens[index].id} ${tokens[index].issuer} ${tokens[index].imagePath}"),
+            key: tokenKeyMap.putIfAbsent(index, () => GlobalKey()),
             token: tokens[index],
             layoutType: layoutType,
           );
@@ -682,7 +686,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     context: context, text: S.current.noToken),
               ],
             )
-          : finalWidget,
+          : gridView,
     );
   }
 
@@ -705,17 +709,15 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         borderColor: Theme.of(context).primaryColor,
       ),
       onTap: (index) {
-        setState(() {
-          _refreshController.finishRefresh();
-          if (_nestScrollController.hasClients) {
-            _nestScrollController.animateTo(0,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut);
-          }
-          _currentTabIndex = index;
-          getTokens();
-          HiveUtil.setSelectedCategoryId(currentCategoryId);
-        });
+        _refreshController.finishRefresh();
+        if (_nestScrollController.hasClients) {
+          _nestScrollController.animateTo(0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut);
+        }
+        _currentTabIndex = index;
+        getTokens();
+        HiveUtil.setSelectedCategoryId(currentCategoryId);
       },
     );
   }
@@ -754,7 +756,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           maxLength: 32,
           onValidConfirm: (text) async {
             await CategoryDao.insertCategory(TokenCategory.title(title: text));
-            refresh();
+            refreshCategories();
           },
         ),
       );
@@ -795,7 +797,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               onValidConfirm: (text) async {
                 category.title = text;
                 await CategoryDao.updateCategory(category);
-                refresh();
+                refreshCategories();
               },
             ),
           );
@@ -823,7 +825,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               onTapConfirm: () async {
                 await CategoryDao.deleteCategory(category);
                 IToast.showTop(S.current.deleteCategorySuccess(category.title));
-                refresh();
+                refreshCategories();
               },
               onTapCancel: () {},
             );
@@ -868,6 +870,16 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (doPerformSort) performSort();
   }
 
+  resetCopyTimes() {
+    for (var element in tokens) {
+      element.copyTimes = 0;
+    }
+    if (orderType == OrderType.CopyTimesDESC ||
+        orderType == OrderType.CopyTimesASC) {
+      performSort();
+    }
+  }
+
   performSort() {
     switch (orderType) {
       case OrderType.Default:
@@ -901,6 +913,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         break;
     }
     tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
+    setState(() {});
   }
 
   _buildDrawer() {

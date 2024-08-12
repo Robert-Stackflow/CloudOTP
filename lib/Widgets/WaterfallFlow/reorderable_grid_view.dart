@@ -241,7 +241,6 @@ class ReorderableGridView extends StatefulWidget {
     super.key,
     this.scrollDirection = Axis.vertical,
     this.gridItemsNotifier,
-    this.childrenKeys = const [],
     this.reverse = false,
     this.controller,
     this.primary,
@@ -294,7 +293,6 @@ class ReorderableGridView extends StatefulWidget {
     super.key,
     this.scrollDirection = Axis.vertical,
     this.gridItemsNotifier,
-    this.childrenKeys = const [],
     this.reverse = false,
     this.controller,
     this.primary,
@@ -341,7 +339,6 @@ class ReorderableGridView extends StatefulWidget {
     super.key,
     this.scrollDirection = Axis.vertical,
     this.gridItemsNotifier,
-    this.childrenKeys = const [],
     this.reverse = false,
     this.controller,
     this.primary,
@@ -398,7 +395,6 @@ class ReorderableGridView extends StatefulWidget {
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
     this.gridItemsNotifier,
-    this.childrenKeys = const [],
     this.controller,
     this.primary,
     this.dragToReorder = false,
@@ -448,8 +444,6 @@ class ReorderableGridView extends StatefulWidget {
   final Axis scrollDirection;
 
   final GridItemsNotifier? gridItemsNotifier;
-
-  final List<Key> childrenKeys;
 
   /// {@macro flutter.widgets.scroll_view.reverse}
   final bool reverse;
@@ -668,7 +662,6 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
             itemBuilder: _itemBuilder,
             gridDelegate: widget.gridDelegate,
             itemCount: widget.itemCount,
-            childrenKeys: widget.childrenKeys,
             gridItemsNotifier: widget.gridItemsNotifier,
             onReorder: widget.onReorder,
             onReorderStart: widget.onReorderStart,

@@ -84,4 +84,16 @@ class TokenCategory {
   String toString() {
     return 'Category{id: $id, seq: $seq, title: $title, description: $description, createTimeStamp: $createTimeStamp, editTimeStamp: $editTimeStamp, pinned: $pinned, remark: $remark, tokenIds: $tokenIds}';
   }
+
+  copyFrom(TokenCategory category) {
+    id = category.id;
+    seq = category.seq;
+    title = category.title;
+    description = category.description;
+    createTimeStamp = category.createTimeStamp;
+    editTimeStamp = category.editTimeStamp;
+    pinned = category.pinned;
+    remark = category.remark;
+    tokenIds = category.tokenIds;
+  }
 }

@@ -310,8 +310,9 @@ class RenderSliverWaterfallFlow extends RenderSliverMultiBoxAdaptor
 
   @override
   void setupParentData(RenderObject child) {
-    if (child.parentData is! SliverWaterfallFlowParentData)
+    if (child.parentData is! SliverWaterfallFlowParentData) {
       child.parentData = SliverWaterfallFlowParentData();
+    }
   }
 
   @override

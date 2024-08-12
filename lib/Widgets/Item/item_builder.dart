@@ -1269,7 +1269,6 @@ class ItemBuilder {
   static buildTokenImage(OtpToken token, {double size = 80}) {
     if (Utils.isNotEmpty(token.imagePath)) {
       return ClipRRect(
-        key: ValueKey(token.imagePath),
         borderRadius: BorderRadius.circular(5),
         child: AssetUtil.loadBrand(token.imagePath,
             width: size, height: size, fit: BoxFit.contain),

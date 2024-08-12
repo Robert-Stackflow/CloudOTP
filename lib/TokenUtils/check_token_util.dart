@@ -66,7 +66,7 @@ class CheckTokenUtil {
 
   static bool isSecretBase32(String str) {
     try {
-      base32.decode(str);
+      base32.decode(str.toUpperCase());
     } catch (e) {
       return false;
     }

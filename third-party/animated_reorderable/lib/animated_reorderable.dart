@@ -66,6 +66,6 @@ library animated_reorderable;
 
 export 'src/animated_reorderable.dart';
 export 'src/model/permutations.dart';
-export 'src/WaterfallFlow/waterfall_flow.dart';
-export 'src/WaterfallFlow/reorderable_grid_view.dart';
-export 'src/WaterfallFlow/reorderable_grid.dart';
+// export 'src/WaterfallFlow/waterfall_flow.dart';
+// export 'src/WaterfallFlow/reorderable_grid_view.dart';
+// export 'src/WaterfallFlow/reorderable_grid.dart';

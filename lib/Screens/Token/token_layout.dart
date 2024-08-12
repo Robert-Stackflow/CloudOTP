@@ -17,6 +17,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:provider/provider.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
@@ -42,13 +43,40 @@ class TokenLayout extends StatefulWidget {
   State<TokenLayout> createState() => TokenLayoutState();
 }
 
+class TokenLayoutNotifier extends ChangeNotifier {
+  double _progress = 1;
+
+  double get progress => _progress;
+
+  set progress(double value) {
+    _progress = value;
+    notifyListeners();
+  }
+
+  String _code = "";
+
+  String get code => _code;
+
+  set code(String value) {
+    _code = value;
+    notifyListeners();
+  }
+
+  bool _codeVisiable = !HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
+
+  bool get codeVisiable => _codeVisiable;
+
+  set codeVisiable(bool value) {
+    _codeVisiable = value;
+    notifyListeners();
+  }
+}
+
 class TokenLayoutState extends State<TokenLayout>
     with TickerProviderStateMixin {
   Timer? _timer;
-  final ValueNotifier<double> _progressNotifier = ValueNotifier(1);
-  final ValueNotifier<String> _codeNotifier = ValueNotifier("");
-  final ValueNotifier<bool> _codeVisiableNotifier =
-      ValueNotifier(!HiveUtil.getBool(HiveUtil.defaultHideCodeKey));
+
+  TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
 
   int get remainingMilliseconds => widget.token.period == 0
       ? 0
@@ -60,18 +88,19 @@ class TokenLayoutState extends State<TokenLayout>
       ? 0
       : remainingMilliseconds / (widget.token.period * 1000);
 
-  bool get isYandex =>
-      // ignore: unnecessary_null_comparison
-      widget.token.tokenType == OtpTokenType.Yandex;
+  bool get isYandex => widget.token.tokenType == OtpTokenType.Yandex;
 
-  bool get isHOTP =>
-      // ignore: unnecessary_null_comparison
-      widget.token.tokenType == OtpTokenType.HOTP;
+  bool get isHOTP => widget.token.tokenType == OtpTokenType.HOTP;
 
   @override
   void dispose() {
     _timer?.cancel();
+    tokenLayoutNotifier.dispose();
     super.dispose();
+  }
+
+  updateInfo() {
+    setState(() {});
   }
 
   @override
@@ -79,19 +108,18 @@ class TokenLayoutState extends State<TokenLayout>
     super.initState();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (mounted) {
-        _progressNotifier.value = currentProgress;
-        _codeNotifier.value = getCurrentCode();
+        tokenLayoutNotifier.progress = currentProgress;
+        tokenLayoutNotifier.code = getCurrentCode();
         if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
-          _codeVisiableNotifier.value = false;
+          tokenLayoutNotifier.codeVisiable = false;
         }
       }
     });
-    _codeNotifier.value = getCurrentCode();
+    tokenLayoutNotifier.code = getCurrentCode();
   }
 
   @override
   Widget build(BuildContext context) {
-    // print("rebuild token layout : ${widget.token.title}");
     return _buildContextMenuRegion();
   }
 
@@ -133,6 +161,7 @@ class TokenLayoutState extends State<TokenLayout>
 
   _buildContextMenuRegion() {
     return ContextMenuRegion(
+      key: ValueKey("contextMenuRegion${widget.token.keyString}"),
       behavior: ResponsiveUtil.isDesktop()
           ? const [ContextMenuShowBehavior.secondaryTap]
           : const [],
@@ -190,7 +219,7 @@ class TokenLayoutState extends State<TokenLayout>
           ? S.current.alreadyUnPinnedToken(widget.token.title)
           : S.current.alreadyPinnedToken(widget.token.title),
     );
-    homeScreenState?.refresh();
+    homeScreenState?.updateToken(widget.token, pinnedStateChanged: true);
   }
 
   _processEditIcon() {
@@ -211,7 +240,6 @@ class TokenLayoutState extends State<TokenLayout>
       responsive: true,
       (context) => SelectCategoryBottomSheet(token: widget.token),
     );
-    homeScreenState?.refresh();
   }
 
   _processViewQrCode() {
@@ -252,9 +280,7 @@ class TokenLayoutState extends State<TokenLayout>
       title: S.current.deleteTokenTitle(widget.token.title),
       message: S.current.deleteTokenMessage(widget.token.title),
       onTapConfirm: () async {
-        // TokenDao.deleteToken(widget.token).then((value) {
-        //
-        // });
+        await TokenDao.deleteToken(widget.token);
         IToast.showTop(S.current.deleteTokenSuccess(widget.token.title));
         homeScreenState?.removeToken(widget.token);
       },
@@ -317,54 +343,64 @@ class TokenLayoutState extends State<TokenLayout>
     double letterSpacing = 5,
     AlignmentGeometry alignment = Alignment.centerLeft,
   }) {
-    return ValueListenableBuilder(
-      valueListenable: _codeVisiableNotifier,
-      builder: (context, value, child) {
-        return ValueListenableBuilder(
-          valueListenable: _codeNotifier,
-          builder: (context, value, child) {
-            return Container(
-              constraints: const BoxConstraints(minHeight: 36),
-              alignment: alignment,
-              child: AutoSizeText(
-                _codeVisiableNotifier.value
-                    ? _codeNotifier.value
-                    : "*" * widget.token.digits.digit,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 24,
-                      letterSpacing: letterSpacing,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                maxLines: 1,
-              ),
-            );
-          },
-        );
-      },
+    if (widget.token.issuer == "Google" || widget.token.issuer == "Reddit") {
+      print("${widget.token.title} ${tokenLayoutNotifier.hashCode.toString()}");
+    }
+    return ChangeNotifierProvider.value(
+      value: tokenLayoutNotifier,
+      child: Selector<TokenLayoutNotifier, bool>(
+        selector: (context, tokenLayoutNotifier) =>
+            tokenLayoutNotifier.codeVisiable,
+        builder: (context, codeVisiable, child) {
+          return Selector<TokenLayoutNotifier, String>(
+            selector: (context, tokenLayoutNotifier) =>
+                tokenLayoutNotifier.code,
+            builder: (context, code, child) {
+              return Container(
+                constraints: const BoxConstraints(minHeight: 36),
+                alignment: alignment,
+                child: AutoSizeText(
+                  codeVisiable ? code : "*" * widget.token.digits.digit,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 24,
+                        letterSpacing: letterSpacing,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                  maxLines: 1,
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   _buildProgressBar() {
-    return ValueListenableBuilder(
-      valueListenable: _progressNotifier,
-      builder: (context, value, child) {
-        return LinearProgressIndicator(
-          value: _progressNotifier.value,
-          minHeight: 1,
-          color: _progressNotifier.value > autoCopyNextCodeProgressThrehold
-              ? Theme.of(context).primaryColor
-              : Colors.red,
-          borderRadius: BorderRadius.circular(5),
-          backgroundColor: Colors.grey.withOpacity(0.3),
-        );
-      },
+    return ChangeNotifierProvider.value(
+      value: tokenLayoutNotifier,
+      child: Selector<TokenLayoutNotifier, double>(
+        selector: (context, tokenLayoutNotifier) =>
+            tokenLayoutNotifier.progress,
+        builder: (context, progress, child) {
+          return LinearProgressIndicator(
+            value: progress,
+            minHeight: 1,
+            color: progress > autoCopyNextCodeProgressThrehold
+                ? Theme.of(context).primaryColor
+                : Colors.red,
+            borderRadius: BorderRadius.circular(5),
+            backgroundColor: Colors.grey.withOpacity(0.3),
+          );
+        },
+      ),
     );
   }
 
   _processTap() {
-    _codeVisiableNotifier.value = true;
+    tokenLayoutNotifier.codeVisiable = true;
     if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
       if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
           currentProgress < autoCopyNextCodeProgressThrehold) {

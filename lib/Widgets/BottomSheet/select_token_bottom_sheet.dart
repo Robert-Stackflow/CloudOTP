@@ -93,13 +93,12 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   _buildButtons() {
     return tokens.isNotEmpty
         ? ItemBuilder.buildGroupTokenButtons(
-      tokens: tokens,
-      controller: controller,
-    )
+            tokens: tokens,
+            controller: controller,
+          )
         : ItemBuilder.buildEmptyPlaceholder(
-        context: context, text: S.current.noToken);
+            context: context, text: S.current.noToken);
   }
-
 
   _buildFooter() {
     return Container(
@@ -122,7 +121,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
                     selectedIndexes.map((e) => tokens[e].id).toList();
                 widget.category.tokenIds = tokenIds;
                 await CategoryDao.updateCategory(widget.category);
-                homeScreenState?.refresh();
+                homeScreenState?.changeTokensForCategory(widget.category);
                 IToast.showTop(S.current.saveSuccess);
                 Navigator.of(context).pop();
               },

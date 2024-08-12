@@ -45,11 +45,6 @@ class _CategoryScreenState extends State<CategoryScreen>
     });
   }
 
-  refresh() async {
-    await getCategories();
-    homeScreenState?.refresh();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
@@ -100,9 +95,11 @@ class _CategoryScreenState extends State<CategoryScreen>
                   ),
                   maxLength: 32,
                   onValidConfirm: (text) async {
-                    await CategoryDao.insertCategory(
-                        TokenCategory.title(title: text));
-                    refresh();
+                    TokenCategory category = TokenCategory.title(title: text);
+                    await CategoryDao.insertCategory(category);
+                    categories.add(category);
+                    setState(() {});
+                    homeScreenState?.refreshCategories();
                   },
                 ),
               );
@@ -117,7 +114,9 @@ class _CategoryScreenState extends State<CategoryScreen>
 
   _buildBody() {
     return EasyRefresh(
-      onRefresh: refresh,
+      onRefresh: () async {
+        await getCategories();
+      },
       child: categories.isEmpty
           ? ListView(
               padding: EdgeInsets.symmetric(
@@ -143,7 +142,8 @@ class _CategoryScreenState extends State<CategoryScreen>
                   categories[i].seq = i;
                 }
                 CategoryDao.updateCategories(categories, backup: true);
-                refresh();
+                setState(() {});
+                homeScreenState?.refreshCategories();
               },
               proxyDecorator:
                   (Widget child, int index, Animation<double> animation) {
@@ -218,7 +218,8 @@ class _CategoryScreenState extends State<CategoryScreen>
                   onValidConfirm: (text) async {
                     category.title = text;
                     await CategoryDao.updateCategory(category);
-                    refresh();
+                    setState(() {});
+                    homeScreenState?.refreshCategories();
                   },
                 ),
               );
@@ -252,7 +253,9 @@ class _CategoryScreenState extends State<CategoryScreen>
                   await CategoryDao.deleteCategory(category);
                   IToast.showTop(
                       S.current.deleteCategorySuccess(category.title));
-                  refresh();
+                  categories.remove(category);
+                  setState(() {});
+                  homeScreenState?.refreshCategories();
                 },
                 onTapCancel: () {},
                 customDialogType: CustomDialogType.normal,

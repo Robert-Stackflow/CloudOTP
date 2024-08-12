@@ -123,8 +123,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         if (text.isEmpty) {
           return Future.value(S.current.secretCannotBeEmpty);
         }
-        if (_otpToken.tokenType == OtpTokenType.Steam &&
-            !CheckTokenUtil.isSecretBase32(text)) {
+        if (!CheckTokenUtil.isSecretBase32(text)) {
           return Future.value(S.current.secretNotBase32);
         }
         return Future.value(null);
@@ -240,6 +239,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       bool success = false;
       try {
         if (_isEditing) {
+          widget.token?.copyFrom(_otpToken);
           await TokenDao.updateToken(_otpToken);
         } else {
           await TokenDao.insertToken(_otpToken);
@@ -250,6 +250,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       } finally {
         if (!_isEditing) {
           homeScreenState?.insertToken(_otpToken);
+        }else{
+          homeScreenState?.updateToken(_otpToken);
         }
         if (success) {
           if (ResponsiveUtil.isLandscape()) {

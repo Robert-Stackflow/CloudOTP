@@ -1,11 +1,12 @@
 import 'dart:math';
 
-import 'sliver.dart';
-import 'sliver_waterfall_flow.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-Duration animationDuration = const Duration(milliseconds: 500);
+import 'sliver.dart';
+import 'sliver_waterfall_flow.dart';
+
+Duration animationDuration = const Duration(milliseconds: 250);
 
 enum UpdateGapType { drag, insert, remove }
 
@@ -335,10 +336,7 @@ class SliverReorderableGrid extends StatefulWidget {
     this.autoScroll = true,
     this.scrollDirection = Axis.vertical,
     this.gridItemsNotifier,
-    this.childrenKeys = const [],
   }) : assert(itemCount >= 0);
-
-  final List<Key> childrenKeys;
 
   final GridItemsNotifier? gridItemsNotifier;
 
@@ -529,19 +527,17 @@ class SliverReorderableGridState extends State<SliverReorderableGrid>
     required MultiDragGestureRecognizer recognizer,
   }) {
     assert(0 <= index && index < widget.itemCount);
-    setState(() {
-      if (_dragInfo != null) {
-        cancelReorder();
-      }
-      if (_items.containsKey(index)) {
-        _dragIndex = index;
-        _recognizer = recognizer
-          ..onStart = _dragStart
-          ..addPointer(event);
-      } else {
-        throw Exception('Attempting to start a drag on a non-visible item');
-      }
-    });
+    if (_dragInfo != null) {
+      cancelReorder();
+    }
+    if (_items.containsKey(index)) {
+      _dragIndex = index;
+      _recognizer = recognizer
+        ..onStart = _dragStart
+        ..addPointer(event);
+    } else {
+      throw Exception('Attempting to start a drag on a non-visible item');
+    }
   }
 
   /// Cancel any item drag in progress.

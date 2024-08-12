@@ -23,6 +23,8 @@ import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import '../Dialog/dialog_builder.dart';
+import '../WaterfallFlow/scroll_view.dart';
+import '../WaterfallFlow/sliver_waterfall_flow.dart';
 import 'bottom_sheet_builder.dart';
 
 class TokenOptionBottomSheet extends StatefulWidget {
@@ -254,7 +256,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                   ? S.current.alreadyUnPinnedToken(widget.token.title)
                   : S.current.alreadyPinnedToken(widget.token.title),
             );
-            homeScreenState?.refresh();
+            homeScreenState?.updateToken(widget.token, pinnedStateChanged: true);
           },
         ),
         _buildItem(
@@ -305,7 +307,6 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               responsive: true,
               (context) => SelectCategoryBottomSheet(token: widget.token),
             );
-            homeScreenState?.refresh();
           },
         ),
         _buildItem(

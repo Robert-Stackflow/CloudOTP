@@ -309,7 +309,11 @@ class OtpToken {
   int get period => int.tryParse(periodString) ?? 30;
 
   String get title {
-    return "$issuer - $account";
+    return "$issuer${account.isNotEmpty ? " - $account" : ""}";
+  }
+
+  String get keyString {
+    return "$issuer - $account - $secret - $tokenType - $algorithm - $digits - $counterString - $periodString - $pinned - $pin";
   }
 
   OtpToken({
@@ -430,5 +434,26 @@ class OtpToken {
       lastCopyTimeStamp: lastCopyTimeStamp,
       pin: pin,
     );
+  }
+
+  copyFrom(OtpToken token) {
+    id = token.id;
+    seq = token.seq;
+    issuer = token.issuer;
+    secret = token.secret;
+    account = token.account;
+    imagePath = token.imagePath;
+    tokenType = token.tokenType;
+    algorithm = token.algorithm;
+    digits = token.digits;
+    counterString = token.counterString;
+    periodString = token.periodString;
+    pinned = token.pinned;
+    createTimeStamp = token.createTimeStamp;
+    editTimeStamp = token.editTimeStamp;
+    remark = Map<String, dynamic>.from(token.remark);
+    copyTimes = token.copyTimes;
+    lastCopyTimeStamp = token.lastCopyTimeStamp;
+    pin = token.pin;
   }
 }

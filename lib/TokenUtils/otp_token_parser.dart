@@ -7,6 +7,7 @@ import 'package:cloudotp/Utils/utils.dart';
 import 'package:protobuf/protobuf.dart';
 
 import '../Models/opt_token.dart';
+import 'check_token_util.dart';
 import 'import_token_util.dart';
 import 'token_image_util.dart';
 
@@ -129,6 +130,7 @@ class OtpTokenParser {
     if (queryParameters.containsKey("secret") &&
         Utils.isNotEmpty(queryParameters["secret"])) {
       token.secret = queryParameters["secret"]!;
+      if (!CheckTokenUtil.isSecretBase32(token.secret)) return null;
     }
     if (queryParameters.containsKey("pin")) {
       token.pin = queryParameters["pin"]!;
@@ -173,6 +175,7 @@ class OtpTokenParser {
     if (queryParameters.containsKey("secret") &&
         Utils.isNotEmpty(queryParameters["secret"])) {
       token.secret = queryParameters["secret"]!;
+      if (!CheckTokenUtil.isSecretBase32(token.secret)) return null;
     }
     token.imagePath = TokenImageUtil.matchBrandLogo(token) ?? "";
     return token;
@@ -194,6 +197,7 @@ class OtpTokenParser {
     for (var param in payload.otpParameters) {
       OtpToken token = OtpToken.init();
       token.secret = base32.encode(Uint8List.fromList(param.secret));
+      if (!CheckTokenUtil.isSecretBase32(token.secret)) continue;
       token.issuer = Utils.isEmpty(param.issuer) ? param.name : param.issuer;
       token.algorithm = OtpAlgorithm.fromAlgorithm(param.algorithm);
       token.digits = OtpDigits.fromDigitCount(param.digits);

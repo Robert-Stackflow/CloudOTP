@@ -1,4 +1,3 @@
-import 'package:animated_reorderable/animated_reorderable.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,8 @@ import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
 import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
+import '../WaterfallFlow/scroll_view.dart';
+import '../WaterfallFlow/sliver_waterfall_flow.dart';
 
 class SelectIconBottomSheet extends StatefulWidget {
   const SelectIconBottomSheet({
@@ -129,6 +130,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
           if (widget.doUpdate) {
             await TokenDao.updateToken(widget.token);
             IToast.showTop(S.current.saveSuccess);
+            homeScreenState?.updateToken(widget.token);
           }
           Navigator.of(context).pop();
         },

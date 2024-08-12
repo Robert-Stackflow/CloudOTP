@@ -138,11 +138,15 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
                   widget.token.id,
                   unselectedCategoryIds,
                   newSelectedCategoryIds,
-                  backup: true,
+                  // backup: true,
                 );
-                homeScreenState?.refresh();
-                IToast.showTop(S.current.saveSuccess);
                 Navigator.of(context).pop();
+                homeScreenState?.changeCategoriesForToken(
+                  widget.token,
+                  unselectedCategoryIds,
+                  newSelectedCategoryIds,
+                );
+                IToast.showTop(S.current.saveSuccess);
               },
               fontSizeDelta: 2,
             ),
