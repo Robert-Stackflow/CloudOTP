@@ -171,10 +171,11 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                   onTap: () {
                     if (ResponsiveUtil.isLandscape()) {
                       context.contextMenuOverlay.hide();
-                      RouteUtil.pushDesktopFadeRoute(const SettingScreen());
+                      RouteUtil.pushDialogRoute(context,
+                          const SettingScreen(jumpToAutoBackupPassword: true));
                     } else {
-                      RouteUtil.pushCupertinoRoute(
-                          context, const SettingScreen());
+                      RouteUtil.pushCupertinoRoute(context,
+                          const SettingScreen(jumpToAutoBackupPassword: true));
                     }
                   },
                 ),

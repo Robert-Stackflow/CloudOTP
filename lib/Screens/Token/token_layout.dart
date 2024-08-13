@@ -11,7 +11,6 @@ import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
@@ -44,15 +43,6 @@ class TokenLayout extends StatefulWidget {
 }
 
 class TokenLayoutNotifier extends ChangeNotifier {
-  double _progress = 1;
-
-  double get progress => _progress;
-
-  set progress(double value) {
-    _progress = value;
-    notifyListeners();
-  }
-
   String _code = "";
 
   String get code => _code;
@@ -77,6 +67,8 @@ class TokenLayoutState extends State<TokenLayout>
   Timer? _timer;
 
   TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
+
+  final ValueNotifier<double> progressNotifier = ValueNotifier(0);
 
   int get remainingMilliseconds => widget.token.period == 0
       ? 0
@@ -106,12 +98,16 @@ class TokenLayoutState extends State<TokenLayout>
   @override
   void initState() {
     super.initState();
+    tokenLayoutNotifier.code = getCurrentCode();
+    progressNotifier.value = currentProgress;
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (mounted) {
-        tokenLayoutNotifier.progress = currentProgress;
-        tokenLayoutNotifier.code = getCurrentCode();
-        if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
+        progressNotifier.value = currentProgress;
+        if (!isHOTP &&
+            remainingMilliseconds <= 180 &&
+            appProvider.autoHideCode) {
           tokenLayoutNotifier.codeVisiable = false;
+          tokenLayoutNotifier.code = getCurrentCode();
         }
       }
     });
@@ -141,6 +137,8 @@ class TokenLayoutState extends State<TokenLayout>
         ContextMenuButtonConfig.divider(),
         ContextMenuButtonConfig(
             widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
+            textColor:
+                widget.token.pinned ? Theme.of(context).primaryColor : null,
             onPressed: _processPin),
         ContextMenuButtonConfig(S.current.editToken, onPressed: _processEdit),
         ContextMenuButtonConfig(S.current.editTokenIcon,
@@ -154,7 +152,7 @@ class TokenLayoutState extends State<TokenLayout>
             onPressed: _processCopyUri),
         ContextMenuButtonConfig.divider(),
         ContextMenuButtonConfig.warning(S.current.deleteToken,
-            onPressed: _processDelete),
+            textColor: Colors.red, onPressed: _processDelete),
       ],
     );
   }
@@ -175,9 +173,11 @@ class TokenLayoutState extends State<TokenLayout>
       case LayoutType.Simple:
         return _buildSimpleLayout();
       case LayoutType.Compact:
-        return _buildDetailLayout();
+        return _buildCompactLayout();
       case LayoutType.Tile:
-        return _buildLargeLayout();
+        return _buildTileLayout();
+      case LayoutType.List:
+        return _buildListLayout();
     }
   }
 
@@ -212,8 +212,8 @@ class TokenLayoutState extends State<TokenLayout>
         showClose: false);
   }
 
-  _processPin() {
-    TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
+  _processPin() async {
+    await TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
     IToast.showTop(
       widget.token.pinned
           ? S.current.alreadyUnPinnedToken(widget.token.title)
@@ -257,7 +257,6 @@ class TokenLayoutState extends State<TokenLayout>
           data: OtpTokenParser.toUri(widget.token).toString(),
         ),
       ),
-      customDialogType: CustomDialogType.normal,
     );
   }
 
@@ -270,7 +269,6 @@ class TokenLayoutState extends State<TokenLayout>
         Utils.copy(context, OtpTokenParser.toUri(widget.token));
       },
       onTapCancel: () {},
-      customDialogType: CustomDialogType.normal,
     );
   }
 
@@ -285,7 +283,6 @@ class TokenLayoutState extends State<TokenLayout>
         homeScreenState?.removeToken(widget.token);
       },
       onTapCancel: () {},
-      customDialogType: CustomDialogType.normal,
     );
   }
 
@@ -329,7 +326,7 @@ class TokenLayoutState extends State<TokenLayout>
                 _buildCodeLayout(
                     letterSpacing: 10, alignment: Alignment.center),
                 const SizedBox(height: 8),
-                isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
+                isHOTP ? const SizedBox(height: 1) : _buildLinearProgress(),
                 const SizedBox(height: 13),
               ],
             ),
@@ -343,9 +340,6 @@ class TokenLayoutState extends State<TokenLayout>
     double letterSpacing = 5,
     AlignmentGeometry alignment = Alignment.centerLeft,
   }) {
-    if (widget.token.issuer == "Google" || widget.token.issuer == "Reddit") {
-      print("${widget.token.title} ${tokenLayoutNotifier.hashCode.toString()}");
-    }
     return ChangeNotifierProvider.value(
       value: tokenLayoutNotifier,
       child: Selector<TokenLayoutNotifier, bool>(
@@ -378,29 +372,69 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
-  _buildProgressBar() {
-    return ChangeNotifierProvider.value(
-      value: tokenLayoutNotifier,
-      child: Selector<TokenLayoutNotifier, double>(
-        selector: (context, tokenLayoutNotifier) =>
-            tokenLayoutNotifier.progress,
-        builder: (context, progress, child) {
-          return LinearProgressIndicator(
-            value: progress,
-            minHeight: 1,
-            color: progress > autoCopyNextCodeProgressThrehold
-                ? Theme.of(context).primaryColor
-                : Colors.red,
-            borderRadius: BorderRadius.circular(5),
-            backgroundColor: Colors.grey.withOpacity(0.3),
-          );
-        },
-      ),
+  _buildLinearProgress() {
+    return ValueListenableBuilder(
+      valueListenable: progressNotifier,
+      builder: (context, progress, child) {
+        return LinearProgressIndicator(
+          value: progress,
+          minHeight: 1,
+          color: progress > autoCopyNextCodeProgressThrehold
+              ? Theme.of(context).primaryColor
+              : Colors.red,
+          borderRadius: BorderRadius.circular(5),
+          backgroundColor: Colors.grey.withOpacity(0.3),
+        );
+      },
     );
+  }
+
+  _buildCircleProgress() {
+    return isHOTP
+        ? const SizedBox.shrink()
+        : SizedBox(
+            width: 24,
+            height: 24,
+            child: Stack(
+              children: [
+                ValueListenableBuilder(
+                  valueListenable: progressNotifier,
+                  builder: (context, value, child) {
+                    return CircularProgressIndicator(
+                      value: progressNotifier.value,
+                      color: progressNotifier.value >
+                              autoCopyNextCodeProgressThrehold
+                          ? Theme.of(context).primaryColor
+                          : Colors.red,
+                      backgroundColor: Colors.grey.withOpacity(0.3),
+                    );
+                  },
+                ),
+                Center(
+                  child: ValueListenableBuilder(
+                    valueListenable: progressNotifier,
+                    builder: (context, value, child) {
+                      return Text(
+                        (remainingMilliseconds / 1000).toStringAsFixed(0),
+                        style: Theme.of(context).textTheme.bodyMedium?.apply(
+                              color: currentProgress >
+                                      autoCopyNextCodeProgressThrehold
+                                  ? Theme.of(context).primaryColor
+                                  : Colors.red,
+                              fontSizeDelta: -2,
+                            ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
   }
 
   _processTap() {
     tokenLayoutNotifier.codeVisiable = true;
+    tokenLayoutNotifier.code = getCurrentCode();
     if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
       if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
           currentProgress < autoCopyNextCodeProgressThrehold) {
@@ -411,7 +445,7 @@ class TokenLayoutState extends State<TokenLayout>
     }
   }
 
-  _buildDetailLayout() {
+  _buildCompactLayout() {
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
@@ -476,7 +510,7 @@ class TokenLayoutState extends State<TokenLayout>
                   ],
                 ),
                 const SizedBox(height: 3),
-                isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
+                isHOTP ? const SizedBox(height: 1) : _buildLinearProgress(),
                 const SizedBox(height: 13),
               ],
             ),
@@ -486,7 +520,7 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
-  _buildLargeLayout() {
+  _buildTileLayout() {
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
@@ -560,8 +594,48 @@ class TokenLayoutState extends State<TokenLayout>
                   children: [_buildCodeLayout()],
                 ),
                 const SizedBox(height: 3),
-                isHOTP ? const SizedBox(height: 1) : _buildProgressBar(),
+                isHOTP ? const SizedBox(height: 1) : _buildLinearProgress(),
                 const SizedBox(height: 13),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  _buildListLayout() {
+    return ItemBuilder.buildClickItem(
+      Material(
+        color: widget.token.pinned
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : Theme.of(context).canvasColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        clipBehavior: Clip.hardEdge,
+        child: InkWell(
+          onTap: _processTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                ItemBuilder.buildTokenImage(widget.token, size: 28),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.token.issuer,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.apply(fontWeightDelta: 2),
+                  ),
+                ),
+                _buildCodeLayout(),
+                if (!isHOTP) const SizedBox(width: 8),
+                _buildCircleProgress(),
               ],
             ),
           ),

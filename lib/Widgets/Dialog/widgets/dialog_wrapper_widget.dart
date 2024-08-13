@@ -42,7 +42,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
     double width = MediaQuery.sizeOf(context).width - 60;
     double height = MediaQuery.sizeOf(context).height - 60;
     double preferWidth = min(width, widget.preferMinWidth ?? 540);
-    double preferHeight = min(width, widget.preferMinHeight ?? 500);
+    double preferHeight = min(width, widget.preferMinHeight ?? 720);
     double preferHorizontalMargin =
         width > preferWidth ? (width - preferWidth) / 2 : 0;
     double preferVerticalMargin =

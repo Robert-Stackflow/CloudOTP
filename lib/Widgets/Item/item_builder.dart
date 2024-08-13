@@ -178,7 +178,7 @@ class ItemBuilder {
       leadingWidth: showLeading ? 56 : 0,
       leading: showLeading
           ? Container(
-              margin: const EdgeInsets.only(left: 5),
+              margin: const EdgeInsets.only(left: 0),
               child: ItemBuilder.buildIconButton(
                 context: context,
                 icon: leading,
@@ -591,12 +591,14 @@ class ItemBuilder {
   }
 
   static Widget buildEntryItem({
+    Key? key,
     required BuildContext context,
     double radius = 10,
     bool topRadius = false,
     bool bottomRadius = false,
     bool showLeading = false,
     bool showTrailing = true,
+    double tipWidth = 80,
     bool isCaption = false,
     Color? backgroundColor,
     Color? leadingColor,
@@ -606,6 +608,7 @@ class ItemBuilder {
     IconData leading = Icons.home_filled,
     required String title,
     String tip = "",
+    Widget? tipWidget,
     String description = "",
     Function()? onTap,
     double verticalPadding = 18,
@@ -615,6 +618,7 @@ class ItemBuilder {
     IconData trailing = Icons.keyboard_arrow_right_rounded,
   }) {
     return Material(
+      key: key,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: topRadius ? Radius.circular(radius) : const Radius.circular(0),
@@ -716,7 +720,9 @@ class ItemBuilder {
                         : const SizedBox(width: 30),
                     Container(
                       constraints: BoxConstraints(
-                          maxWidth: description.isNotEmpty ? 80 : 120),
+                          maxWidth: description.isNotEmpty
+                              ? tipWidth
+                              : tipWidth + 40),
                       child: Text(
                         tip,
                         textAlign: TextAlign.center,
@@ -726,6 +732,14 @@ class ItemBuilder {
                             ?.apply(fontSizeDelta: 1),
                       ),
                     ),
+                    if (tipWidget != null)
+                      Container(
+                        constraints: BoxConstraints(
+                            maxWidth: description.isNotEmpty
+                                ? tipWidth
+                                : tipWidth + 40),
+                        child: tipWidget,
+                      ),
                     SizedBox(width: showTrailing ? trailingLeftMargin : 0),
                     Visibility(
                       visible: showTrailing,
@@ -845,10 +859,7 @@ class ItemBuilder {
                     config.label,
                     style: Theme.of(context).textTheme.bodyMedium?.apply(
                           fontSizeDelta: ResponsiveUtil.isMobile() ? 2 : 0,
-                          color:
-                              config.type == ContextMenuButtonConfigType.warning
-                                  ? Colors.red
-                                  : null,
+                          color: config.textColor,
                         ),
                   ),
                 ],
@@ -919,10 +930,7 @@ class ItemBuilder {
                     config.label,
                     style: Theme.of(context).textTheme.bodyMedium?.apply(
                           fontSizeDelta: ResponsiveUtil.isMobile() ? 2 : 0,
-                          color:
-                              config.type == ContextMenuButtonConfigType.warning
-                                  ? Colors.red
-                                  : null,
+                          color: config.textColor,
                         ),
                   ),
                 ],

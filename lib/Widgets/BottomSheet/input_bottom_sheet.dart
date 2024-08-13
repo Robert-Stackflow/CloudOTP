@@ -159,7 +159,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                     keyboardType: widget.keyboardType,
                     topRadius: widget.topRadius,
                     bottomRadius: widget.bottomRadius,
-                    readOnly: widget.readOnly,
+                    disabled: widget.readOnly,
                     maxLength: widget.maxLength,
                     inputFormatters: widget.inputFormatters,
                     leadingMinWidth: widget.leadingMinWidth,

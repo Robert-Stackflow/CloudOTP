@@ -43,12 +43,22 @@ import '../Lock/pin_verify_screen.dart';
 enum EncryptDatabaseStatus { defaultPassword, customPassword }
 
 class SettingScreen extends StatefulWidget {
-  const SettingScreen({super.key});
+  const SettingScreen({super.key, this.jumpToAutoBackupPassword = false});
+
+  final bool jumpToAutoBackupPassword;
 
   static const String routeName = "/setting";
 
   @override
   State<SettingScreen> createState() => _SettingScreenState();
+}
+
+extension GetOffset on Widget {
+  Offset getOffset() {
+    if (key == null || key is! GlobalKey) return Offset.zero;
+    return ((key as GlobalKey).currentContext!.findRenderObject()! as RenderBox)
+        .localToGlobal(Offset.zero);
+  }
 }
 
 class _SettingScreenState extends State<SettingScreen>
@@ -97,6 +107,7 @@ class _SettingScreenState extends State<SettingScreen>
       HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
   bool hideBottombarWhenScrolling =
       HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
+  final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
 
   @override
   void initState() {
@@ -110,6 +121,20 @@ class _SettingScreenState extends State<SettingScreen>
       });
     });
     loadWebDavConfig();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.jumpToAutoBackupPassword) {
+        scrollToSetAutoBackupPassword();
+      }
+    });
+  }
+
+  scrollToSetAutoBackupPassword() {
+    if (_setAutoBackupPasswordKey.currentContext != null) {
+      Scrollable.ensureVisible(
+        _setAutoBackupPasswordKey.currentContext!,
+        duration: const Duration(milliseconds: 500),
+      );
+    }
   }
 
   @override
@@ -144,19 +169,21 @@ class _SettingScreenState extends State<SettingScreen>
                   const SizedBox(width: 5),
                 ],
               ),
-        body: ListView(
+        body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          children: [
-            ..._generalSettings(),
-            ..._apperanceSettings(),
-            ..._operationSettings(),
-            ..._backupSettings(),
-            ..._privacySettings(),
-            if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
-            if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
-            const SizedBox(height: 30),
-          ],
+          child: Column(
+            children: [
+              ..._generalSettings(),
+              ..._apperanceSettings(),
+              ..._operationSettings(),
+              ..._backupSettings(),
+              ..._privacySettings(),
+              if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
+              if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );
@@ -307,9 +334,17 @@ class _SettingScreenState extends State<SettingScreen>
         title: S.current.resetCopyTimes,
         description: S.current.resetCopyTimesTip,
         onTap: () async {
-          await TokenDao.resetTokenCopyTimes();
-          homeScreenState?.resetCopyTimes();
-          IToast.showTop(S.current.resetSuccess);
+          DialogBuilder.showConfirmDialog(
+            context,
+            title: S.current.resetCopyTimesTitle,
+            message: S.current.resetCopyTimesConfirmMessage,
+            onTapConfirm: () async {
+              await TokenDao.resetTokenCopyTimes();
+              homeScreenState?.resetCopyTimes();
+              IToast.showTop(S.current.resetSuccess);
+            },
+            onTapCancel: () {},
+          );
         },
       ),
     ];
@@ -374,6 +409,7 @@ class _SettingScreenState extends State<SettingScreen>
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.backupSetting),
       ItemBuilder.buildEntryItem(
+        key: _setAutoBackupPasswordKey,
         context: context,
         title: Utils.isNotEmpty(_autoBackupPassword)
             ? S.current.editAutoBackupPassword

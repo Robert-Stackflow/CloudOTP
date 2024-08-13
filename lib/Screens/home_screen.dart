@@ -55,7 +55,8 @@ class HomeScreen extends StatefulWidget {
 enum LayoutType {
   Simple,
   Compact,
-  Tile;
+  Tile,
+  List;
 
   double get maxCrossAxisExtent {
     switch (this) {
@@ -65,6 +66,8 @@ enum LayoutType {
         return 250;
       case LayoutType.Tile:
         return 420;
+      case LayoutType.List:
+        return 480;
     }
   }
 
@@ -76,6 +79,8 @@ enum LayoutType {
         return 113;
       case LayoutType.Tile:
         return 113;
+      case LayoutType.List:
+        return 60;
     }
   }
 }
@@ -145,11 +150,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final PageController _marqueeController = PageController();
-  int _currentMarqueeIndex = 0;
   late AnimationController _animationController;
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
-
-  bool get isSearchBarShown => _currentMarqueeIndex == 1;
+  final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
 
   int get currentCategoryId {
     if (_currentTabIndex == 0) {
@@ -193,7 +196,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }) {
     int updateIndex = tokens.indexWhere((element) => element.id == token.id);
     tokens[updateIndex] = token;
-    tokenKeyMap[updateIndex]?.currentState?.updateInfo();
+    tokenKeyMap
+        .putIfAbsent(updateIndex, () => GlobalKey())
+        .currentState
+        ?.updateInfo();
     if (pinnedStateChanged) performSort();
   }
 
@@ -205,7 +211,20 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  insertToken(OtpToken token) {
+  insertToken(
+    OtpToken token, {
+    bool forceAll = false,
+  }) async {
+    if (currentCategoryId == -1) {
+      if (!forceAll) {
+        return;
+      }
+    } else {
+      if (!(await CategoryDao.getCategoryIdsByTokenId(token.id))
+          .contains(currentCategoryId)) {
+        return;
+      }
+    }
     int calculateInsertIndex = 0;
     switch (orderType) {
       case OrderType.Default:
@@ -271,7 +290,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   refresh([bool isInit = false]) async {
-    print("refresh : $isInit");
     if (!mounted) return;
     await getCategories(isInit);
     await getTokens();
@@ -336,9 +354,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       body: ResponsiveUtil.isLandscape()
           ? _buildMainContent()
           : PopScope(
-              canPop: _currentMarqueeIndex == 0,
+              canPop: !_shownSearchbarNotifier.value,
               onPopInvoked: (_) {
-                if (mounted && isSearchBarShown) {
+                if (mounted && _shownSearchbarNotifier.value) {
                   changeSearchBar(false);
                 }
               },
@@ -371,18 +389,17 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   changeSearchBar(bool shown) {
-    setState(() {
-      _marqueeController.animateToPage(shown ? 1 : 0,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-      if (shown) {
-        _searchFocusNode.requestFocus();
-        _animationController.reverse();
-      } else {
-        _searchController.clear();
-        _searchFocusNode.unfocus();
-        _animationController.forward();
-      }
-    });
+    _shownSearchbarNotifier.value = shown;
+    _marqueeController.animateToPage(shown ? 1 : 0,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    if (shown) {
+      _searchFocusNode.requestFocus();
+      _animationController.reverse();
+    } else {
+      _searchController.clear();
+      _searchFocusNode.unfocus();
+      _animationController.forward();
+    }
   }
 
   _buildFloatingActionButton() {
@@ -407,185 +424,184 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   _buildMobileAppbar() {
+    var actions = [
+      ItemBuilder.buildIconButton(
+        context: context,
+        padding: EdgeInsets.zero,
+        icon: Selector<AppProvider, LoadingStatus>(
+          selector: (context, appProvider) =>
+              appProvider.autoBackupLoadingStatus,
+          builder: (context, autoBackupLoadingStatus, child) => LoadingIcon(
+            status: autoBackupLoadingStatus,
+            normalIcon: Icon(Icons.history_rounded,
+                color: Theme.of(context).iconTheme.color),
+          ),
+        ),
+        onTap: () {
+          RouteUtil.pushCupertinoRoute(context, const BackupLogScreen());
+        },
+      ),
+      const SizedBox(width: 5),
+      ItemBuilder.buildPopupMenuButton(
+        context: context,
+        icon: Icon(Icons.dashboard_outlined,
+            color: Theme.of(context).iconTheme.color),
+        itemBuilder: (context) {
+          return ItemBuilder.buildPopupMenuItems(
+            context,
+            MainScreenState.buildLayoutContextMenuButtons(),
+          );
+        },
+        onSelected: (_) {
+          globalNavigatorState?.pop();
+        },
+      ),
+      const SizedBox(width: 5),
+      ItemBuilder.buildPopupMenuButton(
+        context: context,
+        icon:
+            Icon(Icons.sort_rounded, color: Theme.of(context).iconTheme.color),
+        itemBuilder: (context) {
+          return ItemBuilder.buildPopupMenuItems(
+            context,
+            MainScreenState.buildSortContextMenuButtons(),
+          );
+        },
+        onSelected: (_) {
+          globalNavigatorState?.pop();
+        },
+      ),
+      ItemBuilder.buildPopupMenuButton(
+        context: context,
+        icon: Icon(Icons.more_vert_rounded,
+            color: Theme.of(context).iconTheme.color),
+        itemBuilder: (context) {
+          return ItemBuilder.buildPopupMenuItems(
+            context,
+            GenericContextMenu(
+              buttonConfigs: [
+                ContextMenuButtonConfig(
+                  S.current.category,
+                  icon: Icon(Icons.category_outlined,
+                      color: Theme.of(context).iconTheme.color),
+                  onPressed: () {
+                    RouteUtil.pushCupertinoRoute(
+                        context, const CategoryScreen());
+                  },
+                ),
+                ContextMenuButtonConfig(
+                  S.current.setting,
+                  icon: AssetUtil.loadDouble(
+                    context,
+                    AssetUtil.settingLightIcon,
+                    AssetUtil.settingDarkIcon,
+                  ),
+                  onPressed: () {
+                    RouteUtil.pushCupertinoRoute(
+                        context, const SettingScreen());
+                  },
+                ),
+                ContextMenuButtonConfig(
+                  S.current.about,
+                  icon: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/logo-transparent.png',
+                      height: 24,
+                      width: 24,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  onPressed: () {
+                    RouteUtil.pushCupertinoRoute(
+                        context, const AboutSettingScreen());
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+      const SizedBox(width: 5),
+    ];
     return Selector<AppProvider, bool>(
       selector: (context, provider) => provider.hideAppbarWhenScrolling,
       builder: (context, hideAppbarWhenScrolling, child) =>
-          ItemBuilder.buildSliverAppBar(
-        context: context,
-        floating: hideAppbarWhenScrolling,
-        pinned: !hideAppbarWhenScrolling,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        title: SizedBox(
-          height: kToolbarHeight,
-          child: MarqueeWidget(
-            count: 2,
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: () {
-                      if (!isSearchBarShown) {
-                        changeSearchBar(true);
-                      }
-                    },
-                    child: Text(
-                      appName,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium!
-                          .apply(fontWeightDelta: 2),
-                    ),
-                  ),
-                );
-              } else {
-                return Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 24),
-                    child: InputItem(
-                      hint: S.current.searchToken,
-                      onSubmit: (text) {
-                        performSearch(text);
+          ValueListenableBuilder(
+        valueListenable: _shownSearchbarNotifier,
+        builder: (context, shownSearchbar, child) =>
+            ItemBuilder.buildSliverAppBar(
+          context: context,
+          floating: hideAppbarWhenScrolling,
+          pinned: !hideAppbarWhenScrolling,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          title: SizedBox(
+            height: kToolbarHeight,
+            child: MarqueeWidget(
+              count: 2,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!_shownSearchbarNotifier.value) {
+                          changeSearchBar(true);
+                        }
                       },
-                      showErrorLine: false,
-                      focusNode: _searchFocusNode,
-                      controller: _searchController,
-                      backgroundColor: Colors.transparent,
+                      child: Text(
+                        appName,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .apply(fontWeightDelta: 2),
+                      ),
                     ),
-                  ),
-                );
-              }
-            },
-            autoPlay: false,
-            controller: _marqueeController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentMarqueeIndex = index;
-              });
-            },
-          ),
-        ),
-        expandedHeight: kToolbarHeight,
-        collapsedHeight: kToolbarHeight,
-        // leading: AnimatedIcon(
-        //   icon: AnimatedIcons.arrow_menu,
-        //   color: Theme.of(context).iconTheme.color,
-        //   size: Theme.of(context).iconTheme.size,
-        //   progress: _animationController,
-        // ),
-        onLeadingTap: () {
-          if (isSearchBarShown) {
-            changeSearchBar(false);
-          } else {
-            homeScaffoldState?.openDrawer();
-          }
-        },
-        actions: isSearchBarShown
-            ? []
-            : [
-                ItemBuilder.buildIconButton(
-                  context: context,
-                  padding: EdgeInsets.zero,
-                  icon: Selector<AppProvider, LoadingStatus>(
-                    selector: (context, appProvider) =>
-                        appProvider.autoBackupLoadingStatus,
-                    builder: (context, autoBackupLoadingStatus, child) =>
-                        LoadingIcon(
-                      status: autoBackupLoadingStatus,
-                      normalIcon: Icon(Icons.history_rounded,
-                          color: Theme.of(context).iconTheme.color),
-                    ),
-                  ),
-                  onTap: () {
-                    RouteUtil.pushCupertinoRoute(
-                        context, const BackupLogScreen());
-                  },
-                ),
-                const SizedBox(width: 5),
-                ItemBuilder.buildPopupMenuButton(
-                  context: context,
-                  icon: Icon(Icons.dashboard_outlined,
-                      color: Theme.of(context).iconTheme.color),
-                  itemBuilder: (context) {
-                    return ItemBuilder.buildPopupMenuItems(
-                      context,
-                      MainScreenState.buildLayoutContextMenuButtons(),
-                    );
-                  },
-                  onSelected: (_) {
-                    globalNavigatorState?.pop();
-                  },
-                ),
-                const SizedBox(width: 5),
-                ItemBuilder.buildPopupMenuButton(
-                  context: context,
-                  icon: Icon(Icons.sort_rounded,
-                      color: Theme.of(context).iconTheme.color),
-                  itemBuilder: (context) {
-                    return ItemBuilder.buildPopupMenuItems(
-                      context,
-                      MainScreenState.buildSortContextMenuButtons(),
-                    );
-                  },
-                  onSelected: (_) {
-                    globalNavigatorState?.pop();
-                  },
-                ),
-                // const SizedBox(width: 5),
-                ItemBuilder.buildPopupMenuButton(
-                  context: context,
-                  icon: Icon(Icons.more_vert_rounded,
-                      color: Theme.of(context).iconTheme.color),
-                  itemBuilder: (context) {
-                    return ItemBuilder.buildPopupMenuItems(
-                      context,
-                      GenericContextMenu(
-                        buttonConfigs: [
-                          ContextMenuButtonConfig(
-                            S.current.category,
-                            icon: Icon(Icons.category_outlined,
-                                color: Theme.of(context).iconTheme.color),
-                            onPressed: () {
-                              RouteUtil.pushCupertinoRoute(
-                                  context, const CategoryScreen());
+                  );
+                } else {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 24),
+                      child: Row(
+                        children: [
+                          ItemBuilder.buildIconButton(
+                            context: context,
+                            icon: Icon(
+                              Icons.arrow_back_rounded,
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            onTap: () {
+                              changeSearchBar(false);
                             },
                           ),
-                          ContextMenuButtonConfig(
-                            S.current.setting,
-                            icon: AssetUtil.loadDouble(
-                              context,
-                              AssetUtil.settingLightIcon,
-                              AssetUtil.settingDarkIcon,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: InputItem(
+                              hint: S.current.searchToken,
+                              onSubmit: (text) {
+                                performSearch(text);
+                              },
+                              showErrorLine: false,
+                              focusNode: _searchFocusNode,
+                              controller: _searchController,
+                              backgroundColor: Colors.transparent,
                             ),
-                            onPressed: () {
-                              RouteUtil.pushCupertinoRoute(
-                                  context, const SettingScreen());
-                            },
-                          ),
-                          ContextMenuButtonConfig(
-                            S.current.about,
-                            icon: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.asset(
-                                'assets/logo-transparent.png',
-                                height: 24,
-                                width: 24,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            onPressed: () {
-                              RouteUtil.pushCupertinoRoute(
-                                  context, const AboutSettingScreen());
-                            },
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 5),
-              ],
+                    ),
+                  );
+                }
+              },
+              autoPlay: false,
+              controller: _marqueeController,
+            ),
+          ),
+          expandedHeight: kToolbarHeight,
+          collapsedHeight: kToolbarHeight,
+          actions: _shownSearchbarNotifier.value ? [] : actions,
+        ),
       ),
     );
   }
@@ -643,7 +659,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           return true;
         },
         onReorder: (int oldIndex, int newIndex) async {
-          setState(() {});
           final item = tokens.removeAt(oldIndex);
           tokens.insert(newIndex, item);
           for (int i = 0; i < tokens.length; i++) {
@@ -670,7 +685,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         itemCount: tokens.length,
         itemBuilder: (context, index) {
           return TokenLayout(
-            key: tokenKeyMap.putIfAbsent(index, () => GlobalKey()),
+            key: tokenKeyMap.putIfAbsent(tokens[index].id, () => GlobalKey()),
             token: tokens[index],
             layoutType: layoutType,
           );
@@ -868,6 +883,16 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       HiveUtil.setOrderType(orderType);
     });
     if (doPerformSort) performSort();
+  }
+
+  resetCopyTimesSingle(OtpToken token) {
+    int updateIndex = tokens.indexWhere((element) => element.id == token.id);
+    tokens[updateIndex].copyTimes = 0;
+    tokens[updateIndex].lastCopyTimeStamp = 0;
+    if (orderType == OrderType.CopyTimesDESC ||
+        orderType == OrderType.CopyTimesASC) {
+      performSort();
+    }
   }
 
   resetCopyTimes() {

@@ -162,7 +162,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 context,
                 title: S.current.webDav,
                 message: S.current.webDavTip,
-                customDialogType: CustomDialogType.normal,
+
                 onTapDismiss: () {},
               );
             },
@@ -245,7 +245,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                     leadingText: S.current.webDavServer,
                     leadingType: InputItemLeadingType.text,
                     topRadius: true,
-                    readOnly: connected,
+                    disabled: connected,
                     stateController: _endpointStateController,
                     hint: S.current.webDavServerHint,
                     inputFormatters: [
@@ -257,7 +257,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                     stateController: _accountStateController,
                     textInputAction: TextInputAction.next,
                     leadingType: InputItemLeadingType.text,
-                    readOnly: connected,
+                    disabled: connected,
                     leadingText: S.current.webDavUsername,
                     hint: S.current.webDavUsernameHint,
                   ),
@@ -267,7 +267,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                     leadingType: InputItemLeadingType.text,
                     leadingText: S.current.webDavPassword,
                     tailingType: InputItemTailingType.password,
-                    readOnly: connected,
+                    disabled: connected,
                     hint: S.current.webDavPasswordHint,
                     inputFormatters: [
                       RegexInputFormatter.onlyNumberAndLetter,

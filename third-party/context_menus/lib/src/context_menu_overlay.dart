@@ -42,7 +42,7 @@ class ContextMenuOverlay extends StatefulWidget {
 
   static ContextMenuOverlayState of(BuildContext context) {
     final state = (context
-            .dependOnInheritedWidgetOfExactType<_InheritedContextMenuOverlay>())
+        .dependOnInheritedWidgetOfExactType<_InheritedContextMenuOverlay>())
         ?.state;
     if (state == null) {
       throw ('No ContextMenuOverlay was found. Check that you have inserted a ContextMenuOverlay above your ContextMenuRegion in the widget tree.');
@@ -54,7 +54,7 @@ class ContextMenuOverlay extends StatefulWidget {
 class ContextMenuOverlayState extends State<ContextMenuOverlay>
     with SingleTickerProviderStateMixin {
   static ContextMenuButtonStyle defaultButtonStyle =
-      const ContextMenuButtonStyle();
+  const ContextMenuButtonStyle();
 
   Widget? _currentMenu;
   Size? _prevSize;
@@ -84,7 +84,8 @@ class ContextMenuOverlayState extends State<ContextMenuOverlay>
         _nullMenuIfOverlayWasResized(constraints);
         // Offset the menu depending on which quadrant of the app we're in, this
         // will make sure it always stays in bounds.
-        double dx = 0, dy = 0;
+        double dx = 0,
+            dy = 0;
         if (_mousePos.dx > (_prevSize?.width ?? 0) / 2) dx = -_menuSize.width;
         if (_mousePos.dy > (_prevSize?.height ?? 0) / 2) {
           dy = -_menuSize.height;

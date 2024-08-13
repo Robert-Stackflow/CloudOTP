@@ -16,7 +16,7 @@ class SteamTOTP {
       throw ArgumentError('secret must not be empty.');
     }
     try {
-      _sharedSecretArray = base32.decode(secret);
+      _sharedSecretArray = base32.decode(secret.toUpperCase());
       if (_sharedSecretArray.isEmpty) {
         throw Exception();
       }

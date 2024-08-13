@@ -190,7 +190,8 @@ class ExportTokenUtil {
     bool force = false,
     AutoBackupTriggerType triggerType = AutoBackupTriggerType.manual,
   }) async {
-    Future.delayed(const Duration(seconds: 1), () async {
+    Future.delayed(force ? Duration.zero : const Duration(seconds: 1),
+        () async {
       if (!force && !await HiveUtil.canAutoBackup()) return;
       CloudServiceConfig? config =
           await CloudServiceConfigDao.getWebdavConfig();

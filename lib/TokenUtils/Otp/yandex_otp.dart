@@ -19,7 +19,7 @@ class YandexOTP {
     if (lastBlockWidth != 0) {
       secret += '=' * (8 - lastBlockWidth);
     }
-    return base32.decode(secret);
+    return base32.decode(secret.toUpperCase());
   }
 
   static String _otpToYandex(int otp) {

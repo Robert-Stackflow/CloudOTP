@@ -166,6 +166,7 @@ class ContextMenuButtonConfig {
   ContextMenuButtonConfig(
     this.label, {
     required this.onPressed,
+    this.textColor,
     this.shortcutLabel,
     this.icon,
     this.checked = false,
@@ -176,6 +177,7 @@ class ContextMenuButtonConfig {
   ContextMenuButtonConfig.divider()
       : label = "",
         checked = false,
+        textColor = null,
         type = ContextMenuButtonConfigType.divider,
         shortcutLabel = "",
         icon = null,
@@ -185,6 +187,7 @@ class ContextMenuButtonConfig {
   ContextMenuButtonConfig.warning(
     this.label, {
     required this.onPressed,
+    this.textColor,
     this.checked = false,
     this.shortcutLabel,
     this.icon,
@@ -195,6 +198,7 @@ class ContextMenuButtonConfig {
   ContextMenuButtonConfig.checkbox(
     this.label, {
     this.checked = false,
+    this.textColor,
     required this.onPressed,
     this.shortcutLabel,
     this.icon,
@@ -209,6 +213,7 @@ class ContextMenuButtonConfig {
   final Widget? iconHover;
   final bool checked;
   final ContextMenuButtonConfigType type;
+  final Color? textColor;
 }
 
 enum ContextMenuButtonConfigType {

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:animated_reorderable/animated_reorderable.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -246,17 +245,19 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               : Icons.push_pin_outlined,
           title:
               widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
-          titleColor: widget.token.pinned ? Colors.green : null,
-          leadingColor: widget.token.pinned ? Colors.green : null,
-          onTap: () {
+          titleColor: widget.token.pinned ? Theme.of(context).primaryColor : null,
+          leadingColor: widget.token.pinned ? Theme.of(context).primaryColor : null,
+          onTap: () async {
             Navigator.pop(context);
-            TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
+            await TokenDao.updateTokenPinned(
+                widget.token, !widget.token.pinned);
             IToast.showTop(
               widget.token.pinned
                   ? S.current.alreadyUnPinnedToken(widget.token.title)
                   : S.current.alreadyPinnedToken(widget.token.title),
             );
-            homeScreenState?.updateToken(widget.token, pinnedStateChanged: true);
+            homeScreenState?.updateToken(widget.token,
+                pinnedStateChanged: true);
           },
         ),
         _buildItem(
@@ -356,10 +357,11 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
     required String title,
     Color? titleColor,
     Color? leadingColor,
+    Color? backgroundColor,
     Function()? onTap,
   }) {
     return Material(
-      color: Theme.of(context).canvasColor,
+      color: backgroundColor ?? Theme.of(context).canvasColor,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,

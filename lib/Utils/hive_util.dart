@@ -135,7 +135,8 @@ class HiveUtil {
 
   static LayoutType getLayoutType() {
     return LayoutType.values[Utils.patchEnum(
-        HiveUtil.getInt(HiveUtil.layoutTypeKey), LayoutType.values.length)];
+        HiveUtil.getInt(HiveUtil.layoutTypeKey), LayoutType.values.length,
+        defaultValue: LayoutType.Compact.index)];
   }
 
   static setSelectedCategoryId(int id) {

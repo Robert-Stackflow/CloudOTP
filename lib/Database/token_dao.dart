@@ -95,6 +95,19 @@ class TokenDao {
     return results.length;
   }
 
+  static Future<int> resetSingleTokenCopyTimes(OtpToken token) async {
+    final db = await DatabaseManager.getDataBase();
+    token.copyTimes = 0;
+    token.lastCopyTimeStamp = 0;
+    int id = await db.update(
+      tableName,
+      token.toMap(),
+      where: 'id = ?',
+      whereArgs: [token.id],
+    );
+    return id;
+  }
+
   static Future<int> resetTokenCopyTimes() async {
     final db = await DatabaseManager.getDataBase();
     List<OtpToken> tokens = await listTokens();

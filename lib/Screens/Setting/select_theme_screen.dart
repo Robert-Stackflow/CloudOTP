@@ -81,16 +81,19 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
     var list = List<Widget>.generate(
       ThemeColorData.defaultLightThemes.length,
       (index) => ItemBuilder.buildThemeItem(
-          index: index,
-          groupIndex: _selectedLightIndex,
-          themeColorData: ThemeColorData.defaultLightThemes[index],
-          context: context,
-          onChanged: (index) {
-            setState(() {
+        index: index,
+        groupIndex: _selectedLightIndex,
+        themeColorData: ThemeColorData.defaultLightThemes[index],
+        context: context,
+        onChanged: (index) {
+          setState(
+            () {
               _selectedLightIndex = index ?? 0;
               appProvider.setLightTheme(index ?? 0);
-            });
-          }),
+            },
+          );
+        },
+      ),
     );
     // list.add(ItemBuilder.buildEmptyThemeItem(context: context, onTap: null));
     return list;
@@ -100,16 +103,19 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
     var list = List<Widget>.generate(
       ThemeColorData.defaultDarkThemes.length,
       (index) => ItemBuilder.buildThemeItem(
-          index: index,
-          groupIndex: _selectedDarkIndex,
-          themeColorData: ThemeColorData.defaultDarkThemes[index],
-          context: context,
-          onChanged: (index) {
-            setState(() {
+        index: index,
+        groupIndex: _selectedDarkIndex,
+        themeColorData: ThemeColorData.defaultDarkThemes[index],
+        context: context,
+        onChanged: (index) {
+          setState(
+            () {
               _selectedDarkIndex = index ?? 0;
               appProvider.setDarkTheme(index ?? 0);
-            });
-          }),
+            },
+          );
+        },
+      ),
     );
     return list;
   }

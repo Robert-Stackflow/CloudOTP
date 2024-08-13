@@ -14,9 +14,16 @@ class SelectCategoryBottomSheet extends StatefulWidget {
   const SelectCategoryBottomSheet({
     super.key,
     required this.token,
+    this.isEditingToken = false,
+    this.onCategoryChanged,
+    this.initialCategoryIds,
   });
 
   final OtpToken token;
+  final bool isEditingToken;
+  final List<int>? initialCategoryIds;
+
+  final Function(List<int>)? onCategoryChanged;
 
   @override
   SelectCategoryBottomSheetState createState() =>
@@ -35,7 +42,12 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
   }
 
   getCategories() async {
-    oldCategoryIds = await CategoryDao.getCategoryIdsByTokenId(widget.token.id);
+    if (widget.isEditingToken) {
+      oldCategoryIds = widget.initialCategoryIds ?? [];
+    } else {
+      oldCategoryIds =
+          await CategoryDao.getCategoryIdsByTokenId(widget.token.id);
+    }
     await CategoryDao.listCategories().then((value) async {
       setState(() {
         categories = value;
@@ -81,7 +93,6 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
     );
   }
 
-
   _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -97,15 +108,15 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
   _buildButtons() {
     return categories.isNotEmpty
         ? ItemBuilder.buildGroupButtons(
-      isRadio: false,
-      enableDeselect: true,
-      constraintWidth: false,
-      buttons: categories.map((e) => e.title).toList(),
-      controller: controller,
-      radius: 8,
-    )
+            isRadio: false,
+            enableDeselect: true,
+            constraintWidth: false,
+            buttons: categories.map((e) => e.title).toList(),
+            controller: controller,
+            radius: 8,
+          )
         : ItemBuilder.buildEmptyPlaceholder(
-        context: context, text: S.current.noCategory);
+            context: context, text: S.current.noCategory);
   }
 
   _buildFooter() {
@@ -122,7 +133,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
             child: ItemBuilder.buildRoundButton(
               context,
               background: Theme.of(context).primaryColor,
-              text: S.current.save,
+              text: widget.isEditingToken ? S.current.confirm : S.current.save,
               onTap: () async {
                 List<int> selectedIndexes = controller.selectedIndexes.toList();
                 List<int> allSelectedCategoryIds =
@@ -134,19 +145,22 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
                 List<int> newSelectedCategoryIds = allSelectedCategoryIds
                     .where((element) => !oldCategoryIds.contains(element))
                     .toList();
-                await CategoryDao.updateCategoriesForToken(
-                  widget.token.id,
-                  unselectedCategoryIds,
-                  newSelectedCategoryIds,
-                  // backup: true,
-                );
                 Navigator.of(context).pop();
-                homeScreenState?.changeCategoriesForToken(
-                  widget.token,
-                  unselectedCategoryIds,
-                  newSelectedCategoryIds,
-                );
-                IToast.showTop(S.current.saveSuccess);
+                widget.onCategoryChanged?.call(allSelectedCategoryIds);
+                if (!widget.isEditingToken) {
+                  await CategoryDao.updateCategoriesForToken(
+                    widget.token.id,
+                    unselectedCategoryIds,
+                    newSelectedCategoryIds,
+                    // backup: true,
+                  );
+                  homeScreenState?.changeCategoriesForToken(
+                    widget.token,
+                    unselectedCategoryIds,
+                    newSelectedCategoryIds,
+                  );
+                  IToast.showTop(S.current.saveSuccess);
+                }
               },
               fontSizeDelta: 2,
             ),

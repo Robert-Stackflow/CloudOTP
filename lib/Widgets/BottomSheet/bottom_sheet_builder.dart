@@ -57,9 +57,7 @@ class BottomSheetBuilder {
       backgroundColor: backgroundColor ?? Theme.of(context).canvasColor,
       shape: shape,
       builder: builder,
-      containerWidget: (_, animation, child) => FloatingModal(
-        child: child,
-      ),
+      containerWidget: (_, animation, child) => child,
     );
   }
 }

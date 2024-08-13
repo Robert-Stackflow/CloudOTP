@@ -15,7 +15,7 @@ const Widget emptyWidget = SizedBox.shrink();
 
 const defaultWindowSize = Size(1120, 740);
 
-const minimumSize = Size(700, 540);
+const minimumSize = Size(606, 540);
 
 const double autoCopyNextCodeProgressThrehold = 0.25;
 const String placeholderText = "*";

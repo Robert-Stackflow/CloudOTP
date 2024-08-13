@@ -92,7 +92,7 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
   static Map<Type, Action<Intent>> mainScreenShortcuts = {
     SettingIntent: CallbackAction(
       onInvoke: (_) {
-        RouteUtil.pushDesktopFadeRoute(const SettingScreen());
+        RouteUtil.pushDialogRoute(rootContext, const SettingScreen());
         return null;
       },
     ),

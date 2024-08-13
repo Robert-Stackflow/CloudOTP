@@ -924,7 +924,7 @@ class _ReorderableItemState extends State<_ReorderableItem> {
       if (childSize != null) {
         return SizedBox(width: childSize!.width, height: childSize!.height);
       } else {
-        return SizedBox(width: 200, height: widget.preferredHeight);
+        return SizedBox(width: 150, height: widget.preferredHeight);
       }
     }
     _reorderableGridState._registerItem(this);

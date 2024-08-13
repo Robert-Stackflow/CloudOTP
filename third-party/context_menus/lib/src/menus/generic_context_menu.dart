@@ -64,6 +64,7 @@ class GenericContextMenuState extends State<GenericContextMenu>
                 iconHover: config.iconHover,
                 shortcutLabel: config.shortcutLabel,
                 onPressed: action,
+                textColor: config.textColor,
                 type: config.type,
                 checked: config.checked,
               ),

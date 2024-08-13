@@ -32,7 +32,8 @@ class AddBottomSheet extends StatefulWidget {
 
 class AddBottomSheetState extends State<AddBottomSheet>
     with WidgetsBindingObserver {
-  final MobileScannerController scannerController = MobileScannerController();
+  final MobileScannerController scannerController =
+      MobileScannerController(useNewCameraSelector: true);
   StreamSubscription<Object?>? _subscription;
   double _zoomFactor = 0.0;
   final double _scaleSensitivity = 0.01;
@@ -48,11 +49,9 @@ class AddBottomSheetState extends State<AddBottomSheet>
         return;
       case AppLifecycleState.resumed:
         _subscription = scannerController.barcodes.listen(_handleBarcode);
-        unawaited(scannerController.start());
       case AppLifecycleState.inactive:
         unawaited(_subscription?.cancel());
         _subscription = null;
-      // unawaited(scannerController.stop());
     }
   }
 
@@ -61,29 +60,24 @@ class AddBottomSheetState extends State<AddBottomSheet>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _subscription = scannerController.barcodes.listen(_handleBarcode);
-    Permission.camera
-        .onDeniedCallback(() {
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .onGrantedCallback(() async {
-          unawaited(scannerController.start());
-        })
-        .onPermanentlyDeniedCallback(() {
-          IToast.showTop(S.current.hasRejectedCameraPermission);
-        })
-        .onRestrictedCallback(() {
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .onLimitedCallback(() {
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .onProvisionalCallback(() {
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .request()
-        .then((_) {
-          unawaited(scannerController.start());
-        });
+    initCamera();
+  }
+
+  initCamera() async {
+    await scannerController.stop();
+    Permission.camera.onDeniedCallback(() {
+      IToast.showTop(S.current.pleaseGrantCameraPermission);
+    }).onGrantedCallback(() async {
+      await scannerController.start();
+    }).onPermanentlyDeniedCallback(() {
+      IToast.showTop(S.current.hasRejectedCameraPermission);
+    }).onRestrictedCallback(() {
+      IToast.showTop(S.current.pleaseGrantCameraPermission);
+    }).onLimitedCallback(() {
+      IToast.showTop(S.current.pleaseGrantCameraPermission);
+    }).onProvisionalCallback(() {
+      IToast.showTop(S.current.pleaseGrantCameraPermission);
+    }).request();
   }
 
   _handleBarcode(
@@ -434,6 +428,7 @@ class ScannerErrorWidget extends StatelessWidget {
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               errorMessage,

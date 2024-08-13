@@ -28,7 +28,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
           duration: const Duration(seconds: 5), vsync: this);
       celebrateWidget = LottieUtil.load(
         LottieUtil.celebrate,
-        size: MediaQuery.sizeOf(context).width * 2,
+        size: 40,
         controller: _celebrateController,
       );
       diaplayCelebrate();
@@ -59,7 +59,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
     return Stack(
       children: [
         Scaffold(
-          appBar: ResponsiveUtil.isDesktop()
+          appBar: ResponsiveUtil.isLandscape()
               ? null
               : ItemBuilder.buildSimpleAppBar(
                   transparent: true,
@@ -71,6 +71,8 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
               children: [
+                if (ResponsiveUtil.isLandscape())
+                  const SizedBox(height: kToolbarHeight),
                 Center(
                   child: ItemBuilder.buildClickItem(
                     GestureDetector(
@@ -100,7 +102,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 30),
                 ItemBuilder.buildContainerItem(
-                  backgroundColor: Theme.of(context).canvasColor,
+                  backgroundColor: Colors.transparent,
                   bottomRadius: true,
                   topRadius: true,
                   child: Container(
@@ -123,9 +125,14 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
           child: Positioned(
             left: 0,
             right: 0,
-            top: 0,
+            top: ResponsiveUtil.isLandscape() ? 500 : 380,
             child: IgnorePointer(
-              child: celebrateWidget,
+              child: Transform.scale(
+                scale: MediaQuery.of(context).size.width * 2 / 40,
+                child: Center(
+                  child: celebrateWidget,
+                ),
+              ),
             ),
           ),
         ),

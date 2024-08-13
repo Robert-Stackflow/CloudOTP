@@ -333,7 +333,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                 }
               },
               onTapCancel: () {},
-              customDialogType: CustomDialogType.normal,
+
             );
           },
         ),

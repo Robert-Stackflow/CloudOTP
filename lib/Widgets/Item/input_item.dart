@@ -90,7 +90,7 @@ class InputItem extends StatefulWidget {
     this.focusNode,
     this.topRadius,
     this.bottomRadius,
-    this.readOnly,
+    this.disabled,
     this.maxLength,
     this.inputFormatters = const [],
     this.leadingMinWidth,
@@ -123,7 +123,7 @@ class InputItem extends StatefulWidget {
   final FocusNode? focusNode;
   final bool? topRadius;
   final bool? bottomRadius;
-  final bool? readOnly;
+  final bool? disabled;
   final int? maxLength;
   final List<TextInputFormatter> inputFormatters;
   final double? leadingMinWidth;
@@ -178,7 +178,7 @@ class InputItemState extends State<InputItem> {
 
   bool get bottomRadius => widget.bottomRadius ?? false;
 
-  bool get readOnly => widget.readOnly ?? false;
+  bool get readOnly => widget.disabled ?? false;
 
   InputState get state => stateController.state;
 

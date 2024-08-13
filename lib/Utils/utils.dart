@@ -456,7 +456,7 @@ class Utils {
                 }
               },
               onTapCancel: () {},
-              customDialogType: CustomDialogType.normal,
+
             );
           } else {
             DialogBuilder.showPageDialog(
