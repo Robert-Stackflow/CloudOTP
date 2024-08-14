@@ -42,3 +42,12 @@ AndroidAuthMessages androidAuthMessages = AndroidAuthMessages(
   deviceCredentialsRequiredTitle:
       S.current.biometricDeviceCredentialsRequiredTitle,
 );
+
+RegExp otpauthMigrationReg =
+    RegExp(r"^otpauth-migration://offline\?data=(.*)$");
+RegExp otpauthReg = RegExp(r"^otpauth://([a-z]+)/([^?]*)(.*)$");
+RegExp motpReg = RegExp(r"^motp://([^?]+)\?secret=([a-fA-F\d]+)(.*)$");
+RegExp cloudotpauthMigrationReg =
+    RegExp(r"^cloudotpauth-migration://offline\?tokens=(.*)$");
+RegExp cloudotpauthCategoryMigrationReg =
+    RegExp(r"^cloudotpauth-migration://offline\?categories=(.*)$");

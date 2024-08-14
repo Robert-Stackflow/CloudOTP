@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:cloudotp/Models/cloud_service_config.dart';
 
-import '../../Models/category.dart';
+import '../../Models/token_category.dart';
 import '../../Models/config.dart';
 import '../../Models/opt_token.dart';
 
@@ -46,7 +46,9 @@ class Backup {
                 .map((e) => CloudServiceConfig.fromJson(e))
                 .toList()
             : [],
-        config: json['config']!=null?Config.fromJson(json['config']):Config()
-    );
+        config: json['config'] != null
+            ? Config.fromJson(json['config'])
+            : Config());
   }
+
 }

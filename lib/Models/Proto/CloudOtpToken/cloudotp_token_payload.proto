@@ -1,0 +1,67 @@
+syntax = "proto2";
+
+message CloudOtpTokenPayload {
+	repeated CloudOtpTokenParameters token_parameters = 1;
+
+	optional int32 version = 2;
+
+	optional int32 batch_size = 3;
+
+	optional int32 batch_index = 4;
+
+	optional int32 batch_id = 5;
+}
+
+message CloudOtpTokenParameters {
+	optional bytes secret = 1;
+
+	optional string issuer = 2;
+
+	optional string account = 3;
+
+	optional string pin = 4;
+
+	optional CloudOtpTokenAlgorithm algorithm = 5;
+
+	optional CloudOtpTokenDigitCount digits = 6;
+
+	optional CloudOtpTokenType type = 7;
+
+	optional int64 period = 8;
+
+	optional int64 counter = 9;
+
+	optional int64 pinned = 10;
+
+	optional int64 copyTimes = 11;
+
+	optional int64 lastCopyTimeStamp = 12;
+
+	optional string imagePath = 13;
+
+	optional string remark = 14;
+}
+
+enum CloudOtpTokenAlgorithm {
+	ALGORITHM_TYPE_UNSPECIFIED = 0;
+	SHA1 = 1;
+	SHA256 = 2;
+	SHA512 = 3;
+}
+
+enum CloudOtpTokenDigitCount {
+	DIGIT_COUNT_UNSPECIFIED = 0;
+	FIVE = 1;
+	SIX = 2;
+	SEVEN = 3;
+	EIGHT = 4;
+}
+
+enum CloudOtpTokenType {
+	OTP_TYPE_UNSPECIFIED = 0;
+	TOTP = 1;
+	HOTP = 2;
+	MOTP = 3;
+	STEAM = 4;
+	YANDEX = 5;
+}

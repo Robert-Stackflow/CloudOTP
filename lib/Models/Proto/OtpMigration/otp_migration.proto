@@ -1,7 +1,7 @@
 syntax = "proto2";
 
-message MigrationPayload {
-	repeated OtpParameters otp_parameters = 1;
+message OtpMigrationPayload {
+	repeated OtpMigrationParameters otp_parameters = 1;
 
 	optional int32 version = 2;
 
@@ -12,10 +12,10 @@ message MigrationPayload {
 	optional int32 batch_id = 5;
 }
 
-message OtpParameters {
+message OtpMigrationParameters {
 	optional bytes secret = 1;
 
-	optional string name = 2;
+	optional string account = 2;
 
 	optional string issuer = 3;
 

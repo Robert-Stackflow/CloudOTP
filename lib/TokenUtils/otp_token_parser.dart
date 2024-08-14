@@ -1,14 +1,15 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:base32/base32.dart';
-import 'package:cloudotp/Models/Proto/otp_migration.pb.dart';
+import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:protobuf/protobuf.dart';
 
+import '../Models/Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
+import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/opt_token.dart';
+import '../Models/token_category.dart';
+import '../Utils/constant.dart';
 import 'check_token_util.dart';
-import 'import_token_util.dart';
 import 'token_image_util.dart';
 
 class OtpTokenParser {
@@ -34,18 +35,21 @@ class OtpTokenParser {
       default:
         break;
     }
-    return Uri.parse(uriText);
+    return Uri.parse(Uri.encodeFull(uriText));
   }
 
   static List<OtpToken> parseUri(String line) {
     Uri uri = Uri.tryParse(line) ?? Uri();
     if (!(otpauthReg.hasMatch(line) ||
         motpReg.hasMatch(line) ||
-        otpauthMigrationReg.hasMatch(line))) {
+        otpauthMigrationReg.hasMatch(line) ||
+        cloudotpauthMigrationReg.hasMatch(line))) {
       return [];
     }
     try {
-      if (otpauthMigrationReg.hasMatch(line)) {
+      if (cloudotpauthMigrationReg.hasMatch(line)) {
+        return parseCloudOtpauthMigrationUri(uri);
+      } else if (otpauthMigrationReg.hasMatch(line)) {
         return parseOtpauthMigrationUri(uri);
       } else if (motpReg.hasMatch(line)) {
         OtpToken? token = parseMotpUri(line);
@@ -69,7 +73,7 @@ class OtpTokenParser {
     OtpToken token = OtpToken.init();
     //Get the token type
     String authority = uri.authority;
-    token.tokenType = OtpTokenType.fromLabel(authority);
+    token.tokenType = OtpTokenType.fromString(authority);
     if (uri.queryParameters.containsKey("steam")) {
       token.tokenType = OtpTokenType.Steam;
     }
@@ -105,13 +109,13 @@ class OtpTokenParser {
     }
     if (queryParameters.containsKey("algorithm") &&
         Utils.isNotEmpty(queryParameters["algorithm"])) {
-      token.algorithm = OtpAlgorithm.fromLabel(queryParameters["algorithm"]!);
+      token.algorithm = OtpAlgorithm.fromString(queryParameters["algorithm"]!);
     } else {
       token.algorithm = OtpAlgorithm.SHA1;
     }
     if (queryParameters.containsKey("digits") &&
         Utils.isNotEmpty(queryParameters["digits"])) {
-      token.digits = OtpDigits.fromLabel(queryParameters["digits"]!);
+      token.digits = OtpDigits.froMString(queryParameters["digits"]!);
     } else {
       token.digits = token.tokenType.defaultDigits;
     }
@@ -162,7 +166,7 @@ class OtpTokenParser {
     }
     if (queryParameters.containsKey("digits") &&
         Utils.isNotEmpty(queryParameters["digits"])) {
-      token.digits = OtpDigits.fromLabel(queryParameters["digits"]!);
+      token.digits = OtpDigits.froMString(queryParameters["digits"]!);
     } else {
       token.digits = token.tokenType.defaultDigits;
     }
@@ -191,20 +195,58 @@ class OtpTokenParser {
       final nextFactor = (rawData.length + 4 - 1) ~/ 4 * 4;
       rawData = rawData.padRight(nextFactor, '=');
     }
-    MigrationPayload payload =
-        MigrationPayload.fromBuffer(base64Decode(rawData));
+    OtpMigrationPayload payload =
+        OtpMigrationPayload.fromBuffer(base64Decode(rawData));
     List<OtpToken> tokens = [];
     for (var param in payload.otpParameters) {
-      OtpToken token = OtpToken.init();
-      token.secret = base32.encode(Uint8List.fromList(param.secret));
-      if (!CheckTokenUtil.isSecretBase32(token.secret)) continue;
-      token.issuer = Utils.isEmpty(param.issuer) ? param.name : param.issuer;
-      token.algorithm = OtpAlgorithm.fromAlgorithm(param.algorithm);
-      token.digits = OtpDigits.fromDigitCount(param.digits);
-      token.tokenType = OtpTokenType.fromType(param.type);
+      OtpToken? token = OtpToken.fromOtpMigrationParameters(param);
+      if (token != null) {
+        tokens.add(token);
+      }
+    }
+    return tokens;
+  }
+
+  static List<OtpToken> parseCloudOtpauthMigrationUri(Uri uri) {
+    if (!uri.queryParameters.containsKey("tokens") ||
+        Utils.isEmpty(uri.queryParameters["tokens"])) {
+      return [];
+    }
+    String rawData = uri.queryParameters["tokens"]!;
+    if (rawData.length % 4 != 0) {
+      final nextFactor = (rawData.length + 4 - 1) ~/ 4 * 4;
+      rawData = rawData.padRight(nextFactor, '=');
+    }
+    CloudOtpTokenPayload payload =
+        CloudOtpTokenPayload.fromBuffer(base64Decode(rawData));
+    List<OtpToken> tokens = [];
+    for (var param in payload.tokenParameters) {
+      OtpToken token = OtpToken.fromCloudOtpParameters(param);
       tokens.add(token);
     }
     return tokens;
+  }
+
+  static Future<List<TokenCategory>> parseCloudOtpauthCategoryMigration(
+      String line) async {
+    Uri uri = Uri.tryParse(line) ?? Uri();
+    if (!uri.queryParameters.containsKey("categories") ||
+        Utils.isEmpty(uri.queryParameters["categories"])) {
+      return [];
+    }
+    String rawData = uri.queryParameters["categories"]!;
+    if (rawData.length % 4 != 0) {
+      final nextFactor = (rawData.length + 4 - 1) ~/ 4 * 4;
+      rawData = rawData.padRight(nextFactor, '=');
+    }
+    TokenCategoryPayload payload =
+        TokenCategoryPayload.fromBuffer(base64Decode(rawData));
+    List<TokenCategory> categories = [];
+    for (var param in payload.categoryParameters) {
+      TokenCategory category = TokenCategory.fromCategoryParameters(param);
+      categories.add(category);
+    }
+    return categories;
   }
 }
 

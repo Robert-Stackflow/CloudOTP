@@ -2,6 +2,7 @@ import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
+import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_bottom_sheet.dart';
@@ -14,7 +15,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/BottomSheet/add_bottom_sheet.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
@@ -308,6 +309,60 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         ),
         ItemBuilder.buildEntryItem(
           context: context,
+          title: S.current.exportQrcode,
+          description: S.current.exportQrcodeHint,
+          onTap: () async {
+            List<String>? qrCodes = await ExportTokenUtil.exportToQrcodes();
+            if (qrCodes != null && qrCodes.isNotEmpty) {
+              DialogBuilder.showQrcodesDialog(
+                context,
+                title: S.current.exportQrcode,
+                message: S.current.exportQrcodeMessage,
+                qrcodes: qrCodes,
+              );
+            } else if (qrCodes != null && qrCodes.isEmpty) {
+              IToast.showTop(S.current.exportQrcodeNoData);
+            } else {
+              IToast.showTop(S.current.exportFailed);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.exportGoogleAuthenticatorQrcode,
+          description: S.current.exportGoogleAuthenticatorQrcodeHint,
+          onTap: () async {
+            List<dynamic>? res =
+                await ExportTokenUtil.exportToGoogleAuthentcatorQrcodes();
+            if (res != null) {
+              List<String>? qrCodes = res[0];
+              int passCount = res[1];
+              if (qrCodes != null && qrCodes.isNotEmpty) {
+                DialogBuilder.showQrcodesDialog(
+                  context,
+                  title: S.current.exportGoogleAuthenticatorQrcode,
+                  message: S.current.exportGoogleAuthenticatorQrcodeMessage,
+                  qrcodes: qrCodes,
+                );
+              }
+              List<String> toasts = [];
+              if (passCount > 0) {
+                toasts.add(S.current
+                    .exportGoogleAuthenticatorNoCompatibleCount(passCount));
+              }
+              if (qrCodes != null && qrCodes.isEmpty) {
+                toasts.add(S.current.exportGoogleAuthenticatorNoToken);
+              }
+              if (toasts.isNotEmpty) {
+                IToast.showTop(toasts.join("; "));
+              }
+            } else {
+              IToast.showTop(S.current.exportFailed);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
           title: S.current.exportUriFile,
           bottomRadius: true,
           description: S.current.exportUriFileHint,
@@ -333,10 +388,26 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                 }
               },
               onTapCancel: () {},
-
             );
           },
         ),
+        const SizedBox(height: 10),
+        ItemBuilder.buildCaptionItem(
+            context: context, title: S.current.importFromThirdParty),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importFromGoogleAuthenticator,
+          bottomRadius: true,
+          description: S.current.importFromGoogleAuthenticatorTip,
+          onTap: () async {
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              enableDrag: false,
+              (context) => const AddBottomSheet(onlyShowScanner: true),
+            );
+          },
+        ),
+        const SizedBox(height: 20),
       ],
     );
   }

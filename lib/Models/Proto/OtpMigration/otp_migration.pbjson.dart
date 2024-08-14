@@ -60,11 +60,11 @@ final $typed_data.Uint8List otpMigrationTypeDescriptor = $convert.base64Decode(
     'ChBPdHBNaWdyYXRpb25UeXBlEhgKFE9UUF9UWVBFX1VOU1BFQ0lGSUVEEAASCAoESE9UUBABEg'
     'gKBFRPVFAQAg==');
 
-@$core.Deprecated('Use migrationPayloadDescriptor instead')
-const MigrationPayload$json = {
-  '1': 'MigrationPayload',
+@$core.Deprecated('Use otpMigrationPayloadDescriptor instead')
+const OtpMigrationPayload$json = {
+  '1': 'OtpMigrationPayload',
   '2': [
-    {'1': 'otp_parameters', '3': 1, '4': 3, '5': 11, '6': '.OtpParameters', '10': 'otpParameters'},
+    {'1': 'otp_parameters', '3': 1, '4': 3, '5': 11, '6': '.OtpMigrationParameters', '10': 'otpParameters'},
     {'1': 'version', '3': 2, '4': 1, '5': 5, '10': 'version'},
     {'1': 'batch_size', '3': 3, '4': 1, '5': 5, '10': 'batchSize'},
     {'1': 'batch_index', '3': 4, '4': 1, '5': 5, '10': 'batchIndex'},
@@ -72,19 +72,19 @@ const MigrationPayload$json = {
   ],
 };
 
-/// Descriptor for `MigrationPayload`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List migrationPayloadDescriptor = $convert.base64Decode(
-    'ChBNaWdyYXRpb25QYXlsb2FkEjUKDm90cF9wYXJhbWV0ZXJzGAEgAygLMg4uT3RwUGFyYW1ldG'
-    'Vyc1INb3RwUGFyYW1ldGVycxIYCgd2ZXJzaW9uGAIgASgFUgd2ZXJzaW9uEh0KCmJhdGNoX3Np'
-    'emUYAyABKAVSCWJhdGNoU2l6ZRIfCgtiYXRjaF9pbmRleBgEIAEoBVIKYmF0Y2hJbmRleBIZCg'
-    'hiYXRjaF9pZBgFIAEoBVIHYmF0Y2hJZA==');
+/// Descriptor for `OtpMigrationPayload`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List otpMigrationPayloadDescriptor = $convert.base64Decode(
+    'ChNPdHBNaWdyYXRpb25QYXlsb2FkEj4KDm90cF9wYXJhbWV0ZXJzGAEgAygLMhcuT3RwTWlncm'
+    'F0aW9uUGFyYW1ldGVyc1INb3RwUGFyYW1ldGVycxIYCgd2ZXJzaW9uGAIgASgFUgd2ZXJzaW9u'
+    'Eh0KCmJhdGNoX3NpemUYAyABKAVSCWJhdGNoU2l6ZRIfCgtiYXRjaF9pbmRleBgEIAEoBVIKYm'
+    'F0Y2hJbmRleBIZCghiYXRjaF9pZBgFIAEoBVIHYmF0Y2hJZA==');
 
-@$core.Deprecated('Use otpParametersDescriptor instead')
-const OtpParameters$json = {
-  '1': 'OtpParameters',
+@$core.Deprecated('Use otpMigrationParametersDescriptor instead')
+const OtpMigrationParameters$json = {
+  '1': 'OtpMigrationParameters',
   '2': [
     {'1': 'secret', '3': 1, '4': 1, '5': 12, '10': 'secret'},
-    {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
+    {'1': 'account', '3': 2, '4': 1, '5': 9, '10': 'account'},
     {'1': 'issuer', '3': 3, '4': 1, '5': 9, '10': 'issuer'},
     {'1': 'algorithm', '3': 4, '4': 1, '5': 14, '6': '.OtpMigrationAlgorithm', '10': 'algorithm'},
     {'1': 'digits', '3': 5, '4': 1, '5': 14, '6': '.OtpMigrationDigitCount', '10': 'digits'},
@@ -93,11 +93,11 @@ const OtpParameters$json = {
   ],
 };
 
-/// Descriptor for `OtpParameters`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List otpParametersDescriptor = $convert.base64Decode(
-    'Cg1PdHBQYXJhbWV0ZXJzEhYKBnNlY3JldBgBIAEoDFIGc2VjcmV0EhIKBG5hbWUYAiABKAlSBG'
-    '5hbWUSFgoGaXNzdWVyGAMgASgJUgZpc3N1ZXISNAoJYWxnb3JpdGhtGAQgASgOMhYuT3RwTWln'
-    'cmF0aW9uQWxnb3JpdGhtUglhbGdvcml0aG0SLwoGZGlnaXRzGAUgASgOMhcuT3RwTWlncmF0aW'
-    '9uRGlnaXRDb3VudFIGZGlnaXRzEiUKBHR5cGUYBiABKA4yES5PdHBNaWdyYXRpb25UeXBlUgR0'
-    'eXBlEhgKB2NvdW50ZXIYByABKANSB2NvdW50ZXI=');
+/// Descriptor for `OtpMigrationParameters`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List otpMigrationParametersDescriptor = $convert.base64Decode(
+    'ChZPdHBNaWdyYXRpb25QYXJhbWV0ZXJzEhYKBnNlY3JldBgBIAEoDFIGc2VjcmV0EhgKB2FjY2'
+    '91bnQYAiABKAlSB2FjY291bnQSFgoGaXNzdWVyGAMgASgJUgZpc3N1ZXISNAoJYWxnb3JpdGht'
+    'GAQgASgOMhYuT3RwTWlncmF0aW9uQWxnb3JpdGhtUglhbGdvcml0aG0SLwoGZGlnaXRzGAUgAS'
+    'gOMhcuT3RwTWlncmF0aW9uRGlnaXRDb3VudFIGZGlnaXRzEiUKBHR5cGUYBiABKA4yES5PdHBN'
+    'aWdyYXRpb25UeXBlUgR0eXBlEhgKB2NvdW50ZXIYByABKANSB2NvdW50ZXI=');
 

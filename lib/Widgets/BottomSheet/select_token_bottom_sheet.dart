@@ -5,8 +5,8 @@ import 'package:group_button/group_button.dart';
 
 import '../../Database/category_dao.dart';
 import '../../Database/token_dao.dart';
-import '../../Models/category.dart';
 import '../../Models/opt_token.dart';
+import '../../Models/token_category.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
@@ -69,7 +69,11 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildHeader(),
-              _buildButtons(),
+              Container(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height - 320),
+                child: _buildButtons(),
+              ),
               _buildFooter(),
             ],
           ),
@@ -92,9 +96,11 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
 
   _buildButtons() {
     return tokens.isNotEmpty
-        ? ItemBuilder.buildGroupTokenButtons(
-            tokens: tokens,
-            controller: controller,
+        ? SingleChildScrollView(
+            child: ItemBuilder.buildGroupTokenButtons(
+              tokens: tokens,
+              controller: controller,
+            ),
           )
         : ItemBuilder.buildEmptyPlaceholder(
             context: context, text: S.current.noToken);

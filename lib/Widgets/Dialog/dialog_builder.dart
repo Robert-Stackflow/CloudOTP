@@ -165,4 +165,31 @@ class DialogBuilder {
       ),
     ).then(onThen ?? (_) => {});
   }
+
+  static showQrcodesDialog(
+    BuildContext context, {
+    required List<String> qrcodes,
+    String? title,
+    String? message,
+    Alignment align = Alignment.bottomCenter,
+    bool responsive = true,
+  }) {
+    if (responsive && ResponsiveUtil.isLandscape()) {
+      QrcodeDialog.show(
+        context,
+        title: title,
+        message: message,
+        qrcodes: qrcodes,
+        align: Alignment.center,
+      );
+    } else {
+      QrcodeDialog.showAnimatedFromBottom(
+        context,
+        title: title,
+        qrcodes: qrcodes,
+        message: message,
+        align: align,
+      );
+    }
+  }
 }

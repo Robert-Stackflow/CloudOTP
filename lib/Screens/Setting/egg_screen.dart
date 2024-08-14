@@ -128,7 +128,9 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
             top: ResponsiveUtil.isLandscape() ? 500 : 380,
             child: IgnorePointer(
               child: Transform.scale(
-                scale: MediaQuery.of(context).size.width * 2 / 40,
+                scale: ResponsiveUtil.isLandscape()
+                    ? MediaQuery.of(context).size.width / 40
+                    : MediaQuery.of(context).size.width * 2 / 40,
                 child: Center(
                   child: celebrateWidget,
                 ),

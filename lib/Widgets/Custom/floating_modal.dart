@@ -34,7 +34,7 @@ class FloatingModal extends StatelessWidget {
               ? preferVerticalMargin
               : ResponsiveUtil.isLandscape()
                   ? 0
-                  : 200,
+                  : 100,
           bottom: useVerticalMargin ? preferVerticalMargin : 0,
         ),
         child: child,

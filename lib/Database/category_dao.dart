@@ -3,7 +3,7 @@ import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../Models/category.dart';
+import '../Models/token_category.dart';
 import '../Models/opt_token.dart';
 import 'database_manager.dart';
 

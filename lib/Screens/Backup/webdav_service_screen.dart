@@ -8,7 +8,6 @@ import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/webdav_backups_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
@@ -133,7 +132,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       appBar: ItemBuilder.buildAppBar(
         context: context,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        forceShowClose: true,
         leading: Icons.close_rounded,
         onLeadingTap: () {
           if (ResponsiveUtil.isLandscape()) {
@@ -149,24 +147,25 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
               .titleMedium
               ?.apply(fontWeightDelta: 2),
         ),
-        center: true,
+        center: !ResponsiveUtil.isLandscape(),
         actions: [
-          ItemBuilder.buildIconButton(
-            context: context,
-            icon: Icon(
-              Icons.info_outline_rounded,
-              color: Theme.of(context).iconTheme.color,
-            ),
-            onTap: () {
-              DialogBuilder.showInfoDialog(
-                context,
-                title: S.current.webDav,
-                message: S.current.webDavTip,
-
-                onTapDismiss: () {},
-              );
-            },
-          ),
+          ItemBuilder.buildBlankIconButton(context),
+          // ItemBuilder.buildIconButton(
+          //   context: context,
+          //   icon: Icon(
+          //     Icons.info_outline_rounded,
+          //     color: Theme.of(context).iconTheme.color,
+          //   ),
+          //   onTap: () {
+          //     DialogBuilder.showInfoDialog(
+          //       context,
+          //       title: S.current.webDav,
+          //       message: S.current.webDavTip,
+          //
+          //       onTapDismiss: () {},
+          //     );
+          //   },
+          // ),
           const SizedBox(width: 5),
         ],
       ),

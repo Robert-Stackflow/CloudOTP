@@ -21,7 +21,6 @@ import 'package:cloudotp/Widgets/Window/window_caption.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
@@ -396,9 +395,8 @@ class MainScreenState extends State<MainScreen>
               lockParentWindow: true,
             );
             if (result == null) return;
-            File file = File(result.files.single.path!);
-            Uint8List? imageBytes = file.readAsBytesSync();
-            ImportTokenUtil.analyzeImage(imageBytes, context: context);
+            await ImportTokenUtil.analyzeImageFile(result.files.single.path!,
+                context: context);
           },
         ),
         ContextMenuButtonConfig(
@@ -663,17 +661,20 @@ class MainScreenState extends State<MainScreen>
                         colors: MyColors.getNormalButtonColors(context),
                         borderRadius: BorderRadius.circular(8),
                         padding: EdgeInsets.zero,
-                        iconBuilder: (buttonContext) => Selector<AppProvider, LoadingStatus>(
+                        iconBuilder: (buttonContext) =>
+                            Selector<AppProvider, LoadingStatus>(
                           selector: (context, appProvider) =>
-                          appProvider.autoBackupLoadingStatus,
+                              appProvider.autoBackupLoadingStatus,
                           builder: (context, autoBackupLoadingStatus, child) =>
                               LoadingIcon(
-                                status: autoBackupLoadingStatus,
-                                normalIcon: const Icon(Icons.history_rounded,size: 25),
-                              ),
+                            status: autoBackupLoadingStatus,
+                            normalIcon:
+                                const Icon(Icons.history_rounded, size: 25),
+                          ),
                         ),
                         onPressed: () {
-                          context.contextMenuOverlay.show(const BackupLogScreen());
+                          context.contextMenuOverlay
+                              .show(const BackupLogScreen());
                         },
                       ),
                       const SizedBox(width: 3),

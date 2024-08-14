@@ -621,10 +621,9 @@ class _SettingScreenState extends State<SettingScreen>
               : S.current.notCloudBackupService,
           description: S.current.cloudBackupServiceSettingTip,
           onTap: () async {
-            RouteUtil.pushDialogRoute(
+            RouteUtil.pushCupertinoRoute(
               context,
               const WebDavServiceScreen(),
-              showClose: false,
               onThen: (value) {
                 loadWebDavConfig();
               },

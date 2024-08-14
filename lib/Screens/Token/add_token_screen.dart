@@ -1,5 +1,5 @@
 import 'package:cloudotp/Database/token_dao.dart';
-import 'package:cloudotp/Models/category.dart';
+import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
@@ -363,7 +363,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             title: S.current.tokenType,
             // disabled: _isEditing,
             controller: _typeController,
-            buttons: OtpTokenType.labels(),
+            buttons: OtpTokenType.toLabels(),
             onSelected: (value, index, isSelected) {
               _otpToken.tokenType = index.otpTokenType;
               _otpToken.digits = index.otpTokenType.defaultDigits;
@@ -535,9 +535,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               title: S.current.tokenDigits,
               // disabled: _isEditing,
               controller: _digitsController,
-              buttons: OtpDigits.D5.strings,
+              buttons: OtpDigits.toStrings(),
               onSelected: (value, index, isSelected) {
-                _otpToken.digits = OtpDigits.fromLabel(value);
+                _otpToken.digits = OtpDigits.froMString(value);
                 setState(() {});
               },
             ),
@@ -548,7 +548,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               context: context,
               title: S.current.tokenAlgorithm,
               controller: _algorithmController,
-              buttons: OtpAlgorithm.SHA1.strings,
+              buttons: OtpAlgorithm.toStrings(),
               // disabled: _isEditing,
               onSelected: (value, index, isSelected) {
                 _otpToken.algorithm = index.otpAlgorithm;

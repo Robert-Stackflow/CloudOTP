@@ -18,9 +18,9 @@ import 'otp_migration.pbenum.dart';
 
 export 'otp_migration.pbenum.dart';
 
-class MigrationPayload extends $pb.GeneratedMessage {
-  factory MigrationPayload({
-    $core.Iterable<OtpParameters>? otpParameters,
+class OtpMigrationPayload extends $pb.GeneratedMessage {
+  factory OtpMigrationPayload({
+    $core.Iterable<OtpMigrationParameters>? otpParameters,
     $core.int? version,
     $core.int? batchSize,
     $core.int? batchIndex,
@@ -44,12 +44,12 @@ class MigrationPayload extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  MigrationPayload._() : super();
-  factory MigrationPayload.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory MigrationPayload.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  OtpMigrationPayload._() : super();
+  factory OtpMigrationPayload.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory OtpMigrationPayload.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MigrationPayload', createEmptyInstance: create)
-    ..pc<OtpParameters>(1, _omitFieldNames ? '' : 'otpParameters', $pb.PbFieldType.PM, subBuilder: OtpParameters.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'OtpMigrationPayload', createEmptyInstance: create)
+    ..pc<OtpMigrationParameters>(1, _omitFieldNames ? '' : 'otpParameters', $pb.PbFieldType.PM, subBuilder: OtpMigrationParameters.create)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'version', $pb.PbFieldType.O3)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'batchSize', $pb.PbFieldType.O3)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'batchIndex', $pb.PbFieldType.O3)
@@ -61,25 +61,25 @@ class MigrationPayload extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  MigrationPayload clone() => MigrationPayload()..mergeFromMessage(this);
+  OtpMigrationPayload clone() => OtpMigrationPayload()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MigrationPayload copyWith(void Function(MigrationPayload) updates) => super.copyWith((message) => updates(message as MigrationPayload)) as MigrationPayload;
+  OtpMigrationPayload copyWith(void Function(OtpMigrationPayload) updates) => super.copyWith((message) => updates(message as OtpMigrationPayload)) as OtpMigrationPayload;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static MigrationPayload create() => MigrationPayload._();
-  MigrationPayload createEmptyInstance() => create();
-  static $pb.PbList<MigrationPayload> createRepeated() => $pb.PbList<MigrationPayload>();
+  static OtpMigrationPayload create() => OtpMigrationPayload._();
+  OtpMigrationPayload createEmptyInstance() => create();
+  static $pb.PbList<OtpMigrationPayload> createRepeated() => $pb.PbList<OtpMigrationPayload>();
   @$core.pragma('dart2js:noInline')
-  static MigrationPayload getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MigrationPayload>(create);
-  static MigrationPayload? _defaultInstance;
+  static OtpMigrationPayload getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<OtpMigrationPayload>(create);
+  static OtpMigrationPayload? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<OtpParameters> get otpParameters => $_getList(0);
+  $core.List<OtpMigrationParameters> get otpParameters => $_getList(0);
 
   @$pb.TagNumber(2)
   $core.int get version => $_getIZ(1);
@@ -118,10 +118,10 @@ class MigrationPayload extends $pb.GeneratedMessage {
   void clearBatchId() => clearField(5);
 }
 
-class OtpParameters extends $pb.GeneratedMessage {
-  factory OtpParameters({
+class OtpMigrationParameters extends $pb.GeneratedMessage {
+  factory OtpMigrationParameters({
     $core.List<$core.int>? secret,
-    $core.String? name,
+    $core.String? account,
     $core.String? issuer,
     OtpMigrationAlgorithm? algorithm,
     OtpMigrationDigitCount? digits,
@@ -132,8 +132,8 @@ class OtpParameters extends $pb.GeneratedMessage {
     if (secret != null) {
       $result.secret = secret;
     }
-    if (name != null) {
-      $result.name = name;
+    if (account != null) {
+      $result.account = account;
     }
     if (issuer != null) {
       $result.issuer = issuer;
@@ -152,13 +152,13 @@ class OtpParameters extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  OtpParameters._() : super();
-  factory OtpParameters.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory OtpParameters.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  OtpMigrationParameters._() : super();
+  factory OtpMigrationParameters.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory OtpMigrationParameters.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'OtpParameters', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'OtpMigrationParameters', createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'secret', $pb.PbFieldType.OY)
-    ..aOS(2, _omitFieldNames ? '' : 'name')
+    ..aOS(2, _omitFieldNames ? '' : 'account')
     ..aOS(3, _omitFieldNames ? '' : 'issuer')
     ..e<OtpMigrationAlgorithm>(4, _omitFieldNames ? '' : 'algorithm', $pb.PbFieldType.OE, defaultOrMaker: OtpMigrationAlgorithm.ALGORITHM_TYPE_UNSPECIFIED, valueOf: OtpMigrationAlgorithm.valueOf, enumValues: OtpMigrationAlgorithm.values)
     ..e<OtpMigrationDigitCount>(5, _omitFieldNames ? '' : 'digits', $pb.PbFieldType.OE, defaultOrMaker: OtpMigrationDigitCount.DIGIT_COUNT_UNSPECIFIED, valueOf: OtpMigrationDigitCount.valueOf, enumValues: OtpMigrationDigitCount.values)
@@ -171,22 +171,22 @@ class OtpParameters extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  OtpParameters clone() => OtpParameters()..mergeFromMessage(this);
+  OtpMigrationParameters clone() => OtpMigrationParameters()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  OtpParameters copyWith(void Function(OtpParameters) updates) => super.copyWith((message) => updates(message as OtpParameters)) as OtpParameters;
+  OtpMigrationParameters copyWith(void Function(OtpMigrationParameters) updates) => super.copyWith((message) => updates(message as OtpMigrationParameters)) as OtpMigrationParameters;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static OtpParameters create() => OtpParameters._();
-  OtpParameters createEmptyInstance() => create();
-  static $pb.PbList<OtpParameters> createRepeated() => $pb.PbList<OtpParameters>();
+  static OtpMigrationParameters create() => OtpMigrationParameters._();
+  OtpMigrationParameters createEmptyInstance() => create();
+  static $pb.PbList<OtpMigrationParameters> createRepeated() => $pb.PbList<OtpMigrationParameters>();
   @$core.pragma('dart2js:noInline')
-  static OtpParameters getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<OtpParameters>(create);
-  static OtpParameters? _defaultInstance;
+  static OtpMigrationParameters getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<OtpMigrationParameters>(create);
+  static OtpMigrationParameters? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get secret => $_getN(0);
@@ -198,13 +198,13 @@ class OtpParameters extends $pb.GeneratedMessage {
   void clearSecret() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get name => $_getSZ(1);
+  $core.String get account => $_getSZ(1);
   @$pb.TagNumber(2)
-  set name($core.String v) { $_setString(1, v); }
+  set account($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasName() => $_has(1);
+  $core.bool hasAccount() => $_has(1);
   @$pb.TagNumber(2)
-  void clearName() => clearField(2);
+  void clearAccount() => clearField(2);
 
   @$pb.TagNumber(3)
   $core.String get issuer => $_getSZ(2);

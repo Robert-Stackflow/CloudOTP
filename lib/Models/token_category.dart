@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../Utils/utils.dart';
+import 'Proto/TokenCategory/token_category_payload.pb.dart';
 
 class TokenCategory {
   int id;
@@ -48,6 +49,37 @@ class TokenCategory {
       'remark': jsonEncode(remark),
       'token_ids': tokenIds.join(","),
     };
+  }
+
+  TokenCategoryParameters toCategoryParameters() {
+    return TokenCategoryParameters(
+      title: title,
+      description: description,
+      remark: jsonEncode(remark),
+      tokenIds: tokenIds.join(","),
+    );
+  }
+
+  factory TokenCategory.fromCategoryParameters(TokenCategoryParameters parameters) {
+    List<int> tmp = [];
+    if (Utils.isNotEmpty(parameters.tokenIds)) {
+      for (String e in parameters.tokenIds.split(",")) {
+        if (e.isNotEmpty) {
+          tmp.add(int.tryParse(e) ?? -1);
+        }
+      }
+    }
+    return TokenCategory(
+      id: 0,
+      seq: 0,
+      title: parameters.title,
+      description: parameters.description,
+      createTimeStamp: DateTime.now().millisecondsSinceEpoch,
+      editTimeStamp: DateTime.now().millisecondsSinceEpoch,
+      pinned: false,
+      remark: jsonDecode(parameters.remark),
+      tokenIds: tmp,
+    );
   }
 
   factory TokenCategory.fromMap(Map<String, dynamic> map) {

@@ -1468,7 +1468,8 @@ class ItemBuilder {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (icon != null) icon,
-                if (icon != null) const SizedBox(width: 5),
+                if (icon != null && Utils.isNotEmpty(text))
+                  const SizedBox(width: 5),
                 align
                     ? Expanded(flex: 100, child: titleWidget)
                     : Flexible(child: titleWidget),

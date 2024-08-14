@@ -1,3 +1,4 @@
+import 'package:cloudotp/Widgets/Dialog/widgets/qrcodes_dialog_widget.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/loading_dialog_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -742,4 +743,53 @@ class CustomLoadingDialog {
   static Future<void> dismissLoading() async {
     return Future.sync(() => Navigator.pop(rootContext));
   }
+}
+
+class QrcodeDialog {
+  static Future<T?> show<T>(
+    BuildContext context, {
+    String? title,
+    String? message,
+    required List<String> qrcodes,
+    Alignment align = Alignment.bottomCenter,
+  }) =>
+      showDialog<T>(
+        barrierDismissible: true,
+        context: context,
+        builder: (context) => QrcodesDialogWidget(
+          title: title,
+          qrcodes: qrcodes,
+          message: message,
+          align: align,
+        ),
+      );
+
+  static Future<T?> showAnimatedFromBottom<T>(
+    BuildContext context, {
+    String? title,
+    String? message,
+    required List<String> qrcodes,
+    Alignment align = Alignment.bottomCenter,
+  }) =>
+      showGeneralDialog<T>(
+        barrierDismissible: true,
+        context: context,
+        barrierLabel: '',
+        barrierColor: Colors.black.withOpacity(0.35),
+        transitionDuration: const Duration(milliseconds: 400),
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return CustomDialogAnimations.fromBottom(
+            animation,
+            secondaryAnimation,
+            child,
+          );
+        },
+        pageBuilder: (animation, secondaryAnimation, child) =>
+            QrcodesDialogWidget(
+          title: title,
+          message: message,
+          qrcodes: qrcodes,
+          align: align,
+        ),
+      );
 }

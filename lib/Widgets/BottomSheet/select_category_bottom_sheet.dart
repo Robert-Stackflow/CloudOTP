@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
 import '../../Database/category_dao.dart';
-import '../../Models/category.dart';
+import '../../Models/token_category.dart';
 import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
 import '../../generated/l10n.dart';

@@ -6,6 +6,7 @@ import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -14,7 +15,9 @@ import 'package:zxing2/qrcode.dart';
 
 import '../Database/category_dao.dart';
 import '../Database/config_dao.dart';
-import '../Models/category.dart';
+import '../Models/token_category.dart';
+import '../Utils/constant.dart';
+import '../Utils/file_util.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/token_option_bottom_sheet.dart';
@@ -58,6 +61,8 @@ class ImportAnalysis {
       } else {
         IToast.showTop(tokenToast);
       }
+    } else if (parseCategorySuccess > 0) {
+      IToast.showTop(categoryToast);
     } else {
       if (Utils.isNotEmpty(noTokenToast)) {
         IToast.showTop(noTokenToast);
@@ -66,66 +71,116 @@ class ImportAnalysis {
   }
 }
 
-RegExp otpauthMigrationReg =
-    RegExp(r"^otpauth-migration://offline\?data=(.*)$");
-RegExp otpauthReg = RegExp(r"^otpauth://([a-z]+)/([^?]*)(.*)$");
-RegExp motpReg = RegExp(r"^motp://([^?]+)\?secret=([a-fA-F\d]+)(.*)$");
-
 class ImportTokenUtil {
-  static Future<List<OtpToken>> parseRawUri(
+  static Future<List<dynamic>> parseRawUri(
     List<String> rawUris, {
     bool autoPopup = true,
     BuildContext? context,
   }) async {
     List<OtpToken> tokens = [];
-    List<String> validUris = [];
+    List<TokenCategory> categories = [];
+    List<String> validTokenUris = [];
+    List<String> validCategoryUris = [];
     for (String line in rawUris) {
       Uri? uri = Uri.tryParse(line);
       if (uri != null &&
           (otpauthReg.hasMatch(line) ||
               motpReg.hasMatch(line) ||
-              otpauthMigrationReg.hasMatch(line))) {
-        validUris.add(line);
+              otpauthMigrationReg.hasMatch(line) ||
+              cloudotpauthMigrationReg.hasMatch(line))) {
+        validTokenUris.add(line);
+      }
+      if (uri != null && cloudotpauthCategoryMigrationReg.hasMatch(line)) {
+        validCategoryUris.add(line);
       }
     }
-    if (validUris.isNotEmpty) {
+    if (validTokenUris.isNotEmpty) {
       tokens = await ImportTokenUtil.importText(
-        validUris.join("\n"),
+        validTokenUris.join("\n"),
         noTokenToast: S.current.imageDoesNotContainToken,
       );
       if (autoPopup && context != null && context.mounted) {
         Navigator.pop(context);
       }
-    } else {
+    }
+    if (validCategoryUris.isNotEmpty) {
+      categories = await ImportTokenUtil.parseCategories(validCategoryUris);
+      if (autoPopup && context != null && context.mounted) {
+        Navigator.pop(context);
+      }
+    }
+    if (tokens.isEmpty && categories.isEmpty) {
       IToast.showTop(S.current.noQrCodeToken);
     }
-    return tokens;
+    return [tokens, categories];
   }
 
-  static Future<List<OtpToken>> analyzeImage(
+  static Future<List<dynamic>> analyzeImageFile(
+    String filepath, {
+    required BuildContext context,
+    bool showLoading = true,
+  }) async {
+    List<dynamic> res = [];
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.analyzing);
+    }
+    try {
+      File file = File(filepath);
+      Uint8List? imageBytes = await compute<String, Uint8List?>((path) {
+        return File(path).readAsBytesSync();
+      }, filepath);
+      String fileName = FileUtil.extractFileNameFromUrl(file.path);
+      if (ResponsiveUtil.isAndroid()) {
+        await File("/storage/emulated/0/Pictures/$fileName")
+            .delete(recursive: true);
+        await file.delete(recursive: true);
+      }
+      res = await ImportTokenUtil.analyzeImage(imageBytes,
+          context: context, showLoading: false);
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
+    }
+    return res;
+  }
+
+  static Future<List<dynamic>> analyzeImage(
     Uint8List? imageBytes, {
     required BuildContext context,
+    bool showLoading = true,
   }) async {
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.analyzing);
+    }
     List<OtpToken> tokens = [];
+    List<TokenCategory> categories = [];
     if (imageBytes == null || imageBytes.isEmpty) {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
       IToast.showTop(S.current.noQrCode);
       return [];
     }
     try {
-      img.Image image = img.decodeImage(imageBytes)!;
-      LuminanceSource source = RGBLuminanceSource(
-          image.width,
-          image.height,
-          image
-              .convert(numChannels: 4)
-              .getBytes(order: img.ChannelOrder.abgr)
-              .buffer
-              .asInt32List());
-      var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
-      var reader = QRCodeReader();
-      var result = reader.decode(bitmap);
+      var result = await compute((bytes) {
+        img.Image image = img.decodeImage(bytes)!;
+        LuminanceSource source = RGBLuminanceSource(
+            image.width,
+            image.height,
+            image
+                .convert(numChannels: 4)
+                .getBytes(order: img.ChannelOrder.abgr)
+                .buffer
+                .asInt32List());
+        var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
+        var reader = QRCodeReader();
+        return reader.decode(bitmap);
+      }, imageBytes);
       if (Utils.isNotEmpty(result.text)) {
-        tokens = await ImportTokenUtil.parseRawUri([result.text]);
+        List<dynamic> res = await ImportTokenUtil.parseRawUri([result.text]);
+        tokens = res[0];
+        categories = res[1];
       } else {
         IToast.showTop(S.current.noQrCode);
       }
@@ -134,6 +189,10 @@ class ImportTokenUtil {
         IToast.showTop(S.current.noQrCode);
       } else {
         IToast.showTop(S.current.parseQrCodeWrong);
+      }
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
       }
     }
     if (tokens.length == 1) {
@@ -146,7 +205,7 @@ class ImportTokenUtil {
         ),
       );
     }
-    return tokens;
+    return [tokens, categories];
   }
 
   static importUriFile(
@@ -328,7 +387,7 @@ class ImportTokenUtil {
       List<OtpToken> parsedTokens = OtpTokenParser.parseUri(line);
       if (parsedTokens.isNotEmpty) {
         tokens.addAll(parsedTokens);
-        analysis.parseSuccess++;
+        analysis.parseSuccess += parsedTokens.length;
       } else {
         analysis.parseFailed++;
       }
@@ -339,6 +398,21 @@ class ImportTokenUtil {
     }
     analysis.showToast(noTokenToast);
     return tokens;
+  }
+
+  static Future<List<TokenCategory>> parseCategories(List<String> lines) async {
+    List<TokenCategory> categories = [];
+    ImportAnalysis analysis = ImportAnalysis();
+    for (var line in lines) {
+      List<TokenCategory> tmp =
+          await OtpTokenParser.parseCloudOtpauthCategoryMigration(line);
+      categories.addAll(tmp);
+    }
+    analysis.parseCategorySuccess = categories.length;
+    analysis.importCategorySuccess = await mergeCategories(categories);
+    print(analysis);
+    analysis.showToast();
+    return categories;
   }
 
   static bool contain(OtpToken token, List<OtpToken> tokenList) {

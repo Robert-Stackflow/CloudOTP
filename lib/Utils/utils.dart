@@ -54,6 +54,12 @@ class Utils {
     return screenHeight - appBarHeight - safeArea.top;
   }
 
+  static Rect getWindowRect(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    return Rect.fromLTWH(0, 0, screenWidth, screenHeight);
+  }
+
   static String getRandomString({int length = 8}) {
     final random = Random();
     const availableChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloudotp/Database/auto_backup_log_dao.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
+import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Models/config.dart';
@@ -21,7 +22,9 @@ import 'package:path/path.dart';
 
 import '../Database/cloud_service_config_dao.dart';
 import '../Database/config_dao.dart';
-import '../Models/category.dart';
+import '../Models/Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
+import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
+import '../Models/token_category.dart';
 import '../Utils/itoast.dart';
 import '../Utils/utils.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
@@ -438,4 +441,110 @@ class ExportTokenUtil {
       file.deleteSync();
     }
   }
+
+  static Future<List<dynamic>?> exportToGoogleAuthentcatorQrcodes({
+    bool showLoading = true,
+  }) async {
+    int maxBytesLength = 1200;
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.exporting);
+    }
+    List<String> tokenQrcodes = [];
+    int passCount = 0;
+    try {
+      List<OtpToken> tokens = await TokenDao.listTokens();
+      OtpMigrationPayload payload = OtpMigrationPayload.create();
+      String preRes = "";
+      for (OtpToken token in tokens) {
+        if (!token.isGoogleAuthenticatorCompatible) {
+          passCount++;
+          continue;
+        }
+        payload.otpParameters.add(token.toOtpMigrationParameters());
+        String currentRes = base64Encode(payload.writeToBuffer());
+        if (currentRes.bytesLength > maxBytesLength) {
+          tokenQrcodes.add(preRes);
+          preRes = currentRes = "";
+          payload = OtpMigrationPayload.create();
+        } else {
+          preRes = currentRes;
+        }
+      }
+      if (preRes.isNotEmpty) tokenQrcodes.add(preRes);
+      tokenQrcodes = tokenQrcodes
+          .map((e) =>
+              "otpauth-migration://offline?data=${Uri.encodeComponent(e)}")
+          .toList();
+      return [tokenQrcodes,passCount];
+    } catch (e) {
+      return null;
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
+    }
+  }
+
+  static Future<List<String>?> exportToQrcodes({
+    bool showLoading = true,
+  }) async {
+    int maxBytesLength = 1200;
+    if (showLoading) {
+      CustomLoadingDialog.showLoading(title: S.current.exporting);
+    }
+    List<String> tokenQrcodes = [];
+    List<String> categoryQrcodes = [];
+    try {
+      List<OtpToken> tokens = await TokenDao.listTokens();
+      CloudOtpTokenPayload payload = CloudOtpTokenPayload.create();
+      String preRes = "";
+      for (OtpToken token in tokens) {
+        payload.tokenParameters.add(token.toCloudOtpTokenParameters());
+        String currentRes = base64Encode(payload.writeToBuffer());
+        if (currentRes.bytesLength > maxBytesLength) {
+          tokenQrcodes.add(preRes);
+          preRes = currentRes = "";
+          payload = CloudOtpTokenPayload.create();
+        } else {
+          preRes = currentRes;
+        }
+      }
+      if (preRes.isNotEmpty) tokenQrcodes.add(preRes);
+      tokenQrcodes = tokenQrcodes
+          .map((e) =>
+              "cloudotpauth-migration://offline?tokens=${Uri.encodeComponent(e)}")
+          .toList();
+      List<TokenCategory> categories = await CategoryDao.listCategories();
+      TokenCategoryPayload categoryPayload = TokenCategoryPayload.create();
+      preRes = "";
+      for (TokenCategory category in categories) {
+        categoryPayload.categoryParameters.add(category.toCategoryParameters());
+        String currentRes = base64Encode(categoryPayload.writeToBuffer());
+        if (currentRes.bytesLength > maxBytesLength) {
+          categoryQrcodes.add(preRes);
+          preRes = currentRes = "";
+          categoryPayload = TokenCategoryPayload.create();
+        } else {
+          preRes = currentRes;
+        }
+      }
+      if (preRes.isNotEmpty) categoryQrcodes.add(preRes);
+      categoryQrcodes = categoryQrcodes
+          .map((e) =>
+              "cloudotpauth-migration://offline?categories=${Uri.encodeComponent(e)}")
+          .toList();
+      tokenQrcodes.addAll(categoryQrcodes);
+      return tokenQrcodes;
+    } catch (e) {
+      return null;
+    } finally {
+      if (showLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
+    }
+  }
+}
+
+extension StringBytesExtension on String {
+  int get bytesLength => utf8.encode(this).length;
 }

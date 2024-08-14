@@ -26,6 +26,7 @@ import 'TokenUtils/token_image_util.dart';
 import 'Utils/constant.dart';
 import 'Utils/notification_util.dart';
 import 'Utils/responsive_util.dart';
+import 'Utils/utils.dart';
 import 'Widgets/Custom/keyboard_handler.dart';
 import 'generated/l10n.dart';
 
@@ -164,8 +165,18 @@ class MyApp extends StatelessWidget {
     this.title = 'CloudOTP',
   });
 
+  moveToCenter(BuildContext context) {
+    if (!ResponsiveUtil.isDesktop()) return;
+    Offset position = HiveUtil.getWindowPosition();
+    Rect rect = Utils.getWindowRect(context);
+    if (!rect.contains(position)) {
+      windowManager.setAlignment(Alignment.center);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    moveToCenter(context);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: appProvider),

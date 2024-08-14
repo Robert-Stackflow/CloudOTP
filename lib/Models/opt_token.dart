@@ -1,7 +1,16 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:cloudotp/Models/Proto/otp_migration.pb.dart';
+import 'package:base32/base32.dart';
+import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
+import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pbserver.dart';
+import 'package:cloudotp/TokenUtils/token_image_util.dart';
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:otp/otp.dart';
+
+import '../TokenUtils/check_token_util.dart';
+import '../Utils/utils.dart';
+import 'Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 
 enum OtpTokenType {
   TOTP("TOTP", "TOTP"),
@@ -15,7 +24,7 @@ enum OtpTokenType {
   final String key;
   final String label;
 
-  static OtpTokenType fromType(OtpMigrationType type) {
+  static OtpTokenType fromOtpMigrationType(OtpMigrationType type) {
     switch (type) {
       case OtpMigrationType.TOTP:
         return OtpTokenType.TOTP;
@@ -26,7 +35,24 @@ enum OtpTokenType {
     }
   }
 
-  static OtpTokenType fromLabel(String label) {
+  static OtpTokenType fromCloudOtpTokenType(CloudOtpTokenType type) {
+    switch (type) {
+      case CloudOtpTokenType.TOTP:
+        return OtpTokenType.TOTP;
+      case CloudOtpTokenType.HOTP:
+        return OtpTokenType.HOTP;
+      case CloudOtpTokenType.MOTP:
+        return OtpTokenType.MOTP;
+      case CloudOtpTokenType.STEAM:
+        return OtpTokenType.Steam;
+      case CloudOtpTokenType.YANDEX:
+        return OtpTokenType.Yandex;
+      default:
+        throw Exception("Invalid OtpTokenType");
+    }
+  }
+
+  static OtpTokenType fromString(String label) {
     label = label.toUpperCase();
     switch (label) {
       case "TOTP":
@@ -62,10 +88,10 @@ enum OtpTokenType {
   }
 
   String get authority {
-    return authoritys()[index];
+    return toAuthorities()[index];
   }
 
-  static List<String> authoritys({bool toLowerCase = true}) {
+  static List<String> toAuthorities({bool toLowerCase = true}) {
     return [
       "TOTP",
       "HOTP",
@@ -75,7 +101,7 @@ enum OtpTokenType {
     ].map((e) => toLowerCase ? e.toLowerCase() : e).toList();
   }
 
-  static List<String> labels({bool toLowerCase = false}) {
+  static List<String> toLabels({bool toLowerCase = false}) {
     return OtpTokenType.values
         .map((e) => toLowerCase ? e.label.toLowerCase() : e.label)
         .toList();
@@ -125,6 +151,34 @@ enum OtpTokenType {
         return OtpDigits.D8;
     }
   }
+
+  CloudOtpTokenType get cloudOtpTokenType {
+    switch (this) {
+      case OtpTokenType.TOTP:
+        return CloudOtpTokenType.TOTP;
+      case OtpTokenType.HOTP:
+        return CloudOtpTokenType.HOTP;
+      case OtpTokenType.MOTP:
+        return CloudOtpTokenType.MOTP;
+      case OtpTokenType.Steam:
+        return CloudOtpTokenType.STEAM;
+      case OtpTokenType.Yandex:
+        return CloudOtpTokenType.YANDEX;
+    }
+  }
+
+  OtpMigrationType get otpMigrationType {
+    switch (this) {
+      case OtpTokenType.TOTP:
+        return OtpMigrationType.TOTP;
+      case OtpTokenType.HOTP:
+        return OtpMigrationType.HOTP;
+      case OtpTokenType.MOTP:
+      case OtpTokenType.Steam:
+      case OtpTokenType.Yandex:
+        throw Exception("Invalid OtpTokenType");
+    }
+  }
 }
 
 enum OtpDigits {
@@ -138,7 +192,12 @@ enum OtpDigits {
   final int key;
   final String label;
 
-  static OtpDigits fromDigitCount(OtpMigrationDigitCount digitCount) {
+  int get digit {
+    return key;
+  }
+
+  static OtpDigits fromOtpMigrationDigitCount(
+      OtpMigrationDigitCount digitCount) {
     switch (digitCount) {
       case OtpMigrationDigitCount.SIX:
         return OtpDigits.D6;
@@ -149,7 +208,23 @@ enum OtpDigits {
     }
   }
 
-  static OtpDigits fromLabel(String label) {
+  static OtpDigits fromCloudOtpTokenDigitCount(
+      CloudOtpTokenDigitCount digitCount) {
+    switch (digitCount) {
+      case CloudOtpTokenDigitCount.FIVE:
+        return OtpDigits.D5;
+      case CloudOtpTokenDigitCount.SIX:
+        return OtpDigits.D6;
+      case CloudOtpTokenDigitCount.SEVEN:
+        return OtpDigits.D7;
+      case CloudOtpTokenDigitCount.EIGHT:
+        return OtpDigits.D8;
+      default:
+        throw Exception("Invalid OtpDigits");
+    }
+  }
+
+  static OtpDigits froMString(String label) {
     label = label.toUpperCase();
     switch (label) {
       case "5":
@@ -164,6 +239,35 @@ enum OtpDigits {
         throw Exception("Invalid OtpDigits");
     }
   }
+
+  CloudOtpTokenDigitCount get cloudOtpTokenDigitCount {
+    switch (this) {
+      case OtpDigits.D5:
+        return CloudOtpTokenDigitCount.FIVE;
+      case OtpDigits.D6:
+        return CloudOtpTokenDigitCount.SIX;
+      case OtpDigits.D7:
+        return CloudOtpTokenDigitCount.SEVEN;
+      case OtpDigits.D8:
+        return CloudOtpTokenDigitCount.EIGHT;
+    }
+  }
+
+  OtpMigrationDigitCount get otpMigrationDigitCount {
+    switch (this) {
+      case OtpDigits.D6:
+        return OtpMigrationDigitCount.SIX;
+      case OtpDigits.D8:
+        return OtpMigrationDigitCount.EIGHT;
+      case OtpDigits.D5:
+      case OtpDigits.D7:
+        throw Exception("Invalid OtpDigits");
+    }
+  }
+
+  static List<String> toStrings() {
+    return OtpDigits.values.map((e) => e.label).toList();
+  }
 }
 
 enum OtpAlgorithm {
@@ -176,7 +280,8 @@ enum OtpAlgorithm {
   final String key;
   final String label;
 
-  static OtpAlgorithm fromAlgorithm(OtpMigrationAlgorithm algorithm) {
+  static OtpAlgorithm fromOtpMigrationAlgorithm(
+      OtpMigrationAlgorithm algorithm) {
     switch (algorithm) {
       case OtpMigrationAlgorithm.SHA1:
         return OtpAlgorithm.SHA1;
@@ -189,7 +294,21 @@ enum OtpAlgorithm {
     }
   }
 
-  static OtpAlgorithm fromLabel(String label) {
+  static OtpAlgorithm fromCloudOtpTokenAlgorithm(
+      CloudOtpTokenAlgorithm algorithm) {
+    switch (algorithm) {
+      case CloudOtpTokenAlgorithm.SHA1:
+        return OtpAlgorithm.SHA1;
+      case CloudOtpTokenAlgorithm.SHA256:
+        return OtpAlgorithm.SHA256;
+      case CloudOtpTokenAlgorithm.SHA512:
+        return OtpAlgorithm.SHA512;
+      default:
+        throw Exception("Invalid OtpAlgorithm");
+    }
+  }
+
+  static OtpAlgorithm fromString(String label) {
     label = label.toUpperCase();
     switch (label) {
       case "SHA1":
@@ -202,20 +321,30 @@ enum OtpAlgorithm {
         throw Exception("Invalid OtpAlgorithm");
     }
   }
-}
 
-extension OtpDigitsExtension on OtpDigits {
-  List<String> get strings {
-    return OtpDigits.values.map((e) => e.label).toList();
+  CloudOtpTokenAlgorithm get cloudOtpTokenAlgorithm {
+    switch (this) {
+      case OtpAlgorithm.SHA1:
+        return CloudOtpTokenAlgorithm.SHA1;
+      case OtpAlgorithm.SHA256:
+        return CloudOtpTokenAlgorithm.SHA256;
+      case OtpAlgorithm.SHA512:
+        return CloudOtpTokenAlgorithm.SHA512;
+    }
   }
 
-  int get digit {
-    return key;
+  OtpMigrationAlgorithm get otpMigrationAlgorithm {
+    switch (this) {
+      case OtpAlgorithm.SHA1:
+        return OtpMigrationAlgorithm.SHA1;
+      case OtpAlgorithm.SHA256:
+        return OtpMigrationAlgorithm.SHA256;
+      case OtpAlgorithm.SHA512:
+        return OtpMigrationAlgorithm.SHA512;
+    }
   }
-}
 
-extension OtpAlgorithmExtension on OtpAlgorithm {
-  List<String> get strings {
+  static List<String> toStrings() {
     return OtpAlgorithm.values.map((e) => e.label).toList();
   }
 
@@ -231,7 +360,7 @@ extension OtpAlgorithmExtension on OtpAlgorithm {
   }
 }
 
-extension IntToOtpTokenTypeExtension on int {
+extension IntToOtpEnumExtension on int {
   OtpTokenType get otpTokenType {
     switch (this) {
       case 0:
@@ -248,9 +377,7 @@ extension IntToOtpTokenTypeExtension on int {
         return OtpTokenType.TOTP;
     }
   }
-}
 
-extension IntToOtpDigitsExtension on int {
   OtpDigits get otpDigits {
     switch (this) {
       case 5:
@@ -265,9 +392,7 @@ extension IntToOtpDigitsExtension on int {
         return OtpDigits.D6;
     }
   }
-}
 
-extension IntToOtpAlgorithmExtension on int {
   OtpAlgorithm get otpAlgorithm {
     switch (this) {
       case 0:
@@ -391,7 +516,7 @@ class OtpToken {
       account: map['account'],
       imagePath: map['image_path'],
       tokenType: (map['token_type'] as int).otpTokenType,
-      algorithm: OtpAlgorithm.fromLabel(map['algorithm']),
+      algorithm: OtpAlgorithm.fromString(map['algorithm']),
       digits: (map['digits'] as int).otpDigits,
       counterString: map['counter'].toString(),
       periodString: map['period'].toString(),
@@ -411,6 +536,81 @@ class OtpToken {
 
   factory OtpToken.fromJson(String source) {
     return OtpToken.fromMap(jsonDecode(source));
+  }
+
+  CloudOtpTokenParameters toCloudOtpTokenParameters() {
+    return CloudOtpTokenParameters(
+      secret: utf8.encode(secret),
+      issuer: issuer,
+      account: account,
+      pin: pin,
+      algorithm: algorithm.cloudOtpTokenAlgorithm,
+      digits: digits.cloudOtpTokenDigitCount,
+      type: tokenType.cloudOtpTokenType,
+      period: $fixnum.Int64(period),
+      counter: $fixnum.Int64(counter),
+      pinned: $fixnum.Int64(pinned ? 1 : 0),
+      copyTimes: $fixnum.Int64(copyTimes),
+      lastCopyTimeStamp: $fixnum.Int64(lastCopyTimeStamp),
+      remark: jsonEncode(remark),
+      imagePath: imagePath,
+    );
+  }
+
+  factory OtpToken.fromCloudOtpParameters(
+      CloudOtpTokenParameters cloudOtpParameters) {
+    return OtpToken(
+      id: 0,
+      seq: 0,
+      issuer: cloudOtpParameters.issuer,
+      secret: utf8.decode(cloudOtpParameters.secret),
+      account: cloudOtpParameters.account,
+      imagePath: cloudOtpParameters.imagePath,
+      tokenType: OtpTokenType.fromCloudOtpTokenType(cloudOtpParameters.type),
+      algorithm:
+          OtpAlgorithm.fromCloudOtpTokenAlgorithm(cloudOtpParameters.algorithm),
+      digits: OtpDigits.fromCloudOtpTokenDigitCount(cloudOtpParameters.digits),
+      counterString: cloudOtpParameters.counter.toString(),
+      periodString: cloudOtpParameters.period.toString(),
+      pinned: cloudOtpParameters.pinned.toInt() == 1,
+      createTimeStamp: DateTime.now().millisecondsSinceEpoch,
+      editTimeStamp: DateTime.now().millisecondsSinceEpoch,
+      remark: jsonDecode(cloudOtpParameters.remark),
+      copyTimes: cloudOtpParameters.copyTimes.toInt(),
+      lastCopyTimeStamp: cloudOtpParameters.lastCopyTimeStamp.toInt(),
+      pin: cloudOtpParameters.pin,
+    );
+  }
+
+  bool get isGoogleAuthenticatorCompatible {
+    return (tokenType == OtpTokenType.TOTP || tokenType == OtpTokenType.HOTP) &&
+        algorithm == OtpAlgorithm.SHA1 &&
+        (digits == OtpDigits.D6 || digits == OtpDigits.D8) &&
+        CheckTokenUtil.isSecretBase32(secret);
+  }
+
+  static OtpToken? fromOtpMigrationParameters(OtpMigrationParameters param) {
+    OtpToken token = OtpToken.init();
+    token.secret = base32.encode(Uint8List.fromList(param.secret));
+    if (!CheckTokenUtil.isSecretBase32(token.secret)) return null;
+    token.issuer = Utils.isEmpty(param.issuer) ? param.account : param.issuer;
+    token.account = param.account;
+    token.algorithm = OtpAlgorithm.fromOtpMigrationAlgorithm(param.algorithm);
+    token.digits = OtpDigits.fromOtpMigrationDigitCount(param.digits);
+    token.tokenType = OtpTokenType.fromOtpMigrationType(param.type);
+    token.imagePath = TokenImageUtil.matchBrandLogo(token) ?? "";
+    return token;
+  }
+
+  OtpMigrationParameters toOtpMigrationParameters() {
+    return OtpMigrationParameters(
+      secret: base32.decode(secret.toUpperCase()),
+      issuer: issuer,
+      account: account,
+      algorithm: algorithm.otpMigrationAlgorithm,
+      digits: digits.otpMigrationDigitCount,
+      type: tokenType.otpMigrationType,
+    );
   }
 
   clone() {

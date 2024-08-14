@@ -15,11 +15,12 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../Database/token_dao.dart';
-import '../Models/category.dart';
+import '../Models/token_category.dart';
 import '../Utils/app_provider.dart';
 import '../Utils/asset_util.dart';
 import '../Utils/itoast.dart';
@@ -412,6 +413,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         onPressed: () {
           BottomSheetBuilder.showBottomSheet(
             context,
+            enableDrag: false,
             (context) => const AddBottomSheet(),
           );
         },
@@ -744,7 +746,53 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ? const [ContextMenuShowBehavior.secondaryTap]
             : const [],
         contextMenu: _buildTabContextMenuButtons(category),
-        child: Text(category?.title ?? S.current.allTokens),
+        child: GestureDetector(
+          onDoubleTap: () {
+            if (category != null) {
+              processEditCategory(category);
+            }
+          },
+          onLongPress: () {
+            if (category != null) {
+              HapticFeedback.lightImpact();
+              BottomSheetBuilder.showBottomSheet(
+                context,
+                (context) => SelectTokenBottomSheet(category: category),
+              );
+            }
+          },
+          child: Text(category?.title ?? S.current.allTokens),
+        ),
+      ),
+    );
+  }
+
+  processEditCategory(TokenCategory category) {
+    BottomSheetBuilder.showBottomSheet(
+      context,
+      responsive: true,
+      (context) => InputBottomSheet(
+        title: S.current.editCategoryName,
+        hint: S.current.inputCategory,
+        maxLength: 32,
+        text: category.title,
+        stateController: InputStateController(
+          validate: (text) async {
+            if (text.isEmpty) {
+              return S.current.categoryNameCannotBeEmpty;
+            }
+            if (text != category.title &&
+                await CategoryDao.isCategoryExist(text)) {
+              return S.current.categoryNameDuplicate;
+            }
+            return null;
+          },
+        ),
+        onValidConfirm: (text) async {
+          category.title = text;
+          await CategoryDao.updateCategory(category);
+          refreshCategories();
+        },
       ),
     );
   }
@@ -789,33 +837,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return GenericContextMenu(
       buttonConfigs: [
         ContextMenuButtonConfig(S.current.editCategoryName, onPressed: () {
-          BottomSheetBuilder.showBottomSheet(
-            context,
-            responsive: true,
-            (context) => InputBottomSheet(
-              title: S.current.editCategoryName,
-              hint: S.current.inputCategory,
-              maxLength: 32,
-              text: category.title,
-              stateController: InputStateController(
-                validate: (text) async {
-                  if (text.isEmpty) {
-                    return S.current.categoryNameCannotBeEmpty;
-                  }
-                  if (text != category.title &&
-                      await CategoryDao.isCategoryExist(text)) {
-                    return S.current.categoryNameDuplicate;
-                  }
-                  return null;
-                },
-              ),
-              onValidConfirm: (text) async {
-                category.title = text;
-                await CategoryDao.updateCategory(category);
-                refreshCategories();
-              },
-            ),
-          );
+          processEditCategory(category);
         }),
         ContextMenuButtonConfig(S.current.editCategoryTokens, onPressed: () {
           BottomSheetBuilder.showBottomSheet(

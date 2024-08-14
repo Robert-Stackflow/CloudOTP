@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+message TokenCategoryPayload {
+	repeated TokenCategoryParameters category_parameters = 1;
+
+	optional int32 version = 2;
+
+	optional int32 batch_size = 3;
+
+	optional int32 batch_index = 4;
+
+	optional int32 batch_id = 5;
+}
+
+message TokenCategoryParameters {
+	optional bytes secret = 1;
+
+	optional string title = 2;
+
+	optional string description = 3;
+
+	optional string tokenIds = 4;
+
+	optional string remark = 5;
+}

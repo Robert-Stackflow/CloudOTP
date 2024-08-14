@@ -1,14 +1,12 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -24,7 +22,10 @@ import 'bottom_sheet_builder.dart';
 class AddBottomSheet extends StatefulWidget {
   const AddBottomSheet({
     super.key,
+    this.onlyShowScanner = false,
   });
+
+  final bool onlyShowScanner;
 
   @override
   AddBottomSheetState createState() => AddBottomSheetState();
@@ -35,8 +36,9 @@ class AddBottomSheetState extends State<AddBottomSheet>
   final MobileScannerController scannerController =
       MobileScannerController(useNewCameraSelector: true);
   StreamSubscription<Object?>? _subscription;
-  double _zoomFactor = 0.0;
-  final double _scaleSensitivity = 0.01;
+  static const double _defaultZoomFactor = 0.43;
+  double _zoomFactor = _defaultZoomFactor;
+  final double _scaleSensitivity = 0.005;
   List<String> alreadyScanned = [];
 
   @override
@@ -64,11 +66,10 @@ class AddBottomSheetState extends State<AddBottomSheet>
   }
 
   initCamera() async {
-    await scannerController.stop();
     Permission.camera.onDeniedCallback(() {
       IToast.showTop(S.current.pleaseGrantCameraPermission);
     }).onGrantedCallback(() async {
-      await scannerController.start();
+      unawaited(scannerController.start());
     }).onPermanentlyDeniedCallback(() {
       IToast.showTop(S.current.hasRejectedCameraPermission);
     }).onRestrictedCallback(() {
@@ -92,13 +93,14 @@ class AddBottomSheetState extends State<AddBottomSheet>
       if (Utils.isNotEmpty(barcode.rawValue) &&
           ((addToAlready && !alreadyScanned.contains(barcode.rawValue!)) ||
               !addToAlready)) {
+        HapticFeedback.lightImpact();
         rawValues.add(barcode.rawValue!);
         if (addToAlready) alreadyScanned.add(barcode.rawValue!);
       }
     }
     if (rawValues.isNotEmpty) {
-      List<OtpToken> tokens = await ImportTokenUtil.parseRawUri(rawValues,
-          autoPopup: autoPopup, context: context);
+      List<OtpToken> tokens = (await ImportTokenUtil.parseRawUri(rawValues,
+          autoPopup: autoPopup, context: context))[0];
       if (tokens.length == 1) {
         BottomSheetBuilder.showBottomSheet(
           context,
@@ -144,9 +146,10 @@ class AddBottomSheetState extends State<AddBottomSheet>
             children: [
               _buildHeader(),
               _buildScanner(),
-              ItemBuilder.buildDivider(context, horizontal: 10, vertical: 0),
-              _buildOptions(),
-              const SizedBox(height: 20),
+              if (!widget.onlyShowScanner)
+                ItemBuilder.buildDivider(context, horizontal: 10, vertical: 0),
+              if (!widget.onlyShowScanner) _buildOptions(),
+              if (!widget.onlyShowScanner) const SizedBox(height: 20),
             ],
           ),
         ),
@@ -196,15 +199,20 @@ class AddBottomSheetState extends State<AddBottomSheet>
       padding: const EdgeInsets.symmetric(vertical: 20),
       margin: const EdgeInsets.symmetric(horizontal: 10),
       alignment: Alignment.center,
-      height: 324,
+      height: 400,
       width: 400,
       child: Stack(
         children: [
           GestureDetector(
+            onDoubleTap: () {
+              scannerController.resetZoomScale();
+              _zoomFactor = _defaultZoomFactor;
+            },
             onScaleUpdate: (details) {
               setState(() {
                 _zoomFactor += _scaleSensitivity * (details.scale - 1);
                 _zoomFactor = _zoomFactor.clamp(0.0, 1.0);
+                print(_zoomFactor);
                 scannerController.setZoomScale(_zoomFactor);
               });
             },
@@ -282,13 +290,8 @@ class AnalyzeImageFromGalleryButton extends StatelessWidget {
           lockParentWindow: true,
         );
         if (result == null) return;
-        File file = File(result.files.single.path!);
-        Uint8List? imageBytes = file.readAsBytesSync();
-        String fileName = FileUtil.extractFileNameFromUrl(file.path);
-        await File("/storage/emulated/0/Pictures/$fileName")
-            .delete(recursive: true);
-        await file.delete(recursive: true);
-        await ImportTokenUtil.analyzeImage(imageBytes, context: context);
+        await ImportTokenUtil.analyzeImageFile(result.files.single.path!,
+            context: context);
       },
     );
   }
