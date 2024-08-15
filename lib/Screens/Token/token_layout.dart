@@ -107,7 +107,9 @@ class TokenLayoutState extends State<TokenLayout>
             remainingMilliseconds <= 180 &&
             appProvider.autoHideCode) {
           tokenLayoutNotifier.codeVisiable = false;
-          tokenLayoutNotifier.code = getCurrentCode();
+        }
+        if (remainingMilliseconds <= 200) {
+          tokenLayoutNotifier.code = getNextCode();
         }
       }
     });

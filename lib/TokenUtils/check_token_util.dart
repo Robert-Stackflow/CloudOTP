@@ -1,7 +1,7 @@
-import 'package:base32/base32.dart';
 import 'package:cloudotp/generated/l10n.dart';
 
 import '../Models/opt_token.dart';
+import '../Utils/Base32/base32.dart';
 
 enum CheckTokenError {
   ISSUER_EMPTY,

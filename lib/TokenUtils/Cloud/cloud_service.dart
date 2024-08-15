@@ -1,5 +1,13 @@
 import 'dart:typed_data';
 
+enum CloudServiceStatus {
+  success,
+  connectionError,
+  unauthorized,
+  unknownError,
+  expired,
+}
+
 abstract class CloudService {
   Future<void> init();
 
@@ -24,7 +32,7 @@ abstract class CloudService {
 
   Future<void> deleteFile(String path);
 
-  Future<void> authenticate();
+  Future<CloudServiceStatus> authenticate();
 
   Future<void> signOut();
 }

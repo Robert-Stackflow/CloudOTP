@@ -7,8 +7,8 @@ import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:tuple/tuple.dart';
 
+import '../Utils/Tuple/tuple.dart';
 import '../Utils/constant.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';

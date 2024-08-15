@@ -1,4 +1,4 @@
-import 'package:tuple/tuple.dart';
+import 'package:cloudotp/Utils/Tuple/tuple.dart';
 
 enum ActiveThemeMode { system, light, dark }
 

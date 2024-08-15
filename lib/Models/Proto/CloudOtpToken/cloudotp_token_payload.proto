@@ -39,7 +39,9 @@ message CloudOtpTokenParameters {
 
 	optional string imagePath = 13;
 
-	optional string remark = 14;
+	optional string description = 14;
+
+	optional string remark = 15;
 }
 
 enum CloudOtpTokenAlgorithm {

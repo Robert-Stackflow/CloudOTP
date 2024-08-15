@@ -1,3 +1,4 @@
+import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,7 +93,7 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
   static Map<Type, Action<Intent>> mainScreenShortcuts = {
     SettingIntent: CallbackAction(
       onInvoke: (_) {
-        RouteUtil.pushDialogRoute(rootContext, const SettingScreen());
+        RouteUtil.pushDialogRoute(rootContext, const SettingNavigationScreen());
         return null;
       },
     ),

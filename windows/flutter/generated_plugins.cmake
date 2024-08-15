@@ -4,6 +4,8 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
+  desktop_webview_window
+  flutter_secure_storage_windows
   hotkey_manager_windows
   isar_flutter_libs
   local_auth_windows
@@ -14,6 +16,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   tray_manager
   url_launcher_windows
   window_manager
+  window_to_front
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

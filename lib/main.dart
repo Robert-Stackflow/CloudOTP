@@ -10,6 +10,7 @@ import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/request_header_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
+import 'package:desktop_webview_window/desktop_webview_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -47,6 +48,10 @@ Future<void> runMyApp(List<String> args) async {
     }
   }
   if (ResponsiveUtil.isDesktop()) {
+    WidgetsFlutterBinding.ensureInitialized();
+    if (runWebViewTitleBarWidget(args)) {
+      return;
+    }
     await initWindow();
     initTray();
     await HotKeyManager.instance.unregisterAll();

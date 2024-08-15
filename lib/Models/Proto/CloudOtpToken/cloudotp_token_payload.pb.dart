@@ -133,6 +133,7 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
     $fixnum.Int64? copyTimes,
     $fixnum.Int64? lastCopyTimeStamp,
     $core.String? imagePath,
+    $core.String? description,
     $core.String? remark,
   }) {
     final $result = create();
@@ -175,6 +176,9 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
     if (imagePath != null) {
       $result.imagePath = imagePath;
     }
+    if (description != null) {
+      $result.description = description;
+    }
     if (remark != null) {
       $result.remark = remark;
     }
@@ -198,7 +202,8 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
     ..aInt64(11, _omitFieldNames ? '' : 'copyTimes', protoName: 'copyTimes')
     ..aInt64(12, _omitFieldNames ? '' : 'lastCopyTimeStamp', protoName: 'lastCopyTimeStamp')
     ..aOS(13, _omitFieldNames ? '' : 'imagePath', protoName: 'imagePath')
-    ..aOS(14, _omitFieldNames ? '' : 'remark')
+    ..aOS(14, _omitFieldNames ? '' : 'description')
+    ..aOS(15, _omitFieldNames ? '' : 'remark')
     ..hasRequiredFields = false
   ;
 
@@ -341,13 +346,22 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
   void clearImagePath() => clearField(13);
 
   @$pb.TagNumber(14)
-  $core.String get remark => $_getSZ(13);
+  $core.String get description => $_getSZ(13);
   @$pb.TagNumber(14)
-  set remark($core.String v) { $_setString(13, v); }
+  set description($core.String v) { $_setString(13, v); }
   @$pb.TagNumber(14)
-  $core.bool hasRemark() => $_has(13);
+  $core.bool hasDescription() => $_has(13);
   @$pb.TagNumber(14)
-  void clearRemark() => clearField(14);
+  void clearDescription() => clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.String get remark => $_getSZ(14);
+  @$pb.TagNumber(15)
+  set remark($core.String v) { $_setString(14, v); }
+  @$pb.TagNumber(15)
+  $core.bool hasRemark() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearRemark() => clearField(15);
 }
 
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
+import 'package:cloudotp/Utils/Tuple/tuple.dart';
 
 import '../generated/l10n.dart';
 

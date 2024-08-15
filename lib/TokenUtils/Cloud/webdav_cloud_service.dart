@@ -9,13 +9,6 @@ import 'package:webdav_client/webdav_client.dart';
 import '../../Models/cloud_service_config.dart';
 import 'cloud_service.dart';
 
-enum CloudServiceStatus {
-  success,
-  connectionError,
-  unauthorized,
-  unknownError,
-}
-
 class WebDavCloudService extends CloudService {
   static const String _webdavPath = '/cloudotp';
   final CloudServiceConfig _config;
@@ -45,13 +38,14 @@ class WebDavCloudService extends CloudService {
     client.setConnectTimeout(8000);
     client.setSendTimeout(8000);
     client.setReceiveTimeout(8000);
-    // CloudServiceStatus status = await ping();
-    // if (status == CloudServiceStatus.success) {
-    //   await client.mkdir(_webdavPath);
-    // }
+    CloudServiceStatus status = await authenticate();
+    if (status == CloudServiceStatus.success) {
+      await client.mkdir(_webdavPath);
+    }
   }
 
-  Future<CloudServiceStatus> ping() async {
+  @override
+  Future<CloudServiceStatus> authenticate() async  {
     try {
       await client.ping();
       return CloudServiceStatus.success;
@@ -141,9 +135,6 @@ class WebDavCloudService extends CloudService {
     }
     await client.remove(path);
   }
-
-  @override
-  Future<void> authenticate() async {}
 
   @override
   Future<void> signOut() async {}

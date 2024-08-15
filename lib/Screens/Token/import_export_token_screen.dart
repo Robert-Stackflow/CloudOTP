@@ -329,40 +329,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         ),
         ItemBuilder.buildEntryItem(
           context: context,
-          title: S.current.exportGoogleAuthenticatorQrcode,
-          description: S.current.exportGoogleAuthenticatorQrcodeHint,
-          onTap: () async {
-            List<dynamic>? res =
-                await ExportTokenUtil.exportToGoogleAuthentcatorQrcodes();
-            if (res != null) {
-              List<String>? qrCodes = res[0];
-              int passCount = res[1];
-              if (qrCodes != null && qrCodes.isNotEmpty) {
-                DialogBuilder.showQrcodesDialog(
-                  context,
-                  title: S.current.exportGoogleAuthenticatorQrcode,
-                  message: S.current.exportGoogleAuthenticatorQrcodeMessage,
-                  qrcodes: qrCodes,
-                );
-              }
-              List<String> toasts = [];
-              if (passCount > 0) {
-                toasts.add(S.current
-                    .exportGoogleAuthenticatorNoCompatibleCount(passCount));
-              }
-              if (qrCodes != null && qrCodes.isEmpty) {
-                toasts.add(S.current.exportGoogleAuthenticatorNoToken);
-              }
-              if (toasts.isNotEmpty) {
-                IToast.showTop(toasts.join("; "));
-              }
-            } else {
-              IToast.showTop(S.current.exportFailed);
-            }
-          },
-        ),
-        ItemBuilder.buildEntryItem(
-          context: context,
           title: S.current.exportUriFile,
           bottomRadius: true,
           description: S.current.exportUriFileHint,
@@ -400,11 +366,51 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           bottomRadius: true,
           description: S.current.importFromGoogleAuthenticatorTip,
           onTap: () async {
-            BottomSheetBuilder.showBottomSheet(
-              context,
-              enableDrag: false,
-              (context) => const AddBottomSheet(onlyShowScanner: true),
-            );
+            if (ResponsiveUtil.isMobile()) {
+              BottomSheetBuilder.showBottomSheet(
+                context,
+                enableDrag: false,
+                (context) => const AddBottomSheet(onlyShowScanner: true),
+              );
+            }
+          },
+        ),
+        const SizedBox(height: 10),
+        ItemBuilder.buildCaptionItem(
+            context: context, title: S.current.exportToThirdParty),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          bottomRadius: true,
+          title: S.current.exportGoogleAuthenticatorQrcode,
+          description: S.current.exportGoogleAuthenticatorQrcodeHint,
+          onTap: () async {
+            List<dynamic>? res =
+                await ExportTokenUtil.exportToGoogleAuthentcatorQrcodes();
+            if (res != null) {
+              List<String>? qrCodes = res[0];
+              int passCount = res[1];
+              if (qrCodes != null && qrCodes.isNotEmpty) {
+                DialogBuilder.showQrcodesDialog(
+                  context,
+                  title: S.current.exportGoogleAuthenticatorQrcode,
+                  message: S.current.exportGoogleAuthenticatorQrcodeMessage,
+                  qrcodes: qrCodes,
+                );
+              }
+              List<String> toasts = [];
+              if (passCount > 0) {
+                toasts.add(S.current
+                    .exportGoogleAuthenticatorNoCompatibleCount(passCount));
+              }
+              if (qrCodes != null && qrCodes.isEmpty) {
+                toasts.add(S.current.exportGoogleAuthenticatorNoToken);
+              }
+              if (toasts.isNotEmpty) {
+                IToast.showTop(toasts.join("; "));
+              }
+            } else {
+              IToast.showTop(S.current.exportFailed);
+            }
           },
         ),
         const SizedBox(height: 20),

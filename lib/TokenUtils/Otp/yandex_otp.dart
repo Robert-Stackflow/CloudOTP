@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:base32/base32.dart';
-import 'package:crypto/crypto.dart';
+
+import 'package:hashlib/hashlib.dart';
+
+import '../../Utils/Base32/base32.dart';
 
 class YandexOTP {
   Uint8List key;
@@ -43,7 +45,7 @@ class YandexOTP {
     counter ??= _timeToCounter(
         (DateTime.now().millisecondsSinceEpoch + deltaMilliseconds) ~/ 1000);
 
-    var hmacSha256 = Hmac(sha256, key);
+    var hmacSha256 = HMAC(sha256, key);
     var counterBytes = ByteData(8)..setInt64(0, counter, Endian.big);
     var hmacHash = hmacSha256.convert(counterBytes.buffer.asUint8List()).bytes;
 

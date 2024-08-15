@@ -19,7 +19,8 @@ enum Sql {
         remark TEXT NOT NULL,
         copy_times INTEGER NOT NULL,
         last_copy_timestamp INTEGER NOT NULL,
-        pin TEXT NOT NULL
+        pin TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT ''
       );
     ''',
   ),
@@ -55,7 +56,8 @@ enum Sql {
         edit_timestamp INTEGER NOT NULL,
         last_fetch_timestamp INTEGER NOT NULL,
         last_backup_timestamp INTEGER NOT NULL,
-        remark TEXT NOT NULL
+        remark TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1
       );
     '''),
   createAutoBackupLogTable('''

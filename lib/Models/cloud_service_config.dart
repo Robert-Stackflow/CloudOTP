@@ -1,22 +1,31 @@
 import 'dart:convert';
 
+import '../generated/l10n.dart';
+
 enum CloudServiceType {
   Webdav,
-  GoogleDrive,
   OneDrive,
-  Dropbox;
+  GoogleDrive,
+  Dropbox,
+  S3Cloud;
 
   String get label {
     switch (this) {
       case CloudServiceType.Webdav:
-        return 'WebDav';
+        return S.current.cloudTypeWebDav;
       case CloudServiceType.GoogleDrive:
-        return 'Google Drive';
+        return S.current.cloudTypeGoogleDrive;
       case CloudServiceType.OneDrive:
-        return 'OneDrive';
+        return S.current.cloudTypeOneDrive;
       case CloudServiceType.Dropbox:
-        return 'Dropbox';
+        return S.current.cloudTypeDropbox;
+      case CloudServiceType.S3Cloud:
+        return S.current.cloudTypeS3Cloud;
     }
+  }
+
+  static List<String> toStrings() {
+    return CloudServiceType.values.map((e) => e.label).toList();
   }
 }
 
@@ -31,6 +40,8 @@ extension CloudServiceTypeExtensionOnint on int {
         return CloudServiceType.OneDrive;
       case 3:
         return CloudServiceType.Dropbox;
+      case 4:
+        return CloudServiceType.S3Cloud;
       default:
         throw Exception('Invalid CloudServiceType');
     }
@@ -44,11 +55,13 @@ class CloudServiceConfig {
   String? account;
   String? secret;
   String? token;
+  bool enabled;
   int createTimestamp;
   int editTimestamp;
   int lastFetchTimestamp;
   int lastBackupTimestamp;
   Map<String, dynamic> remark;
+  bool connected = false;
 
   bool get isValid {
     switch (type) {
@@ -57,7 +70,8 @@ class CloudServiceConfig {
       case CloudServiceType.GoogleDrive:
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:
-        return token != null;
+      case CloudServiceType.S3Cloud:
+        return true;
     }
   }
 
@@ -68,6 +82,7 @@ class CloudServiceConfig {
     this.account,
     this.secret,
     this.token,
+    this.enabled = true,
     required this.createTimestamp,
     required this.editTimestamp,
     required this.lastFetchTimestamp,
@@ -82,6 +97,7 @@ class CloudServiceConfig {
     this.secret,
     this.token,
   })  : id = 0,
+        enabled = true,
         createTimestamp = DateTime.now().millisecondsSinceEpoch,
         editTimestamp = DateTime.now().millisecondsSinceEpoch,
         lastFetchTimestamp = DateTime.now().millisecondsSinceEpoch,
@@ -101,6 +117,7 @@ class CloudServiceConfig {
       lastFetchTimestamp: map['last_fetch_timestamp'],
       lastBackupTimestamp: map['last_backup_timestamp'],
       remark: jsonDecode(map['remark']),
+      enabled: map['enabled'] == 1,
     );
   }
 
@@ -117,6 +134,7 @@ class CloudServiceConfig {
       'last_fetch_timestamp': lastFetchTimestamp,
       'last_backup_timestamp': lastBackupTimestamp,
       'remark': jsonEncode(remark),
+      'enabled': enabled ? 1 : 0,
     };
   }
 

@@ -1,6 +1,6 @@
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
-import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
+import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
@@ -13,7 +13,7 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
+import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
@@ -623,7 +623,7 @@ class _SettingScreenState extends State<SettingScreen>
           onTap: () async {
             RouteUtil.pushCupertinoRoute(
               context,
-              const WebDavServiceScreen(),
+              const CloudServiceScreen(),
               onThen: (value) {
                 loadWebDavConfig();
               },

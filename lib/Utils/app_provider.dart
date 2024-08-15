@@ -7,7 +7,7 @@ import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:queue/queue.dart';
-import 'package:tuple/tuple.dart';
+import 'package:cloudotp/Utils/Tuple/tuple.dart';
 
 import '../Screens/home_screen.dart';
 import '../Widgets/Custom/keyboard_handler.dart';

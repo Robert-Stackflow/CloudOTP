@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:base32/base32.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pbserver.dart';
 import 'package:cloudotp/TokenUtils/token_image_util.dart';
 import 'package:fixnum/fixnum.dart' as $fixnum;
-import 'package:otp/otp.dart';
 
+import '../TokenUtils/Otp/otp.dart';
 import '../TokenUtils/check_token_util.dart';
+import '../Utils/Base32/base32.dart';
 import '../Utils/utils.dart';
 import 'Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 
@@ -426,6 +426,7 @@ class OtpToken {
   int copyTimes;
   int lastCopyTimeStamp;
   String pin;
+  String description;
 
   int get pinnedInt => pinned ? 1 : 0;
 
@@ -457,6 +458,7 @@ class OtpToken {
     required this.createTimeStamp,
     required this.editTimeStamp,
     required this.remark,
+    this.description = "",
     this.copyTimes = 0,
     this.lastCopyTimeStamp = 0,
     this.pin = "",
@@ -470,6 +472,7 @@ class OtpToken {
         issuer = issuer ?? "",
         secret = secret ?? "",
         account = "",
+        description = "",
         imagePath = "",
         tokenType = OtpTokenType.TOTP,
         algorithm = OtpAlgorithm.SHA1,
@@ -504,6 +507,7 @@ class OtpToken {
       'copy_times': copyTimes,
       'pin': pin,
       'last_copy_timestamp': lastCopyTimeStamp,
+      "description": description,
     };
   }
 
@@ -527,6 +531,7 @@ class OtpToken {
       copyTimes: map['copy_times'],
       lastCopyTimeStamp: map['last_copy_timestamp'] ?? 0,
       pin: map['pin'],
+      description: map['description'] ?? "",
     );
   }
 
@@ -554,6 +559,7 @@ class OtpToken {
       lastCopyTimeStamp: $fixnum.Int64(lastCopyTimeStamp),
       remark: jsonEncode(remark),
       imagePath: imagePath,
+      description: description,
     );
   }
 
@@ -579,6 +585,7 @@ class OtpToken {
       copyTimes: cloudOtpParameters.copyTimes.toInt(),
       lastCopyTimeStamp: cloudOtpParameters.lastCopyTimeStamp.toInt(),
       pin: cloudOtpParameters.pin,
+      description: cloudOtpParameters.description,
     );
   }
 

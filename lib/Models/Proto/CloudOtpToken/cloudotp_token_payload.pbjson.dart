@@ -100,7 +100,8 @@ const CloudOtpTokenParameters$json = {
     {'1': 'copyTimes', '3': 11, '4': 1, '5': 3, '10': 'copyTimes'},
     {'1': 'lastCopyTimeStamp', '3': 12, '4': 1, '5': 3, '10': 'lastCopyTimeStamp'},
     {'1': 'imagePath', '3': 13, '4': 1, '5': 9, '10': 'imagePath'},
-    {'1': 'remark', '3': 14, '4': 1, '5': 9, '10': 'remark'},
+    {'1': 'description', '3': 14, '4': 1, '5': 9, '10': 'description'},
+    {'1': 'remark', '3': 15, '4': 1, '5': 9, '10': 'remark'},
   ],
 };
 
@@ -113,6 +114,7 @@ final $typed_data.Uint8List cloudOtpTokenParametersDescriptor = $convert.base64D
     'EiYKBHR5cGUYByABKA4yEi5DbG91ZE90cFRva2VuVHlwZVIEdHlwZRIWCgZwZXJpb2QYCCABKA'
     'NSBnBlcmlvZBIYCgdjb3VudGVyGAkgASgDUgdjb3VudGVyEhYKBnBpbm5lZBgKIAEoA1IGcGlu'
     'bmVkEhwKCWNvcHlUaW1lcxgLIAEoA1IJY29weVRpbWVzEiwKEWxhc3RDb3B5VGltZVN0YW1wGA'
-    'wgASgDUhFsYXN0Q29weVRpbWVTdGFtcBIcCglpbWFnZVBhdGgYDSABKAlSCWltYWdlUGF0aBIW'
-    'CgZyZW1hcmsYDiABKAlSBnJlbWFyaw==');
+    'wgASgDUhFsYXN0Q29weVRpbWVTdGFtcBIcCglpbWFnZVBhdGgYDSABKAlSCWltYWdlUGF0aBIg'
+    'CgtkZXNjcmlwdGlvbhgOIAEoCVILZGVzY3JpcHRpb24SFgoGcmVtYXJrGA8gASgJUgZyZW1hcm'
+    's=');
 

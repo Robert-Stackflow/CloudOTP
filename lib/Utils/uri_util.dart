@@ -119,7 +119,7 @@ class UriUtil {
     );
   }
 
-  static Future<void> openExternalUri(WebUri uri) async {
+  static Future<void> openExternalUri(Uri uri) async {
     await launchUrl(
       uri,
       mode: LaunchMode.externalNonBrowserApplication,

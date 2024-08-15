@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Resources/theme.dart';
+import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
+import 'package:cloudotp/Screens/Setting/setting_privacy_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -172,10 +174,10 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                     if (ResponsiveUtil.isLandscape()) {
                       context.contextMenuOverlay.hide();
                       RouteUtil.pushDialogRoute(context,
-                          const SettingScreen(jumpToAutoBackupPassword: true));
+                          const BackupSettingScreen(jumpToAutoBackupPassword: true));
                     } else {
                       RouteUtil.pushCupertinoRoute(context,
-                          const SettingScreen(jumpToAutoBackupPassword: true));
+                          const BackupSettingScreen(jumpToAutoBackupPassword: true));
                     }
                   },
                 ),

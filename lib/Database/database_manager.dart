@@ -15,7 +15,7 @@ import '../Utils/hive_util.dart';
 
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
-  static const _dbVersion = 1;
+  static const _dbVersion = 2;
   static Database? _database;
   static final dbFactory = createDatabaseFactoryFfi(ffiInit: ffiInit);
 
@@ -32,7 +32,6 @@ class DatabaseManager {
     if (_database == null) {
       String path = join(await FileUtil.getDatabaseDir(), _dbName);
       if (!await dbFactory.databaseExists(path)) {
-        print("Database not exist");
         password = await HiveUtil.regeneratePassword();
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
@@ -45,6 +44,7 @@ class DatabaseManager {
           onConfigure: (db) async {
             await db.rawQuery("PRAGMA KEY='$password'");
           },
+          onUpgrade: _onUpgrade,
           onCreate: _onCreate,
         ),
       );
@@ -73,6 +73,13 @@ class DatabaseManager {
     await db.execute(Sql.createConfigTable.sql);
     await db.execute(Sql.createCloudServiceConfigTable.sql);
     await db.execute(Sql.createAutoBackupLogTable.sql);
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute("alter table otp_token add column description TEXT NOT NULL DEFAULT ''");
+      await db.execute("alter table cloud_service_config add column enabled INTEGER NOT NULL DEFAULT 1");
+    }
   }
 
   static Future<void> createTable({

@@ -1,6 +1,6 @@
 import "package:cloudotp/Utils/responsive_util.dart";
 import "package:flutter/cupertino.dart";
-import "package:tuple/tuple.dart";
+import "package:cloudotp/Utils/Tuple/tuple.dart";
 
 import "../Utils/font_util.dart";
 import "../Utils/hive_util.dart";

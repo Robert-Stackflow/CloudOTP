@@ -2,6 +2,7 @@ import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
+import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
@@ -363,7 +364,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               },
               child: _buildMobileBody(),
             ),
-      drawer: _buildDrawer(),
       bottomNavigationBar: ResponsiveUtil.isLandscape() || categories.isEmpty
           ? null
           : _buildMobileBottombar(),
@@ -500,7 +500,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
-                        context, const SettingScreen());
+                        context, const SettingNavigationScreen());
                   },
                 ),
                 ContextMenuButtonConfig(
@@ -961,95 +961,5 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
     tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
     setState(() {});
-  }
-
-  _buildDrawer() {
-    return MyDrawer(
-      elevation: 0,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      child: ListView(
-        shrinkWrap: true,
-        padding: EdgeInsets.symmetric(
-            horizontal: ResponsiveUtil.isLandscape() ? 20 : 10, vertical: 10),
-        children: [
-          Column(
-            children: [
-              SizedBox(height: MediaQuery.paddingOf(context).top),
-              Container(
-                constraints: const BoxConstraints(maxWidth: 66),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: Colors.grey.withOpacity(0.1), width: 0.5),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    'assets/logo.png',
-                    height: 64,
-                    width: 64,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.addToken,
-                topRadius: true,
-                showLeading: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(context, const AddTokenScreen());
-                },
-                leading: Icons.add_rounded,
-              ),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const ImportExportTokenScreen());
-                },
-                title: S.current.exportImport,
-                showLeading: true,
-                leading: Icons.import_export_rounded,
-              ),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(context, const CategoryScreen());
-                },
-                title: S.current.category,
-                showLeading: true,
-                bottomRadius: true,
-                leading: Icons.category_outlined,
-              ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.setting,
-                topRadius: true,
-                showLeading: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(context, const SettingScreen());
-                },
-                leading: Icons.settings_outlined,
-              ),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.about,
-                bottomRadius: true,
-                showLeading: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const AboutSettingScreen());
-                },
-                leading: Icons.info_outline_rounded,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }

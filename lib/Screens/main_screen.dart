@@ -6,6 +6,7 @@ import 'package:app_links/app_links.dart';
 import 'package:cloudotp/Resources/colors.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
+import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
@@ -42,8 +43,8 @@ import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart'
 import '../Widgets/Scaffold/my_scaffold.dart';
 import '../Widgets/Window/window_button.dart';
 import '../generated/l10n.dart';
+import 'Backup/cloud_service_screen.dart';
 import 'Lock/pin_verify_screen.dart';
-import 'Setting/setting_screen.dart';
 import 'Token/category_screen.dart';
 
 const borderColor = Color(0xFF805306);
@@ -519,6 +520,19 @@ class MainScreenState extends State<MainScreen>
                         child: const CategoryScreen(), showClose: false);
                   },
                 ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  text: S.current.cloudBackupServiceSetting,
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.cloud_queue_rounded),
+                  onTap: () async {
+                    DialogBuilder.showPageDialog(context,
+                        child: const CloudServiceScreen(), showClose: true);
+                  },
+                ),
                 const Spacer(),
                 const SizedBox(height: 8),
                 ItemBuilder.buildIconButton(
@@ -566,7 +580,8 @@ class MainScreenState extends State<MainScreen>
                     AssetUtil.settingDarkIcon,
                   ),
                   onTap: () async {
-                    RouteUtil.pushDialogRoute(context, const SettingScreen());
+                    RouteUtil.pushDialogRoute(
+                        context, const SettingNavigationScreen());
                   },
                 ),
                 const SizedBox(width: 6),

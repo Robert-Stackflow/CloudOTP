@@ -222,6 +222,7 @@ class ItemBuilder {
     bool disabled = false,
     bool enableDeselect = false,
     double titleMinWidth = 40,
+    bool constraintWidth = true,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return Container(
@@ -247,6 +248,7 @@ class ItemBuilder {
                 buttons: buttons,
                 disabled: disabled,
                 controller: controller,
+                constraintWidth: constraintWidth,
                 radius: 8,
                 enableDeselect: enableDeselect,
                 onSelected: onSelected,
