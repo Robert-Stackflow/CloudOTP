@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -7,7 +6,9 @@ import 'package:flutter_onedrive/onedrive_response.dart';
 import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
+import '../../Utils/hive_util.dart';
 import '../../generated/l10n.dart';
+import '../export_token_util.dart';
 import 'cloud_service.dart';
 
 class OneDriveCloudService extends CloudService {
@@ -51,15 +52,16 @@ class OneDriveCloudService extends CloudService {
     }
   }
 
-  Future<OneDriveUserInfo> fetchInfo() async {
-    OneDriveResponse response = await onedrive.getInfo();
-    OneDriveUserInfo info =
-        OneDriveUserInfo.fromJson(jsonDecode(response.body ?? "{}"));
-    _config.account = info.email;
-    _config.remainingSize = info.remaining ?? 0;
-    _config.totalSize = info.total ?? 0;
-    _config.usedSize = info.used ?? 0;
-    onConfigChanged?.call(_config);
+  Future<OneDriveUserInfo?> fetchInfo() async {
+    OneDriveUserInfo? info = (await onedrive.getInfo()).userInfo;
+    if (info != null) {
+      _config.email = info.email;
+      _config.account = info.displayName;
+      _config.remainingSize = info.remaining ?? 0;
+      _config.totalSize = info.total ?? 0;
+      _config.usedSize = info.used ?? 0;
+      onConfigChanged?.call(_config);
+    }
     return info;
   }
 
@@ -73,13 +75,23 @@ class OneDriveCloudService extends CloudService {
   }
 
   @override
-  Future<void> deleteFile(String path) async {
-    print('deleteFile');
+  Future<bool> deleteFile(String path) async {
+    OneDriveResponse response = await onedrive.deleteById(path);
+    return response.isSuccess;
   }
 
   @override
-  Future<void> deleteOldBackup(int maxCount) async {
-    print('deleteOldBackup');
+  Future<bool> deleteOldBackup([int? maxCount]) async {
+    maxCount ??= HiveUtil.getMaxBackupsCount();
+    List<OneDriveFileInfo> list = await listBackups();
+    list.sort((a, b) {
+      return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
+    });
+    while (list.length > maxCount) {
+      var file = list.removeAt(0);
+      await deleteFile(file.id);
+    }
+    return true;
   }
 
   @override
@@ -87,24 +99,28 @@ class OneDriveCloudService extends CloudService {
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    print('downloadFile');
-    return Uint8List(0);
+    OneDriveResponse response = await onedrive.pullById(path);
+    return response.bodyBytes ?? Uint8List(0);
   }
 
   @override
   Future<int> getBackupsCount() async {
-    print("getBackupsCount");
-    return 0;
+    return (await listBackups()).length;
   }
 
   @override
-  Future listBackups() async {
-    print("listBackups");
+  Future<List<OneDriveFileInfo>> listBackups() async {
+    var list = await listFiles();
+    list = list
+        .where((element) => ExportTokenUtil.isBackup(element.name))
+        .toList();
+    return list;
   }
 
   @override
-  Future listFiles() async {
-    await onedrive.list(_onedrivePath);
+  Future<List<OneDriveFileInfo>> listFiles() async {
+    List<OneDriveFileInfo> files = (await onedrive.list(_onedrivePath)).files;
+    return files;
   }
 
   @override
@@ -122,6 +138,7 @@ class OneDriveCloudService extends CloudService {
       fileData,
       join(_onedrivePath, fileName),
     );
+    deleteOldBackup();
     return response.isSuccess;
   }
 }

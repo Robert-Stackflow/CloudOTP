@@ -1,5 +1,6 @@
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
@@ -501,6 +502,14 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
                         context, const SettingNavigationScreen());
+                  },
+                ),
+                ContextMenuButtonConfig(
+                  S.current.cloudBackupServiceSetting,
+                  icon: const Icon(Icons.cloud_queue_rounded),
+                  onPressed: () {
+                    RouteUtil.pushCupertinoRoute(
+                        context, const CloudServiceScreen());
                   },
                 ),
                 ContextMenuButtonConfig(

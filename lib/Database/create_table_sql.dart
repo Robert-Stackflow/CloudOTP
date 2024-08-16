@@ -60,7 +60,8 @@ enum Sql {
         enabled INTEGER NOT NULL DEFAULT 1,
         total_size INTEGER NOT NULL DEFAULT -1,
         remaining_size INTEGER NOT NULL DEFAULT -1,
-        used_size INTEGER NOT NULL DEFAULT -1
+        used_size INTEGER NOT NULL DEFAULT -1,
+        email TEXT NOT NULL DEFAULT ''
       );
     '''),
   createAutoBackupLogTable('''

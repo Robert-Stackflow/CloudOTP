@@ -17,7 +17,7 @@ abstract class CloudService {
 
   Future<int> getBackupsCount();
 
-  Future<void> deleteOldBackup(int maxCount);
+  Future<bool> deleteOldBackup([int? maxCount]);
 
   Future<bool> uploadFile(
     String fileName,
@@ -30,7 +30,7 @@ abstract class CloudService {
     Function(int, int)? onProgress,
   });
 
-  Future<void> deleteFile(String path);
+  Future<bool> deleteFile(String path);
 
   Future<CloudServiceStatus> authenticate();
 

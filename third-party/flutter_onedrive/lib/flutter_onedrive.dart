@@ -7,9 +7,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_onedrive/onauth.dart';
-import 'package:flutter_onedrive/onedrive_response.dart';
-// import 'package:flutter_web_auth/flutter_web_auth.dart';
+import 'onauth.dart';
+import 'onedrive_response.dart';
 import 'package:http/http.dart' as http;
 
 import 'token.dart';
@@ -119,12 +118,13 @@ class OneDrive with ChangeNotifier {
       );
 
       debugPrint(
-          "# OneDrive -> pull: ${resp.statusCode}\n# Body: ${resp.body}");
+          "# OneDrive -> getInfo: ${resp.statusCode}\n# Body: ${resp.body}");
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         return OneDriveResponse(
             statusCode: resp.statusCode,
             body: resp.body,
+            userInfo: OneDriveUserInfo.fromJson(jsonDecode(resp.body)),
             message: "Get Info successfully.",
             bodyBytes: resp.bodyBytes,
             isSuccess: true);
@@ -142,7 +142,7 @@ class OneDrive with ChangeNotifier {
             bodyBytes: Uint8List(0));
       }
     } catch (err) {
-      debugPrint("# OneDrive -> pull: $err");
+      debugPrint("# OneDrive -> getInfo: $err");
       return OneDriveResponse(message: "Unexpected exception: $err");
     }
   }
@@ -174,9 +174,15 @@ class OneDrive with ChangeNotifier {
           "# OneDrive -> list: ${resp.statusCode}\n# Body: ${resp.body}");
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
+        Map body = jsonDecode(resp.body);
+        List<OneDriveFileInfo> files = [];
+        for (var item in body['value']) {
+          files.add(OneDriveFileInfo.fromJson(item));
+        }
         return OneDriveResponse(
             statusCode: resp.statusCode,
             body: resp.body,
+            files: files,
             message: "List files successfully.",
             bodyBytes: resp.bodyBytes,
             isSuccess: true);
@@ -199,8 +205,8 @@ class OneDrive with ChangeNotifier {
     }
   }
 
-  Future<OneDriveResponse> pull(
-    String remotePath, {
+  Future<OneDriveResponse> pullById(
+    String id, {
     bool isAppFolder = false,
   }) async {
     final accessToken = await _tokenManager.getAccessToken();
@@ -209,12 +215,7 @@ class OneDrive with ChangeNotifier {
           message: "Null access token", bodyBytes: Uint8List(0));
     }
 
-    if (isAppFolder) {
-      await getMetadata(remotePath, isAppFolder: isAppFolder);
-    }
-
-    final url = Uri.parse(
-        "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/content");
+    final url = Uri.parse("${apiEndpoint}me/drive/items/$id/content");
 
     try {
       final resp = await http.get(
@@ -251,6 +252,53 @@ class OneDrive with ChangeNotifier {
     }
   }
 
+  Future<OneDriveResponse> deleteById(
+    String id, {
+    bool isAppFolder = false,
+  }) async {
+    final accessToken = await _tokenManager.getAccessToken();
+    if (accessToken == null) {
+      return OneDriveResponse(
+          message: "Null access token", bodyBytes: Uint8List(0));
+    }
+
+    final url = Uri.parse("${apiEndpoint}me/drive/items/$id");
+
+    try {
+      final resp = await http.delete(
+        url,
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
+
+      debugPrint(
+          "# OneDrive -> delete: ${resp.statusCode}\n# Body: ${resp.body}");
+
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "Delete successfully.",
+            bodyBytes: resp.bodyBytes,
+            isSuccess: true);
+      } else if (resp.statusCode == 404) {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "File not found.",
+            bodyBytes: Uint8List(0));
+      } else {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "Error while deleting file.",
+            bodyBytes: Uint8List(0));
+      }
+    } catch (err) {
+      debugPrint("# OneDrive -> delete: $err");
+      return OneDriveResponse(message: "Unexpected exception: $err");
+    }
+  }
+
   Future<OneDriveResponse> push(
     Uint8List bytes,
     String remotePath, {
@@ -283,7 +331,6 @@ class OneDrive with ChangeNotifier {
           "# Create Session: ${DateTime.now().difference(now).inMilliseconds} ms");
 
       if (resp.statusCode == 200) {
-        // create session success
         final Map<String, dynamic> respJson = jsonDecode(resp.body);
         final String uploadUrl = respJson["uploadUrl"];
         url = Uri.parse(uploadUrl);

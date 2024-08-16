@@ -142,18 +142,19 @@ class WebDavCloudService extends CloudService {
   }
 
   @override
-  Future<void> deleteFile(String path) async {
+  Future<bool> deleteFile(String path) async {
     if (!path.startsWith(_webdavPath)) {
       path = join(_webdavPath, path);
     }
     await client.remove(path);
+    return true;
   }
 
   @override
   Future<void> signOut() async {}
 
   @override
-  Future<void> deleteOldBackup([int? maxCount]) async {
+  Future<bool> deleteOldBackup([int? maxCount]) async {
     maxCount ??= HiveUtil.getMaxBackupsCount();
     List<WebDavFile> list = await listBackups();
     list.sort((a, b) {
@@ -164,5 +165,6 @@ class WebDavCloudService extends CloudService {
       var file = list.removeAt(0);
       await deleteFile(file.path!);
     }
+    return true;
   }
 }

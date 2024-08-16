@@ -1,6 +1,6 @@
 name: cloudotp
 version: 2.0.0
-description: An awesome two-factor authenticator which supports dropbox
+description: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
 publish_to: none
 
 environment:
@@ -51,6 +51,8 @@ dependencies:
     path: third-party/webdav_client
   flutter_onedrive:
     path: third-party/flutter_onedrive
+  flutter_dropbox:
+    path: third-party/flutter_dropbox
   # 工具
   intl_utils: ^2.8.7
   html: ^0.15.0

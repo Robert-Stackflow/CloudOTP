@@ -1,13 +1,22 @@
+import 'dart:typed_data';
+
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dropbox/dropbox_response.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
+import '../../TokenUtils/export_token_util.dart';
+import '../../TokenUtils/import_token_util.dart';
+import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../../Widgets/BottomSheet/dropbox_backups_bottom_sheet.dart';
+import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
@@ -28,6 +37,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   bool get wantKeepAlive => true;
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   CloudServiceConfig? _dropboxCloudServiceConfig;
   DropboxCloudService? _dropboxCloudService;
   bool inited = false;
@@ -52,6 +62,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     if (_dropboxCloudServiceConfig != null) {
       _sizeController.text = _dropboxCloudServiceConfig!.size;
       _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
+      _emailController.text = _dropboxCloudServiceConfig!.email ?? "";
       if (_dropboxCloudServiceConfig!.isValid) {
         _dropboxCloudService = DropboxCloudService(
           context,
@@ -83,6 +94,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     });
     _sizeController.text = _dropboxCloudServiceConfig!.size;
     _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
+    _emailController.text = _dropboxCloudServiceConfig!.email ?? "";
     CloudServiceConfigDao.updateConfig(_dropboxCloudServiceConfig!);
   }
 
@@ -184,7 +196,14 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             textInputAction: TextInputAction.next,
             leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.webDavUsername,
+            leadingText: S.current.cloudDisplayName,
+          ),
+          InputItem(
+            controller: _emailController,
+            textInputAction: TextInputAction.next,
+            leadingType: InputItemLeadingType.text,
+            disabled: true,
+            leadingText: S.current.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
@@ -230,7 +249,104 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             outline: Theme.of(context).primaryColor,
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
-            onTap: () async {},
+            onTap: () async {
+              CustomLoadingDialog.showLoading(
+                title: S.current.webDavPulling,
+                dismissible: true,
+              );
+              try {
+                List<DropboxFileInfo> files = await _dropboxCloudService!.listBackups();
+                CloudServiceConfigDao.updateLastPullTime(
+                    _dropboxCloudServiceConfig!);
+                CustomLoadingDialog.dismissLoading();
+                files.sort((a, b) => b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                        (dialogContext) => DropboxBackupsBottomSheet(
+                      files: files,
+                      cloudService: _dropboxCloudService!,
+                      onSelected: (selectedFile) async {
+                        var dialog = showProgressDialog(
+                          msg: S.current.webDavPulling,
+                          showProgress: true,
+                        );
+                        Uint8List res = await _dropboxCloudService!.downloadFile(
+                          selectedFile.id,
+                          onProgress: (c, t) {
+                            dialog.updateProgress(progress: c / t);
+                          },
+                        );
+
+                        dialog.updateMessage(
+                          msg: S.current.importing,
+                          showProgress: false,
+                        );
+
+                        bool success = await ImportTokenUtil.importBackupFile(
+                          res,
+                          showLoading: false,
+                        );
+                        dialog.dismiss();
+                        if (!success) {
+                          InputStateController stateController =
+                          InputStateController(
+                            validate: (value) {
+                              if (value.isEmpty) {
+                                return Future.value(
+                                    S.current.autoBackupPasswordCannotBeEmpty);
+                              }
+                              return Future.value(null);
+                            },
+                          );
+                          BottomSheetBuilder.showBottomSheet(
+                            context,
+                            responsive: true,
+                                (context) => InputBottomSheet(
+                              stateController: stateController,
+                              title: S.current.inputImportPasswordTitle,
+                              message: S.current.inputImportPasswordTip,
+                              hint: S.current.inputImportPasswordHint,
+                              inputFormatters: [
+                                RegexInputFormatter.onlyNumberAndLetter,
+                              ],
+                              tailingType: InputItemTailingType.password,
+                              preventPop: true,
+                              onValidConfirm: (password) async {
+                                dialog.show(
+                                  msg: S.current.importing,
+                                  showProgress: false,
+                                );
+                                bool success =
+                                await ImportTokenUtil.importBackupFile(
+                                  password: password,
+                                  res,
+                                  showLoading: false,
+                                );
+                                dialog.dismiss();
+                                if (success) {
+                                  IToast.show(S.current.importSuccess);
+                                  stateController.pop?.call();
+                                } else {
+                                  stateController.setError(
+                                      S.current.invalidPasswordOrDataCorrupted);
+                                }
+                              },
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(S.current.webDavNoBackupFile);
+                }
+              } catch (e) {
+                CustomLoadingDialog.dismissLoading();
+                IToast.show(S.current.webDavPullFailed);
+              }
+            },
           ),
         ),
         const SizedBox(width: 10),
@@ -242,7 +358,10 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             text: S.current.webDavPushBackup,
             fontSizeDelta: 2,
             onTap: () async {
-              await _dropboxCloudService!.fetchInfo();
+              ExportTokenUtil.backupEncryptToCloud(
+                config: _dropboxCloudServiceConfig!,
+                cloudService: _dropboxCloudService!,
+              );
             },
           ),
         ),
@@ -259,6 +378,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
               setState(() {
                 _dropboxCloudServiceConfig!.connected = false;
                 _dropboxCloudServiceConfig!.account = "";
+                _dropboxCloudServiceConfig!.email = "";
                 _dropboxCloudServiceConfig!.totalSize =
                     _dropboxCloudServiceConfig!.remainingSize =
                     _dropboxCloudServiceConfig!.usedSize = -1;

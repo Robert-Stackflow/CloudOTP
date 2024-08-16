@@ -6,13 +6,17 @@ class OneDriveResponse {
   final String? message;
   final bool isSuccess;
   final Uint8List? bodyBytes;
+  final OneDriveUserInfo? userInfo;
+  final List<OneDriveFileInfo> files;
 
   OneDriveResponse({
     this.statusCode,
     this.body,
     this.message,
     this.bodyBytes,
-    this.isSuccess = false
+    this.userInfo,
+    this.files = const [],
+    this.isSuccess = false,
   });
 
   @override
@@ -23,7 +27,7 @@ class OneDriveResponse {
         "bodyBytes: $bodyBytes, "
         "message: $message, "
         "isSuccess: $isSuccess"
-      ")";
+        ")";
   }
 }
 
@@ -36,26 +40,24 @@ class OneDriveUserInfo {
   final int? remaining;
   final String? state;
 
-  OneDriveUserInfo({
-    this.email,
-    this.displayName,
-    this.total,
-    this.used,
-    this.deleted,
-    this.remaining,
-    this.state
-  });
+  OneDriveUserInfo(
+      {this.email,
+      this.displayName,
+      this.total,
+      this.used,
+      this.deleted,
+      this.remaining,
+      this.state});
 
   factory OneDriveUserInfo.fromJson(Map<String, dynamic> json) {
     return OneDriveUserInfo(
-      email: json['owner']['user']['email'],
-      displayName: json['owner']['user']['displayName'],
-      total: json['quota']['total'],
-      used: json['quota']['used'],
-      deleted: json['quota']['deleted'],
-      remaining: json['quota']['remaining'],
-      state: json['quota']['state']
-    );
+        email: json['owner']['user']['email'],
+        displayName: json['owner']['user']['displayName'],
+        total: json['quota']['total'],
+        used: json['quota']['used'],
+        deleted: json['quota']['deleted'],
+        remaining: json['quota']['remaining'],
+        state: json['quota']['state']);
   }
 
   @override
@@ -68,11 +70,11 @@ class OneDriveUserInfo {
         "deleted: $deleted, "
         "remaing: $remaining, "
         "state: $state"
-      ")";
+        ")";
   }
 }
 
-class OnedriveFileInfo{
+class OneDriveFileInfo {
   final String id;
   final String name;
   final int size;
@@ -81,13 +83,25 @@ class OnedriveFileInfo{
   final String description;
   final String fileMimeType;
 
-  OnedriveFileInfo({
+  OneDriveFileInfo({
     required this.id,
     required this.name,
     required this.size,
     required this.createdDateTime,
     required this.lastModifiedDateTime,
     required this.description,
-    required this.fileMimeType
+    required this.fileMimeType,
   });
+
+  factory OneDriveFileInfo.fromJson(Map<String, dynamic> json) {
+    return OneDriveFileInfo(
+      id: json['id'],
+      name: json['name'],
+      size: json['size'] ?? 0,
+      createdDateTime: DateTime.parse(json['createdDateTime']).millisecondsSinceEpoch,
+      lastModifiedDateTime: DateTime.parse(json['lastModifiedDateTime']).millisecondsSinceEpoch,
+      description: json['description'] ?? "",
+      fileMimeType: json['file'] != null ? json['file']['mimeType'] ?? "" : "",
+    );
+  }
 }

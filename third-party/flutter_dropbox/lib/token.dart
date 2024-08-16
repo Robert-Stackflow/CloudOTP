@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import 'flutter_dropbox.dart';
+
 abstract class ITokenManager {
   /// save token response
   Future<void> saveTokenResp(http.Response resp);
@@ -22,15 +24,15 @@ class DefaultTokenManager extends ITokenManager {
   final String redirectURL;
 
   final _secureStorage = const FlutterSecureStorage();
-  static const String _expireInKey = "__onedrive_tokenExpire";
-  static const String _accessTokenKey = "__onedrive_accessToken";
-  static const String _refreshTokenKey = "__onedrive_refreshToken";
+  static const String _expireInKey = "__dropbox_tokenExpire";
+  static const String _accessTokenKey = "__dropbox_accessToken";
+  static const String _refreshTokenKey = "__dropbox_refreshToken";
 
   DefaultTokenManager({
     required this.tokenEndpoint,
     required this.clientID,
     required this.redirectURL,
-    this.scope = "offline_access Files.ReadWrite.All",
+    this.scope = Dropbox.permissionFilesReadWriteAll,
   });
 
   @override

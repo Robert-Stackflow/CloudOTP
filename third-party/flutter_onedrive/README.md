@@ -17,7 +17,7 @@ flutter public add flutter_onedrive
 ```
 
 ```dart
-import 'package:flutter_onedrive/flutter_onedrive.dart';
+import 'package:flutter_onedrive/flutter_dropbox.dart';
 ```
 
 ## Usage

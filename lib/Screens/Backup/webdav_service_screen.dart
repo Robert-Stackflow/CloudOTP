@@ -297,10 +297,10 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 dismissible: true,
               );
               try {
-                List<WebDavFile> files = await _webDavCloudService!.listFiles();
-                CustomLoadingDialog.dismissLoading();
+                List<WebDavFile> files = await _webDavCloudService!.listBackups();
                 CloudServiceConfigDao.updateLastPullTime(
                     _webDavCloudServiceConfig!);
+                CustomLoadingDialog.dismissLoading();
                 files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
                 if (files.isNotEmpty) {
                   BottomSheetBuilder.showBottomSheet(

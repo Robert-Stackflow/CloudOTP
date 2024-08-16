@@ -55,6 +55,7 @@ class CloudServiceConfig {
   int id;
   CloudServiceType type;
   String? endpoint;
+  String? email;
   String? account;
   String? secret;
   String? token;
@@ -94,6 +95,7 @@ class CloudServiceConfig {
     this.account,
     this.secret,
     this.token,
+    this.email,
     this.enabled = true,
     required this.createTimestamp,
     required this.editTimestamp,
@@ -115,6 +117,7 @@ class CloudServiceConfig {
         enabled = true,
         totalSize = -1,
         usedSize = -1,
+        email = "",
         remainingSize = -1,
         createTimestamp = DateTime.now().millisecondsSinceEpoch,
         editTimestamp = DateTime.now().millisecondsSinceEpoch,
@@ -130,6 +133,7 @@ class CloudServiceConfig {
       account: map['account'],
       secret: map['secret'],
       token: map['token'],
+      email: map['email'],
       createTimestamp: map['create_timestamp'],
       editTimestamp: map['edit_timestamp'],
       lastFetchTimestamp: map['last_fetch_timestamp'],
@@ -159,6 +163,7 @@ class CloudServiceConfig {
       'total_size': totalSize,
       'remaining_size': remainingSize,
       'used_size': usedSize,
+      "email": email,
     };
   }
 

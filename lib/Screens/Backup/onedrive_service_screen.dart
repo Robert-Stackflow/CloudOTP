@@ -1,14 +1,22 @@
+import 'dart:typed_data';
+
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Widgets/BottomSheet/onedrive_backups_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_onedrive/onedrive_response.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
+import '../../TokenUtils/import_token_util.dart';
+import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
@@ -29,6 +37,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   bool get wantKeepAlive => true;
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   CloudServiceConfig? _oneDriveCloudServiceConfig;
   OneDriveCloudService? _oneDriveCloudService;
   bool inited = false;
@@ -53,6 +62,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     if (_oneDriveCloudServiceConfig != null) {
       _sizeController.text = _oneDriveCloudServiceConfig!.size;
       _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
+      _emailController.text = _oneDriveCloudServiceConfig!.email ?? "";
       if (_oneDriveCloudServiceConfig!.isValid) {
         _oneDriveCloudService = OneDriveCloudService(
           context,
@@ -84,6 +94,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     });
     _sizeController.text = _oneDriveCloudServiceConfig!.size;
     _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
+    _emailController.text = _oneDriveCloudServiceConfig!.email ?? "";
     CloudServiceConfigDao.updateConfig(_oneDriveCloudServiceConfig!);
   }
 
@@ -185,7 +196,14 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             textInputAction: TextInputAction.next,
             leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.webDavUsername,
+            leadingText: S.current.cloudDisplayName,
+          ),
+          InputItem(
+            controller: _emailController,
+            textInputAction: TextInputAction.next,
+            leadingType: InputItemLeadingType.text,
+            disabled: true,
+            leadingText: S.current.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
@@ -237,14 +255,96 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                 dismissible: true,
               );
               try {
-                List<dynamic> files = await _oneDriveCloudService!.listFiles();
-                CustomLoadingDialog.dismissLoading();
+                List<OneDriveFileInfo> files = await _oneDriveCloudService!.listBackups();
                 CloudServiceConfigDao.updateLastPullTime(
                     _oneDriveCloudServiceConfig!);
-              } catch (e) {
-                print(e);
-              } finally {
                 CustomLoadingDialog.dismissLoading();
+                files.sort((a, b) => b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                        (dialogContext) => OneDriveBackupsBottomSheet(
+                      files: files,
+                      cloudService: _oneDriveCloudService!,
+                      onSelected: (selectedFile) async {
+                        var dialog = showProgressDialog(
+                          msg: S.current.webDavPulling,
+                          showProgress: true,
+                        );
+                        Uint8List res = await _oneDriveCloudService!.downloadFile(
+                          selectedFile.id,
+                          onProgress: (c, t) {
+                            dialog.updateProgress(progress: c / t);
+                          },
+                        );
+
+                        dialog.updateMessage(
+                          msg: S.current.importing,
+                          showProgress: false,
+                        );
+
+                        bool success = await ImportTokenUtil.importBackupFile(
+                          res,
+                          showLoading: false,
+                        );
+                        dialog.dismiss();
+                        if (!success) {
+                          InputStateController stateController =
+                          InputStateController(
+                            validate: (value) {
+                              if (value.isEmpty) {
+                                return Future.value(
+                                    S.current.autoBackupPasswordCannotBeEmpty);
+                              }
+                              return Future.value(null);
+                            },
+                          );
+                          BottomSheetBuilder.showBottomSheet(
+                            context,
+                            responsive: true,
+                                (context) => InputBottomSheet(
+                              stateController: stateController,
+                              title: S.current.inputImportPasswordTitle,
+                              message: S.current.inputImportPasswordTip,
+                              hint: S.current.inputImportPasswordHint,
+                              inputFormatters: [
+                                RegexInputFormatter.onlyNumberAndLetter,
+                              ],
+                              tailingType: InputItemTailingType.password,
+                              preventPop: true,
+                              onValidConfirm: (password) async {
+                                dialog.show(
+                                  msg: S.current.importing,
+                                  showProgress: false,
+                                );
+                                bool success =
+                                await ImportTokenUtil.importBackupFile(
+                                  password: password,
+                                  res,
+                                  showLoading: false,
+                                );
+                                dialog.dismiss();
+                                if (success) {
+                                  IToast.show(S.current.importSuccess);
+                                  stateController.pop?.call();
+                                } else {
+                                  stateController.setError(
+                                      S.current.invalidPasswordOrDataCorrupted);
+                                }
+                              },
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(S.current.webDavNoBackupFile);
+                }
+              } catch (e) {
+                CustomLoadingDialog.dismissLoading();
+                IToast.show(S.current.webDavPullFailed);
               }
             },
           ),
@@ -278,6 +378,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
               setState(() {
                 _oneDriveCloudServiceConfig!.connected = false;
                 _oneDriveCloudServiceConfig!.account = "";
+                _oneDriveCloudServiceConfig!.email = "";
                 _oneDriveCloudServiceConfig!.totalSize =
                     _oneDriveCloudServiceConfig!.remainingSize =
                         _oneDriveCloudServiceConfig!.usedSize = -1;

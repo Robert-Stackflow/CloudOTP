@@ -54,13 +54,15 @@ class GoogleDriveCloudService extends CloudService {
   }
 
   @override
-  Future<void> deleteFile(String path) async {
+  Future<bool> deleteFile(String path) async {
     print('deleteFile');
+    return true;
   }
 
   @override
-  Future<void> deleteOldBackup(int maxCount) async {
+  Future<bool> deleteOldBackup([int? maxCount]) async {
     print('deleteOldBackup');
+    return true;
   }
 
   @override
