@@ -57,7 +57,10 @@ enum Sql {
         last_fetch_timestamp INTEGER NOT NULL,
         last_backup_timestamp INTEGER NOT NULL,
         remark TEXT NOT NULL,
-        enabled INTEGER NOT NULL DEFAULT 1
+        enabled INTEGER NOT NULL DEFAULT 1,
+        total_size INTEGER NOT NULL DEFAULT -1,
+        remaining_size INTEGER NOT NULL DEFAULT -1,
+        used_size INTEGER NOT NULL DEFAULT -1
       );
     '''),
   createAutoBackupLogTable('''

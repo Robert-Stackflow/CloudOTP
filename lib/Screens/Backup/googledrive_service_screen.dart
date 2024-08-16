@@ -6,39 +6,38 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
-import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
-import '../../TokenUtils/export_token_util.dart';
+import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
-class OneDriveServiceScreen extends StatefulWidget {
-  const OneDriveServiceScreen({
+class GoogleDriveServiceScreen extends StatefulWidget {
+  const GoogleDriveServiceScreen({
     super.key,
   });
 
-  static const String routeName = "/service/onedrive";
+  static const String routeName = "/service/googledrive";
 
   @override
-  State<OneDriveServiceScreen> createState() => _OneDriveServiceScreenState();
+  State<GoogleDriveServiceScreen> createState() => _GoogleDriveServiceScreenState();
 }
 
-class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
+class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
-  CloudServiceConfig? _oneDriveCloudServiceConfig;
-  OneDriveCloudService? _oneDriveCloudService;
+  CloudServiceConfig? _googleDriveCloudServiceConfig;
+  GoogleDriveCloudService? _googleDriveCloudService;
   bool inited = false;
 
-  CloudServiceConfig get currentConfig => _oneDriveCloudServiceConfig!;
+  CloudServiceConfig get currentConfig => _googleDriveCloudServiceConfig!;
 
-  CloudService get currentService => _oneDriveCloudService!;
+  CloudService get currentService => _googleDriveCloudService!;
 
   bool get _configInitialized {
-    return _oneDriveCloudServiceConfig != null;
+    return _googleDriveCloudServiceConfig != null;
   }
 
   @override
@@ -48,31 +47,31 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   }
 
   loadConfig() async {
-    _oneDriveCloudServiceConfig =
-        await CloudServiceConfigDao.getOneDriveConfig();
-    if (_oneDriveCloudServiceConfig != null) {
-      _sizeController.text = _oneDriveCloudServiceConfig!.size;
-      _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
-      if (_oneDriveCloudServiceConfig!.isValid) {
-        _oneDriveCloudService = OneDriveCloudService(
+    _googleDriveCloudServiceConfig =
+    await CloudServiceConfigDao.getGoogleDriveConfig();
+    if (_googleDriveCloudServiceConfig != null) {
+      _sizeController.text = _googleDriveCloudServiceConfig!.size;
+      _accountController.text = _googleDriveCloudServiceConfig!.account ?? "";
+      if (_googleDriveCloudServiceConfig!.isValid) {
+        _googleDriveCloudService = GoogleDriveCloudService(
           context,
-          _oneDriveCloudServiceConfig!,
+          _googleDriveCloudServiceConfig!,
           onConfigChanged: updateConfig,
         );
       }
     } else {
-      _oneDriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.OneDrive);
-      await CloudServiceConfigDao.insertConfig(_oneDriveCloudServiceConfig!);
-      _oneDriveCloudService = OneDriveCloudService(
+      _googleDriveCloudServiceConfig =
+          CloudServiceConfig.init(type: CloudServiceType.GoogleDrive);
+      await CloudServiceConfigDao.insertConfig(_googleDriveCloudServiceConfig!);
+      _googleDriveCloudService = GoogleDriveCloudService(
         context,
-        _oneDriveCloudServiceConfig!,
+        _googleDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
     }
-    if (_oneDriveCloudService != null) {
-      _oneDriveCloudServiceConfig!.connected =
-          await _oneDriveCloudService!.isConnected();
+    if (_googleDriveCloudService != null) {
+      _googleDriveCloudServiceConfig!.connected =
+      await _googleDriveCloudService!.isConnected();
     }
     inited = true;
     setState(() {});
@@ -80,11 +79,11 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
 
   updateConfig(CloudServiceConfig config) {
     setState(() {
-      _oneDriveCloudServiceConfig = config;
+      _googleDriveCloudServiceConfig = config;
     });
-    _sizeController.text = _oneDriveCloudServiceConfig!.size;
-    _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
-    CloudServiceConfigDao.updateConfig(_oneDriveCloudServiceConfig!);
+    _sizeController.text = _googleDriveCloudServiceConfig!.size;
+    _accountController.text = _googleDriveCloudServiceConfig!.account ?? "";
+    CloudServiceConfigDao.updateConfig(_googleDriveCloudServiceConfig!);
   }
 
   @override
@@ -93,12 +92,12 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     return ResponsiveUtil.isDesktop()
         ? _buildUnsupportBody()
         : inited
-            ? _buildBody()
-            : ItemBuilder.buildLoadingDialog(
-                context,
-                background: Colors.transparent,
-                text: S.current.cloudConnecting,
-              );
+        ? _buildBody()
+        : ItemBuilder.buildLoadingDialog(
+      context,
+      background: Colors.transparent,
+      text: S.current.cloudConnecting,
+    );
   }
 
   _buildUnsupportBody() {
@@ -106,7 +105,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeOneDrive)),
+          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeGoogleDrive)),
           const SizedBox(height: 10),
         ],
       ),
@@ -159,14 +158,14 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   _enableInfo() {
     return ItemBuilder.buildRadioItem(
       context: context,
-      title: S.current.enable + S.current.cloudTypeOneDrive,
+      title: S.current.enable + S.current.cloudTypeGoogleDrive,
       topRadius: true,
       bottomRadius: true,
-      value: _oneDriveCloudServiceConfig?.enabled ?? false,
+      value: _googleDriveCloudServiceConfig?.enabled ?? false,
       onTap: () {
         setState(() {
-          _oneDriveCloudServiceConfig!.enabled =
-              !_oneDriveCloudServiceConfig!.enabled;
+          _googleDriveCloudServiceConfig!.enabled =
+          !_googleDriveCloudServiceConfig!.enabled;
         });
       },
     );
@@ -231,22 +230,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             outline: Theme.of(context).primaryColor,
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
-            onTap: () async {
-              CustomLoadingDialog.showLoading(
-                title: S.current.webDavPulling,
-                dismissible: true,
-              );
-              try {
-                List<dynamic> files = await _oneDriveCloudService!.listFiles();
-                CustomLoadingDialog.dismissLoading();
-                CloudServiceConfigDao.updateLastPullTime(
-                    _oneDriveCloudServiceConfig!);
-              } catch (e) {
-                print(e);
-              } finally {
-                CustomLoadingDialog.dismissLoading();
-              }
-            },
+            onTap: () async {},
           ),
         ),
         const SizedBox(width: 10),
@@ -258,10 +242,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             text: S.current.webDavPushBackup,
             fontSizeDelta: 2,
             onTap: () async {
-              ExportTokenUtil.backupEncryptToCloud(
-                config: _oneDriveCloudServiceConfig!,
-                cloudService: _oneDriveCloudService!,
-              );
+              await _googleDriveCloudService!.fetchInfo();
             },
           ),
         ),
@@ -274,14 +255,14 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             text: S.current.webDavLogout,
             fontSizeDelta: 2,
             onTap: () async {
-              await _oneDriveCloudService!.signOut();
+              await _googleDriveCloudService!.signOut();
               setState(() {
-                _oneDriveCloudServiceConfig!.connected = false;
-                _oneDriveCloudServiceConfig!.account = "";
-                _oneDriveCloudServiceConfig!.totalSize =
-                    _oneDriveCloudServiceConfig!.remainingSize =
-                        _oneDriveCloudServiceConfig!.usedSize = -1;
-                updateConfig(_oneDriveCloudServiceConfig!);
+                _googleDriveCloudServiceConfig!.connected = false;
+                _googleDriveCloudServiceConfig!.account = "";
+                _googleDriveCloudServiceConfig!.totalSize =
+                    _googleDriveCloudServiceConfig!.remainingSize =
+                    _googleDriveCloudServiceConfig!.usedSize = -1;
+                updateConfig(_googleDriveCloudServiceConfig!);
               });
             },
           ),

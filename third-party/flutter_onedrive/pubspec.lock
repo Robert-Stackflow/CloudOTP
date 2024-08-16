@@ -41,14 +41,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.18.0"
-  desktop_webview_window:
-    dependency: transitive
-    description:
-      name: desktop_webview_window
-      sha256: "57cf20d81689d5cbb1adfd0017e96b669398a669d927906073b0e42fc64111c0"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.2.3"
   fake_async:
     dependency: transitive
     description:
@@ -135,18 +127,18 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_web_auth_2
-      sha256: e12eb041997703ad4fa23490a9a93fd1390a9d8b2329a6f69a1f98f8ec61430d
+      sha256: "4d3d2fd3d26bf1a26b3beafd4b4b899c0ffe10dc99af25abc58ffe24e991133c"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "4.0.0-alpha.8"
+    version: "3.1.2"
   flutter_web_auth_2_platform_interface:
     dependency: transitive
     description:
       name: flutter_web_auth_2_platform_interface
-      sha256: "49c6d660f632d181102d4eeca7b72ea88124d7f4526fd0117f98c4261e9e72b0"
+      sha256: e8669e262005a8354389ba2971f0fc1c36188481234ff50d013aaf993f30f739
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "4.0.0-alpha.1"
+    version: "3.1.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter

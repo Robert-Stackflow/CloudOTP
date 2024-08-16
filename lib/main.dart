@@ -36,7 +36,11 @@ Future<void> main(List<String> args) async {
 }
 
 Future<void> runMyApp(List<String> args) async {
-  await initApp();
+  if (ResponsiveUtil.isDesktop() && runWebViewTitleBarWidget(args)) {
+    return;
+  }
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  await initApp(widgetsBinding);
   if (ResponsiveUtil.isMobile()) {
     await initDisplayMode();
     if (ResponsiveUtil.isAndroid()) {
@@ -48,10 +52,6 @@ Future<void> runMyApp(List<String> args) async {
     }
   }
   if (ResponsiveUtil.isDesktop()) {
-    WidgetsFlutterBinding.ensureInitialized();
-    if (runWebViewTitleBarWidget(args)) {
-      return;
-    }
     await initWindow();
     initTray();
     await HotKeyManager.instance.unregisterAll();
@@ -71,9 +71,8 @@ Future<void> runMyApp(List<String> args) async {
   FlutterNativeSplash.remove();
 }
 
-Future<void> initApp() async {
+Future<void> initApp(WidgetsBinding widgetsBinding) async {
   FlutterError.onError = onError;
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);

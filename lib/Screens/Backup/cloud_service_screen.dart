@@ -1,4 +1,6 @@
 import 'package:cloudotp/Models/cloud_service_config.dart';
+import 'package:cloudotp/Screens/Backup/dropbox_service_screen.dart';
+import 'package:cloudotp/Screens/Backup/googledrive_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/onedrive_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
@@ -104,6 +106,8 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
                 children: const [
                   WebDavServiceScreen(),
                   OneDriveServiceScreen(),
+                  GoogleDriveServiceScreen(),
+                  DropboxServiceScreen(),
                 ],
               ),
             ),

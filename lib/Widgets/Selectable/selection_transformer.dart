@@ -246,6 +246,8 @@ class SeparatedSelectionContainerDelegate
         _hasReceivedEndEvent.add(selectable);
         ensureChildUpdated(selectable);
         break;
+      case SelectionEventType.selectParagraph:
+        // TODO: Handle this case.
     }
     return super.dispatchSelectionEventToChild(selectable, event);
   }

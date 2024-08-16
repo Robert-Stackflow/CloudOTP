@@ -6,39 +6,38 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
-import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
-import '../../TokenUtils/export_token_util.dart';
+import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
-class OneDriveServiceScreen extends StatefulWidget {
-  const OneDriveServiceScreen({
+class DropboxServiceScreen extends StatefulWidget {
+  const DropboxServiceScreen({
     super.key,
   });
 
-  static const String routeName = "/service/onedrive";
+  static const String routeName = "/service/dropbox";
 
   @override
-  State<OneDriveServiceScreen> createState() => _OneDriveServiceScreenState();
+  State<DropboxServiceScreen> createState() => _DropboxServiceScreenState();
 }
 
-class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
+class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
-  CloudServiceConfig? _oneDriveCloudServiceConfig;
-  OneDriveCloudService? _oneDriveCloudService;
+  CloudServiceConfig? _dropboxCloudServiceConfig;
+  DropboxCloudService? _dropboxCloudService;
   bool inited = false;
 
-  CloudServiceConfig get currentConfig => _oneDriveCloudServiceConfig!;
+  CloudServiceConfig get currentConfig => _dropboxCloudServiceConfig!;
 
-  CloudService get currentService => _oneDriveCloudService!;
+  CloudService get currentService => _dropboxCloudService!;
 
   bool get _configInitialized {
-    return _oneDriveCloudServiceConfig != null;
+    return _dropboxCloudServiceConfig != null;
   }
 
   @override
@@ -48,31 +47,31 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   }
 
   loadConfig() async {
-    _oneDriveCloudServiceConfig =
-        await CloudServiceConfigDao.getOneDriveConfig();
-    if (_oneDriveCloudServiceConfig != null) {
-      _sizeController.text = _oneDriveCloudServiceConfig!.size;
-      _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
-      if (_oneDriveCloudServiceConfig!.isValid) {
-        _oneDriveCloudService = OneDriveCloudService(
+    _dropboxCloudServiceConfig =
+    await CloudServiceConfigDao.getDropboxConfig();
+    if (_dropboxCloudServiceConfig != null) {
+      _sizeController.text = _dropboxCloudServiceConfig!.size;
+      _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
+      if (_dropboxCloudServiceConfig!.isValid) {
+        _dropboxCloudService = DropboxCloudService(
           context,
-          _oneDriveCloudServiceConfig!,
+          _dropboxCloudServiceConfig!,
           onConfigChanged: updateConfig,
         );
       }
     } else {
-      _oneDriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.OneDrive);
-      await CloudServiceConfigDao.insertConfig(_oneDriveCloudServiceConfig!);
-      _oneDriveCloudService = OneDriveCloudService(
+      _dropboxCloudServiceConfig =
+          CloudServiceConfig.init(type: CloudServiceType.Dropbox);
+      await CloudServiceConfigDao.insertConfig(_dropboxCloudServiceConfig!);
+      _dropboxCloudService = DropboxCloudService(
         context,
-        _oneDriveCloudServiceConfig!,
+        _dropboxCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
     }
-    if (_oneDriveCloudService != null) {
-      _oneDriveCloudServiceConfig!.connected =
-          await _oneDriveCloudService!.isConnected();
+    if (_dropboxCloudService != null) {
+      _dropboxCloudServiceConfig!.connected =
+      await _dropboxCloudService!.isConnected();
     }
     inited = true;
     setState(() {});
@@ -80,11 +79,11 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
 
   updateConfig(CloudServiceConfig config) {
     setState(() {
-      _oneDriveCloudServiceConfig = config;
+      _dropboxCloudServiceConfig = config;
     });
-    _sizeController.text = _oneDriveCloudServiceConfig!.size;
-    _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
-    CloudServiceConfigDao.updateConfig(_oneDriveCloudServiceConfig!);
+    _sizeController.text = _dropboxCloudServiceConfig!.size;
+    _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
+    CloudServiceConfigDao.updateConfig(_dropboxCloudServiceConfig!);
   }
 
   @override
@@ -93,12 +92,12 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     return ResponsiveUtil.isDesktop()
         ? _buildUnsupportBody()
         : inited
-            ? _buildBody()
-            : ItemBuilder.buildLoadingDialog(
-                context,
-                background: Colors.transparent,
-                text: S.current.cloudConnecting,
-              );
+        ? _buildBody()
+        : ItemBuilder.buildLoadingDialog(
+      context,
+      background: Colors.transparent,
+      text: S.current.cloudConnecting,
+    );
   }
 
   _buildUnsupportBody() {
@@ -106,7 +105,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeOneDrive)),
+          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeDropbox)),
           const SizedBox(height: 10),
         ],
       ),
@@ -159,14 +158,14 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   _enableInfo() {
     return ItemBuilder.buildRadioItem(
       context: context,
-      title: S.current.enable + S.current.cloudTypeOneDrive,
+      title: S.current.enable + S.current.cloudTypeDropbox,
       topRadius: true,
       bottomRadius: true,
-      value: _oneDriveCloudServiceConfig?.enabled ?? false,
+      value: _dropboxCloudServiceConfig?.enabled ?? false,
       onTap: () {
         setState(() {
-          _oneDriveCloudServiceConfig!.enabled =
-              !_oneDriveCloudServiceConfig!.enabled;
+          _dropboxCloudServiceConfig!.enabled =
+          !_dropboxCloudServiceConfig!.enabled;
         });
       },
     );
@@ -231,22 +230,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             outline: Theme.of(context).primaryColor,
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
-            onTap: () async {
-              CustomLoadingDialog.showLoading(
-                title: S.current.webDavPulling,
-                dismissible: true,
-              );
-              try {
-                List<dynamic> files = await _oneDriveCloudService!.listFiles();
-                CustomLoadingDialog.dismissLoading();
-                CloudServiceConfigDao.updateLastPullTime(
-                    _oneDriveCloudServiceConfig!);
-              } catch (e) {
-                print(e);
-              } finally {
-                CustomLoadingDialog.dismissLoading();
-              }
-            },
+            onTap: () async {},
           ),
         ),
         const SizedBox(width: 10),
@@ -258,10 +242,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             text: S.current.webDavPushBackup,
             fontSizeDelta: 2,
             onTap: () async {
-              ExportTokenUtil.backupEncryptToCloud(
-                config: _oneDriveCloudServiceConfig!,
-                cloudService: _oneDriveCloudService!,
-              );
+              await _dropboxCloudService!.fetchInfo();
             },
           ),
         ),
@@ -274,14 +255,14 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             text: S.current.webDavLogout,
             fontSizeDelta: 2,
             onTap: () async {
-              await _oneDriveCloudService!.signOut();
+              await _dropboxCloudService!.signOut();
               setState(() {
-                _oneDriveCloudServiceConfig!.connected = false;
-                _oneDriveCloudServiceConfig!.account = "";
-                _oneDriveCloudServiceConfig!.totalSize =
-                    _oneDriveCloudServiceConfig!.remainingSize =
-                        _oneDriveCloudServiceConfig!.usedSize = -1;
-                updateConfig(_oneDriveCloudServiceConfig!);
+                _dropboxCloudServiceConfig!.connected = false;
+                _dropboxCloudServiceConfig!.account = "";
+                _dropboxCloudServiceConfig!.totalSize =
+                    _dropboxCloudServiceConfig!.remainingSize =
+                    _dropboxCloudServiceConfig!.usedSize = -1;
+                updateConfig(_dropboxCloudServiceConfig!);
               });
             },
           ),

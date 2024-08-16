@@ -1755,6 +1755,8 @@ class _SelectableRegionContainerDelegate
         _hasReceivedStartEvent.add(selectable);
         _hasReceivedEndEvent.add(selectable);
         ensureChildUpdated(selectable);
+      case SelectionEventType.selectParagraph:
+        // TODO: Handle this case.
     }
     return super.dispatchSelectionEventToChild(selectable, event);
   }
@@ -2571,6 +2573,8 @@ abstract class MultiSelectableSelectionContainerDelegate
         _extendSelectionInProgress = true;
         result = handleDirectionallyExtendSelection(
             event as DirectionallyExtendSelectionEvent);
+      case SelectionEventType.selectParagraph:
+        // TODO: Handle this case.
     }
     _isHandlingSelectionEvent = false;
     _updateSelectionGeometry();

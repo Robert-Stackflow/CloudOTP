@@ -45,7 +45,13 @@ class WebDavCloudService extends CloudService {
   }
 
   @override
-  Future<CloudServiceStatus> authenticate() async  {
+  Future<bool> isConnected() async {
+    CloudServiceStatus status = await authenticate();
+    return status == CloudServiceStatus.success;
+  }
+
+  @override
+  Future<CloudServiceStatus> authenticate() async {
     try {
       await client.ping();
       return CloudServiceStatus.success;
@@ -93,21 +99,28 @@ class WebDavCloudService extends CloudService {
   }
 
   @override
-  Future<void> uploadFile(
+  Future<bool> uploadFile(
     String fileName,
     Uint8List fileData, {
     Function(int, int)? onProgress,
   }) async {
     CancelToken c = CancelToken();
+    double progress = 0;
     await client.write(
       join(_webdavPath, fileName),
       fileData,
       onProgress: (c, t) {
         onProgress?.call(c, t);
+        progress = c / t;
       },
       cancelToken: c,
     );
     deleteOldBackup();
+    if (progress >= 1) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override

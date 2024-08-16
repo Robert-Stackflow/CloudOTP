@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloudotp/Utils/cache_util.dart';
+
 import '../generated/l10n.dart';
 
 enum CloudServiceType {
@@ -7,7 +9,8 @@ enum CloudServiceType {
   OneDrive,
   GoogleDrive,
   Dropbox,
-  S3Cloud;
+  // S3Cloud,
+  ;
 
   String get label {
     switch (this) {
@@ -19,8 +22,8 @@ enum CloudServiceType {
         return S.current.cloudTypeOneDrive;
       case CloudServiceType.Dropbox:
         return S.current.cloudTypeDropbox;
-      case CloudServiceType.S3Cloud:
-        return S.current.cloudTypeS3Cloud;
+      // case CloudServiceType.S3Cloud:
+      //   return S.current.cloudTypeS3Cloud;
     }
   }
 
@@ -40,8 +43,8 @@ extension CloudServiceTypeExtensionOnint on int {
         return CloudServiceType.OneDrive;
       case 3:
         return CloudServiceType.Dropbox;
-      case 4:
-        return CloudServiceType.S3Cloud;
+      // case 4:
+      //   return CloudServiceType.S3Cloud;
       default:
         throw Exception('Invalid CloudServiceType');
     }
@@ -56,6 +59,9 @@ class CloudServiceConfig {
   String? secret;
   String? token;
   bool enabled;
+  int totalSize;
+  int usedSize;
+  int remainingSize;
   int createTimestamp;
   int editTimestamp;
   int lastFetchTimestamp;
@@ -70,9 +76,15 @@ class CloudServiceConfig {
       case CloudServiceType.GoogleDrive:
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:
-      case CloudServiceType.S3Cloud:
+        // case CloudServiceType.S3Cloud:
         return true;
     }
+  }
+
+  String get size {
+    return totalSize < 0
+        ? ""
+        : '${CacheUtil.renderSize(usedSize.toDouble())}/${CacheUtil.renderSize(totalSize.toDouble())}';
   }
 
   CloudServiceConfig({
@@ -88,6 +100,9 @@ class CloudServiceConfig {
     required this.lastFetchTimestamp,
     required this.lastBackupTimestamp,
     required this.remark,
+    required this.totalSize,
+    required this.usedSize,
+    required this.remainingSize,
   });
 
   CloudServiceConfig.init({
@@ -98,6 +113,9 @@ class CloudServiceConfig {
     this.token,
   })  : id = 0,
         enabled = true,
+        totalSize = -1,
+        usedSize = -1,
+        remainingSize = -1,
         createTimestamp = DateTime.now().millisecondsSinceEpoch,
         editTimestamp = DateTime.now().millisecondsSinceEpoch,
         lastFetchTimestamp = DateTime.now().millisecondsSinceEpoch,
@@ -118,6 +136,9 @@ class CloudServiceConfig {
       lastBackupTimestamp: map['last_backup_timestamp'],
       remark: jsonDecode(map['remark']),
       enabled: map['enabled'] == 1,
+      totalSize: map['total_size'] ?? -1,
+      remainingSize: map['remaining_size'] ?? -1,
+      usedSize: map['used_size'] ?? -1,
     );
   }
 
@@ -135,6 +156,9 @@ class CloudServiceConfig {
       'last_backup_timestamp': lastBackupTimestamp,
       'remark': jsonEncode(remark),
       'enabled': enabled ? 1 : 0,
+      'total_size': totalSize,
+      'remaining_size': remainingSize,
+      'used_size': usedSize,
     };
   }
 

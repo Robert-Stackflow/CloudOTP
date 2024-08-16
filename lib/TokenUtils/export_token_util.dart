@@ -277,6 +277,7 @@ class ExportTokenUtil {
         }
         if (canCloudBackup) {
           try {
+            bool uploadStatus = false;
             if (cloudService != null) {
               log.cloudServiceType = config!.type;
               log.addStatus(AutoBackupStatus.uploading);
@@ -284,7 +285,7 @@ class ExportTokenUtil {
                 dialog.updateMessage(
                     msg: S.current.webDavPushing, showProgress: true);
               }
-              await cloudService.uploadFile(
+              uploadStatus = await cloudService.uploadFile(
                 ExportTokenUtil.getExportFileName("bin"),
                 encryptedData,
                 onProgress: (c, t) {
@@ -297,7 +298,11 @@ class ExportTokenUtil {
             if (config != null) {
               CloudServiceConfigDao.updateLastBackupTime(config);
             }
-            log.addStatus(AutoBackupStatus.uploadSuccess);
+            if (uploadStatus) {
+              log.addStatus(AutoBackupStatus.uploadSuccess);
+            } else {
+              log.addStatus(AutoBackupStatus.uploadFailed);
+            }
           } catch (e) {
             log.addStatus(AutoBackupStatus.uploadFailed);
           }
@@ -386,7 +391,7 @@ class ExportTokenUtil {
           dialog.updateMessage(
               msg: S.current.webDavPushing, showProgress: true);
         }
-        await cloudService.uploadFile(
+        bool uploadStatus = await cloudService.uploadFile(
           ExportTokenUtil.getExportFileName("bin"),
           encryptedData,
           onProgress: (c, t) {
@@ -396,7 +401,13 @@ class ExportTokenUtil {
           },
         );
         CloudServiceConfigDao.updateLastBackupTime(config);
-        if (showToast) IToast.showTop(S.current.backupSuccess);
+        if (showToast) {
+          if (uploadStatus) {
+            IToast.showTop(S.current.backupSuccess);
+          } else {
+            IToast.showTop(S.current.backupFailed);
+          }
+        }
       }
     } catch (e) {
       if (e is BackupBaseException) {
@@ -475,7 +486,7 @@ class ExportTokenUtil {
           .map((e) =>
               "otpauth-migration://offline?data=${Uri.encodeComponent(e)}")
           .toList();
-      return [tokenQrcodes,passCount];
+      return [tokenQrcodes, passCount];
     } catch (e) {
       return null;
     } finally {

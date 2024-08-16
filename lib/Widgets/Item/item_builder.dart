@@ -1375,6 +1375,7 @@ class ItemBuilder {
             LottieUtil.load(
               LottieUtil.getLoadingPath(context, forceDark: forceDark),
               size: size,
+              scale: 1.5,
             ),
             if (showText) const SizedBox(height: 10),
             if (showText)

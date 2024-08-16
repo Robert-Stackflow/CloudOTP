@@ -15,7 +15,7 @@ import '../Utils/hive_util.dart';
 
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
-  static const _dbVersion = 2;
+  static const _dbVersion = 3;
   static Database? _database;
   static final dbFactory = createDatabaseFactoryFfi(ffiInit: ffiInit);
 
@@ -79,6 +79,11 @@ class DatabaseManager {
     if (oldVersion < 2) {
       await db.execute("alter table otp_token add column description TEXT NOT NULL DEFAULT ''");
       await db.execute("alter table cloud_service_config add column enabled INTEGER NOT NULL DEFAULT 1");
+    }
+    if (oldVersion < 3) {
+      await db.execute("alter table cloud_service_config add column total_size INTEGER NOT NULL DEFAULT -1");
+      await db.execute("alter table cloud_service_config add column remaining_size INTEGER NOT NULL DEFAULT -1");
+      await db.execute("alter table cloud_service_config add column used_size INTEGER NOT NULL DEFAULT -1");
     }
   }
 

@@ -1,25 +1,19 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_onedrive/flutter_onedrive.dart';
-import 'package:flutter_onedrive/onedrive_response.dart';
-import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
-import '../../generated/l10n.dart';
 import 'cloud_service.dart';
 
-class OneDriveCloudService extends CloudService {
+class GoogleDriveCloudService extends CloudService {
   static const String _redirectUrl = 'cloudotp://auth/onedrive/callback';
   static const String _clientID = '3b953ca4-3dd4-4148-a80b-b1ac8c39fd97';
-  static const String _onedrivePath = '/CloudOTP';
+  static const String _onedrivePath = '/cloudotp';
   final CloudServiceConfig _config;
-  late OneDrive onedrive;
   late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
 
-  OneDriveCloudService(
+  GoogleDriveCloudService(
     this.context,
     this._config, {
     this.onConfigChanged,
@@ -28,18 +22,13 @@ class OneDriveCloudService extends CloudService {
   }
 
   @override
-  Future<void> init() async {
-    onedrive = OneDrive(redirectURL: _redirectUrl, clientID: _clientID);
-  }
+  Future<void> init() async {}
 
   @override
   Future<CloudServiceStatus> authenticate() async {
-    bool isAuthorized = await onedrive.isConnected();
+    bool isAuthorized = false;
     if (!isAuthorized) {
-      isAuthorized = await onedrive.connect(
-        context,
-        windowName: S.current.cloudTypeOneDriveAuthenticateWindowName,
-      );
+      isAuthorized = true;
       if (isAuthorized) {
         await fetchInfo();
         return CloudServiceStatus.success;
@@ -51,21 +40,13 @@ class OneDriveCloudService extends CloudService {
     }
   }
 
-  Future<OneDriveUserInfo> fetchInfo() async {
-    OneDriveResponse response = await onedrive.getInfo();
-    OneDriveUserInfo info =
-        OneDriveUserInfo.fromJson(jsonDecode(response.body ?? "{}"));
-    _config.account = info.email;
-    _config.remainingSize = info.remaining ?? 0;
-    _config.totalSize = info.total ?? 0;
-    _config.usedSize = info.used ?? 0;
-    onConfigChanged?.call(_config);
-    return info;
+  Future<dynamic> fetchInfo() async {
+    return null;
   }
 
   @override
   Future<bool> isConnected() async {
-    bool connected = await onedrive.isConnected();
+    bool connected = false;
     if (connected) {
       await fetchInfo();
     }
@@ -104,13 +85,11 @@ class OneDriveCloudService extends CloudService {
 
   @override
   Future listFiles() async {
-    await onedrive.list(_onedrivePath);
+    print("listFiles");
   }
 
   @override
-  Future<void> signOut() async {
-    await onedrive.disconnect();
-  }
+  Future<void> signOut() async {}
 
   @override
   Future<bool> uploadFile(
@@ -118,10 +97,7 @@ class OneDriveCloudService extends CloudService {
     Uint8List fileData, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    OneDriveResponse response = await onedrive.push(
-      fileData,
-      join(_onedrivePath, fileName),
-    );
-    return response.isSuccess;
+    print("uploadFile");
+    return true;
   }
 }

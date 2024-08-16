@@ -51,6 +51,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     return _webDavCloudServiceConfig != null;
   }
 
+  bool inited = false;
+
   @override
   void initState() {
     super.initState();
@@ -66,12 +68,14 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       _secretController.text = _webDavCloudServiceConfig!.secret ?? "";
       if (_webDavCloudServiceConfig!.isValid) {
         _webDavCloudService = WebDavCloudService(_webDavCloudServiceConfig!);
+        await _webDavCloudService!.authenticate();
       }
     } else {
       _webDavCloudServiceConfig =
           CloudServiceConfig.init(type: CloudServiceType.Webdav);
       await CloudServiceConfigDao.insertConfig(_webDavCloudServiceConfig!);
     }
+    inited = true;
     setState(() {});
   }
 
@@ -132,7 +136,14 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return _buildBody();
+    return inited
+        ? _buildBody()
+        : ItemBuilder.buildLoadingDialog(
+            context,
+            background: Colors.transparent,
+            text: S.current.cloudConnecting,
+          );
+    ;
   }
 
   ping({
@@ -140,7 +151,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.webDavConnecting);
+      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
     }
     await currentService.authenticate().then((value) {
       setState(() {
@@ -149,17 +160,17 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       if (!currentConfig.connected) {
         switch (value) {
           case CloudServiceStatus.connectionError:
-            IToast.show(S.current.webDavConnectionError);
+            IToast.show(S.current.cloudConnectionError);
             break;
           case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.webDavUnauthorized);
+            IToast.show(S.current.cloudUnauthorized);
             break;
           default:
-            IToast.show(S.current.webDavUnknownError);
+            IToast.show(S.current.cloudUnknownError);
             break;
         }
       } else {
-        if (showSuccessToast) IToast.show(S.current.webDavAuthSuccess);
+        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -181,7 +192,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   _enableInfo() {
     return ItemBuilder.buildRadioItem(
       context: context,
-      title: S.current.enable,
+      title: S.current.enable + S.current.cloudTypeWebDav,
       topRadius: true,
       bottomRadius: true,
       value: _webDavCloudServiceConfig?.enabled ?? false,

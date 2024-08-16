@@ -1,7 +1,9 @@
 library flutter_onedrive;
 
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert' show jsonDecode;
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,15 +11,14 @@ import 'package:flutter_onedrive/onauth.dart';
 import 'package:flutter_onedrive/onedrive_response.dart';
 // import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert' show jsonDecode;
 
 import 'token.dart';
 
 class OneDrive with ChangeNotifier {
   static const String authHost = "login.microsoftonline.com";
-  // static const String authEndpoint = "https://$authHost/common/oauth2/v2.0/authorize";
-  static const String authEndpoint = "/common/oauth2/v2.0/authorize";
-  static const String tokenEndpoint = "https://$authHost/common/oauth2/v2.0/token";
+  static const String authEndpoint = "/consumers/oauth2/v2.0/authorize";
+  static const String tokenEndpoint =
+      "https://$authHost/consumers/oauth2/v2.0/token";
   static const String apiEndpoint = "https://graph.microsoft.com/v1.0/";
   static const String errCANCELED = "CANCELED";
   static const _appRootFolder = "special/approot";
@@ -30,7 +31,7 @@ class OneDrive with ChangeNotifier {
   late final String redirectURL;
   final String scopes;
   final String clientID;
-  // final String callbackSchema;
+
   final String state;
 
   OneDrive({
@@ -40,7 +41,6 @@ class OneDrive with ChangeNotifier {
     this.state = "OneDriveState",
     ITokenManager? tokenManager,
   }) {
-    // redirectURL = "$callbackSchema://auth";
     _tokenManager = tokenManager ??
         DefaultTokenManager(
           tokenEndpoint: tokenEndpoint,
@@ -55,7 +55,10 @@ class OneDrive with ChangeNotifier {
     return (accessToken?.isNotEmpty) ?? false;
   }
 
-  Future<bool> connect(BuildContext context) async {
+  Future<bool> connect(
+    BuildContext context, {
+    String? windowName,
+  }) async {
     try {
       final authUri = Uri.https(authHost, authEndpoint, {
         'response_type': 'code',
@@ -67,7 +70,7 @@ class OneDrive with ChangeNotifier {
 
       final callbackUrlScheme = Uri.parse(redirectURL).scheme;
 
-      final result = await OAuth2Helper.browserAuth(
+      http.Response? result = await OAuth2Helper.browserAuth(
         context: context,
         authEndpoint: authUri,
         tokenEndpoint: Uri.parse(tokenEndpoint),
@@ -75,22 +78,25 @@ class OneDrive with ChangeNotifier {
         clientID: clientID,
         redirectURL: redirectURL,
         scopes: scopes,
+        windowName: windowName,
       );
 
       if (result != null) {
         await _tokenManager.saveTokenResp(result);
         notifyListeners();
         return true;
+      } else {
+        return false;
       }
     } on PlatformException catch (err) {
       if (err.code != errCANCELED) {
         debugPrint("# OneDrive -> connect: $err");
       }
-    }catch (err) {
+      return false;
+    } catch (err) {
       debugPrint("# OneDrive -> connect: $err");
+      return false;
     }
-
-    return false;
   }
 
   Future<void> disconnect() async {
@@ -98,20 +104,13 @@ class OneDrive with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<OneDriveResponse> pull(String remotePath, {bool isAppFolder = false}) async {
+  Future<OneDriveResponse> getInfo() async {
     final accessToken = await _tokenManager.getAccessToken();
     if (accessToken == null) {
-      return OneDriveResponse(message: "Null access token", bodyBytes: Uint8List(0));
+      return OneDriveResponse(
+          message: "Null access token", bodyBytes: Uint8List(0));
     }
-
-    /// We need to call this method to create app folder and make sure it exists.
-    /// Otherwise, we will get "Access Denied - 403".
-    /// https://learn.microsoft.com/en-us/onedrive/developer/rest-api/concepts/special-folders-appfolder?view=odsp-graph-online
-    if (isAppFolder) {
-      await getMetadata(remotePath, isAppFolder: isAppFolder);
-    }
-
-    final url = Uri.parse("${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/content");
+    final url = Uri.parse("$apiEndpoint/drive?select=owner,quota");
 
     try {
       final resp = await http.get(
@@ -119,7 +118,112 @@ class OneDrive with ChangeNotifier {
         headers: {"Authorization": "Bearer $accessToken"},
       );
 
-      debugPrint("# OneDrive -> pull: ${resp.statusCode}\n# Body: ${resp.body}");
+      debugPrint(
+          "# OneDrive -> pull: ${resp.statusCode}\n# Body: ${resp.body}");
+
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "Get Info successfully.",
+            bodyBytes: resp.bodyBytes,
+            isSuccess: true);
+      } else if (resp.statusCode == 404) {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "${url.toString()} not found.",
+            bodyBytes: Uint8List(0));
+      } else {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "Error while get info.",
+            bodyBytes: Uint8List(0));
+      }
+    } catch (err) {
+      debugPrint("# OneDrive -> pull: $err");
+      return OneDriveResponse(message: "Unexpected exception: $err");
+    }
+  }
+
+  Future<OneDriveResponse> list(
+    String remotePath, {
+    bool isAppFolder = false,
+  }) async {
+    final accessToken = await _tokenManager.getAccessToken();
+    if (accessToken == null) {
+      return OneDriveResponse(
+          message: "Null access token", bodyBytes: Uint8List(0));
+    }
+
+    if (isAppFolder) {
+      await getMetadata(remotePath, isAppFolder: isAppFolder);
+    }
+
+    final url = Uri.parse(
+        "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/children?select=id,name,size,createdDateTime,lastModifiedDateTime,file,description");
+
+    try {
+      final resp = await http.get(
+        url,
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
+
+      debugPrint(
+          "# OneDrive -> list: ${resp.statusCode}\n# Body: ${resp.body}");
+
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "List files successfully.",
+            bodyBytes: resp.bodyBytes,
+            isSuccess: true);
+      } else if (resp.statusCode == 404) {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "Url not found.",
+            bodyBytes: Uint8List(0));
+      } else {
+        return OneDriveResponse(
+            statusCode: resp.statusCode,
+            body: resp.body,
+            message: "Error while listing files.",
+            bodyBytes: Uint8List(0));
+      }
+    } catch (err) {
+      debugPrint("# OneDrive -> list: $err");
+      return OneDriveResponse(message: "Unexpected exception: $err");
+    }
+  }
+
+  Future<OneDriveResponse> pull(
+    String remotePath, {
+    bool isAppFolder = false,
+  }) async {
+    final accessToken = await _tokenManager.getAccessToken();
+    if (accessToken == null) {
+      return OneDriveResponse(
+          message: "Null access token", bodyBytes: Uint8List(0));
+    }
+
+    if (isAppFolder) {
+      await getMetadata(remotePath, isAppFolder: isAppFolder);
+    }
+
+    final url = Uri.parse(
+        "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/content");
+
+    try {
+      final resp = await http.get(
+        url,
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
+
+      debugPrint(
+          "# OneDrive -> pull: ${resp.statusCode}\n# Body: ${resp.body}");
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         return OneDriveResponse(
@@ -147,114 +251,36 @@ class OneDrive with ChangeNotifier {
     }
   }
 
-  Stream<UploadStatus> pushStream(Uint8List bytes, String remotePath, {bool isAppFolder = false}) async* {
+  Future<OneDriveResponse> push(
+    Uint8List bytes,
+    String remotePath, {
+    bool isAppFolder = false,
+    Function(int p1, int p2)? onProgress,
+  }) async {
     final accessToken = await _tokenManager.getAccessToken();
     if (accessToken == null) {
-      // No access token
-      throw Exception("Token is null");
-    }
-
-    /// We need to call this method to create app folder and make sure it exists.
-    /// Otherwise, we will get "Access Denied - 403".
-    /// https://learn.microsoft.com/en-us/onedrive/developer/rest-api/concepts/special-folders-appfolder?view=odsp-graph-online
-    if (isAppFolder) {
-      await getMetadata(remotePath, isAppFolder: isAppFolder);
-    }
-
-    const int pageSize = 1024 * 1024; // page size
-    final int maxPage = (bytes.length / pageSize.toDouble()).ceil(); // total pages
-
-// create upload session
-// https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
-    var now = DateTime.now();
-    var url =
-        Uri.parse("$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
-    var resp = await http.post(
-      url,
-      headers: {"Authorization": "Bearer $accessToken"},
-    );
-    debugPrint("# Create Session: ${DateTime.now().difference(now).inMilliseconds} ms");
-
-    if (resp.statusCode == 200) {
-      // create session success
-      final Map<String, dynamic> respJson = jsonDecode(resp.body);
-      final String uploadUrl = respJson["uploadUrl"];
-      url = Uri.parse(uploadUrl);
-
-// use upload url to upload
-      for (var pageIndex = 0; pageIndex < maxPage; pageIndex++) {
-        now = DateTime.now();
-        final int start = pageIndex * pageSize;
-        int end = start + pageSize;
-        if (end > bytes.length) {
-          end = bytes.length; // cannot exceed max length
-        }
-        final range = "bytes $start-${end - 1}/${bytes.length}";
-        final pageData = bytes.getRange(start, end).toList();
-        final contentLength = pageData.length.toString();
-
-        final headers = {
-          "Authorization": "Bearer $accessToken",
-          "Content-Length": contentLength,
-          "Content-Range": range,
-        };
-
-        resp = await http.put(
-          url,
-          headers: headers,
-          body: pageData,
-        );
-
-        final status = UploadStatus(pageIndex + 1, maxPage, start, end, contentLength, range);
-        yield status;
-
-        debugPrint(
-            "# Upload [${pageIndex + 1}/$maxPage]: ${DateTime.now().difference(now).inMilliseconds} ms, start: $start, end: $end, contentLength: $contentLength, range: $range");
-
-        if (resp.statusCode == 202) {
-          // haven't finish, continue
-          continue;
-        } else if (resp.statusCode == 200 || resp.statusCode == 201) {
-          // upload finished
-          return;
-        } else {
-          // has issue
-          throw Exception("Upload http error. [${resp.statusCode}]\n${resp.body}");
-        }
-      }
-    } else {
-      throw Exception("Create upload session http error [${resp.statusCode}]\n${resp.body}");
-    }
-  }
-
-  Future<OneDriveResponse> push(Uint8List bytes, String remotePath, {bool isAppFolder = false}) async {
-    final accessToken = await _tokenManager.getAccessToken();
-    if (accessToken == null) {
-      // No access token
       return OneDriveResponse(message: "Null access token.");
     }
 
     try {
-      /// We need to call this method to create app folder and make sure it exists.
-      /// Otherwise, we will get "Access Denied - 403".
-      /// https://learn.microsoft.com/en-us/onedrive/developer/rest-api/concepts/special-folders-appfolder?view=odsp-graph-online
       if (isAppFolder) {
         await getMetadata(remotePath, isAppFolder: isAppFolder);
       }
 
       const int pageSize = 1024 * 1024; // page size
-      final int maxPage = (bytes.length / pageSize.toDouble()).ceil(); // total pages
+      final int maxPage =
+          (bytes.length / pageSize.toDouble()).ceil(); // total pages
 
-// create upload session
-// https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
       var now = DateTime.now();
-      var url =
-          Uri.parse("$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
+      var url = Uri.parse(
+          "$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
+
       var resp = await http.post(
         url,
         headers: {"Authorization": "Bearer $accessToken"},
       );
-      debugPrint("# Create Session: ${DateTime.now().difference(now).inMilliseconds} ms");
+      debugPrint(
+          "# Create Session: ${DateTime.now().difference(now).inMilliseconds} ms");
 
       if (resp.statusCode == 200) {
         // create session success
@@ -262,7 +288,9 @@ class OneDrive with ChangeNotifier {
         final String uploadUrl = respJson["uploadUrl"];
         url = Uri.parse(uploadUrl);
 
-// use upload url to upload
+        debugPrint(
+            "# Upload to: $url\n# Total pages: $maxPage\n# Page size: $pageSize");
+
         for (var pageIndex = 0; pageIndex < maxPage; pageIndex++) {
           now = DateTime.now();
           final int start = pageIndex * pageSize;
@@ -275,7 +303,6 @@ class OneDrive with ChangeNotifier {
           final contentLength = pageData.length.toString();
 
           final headers = {
-            "Authorization": "Bearer $accessToken",
             "Content-Length": contentLength,
             "Content-Range": range,
           };
@@ -290,15 +317,20 @@ class OneDrive with ChangeNotifier {
               "# Upload [${pageIndex + 1}/$maxPage]: ${DateTime.now().difference(now).inMilliseconds} ms, start: $start, end: $end, contentLength: $contentLength, range: $range");
 
           if (resp.statusCode == 202) {
-            // haven't finish, continue
+            onProgress?.call(pageIndex + 1, maxPage);
             continue;
           } else if (resp.statusCode == 200 || resp.statusCode == 201) {
-            // upload finished
+            onProgress?.call(pageIndex + 1, maxPage);
             return OneDriveResponse(
-                statusCode: resp.statusCode, body: resp.body, message: "Upload finished.", isSuccess: true);
+                statusCode: resp.statusCode,
+                body: resp.body,
+                message: "Upload finished.",
+                isSuccess: true);
           } else {
-            // has issue
-            return OneDriveResponse(statusCode: resp.statusCode, body: resp.body, message: "Upload failed.");
+            return OneDriveResponse(
+                statusCode: resp.statusCode,
+                body: resp.body,
+                message: "Upload failed.");
           }
         }
       }
@@ -316,13 +348,17 @@ class OneDrive with ChangeNotifier {
     return isAppFolder ? _appRootFolder : _defaultRootFolder;
   }
 
-  Future<Uint8List?> getMetadata(String remotePath, {bool isAppFolder = false}) async {
+  Future<Uint8List?> getMetadata(
+    String remotePath, {
+    bool isAppFolder = false,
+  }) async {
     final accessToken = await _tokenManager.getAccessToken();
     if (accessToken == null) {
       return Uint8List(0);
     }
 
-    final url = Uri.parse("${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}");
+    final url =
+        Uri.parse("${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}");
 
     try {
       final resp = await http.get(
@@ -336,7 +372,8 @@ class OneDrive with ChangeNotifier {
         return Uint8List(0);
       }
 
-      debugPrint("# OneDrive -> metadata: ${resp.statusCode}\n# Body: ${resp.body}");
+      debugPrint(
+          "# OneDrive -> metadata: ${resp.statusCode}\n# Body: ${resp.body}");
     } catch (err) {
       debugPrint("# OneDrive -> metadata: $err");
     }
@@ -353,5 +390,12 @@ class UploadStatus {
   final String contentLength;
   final String range;
 
-  UploadStatus(this.index, this.total, this.start, this.end, this.contentLength, this.range);
+  UploadStatus(
+    this.index,
+    this.total,
+    this.start,
+    this.end,
+    this.contentLength,
+    this.range,
+  );
 }
