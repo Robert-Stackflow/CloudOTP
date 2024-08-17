@@ -57,13 +57,12 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   }
 
   loadConfig() async {
-    _dropboxCloudServiceConfig =
-    await CloudServiceConfigDao.getDropboxConfig();
+    _dropboxCloudServiceConfig = await CloudServiceConfigDao.getDropboxConfig();
     if (_dropboxCloudServiceConfig != null) {
       _sizeController.text = _dropboxCloudServiceConfig!.size;
       _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
       _emailController.text = _dropboxCloudServiceConfig!.email ?? "";
-      if (_dropboxCloudServiceConfig!.isValid) {
+      if (await _dropboxCloudServiceConfig!.isValid()) {
         _dropboxCloudService = DropboxCloudService(
           context,
           _dropboxCloudServiceConfig!,
@@ -82,7 +81,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     }
     if (_dropboxCloudService != null) {
       _dropboxCloudServiceConfig!.connected =
-      await _dropboxCloudService!.isConnected();
+          await _dropboxCloudService!.isConnected();
     }
     inited = true;
     setState(() {});
@@ -104,12 +103,12 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     return ResponsiveUtil.isDesktop()
         ? _buildUnsupportBody()
         : inited
-        ? _buildBody()
-        : ItemBuilder.buildLoadingDialog(
-      context,
-      background: Colors.transparent,
-      text: S.current.cloudConnecting,
-    );
+            ? _buildBody()
+            : ItemBuilder.buildLoadingDialog(
+                context,
+                background: Colors.transparent,
+                text: S.current.cloudConnecting,
+              );
   }
 
   _buildUnsupportBody() {
@@ -177,7 +176,9 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
       onTap: () {
         setState(() {
           _dropboxCloudServiceConfig!.enabled =
-          !_dropboxCloudServiceConfig!.enabled;
+              !_dropboxCloudServiceConfig!.enabled;
+          CloudServiceConfigDao.updateConfigEnabled(
+              _dropboxCloudServiceConfig!, _dropboxCloudServiceConfig!.enabled);
         });
       },
     );
@@ -255,16 +256,18 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                 dismissible: true,
               );
               try {
-                List<DropboxFileInfo> files = await _dropboxCloudService!.listBackups();
+                List<DropboxFileInfo> files =
+                    await _dropboxCloudService!.listBackups();
                 CloudServiceConfigDao.updateLastPullTime(
                     _dropboxCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
-                files.sort((a, b) => b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
                 if (files.isNotEmpty) {
                   BottomSheetBuilder.showBottomSheet(
                     context,
                     responsive: true,
-                        (dialogContext) => DropboxBackupsBottomSheet(
+                    (dialogContext) => DropboxBackupsBottomSheet(
                       files: files,
                       cloudService: _dropboxCloudService!,
                       onSelected: (selectedFile) async {
@@ -272,7 +275,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res = await _dropboxCloudService!.downloadFile(
+                        Uint8List res =
+                            await _dropboxCloudService!.downloadFile(
                           selectedFile.id,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
@@ -291,7 +295,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                         dialog.dismiss();
                         if (!success) {
                           InputStateController stateController =
-                          InputStateController(
+                              InputStateController(
                             validate: (value) {
                               if (value.isEmpty) {
                                 return Future.value(
@@ -303,7 +307,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                           BottomSheetBuilder.showBottomSheet(
                             context,
                             responsive: true,
-                                (context) => InputBottomSheet(
+                            (context) => InputBottomSheet(
                               stateController: stateController,
                               title: S.current.inputImportPasswordTitle,
                               message: S.current.inputImportPasswordTip,
@@ -319,7 +323,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                                   showProgress: false,
                                 );
                                 bool success =
-                                await ImportTokenUtil.importBackupFile(
+                                    await ImportTokenUtil.importBackupFile(
                                   password: password,
                                   res,
                                   showLoading: false,
@@ -381,7 +385,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                 _dropboxCloudServiceConfig!.email = "";
                 _dropboxCloudServiceConfig!.totalSize =
                     _dropboxCloudServiceConfig!.remainingSize =
-                    _dropboxCloudServiceConfig!.usedSize = -1;
+                        _dropboxCloudServiceConfig!.usedSize = -1;
                 updateConfig(_dropboxCloudServiceConfig!);
               });
             },

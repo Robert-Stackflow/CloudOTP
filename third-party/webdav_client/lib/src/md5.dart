@@ -1,5 +1,3 @@
-// fork dart-sdk/lib/_http/crypto.dart
-
 // Constants.
 import 'dart:math';
 
@@ -14,8 +12,8 @@ abstract class _HashBase {
   final bool _bigEndianWords;
   int _lengthInBytes = 0;
   List<int> _pendingData;
-  List<int> _currentChunk;
-  List<int> _h;
+  final List<int> _currentChunk;
+  final List<int> _h;
   bool _digestCalled = false;
 
   _HashBase(this._chunkSizeInWords, int digestSizeInWords, this._bigEndianWords)
@@ -42,7 +40,7 @@ abstract class _HashBase {
     _digestCalled = true;
     _finalizeData();
     _iterate();
-    assert(_pendingData.length == 0);
+    assert(_pendingData.isEmpty);
     return _resultAsBytes();
   }
 
@@ -63,9 +61,9 @@ abstract class _HashBase {
 
   // Rotate left limiting to unsigned 32-bit values.
   int _rotl32(int val, int shift) {
-    var mod_shift = shift & 31;
-    return ((val << mod_shift) & _MASK_32) |
-        ((val & _MASK_32) >> (32 - mod_shift));
+    var modShift = shift & 31;
+    return ((val << modShift) & _MASK_32) |
+        ((val & _MASK_32) >> (32 - modShift));
   }
 
   // Compute the final result as a list of bytes from the hash words.
@@ -153,11 +151,12 @@ class MD5 extends _HashBase {
   }
 
   // Returns a new instance of this Hash.
+  @override
   MD5 newInstance() {
-    return new MD5();
+    return MD5();
   }
 
-  static const _k = const [
+  static const _k = [
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, //
     0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, //
     0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821, 0xf61e2562, 0xc040b340, //
@@ -171,7 +170,7 @@ class MD5 extends _HashBase {
     0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
   ];
 
-  static const _r = const [
+  static const _r = [
     7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, //
     20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, //
     16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, //
@@ -180,6 +179,7 @@ class MD5 extends _HashBase {
 
   // Compute one iteration of the MD5 algorithm with a chunk of
   // 16 32-bit pieces.
+  @override
   void _updateHash(List<int> m) {
     assert(m.length == 16);
 
@@ -188,8 +188,8 @@ class MD5 extends _HashBase {
     var c = _h[2];
     var d = _h[3];
 
-    var t0;
-    var t1;
+    int t0;
+    int t1;
 
     for (var i = 0; i < 64; i++) {
       if (i < 16) {

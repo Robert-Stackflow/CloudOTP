@@ -11,7 +11,6 @@ import 'package:cloudotp/Models/config.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_v1.dart';
-import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
@@ -196,12 +195,10 @@ class ExportTokenUtil {
     Future.delayed(force ? Duration.zero : const Duration(seconds: 1),
         () async {
       if (!force && !await HiveUtil.canAutoBackup()) return;
-      CloudServiceConfig? config =
-          await CloudServiceConfigDao.getWebdavConfig();
+      List<CloudServiceConfig> configs =
+          await CloudServiceConfigDao.getConfigs();
       bool enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
-      bool enableCloudBackup =
-          HiveUtil.getBool(HiveUtil.enableCloudBackupKey) &&
-              config?.isValid == true;
+      bool enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
       late AutoBackupType type;
       if (enableLocalBackup && enableCloudBackup) {
         type = AutoBackupType.localAndCloud;
@@ -212,18 +209,22 @@ class ExportTokenUtil {
       } else {
         return;
       }
+      List<CloudServiceConfig> validConfigs = [];
+      for (CloudServiceConfig config in configs) {
+        if (await config.isValid()) {
+          validConfigs.add(config);
+        }
+      }
       AutoBackupLog log =
           AutoBackupLog.init(type: type, triggerType: triggerType);
       appProvider.pushAutoBackupLog(log);
       autoBackupQueue.add(
-        () => ExportTokenUtil.backupEncryptToLocalAndCloud(
+        () async => ExportTokenUtil.backupEncryptToLocalAndCloud(
           showLoading: showLoading,
           showToast: showToast,
-          config: config,
+          configs: configs,
           log: log,
-          cloudService: config != null && config.isValid
-              ? WebDavCloudService(config)
-              : null,
+          cloudServices: validConfigs.map((e) => e.toCloudService()).toList(),
         ),
       );
     });
@@ -233,8 +234,8 @@ class ExportTokenUtil {
     Uint8List? encryptedData,
     bool showLoading = true,
     bool showToast = true,
-    CloudServiceConfig? config,
-    CloudService? cloudService,
+    List<CloudServiceConfig>? configs,
+    List<CloudService>? cloudServices,
     required AutoBackupLog log,
   }) async {
     bool canLocalBackup = log.type == AutoBackupType.local ||
@@ -277,26 +278,30 @@ class ExportTokenUtil {
         }
         if (canCloudBackup) {
           try {
-            bool uploadStatus = false;
-            if (cloudService != null) {
-              log.cloudServiceType = config!.type;
-              log.addStatus(AutoBackupStatus.uploading);
-              if (showLoading && dialog != null) {
-                dialog.updateMessage(
-                    msg: S.current.webDavPushing, showProgress: true);
+            bool uploadStatus = true;
+            if (cloudServices != null && cloudServices.isNotEmpty) {
+              for (CloudService cloudService in cloudServices) {
+                log.addStatus(AutoBackupStatus.uploading,
+                    remark: cloudService.type.label);
+                if (showLoading && dialog != null) {
+                  dialog.updateMessage(
+                      msg: S.current.webDavPushing, showProgress: true);
+                }
+                uploadStatus &= await cloudService.uploadFile(
+                  ExportTokenUtil.getExportFileName("bin"),
+                  encryptedData,
+                  onProgress: (c, t) {
+                    if (showLoading && dialog != null) {
+                      dialog.updateProgress(progress: c / t);
+                    }
+                  },
+                );
               }
-              uploadStatus = await cloudService.uploadFile(
-                ExportTokenUtil.getExportFileName("bin"),
-                encryptedData,
-                onProgress: (c, t) {
-                  if (showLoading && dialog != null) {
-                    dialog.updateProgress(progress: c / t);
-                  }
-                },
-              );
             }
-            if (config != null) {
-              CloudServiceConfigDao.updateLastBackupTime(config);
+            if (configs != null && configs.isNotEmpty) {
+              for (CloudServiceConfig config in configs) {
+                CloudServiceConfigDao.updateLastBackupTime(config);
+              }
             }
             if (uploadStatus) {
               log.addStatus(AutoBackupStatus.uploadSuccess);

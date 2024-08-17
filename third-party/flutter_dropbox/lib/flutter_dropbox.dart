@@ -74,6 +74,7 @@ class Dropbox with ChangeNotifier {
         'client_id': clientID,
         'redirect_uri': redirectURL,
         "response_type": "code",
+        "token_access_type": "offline",
         'scope': scopes,
       });
 
@@ -91,20 +92,21 @@ class Dropbox with ChangeNotifier {
         windowName: windowName,
       );
 
-      if (result != null) {
+      if (result != null &&
+          (result.statusCode == 200 || result.statusCode == 201)) {
         await _tokenManager.saveTokenResp(result);
         notifyListeners();
         return true;
       } else {
         return false;
       }
-    } on PlatformException catch (err) {
+    } on PlatformException catch (err, trace) {
       if (err.code != errCANCELED) {
-        debugPrint("# Dropbox -> connect: $err");
+        debugPrint("# Dropbox -> connect: $err\n$trace");
       }
       return false;
-    } catch (err) {
-      debugPrint("# Dropbox -> connect: $err");
+    } catch (err, trace) {
+      debugPrint("# Dropbox -> connect: $err\n$trace");
       return false;
     }
   }

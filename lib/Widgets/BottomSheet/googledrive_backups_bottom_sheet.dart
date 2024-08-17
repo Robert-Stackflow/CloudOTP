@@ -1,34 +1,35 @@
-import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:webdav_client/webdav_client.dart';
+import 'package:flutter_googledrive/googledrive_response.dart';
 
+import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 
-class WebDavBackupsBottomSheet extends StatefulWidget {
-  const WebDavBackupsBottomSheet({
+class GoogleDriveBackupsBottomSheet extends StatefulWidget {
+  const GoogleDriveBackupsBottomSheet({
     super.key,
     required this.files,
     required this.onSelected,
     required this.cloudService,
   });
 
-  final List<WebDavFileInfo> files;
-  final Function(WebDavFileInfo) onSelected;
-  final WebDavCloudService cloudService;
+  final List<GoogleDriveFileInfo> files;
+  final Function(GoogleDriveFileInfo) onSelected;
+  final GoogleDriveCloudService cloudService;
 
   @override
-  WebDavBackupsBottomSheetState createState() =>
-      WebDavBackupsBottomSheetState();
+  GoogleDriveBackupsBottomSheetState createState() =>
+      GoogleDriveBackupsBottomSheetState();
 }
 
-class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
-  late List<WebDavFileInfo> files;
+class GoogleDriveBackupsBottomSheetState
+    extends State<GoogleDriveBackupsBottomSheet> {
+  late List<GoogleDriveFileInfo> files;
 
   @override
   void initState() {
@@ -72,7 +73,8 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
       alignment: Alignment.center,
       child: Text(
         S.current.webDavBackupFiles(widget.files.length),
-        style: Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style:
+            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -85,11 +87,9 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
     );
   }
 
-  _buildItem(WebDavFileInfo file) {
-    String size =
-        CacheUtil.renderSize(file.size?.toDouble() ?? 0, fractionDigits: 0);
-    String time =
-        Utils.formatTimestamp(file.mTime?.millisecondsSinceEpoch ?? 0);
+  _buildItem(GoogleDriveFileInfo file) {
+    String size = CacheUtil.renderSize(file.size.toDouble(), fractionDigits: 0);
+    String time = Utils.formatTimestamp(file.lastModifiedDateTime);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -112,7 +112,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      file.name ?? "",
+                      file.name,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
@@ -138,7 +138,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {
-                    await widget.cloudService.deleteFile(file.path ?? "");
+                    await widget.cloudService.deleteFile(file.id);
                     setState(() {
                       files.remove(file);
                     });

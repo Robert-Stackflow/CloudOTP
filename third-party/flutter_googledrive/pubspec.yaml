@@ -1,5 +1,5 @@
-name: flutter_dropbox
-description: Upload/download files to/from dropbox
+name: flutter_googledrive
+description: Upload/download files to/from google drive
 version: 1.6.2
 
 environment:
@@ -12,7 +12,8 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   http: ^1.2.1
   flutter_web_auth_2: ^4.0.0-alpha.8
-  hashlib: ^1.19.2 # Hash
+  googleapis: ^13.2.0
+  hashlib: ^1.19.2
 
 dev_dependencies:
   flutter_test:

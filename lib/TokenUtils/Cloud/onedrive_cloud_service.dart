@@ -12,6 +12,7 @@ import '../export_token_util.dart';
 import 'cloud_service.dart';
 
 class OneDriveCloudService extends CloudService {
+  CloudServiceType get type => CloudServiceType.OneDrive;
   static const String _redirectUrl = 'cloudotp://auth/onedrive/callback';
   static const String _clientID = '3b953ca4-3dd4-4148-a80b-b1ac8c39fd97';
   static const String _onedrivePath = '/CloudOTP';
@@ -140,5 +141,10 @@ class OneDriveCloudService extends CloudService {
     );
     deleteOldBackup();
     return response.isSuccess;
+  }
+
+  @override
+  Future<bool> isConfigured() {
+    return Future.value(onedrive.isConnected());
   }
 }

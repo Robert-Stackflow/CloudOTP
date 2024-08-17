@@ -53,6 +53,8 @@ dependencies:
     path: third-party/flutter_onedrive
   flutter_dropbox:
     path: third-party/flutter_dropbox
+  flutter_googledrive:
+    path: third-party/flutter_googledrive
   # 工具
   intl_utils: ^2.8.7
   html: ^0.15.0

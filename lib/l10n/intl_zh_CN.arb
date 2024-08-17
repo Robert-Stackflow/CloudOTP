@@ -167,7 +167,7 @@
   "enableLocalBackup": "启用本地备份",
   "enableLocalBackupTip": "启用本地备份后，备份时会将备份文件保存至指定目录；即使您启用了云备份，我们也建议您启用本地备份",
   "cloudBackupServiceSetting": "云备份服务设置",
-  "cloudBackupServiceSettingTip": "设置云备份服务，目前仅支持WebDav服务",
+  "cloudBackupServiceSettingTip": "设置云备份服务",
   "notCloudBackupService": "尚未设置云备份服务",
   "haveSetCloudBackupService": "已启用：{service}",
   "cloudType": "云服务",

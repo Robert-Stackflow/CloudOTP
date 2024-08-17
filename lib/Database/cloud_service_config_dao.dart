@@ -1,8 +1,7 @@
-import '../Models/auto_backup_log.dart';
-import '../Models/cloud_service_config.dart';
-import '../TokenUtils/export_token_util.dart';
-import 'database_manager.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../Models/cloud_service_config.dart';
+import 'database_manager.dart';
 
 class CloudServiceConfigDao {
   static const String tableName = "cloud_service_config";
@@ -65,6 +64,21 @@ class CloudServiceConfigDao {
 
   static Future<int> updateConfig(CloudServiceConfig config) async {
     final db = await DatabaseManager.getDataBase();
+    config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
+    int id = await db.update(
+      tableName,
+      config.toMap(),
+      where: 'id = ?',
+      whereArgs: [config.id],
+    );
+    // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigUpdated);
+    return id;
+  }
+
+  static Future<int> updateConfigEnabled(
+      CloudServiceConfig config, bool enabled) async {
+    final db = await DatabaseManager.getDataBase();
+    config.enabled = enabled;
     config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
     int id = await db.update(
       tableName,

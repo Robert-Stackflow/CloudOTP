@@ -28,8 +28,8 @@ class WebdavXml {
   static List<XmlElement> findElements(XmlElement element, String tag) =>
       element.findElements(tag, namespace: '*').toList();
 
-  static List<WebDavFile> toFiles(String path, String xmlStr, {skipSelf = true}) {
-    var files = <WebDavFile>[];
+  static List<WebDavFileInfo> toFiles(String path, String xmlStr, {skipSelf = true}) {
+    var files = <WebDavFileInfo>[];
     var xmlDocument = XmlDocument.parse(xmlStr);
     List<XmlElement> list = findAllElements(xmlDocument, 'response');
     // response
@@ -98,7 +98,7 @@ class WebdavXml {
             var name = path2Name(str);
             var filePath = path + name + (isDir ? '/' : '');
 
-            files.add(WebDavFile(
+            files.add(WebDavFileInfo(
               path: filePath,
               isDir: isDir,
               name: name,

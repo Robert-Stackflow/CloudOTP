@@ -13,8 +13,8 @@ class OAuth2Helper {
     required Uri tokenEndpoint,
     required String callbackUrlScheme,
     required String clientID,
-    required String codeVerifier,
     required String redirectURL,
+    required String codeVerifier,
     String? windowName,
     String? scopes,
   }) async {
@@ -36,7 +36,7 @@ class OAuth2Helper {
         'code': code,
       });
       return resp;
-    } catch (e) {
+    } catch (e, t) {
       return null;
     }
   }

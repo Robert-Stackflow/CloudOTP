@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:cloudotp/Models/cloud_service_config.dart';
+
 enum CloudServiceStatus {
   success,
   connectionError,
@@ -9,6 +11,8 @@ enum CloudServiceStatus {
 }
 
 abstract class CloudService {
+  CloudServiceType get type;
+
   Future<void> init();
 
   Future<dynamic> listFiles();
@@ -35,6 +39,8 @@ abstract class CloudService {
   Future<CloudServiceStatus> authenticate();
 
   Future<bool> isConnected();
+
+  Future<bool> isConfigured();
 
   Future<void> signOut();
 }

@@ -51,6 +51,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="cloudotp" />
+                <data android:scheme="com.cloudchewie.cloudotp" />
             </intent-filter>
         </activity>
 

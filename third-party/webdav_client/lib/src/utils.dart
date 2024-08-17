@@ -21,9 +21,9 @@ const months = {
 };
 
 String md5Hash(String data) {
-  MD5 hasher = new MD5()..add(Utf8Encoder().convert(data));
+  MD5 hasher = MD5()..add(const Utf8Encoder().convert(data));
   var bytes = hasher.close();
-  var result = new StringBuffer();
+  var result = StringBuffer();
   for (var part in bytes) {
     result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
   }
@@ -81,31 +81,31 @@ String trim(String str, [String? chars]) {
 }
 
 String ltrim(String str, [String? chars]) {
-  var pattern = chars != null ? new RegExp('^[$chars]+') : new RegExp(r'^\s+');
+  var pattern = chars != null ? RegExp('^[$chars]+') : RegExp(r'^\s+');
   return str.replaceAll(pattern, '');
 }
 
 String rtrim(String str, [String? chars]) {
-  var pattern = chars != null ? new RegExp('[$chars]+\$') : new RegExp(r'\s+$');
+  var pattern = chars != null ? RegExp('[$chars]+\$') :RegExp(r'\s+$');
   return str.replaceAll(pattern, '');
 }
 
 String fixSlash(String s) {
   if (!s.endsWith('/')) {
-    return s + '/';
+    return '$s/';
   }
   return s;
 }
 
 String fixSlashes(String s) {
   if (!s.startsWith('/')) {
-    s = '/${s}';
+    s = '/$s';
   }
   return fixSlash(s);
 }
 
 String join(String path0, String path1) {
-  return rtrim(path0, '/') + '/' + ltrim(path1, '/');
+  return '${rtrim(path0, '/')}/${ltrim(path1, '/')}';
 }
 
 String path2Name(String path) {

@@ -1,15 +1,25 @@
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_googledrive/flutter_googledrive.dart';
+import 'package:flutter_googledrive/googledrive_response.dart';
 
 import '../../Models/cloud_service_config.dart';
+import '../../Utils/hive_util.dart';
+import '../../generated/l10n.dart';
+import '../export_token_util.dart';
 import 'cloud_service.dart';
 
 class GoogleDriveCloudService extends CloudService {
-  static const String _redirectUrl = 'cloudotp://auth/onedrive/callback';
-  static const String _clientID = '3b953ca4-3dd4-4148-a80b-b1ac8c39fd97';
-  static const String _onedrivePath = '/cloudotp';
+  CloudServiceType get type => CloudServiceType.GoogleDrive;
+  static const String _redirectUrl =
+      'com.cloudchewie.cloudotp:/auth/googledrive/callback';
+  static const String _clientID =
+      '631913875304-rk71cm691d0ckl1iu9lv6ahv63htrlij.apps.googleusercontent.com';
+  static const String _googledrivePath = '/CloudOTP';
+  static const String _googledrivePathName = 'CloudOTP';
   final CloudServiceConfig _config;
+  late GoogleDrive googledrive;
   late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
 
@@ -22,13 +32,18 @@ class GoogleDriveCloudService extends CloudService {
   }
 
   @override
-  Future<void> init() async {}
+  Future<void> init() async {
+    googledrive = GoogleDrive(redirectURL: _redirectUrl, clientID: _clientID);
+  }
 
   @override
   Future<CloudServiceStatus> authenticate() async {
-    bool isAuthorized = false;
+    bool isAuthorized = await googledrive.isConnected();
     if (!isAuthorized) {
-      isAuthorized = true;
+      isAuthorized = await googledrive.connect(
+        context,
+        windowName: S.current.cloudTypeGoogleDriveAuthenticateWindowName,
+      );
       if (isAuthorized) {
         await fetchInfo();
         return CloudServiceStatus.success;
@@ -40,13 +55,21 @@ class GoogleDriveCloudService extends CloudService {
     }
   }
 
-  Future<dynamic> fetchInfo() async {
-    return null;
+  Future<GoogleDriveUserInfo?> fetchInfo() async {
+    GoogleDriveUserInfo? info = (await googledrive.getInfo()).userInfo;
+    if (info != null) {
+      _config.email = info.email;
+      _config.account = info.displayName;
+      _config.totalSize = info.total ?? 0;
+      _config.usedSize = info.used ?? 0;
+      onConfigChanged?.call(_config);
+    }
+    return info;
   }
 
   @override
   Future<bool> isConnected() async {
-    bool connected = false;
+    bool connected = await googledrive.isConnected();
     if (connected) {
       await fetchInfo();
     }
@@ -55,13 +78,21 @@ class GoogleDriveCloudService extends CloudService {
 
   @override
   Future<bool> deleteFile(String path) async {
-    print('deleteFile');
-    return true;
+    GoogleDriveResponse response = await googledrive.deleteById(path);
+    return response.isSuccess;
   }
 
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
-    print('deleteOldBackup');
+    maxCount ??= HiveUtil.getMaxBackupsCount();
+    List<GoogleDriveFileInfo> list = await listBackups();
+    list.sort((a, b) {
+      return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
+    });
+    while (list.length > maxCount) {
+      var file = list.removeAt(0);
+      await deleteFile(file.id);
+    }
     return true;
   }
 
@@ -70,28 +101,35 @@ class GoogleDriveCloudService extends CloudService {
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    print('downloadFile');
-    return Uint8List(0);
+    GoogleDriveResponse response = await googledrive.pullById(path);
+    return response.bodyBytes ?? Uint8List(0);
   }
 
   @override
   Future<int> getBackupsCount() async {
-    print("getBackupsCount");
-    return 0;
+    return (await listBackups()).length;
   }
 
   @override
-  Future listBackups() async {
-    print("listBackups");
+  Future<List<GoogleDriveFileInfo>> listBackups() async {
+    var list = await listFiles();
+    list = list
+        .where((element) => ExportTokenUtil.isBackup(element.name))
+        .toList();
+    return list;
   }
 
   @override
-  Future listFiles() async {
-    print("listFiles");
+  Future<List<GoogleDriveFileInfo>> listFiles() async {
+    List<GoogleDriveFileInfo> files =
+        (await googledrive.list(_googledrivePath)).files;
+    return files;
   }
 
   @override
-  Future<void> signOut() async {}
+  Future<void> signOut() async {
+    await googledrive.disconnect();
+  }
 
   @override
   Future<bool> uploadFile(
@@ -99,7 +137,17 @@ class GoogleDriveCloudService extends CloudService {
     Uint8List fileData, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    print("uploadFile");
-    return true;
+    GoogleDriveResponse response = await googledrive.push(
+      fileData,
+      fileName,
+      _googledrivePathName,
+    );
+    deleteOldBackup();
+    return response.isSuccess;
+  }
+
+  @override
+  Future<bool> isConfigured() {
+    return Future.value(googledrive.isConnected());
   }
 }

@@ -10,7 +10,8 @@ import '../../Models/cloud_service_config.dart';
 import 'cloud_service.dart';
 
 class WebDavCloudService extends CloudService {
-  static const String _webdavPath = '/cloudotp';
+  CloudServiceType get type => CloudServiceType.Webdav;
+  static const String _webdavPath = '/CloudOTP';
   final CloudServiceConfig _config;
 
   WebDavCloudService(this._config) {
@@ -156,7 +157,7 @@ class WebDavCloudService extends CloudService {
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
     maxCount ??= HiveUtil.getMaxBackupsCount();
-    List<WebDavFile> list = await listBackups();
+    List<WebDavFileInfo> list = await listBackups();
     list.sort((a, b) {
       if (a.mTime == null || b.mTime == null) return 0;
       return a.mTime!.compareTo(b.mTime!);
@@ -166,5 +167,14 @@ class WebDavCloudService extends CloudService {
       await deleteFile(file.path!);
     }
     return true;
+  }
+
+  @override
+  Future<bool> isConfigured() {
+    return Future.value(
+      _config.endpoint != null &&
+          _config.account != null &&
+          _config.secret != null,
+    );
   }
 }

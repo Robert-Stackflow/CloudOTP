@@ -1,4 +1,4 @@
-class WebDavFile {
+class WebDavFileInfo {
   String? path;
   bool? isDir;
   String? name;
@@ -8,7 +8,7 @@ class WebDavFile {
   DateTime? cTime;
   DateTime? mTime;
 
-  WebDavFile({
+  WebDavFileInfo({
     this.path,
     this.isDir,
     this.name,

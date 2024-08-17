@@ -1,7 +1,13 @@
 import 'dart:convert';
 
+import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
+import 'package:cloudotp/TokenUtils/Cloud/googledrive_cloud_service.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
 
+import '../TokenUtils/Cloud/dropbox_cloud_service.dart';
+import '../TokenUtils/Cloud/onedrive_cloud_service.dart';
+import '../TokenUtils/Cloud/webdav_cloud_service.dart';
 import '../generated/l10n.dart';
 
 enum CloudServiceType {
@@ -70,15 +76,39 @@ class CloudServiceConfig {
   Map<String, dynamic> remark;
   bool connected = false;
 
-  bool get isValid {
+  Future<bool> isValid() async {
     switch (type) {
       case CloudServiceType.Webdav:
         return endpoint != null && account != null && secret != null;
       case CloudServiceType.GoogleDrive:
+        GoogleDriveCloudService googleDriveCloudService =
+            GoogleDriveCloudService(rootContext, this);
+        return googleDriveCloudService.isConnected();
       case CloudServiceType.OneDrive:
+        OneDriveCloudService oneDriveCloudService =
+            OneDriveCloudService(rootContext, this);
+        return oneDriveCloudService.isConnected();
       case CloudServiceType.Dropbox:
-        // case CloudServiceType.S3Cloud:
-        return true;
+        DropboxCloudService dropboxCloudService =
+            DropboxCloudService(rootContext, this);
+        return dropboxCloudService.isConnected();
+      // case CloudServiceType.S3Cloud:
+      // return true;
+    }
+  }
+
+  CloudService toCloudService() {
+    switch (type) {
+      case CloudServiceType.Webdav:
+        return WebDavCloudService(this);
+      case CloudServiceType.GoogleDrive:
+        return GoogleDriveCloudService(rootContext, this);
+      case CloudServiceType.OneDrive:
+        return OneDriveCloudService(rootContext, this);
+      case CloudServiceType.Dropbox:
+        return DropboxCloudService(rootContext, this);
+      // case CloudServiceType.S3Cloud:
+      // return S3CloudService(this);
     }
   }
 

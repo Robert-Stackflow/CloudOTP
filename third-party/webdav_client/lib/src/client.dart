@@ -1,7 +1,8 @@
+import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'dart:io' as io;
+
 import 'auth.dart';
 import 'file.dart';
 import 'utils.dart';
@@ -14,7 +15,7 @@ class Client {
   final String uri;
 
   /// Wrapped http client
-  WdDio c;
+  WdDio wdDio;
 
   /// Auth Mode (noAuth/basic/digest)
   Auth auth;
@@ -24,7 +25,7 @@ class Client {
 
   Client({
     required this.uri,
-    required this.c,
+    required this.wdDio,
     required this.auth,
     this.debug = false,
   });
@@ -32,24 +33,23 @@ class Client {
   // methods--------------------------------
 
   /// Set the public request headers
-  void setHeaders(Map<String, dynamic> headers) =>
-      this.c.options.headers = headers;
+  void setHeaders(Map<String, dynamic> headers) => wdDio.options.headers = headers;
 
   /// Set the connection server timeout time in milliseconds.
   void setConnectTimeout(int timeout) =>
-      this.c.options.connectTimeout = Duration(milliseconds: timeout);
+      wdDio.options.connectTimeout = Duration(milliseconds: timeout);
 
   /// Set send data timeout time in milliseconds.
   void setSendTimeout(int timeout) =>
-      this.c.options.sendTimeout = Duration(milliseconds: timeout);
+      wdDio.options.sendTimeout = Duration(milliseconds: timeout);
 
   /// Set transfer data time in milliseconds.
   void setReceiveTimeout(int timeout) =>
-      this.c.options.receiveTimeout = Duration(milliseconds: timeout);
+      wdDio.options.receiveTimeout = Duration(milliseconds: timeout);
 
   /// Test whether the service can connect
   Future<void> ping([CancelToken? cancelToken]) async {
-    var resp = await c.wdOptions(this, '/', cancelToken: cancelToken);
+    var resp = await wdDio.wdOptions(this, '/', cancelToken: cancelToken);
     if (resp.statusCode != 200) {
       throw newResponseError(resp);
     }
@@ -61,23 +61,21 @@ class Client {
   // }
 
   /// Read all files in a folder
-  Future<List<WebDavFile>> readDir(String path,
+  Future<List<WebDavFileInfo>> readDir(String path,
       [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
-    var resp = await this
-        .c
-        .wdPropfind(this, path, true, fileXmlStr, cancelToken: cancelToken);
+    var resp = await wdDio.wdPropfind(this, path, true, fileXmlStr,
+        cancelToken: cancelToken);
 
     String str = resp.data;
     return WebdavXml.toFiles(path, str);
   }
 
   /// Read a single files properties
-  Future<WebDavFile> readProps(String path, [CancelToken? cancelToken]) async {
+  Future<WebDavFileInfo> readProps(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
-    var resp = await this
-        .c
-        .wdPropfind(this, path, true, fileXmlStr, cancelToken: cancelToken);
+    var resp = await wdDio.wdPropfind(this, path, true, fileXmlStr,
+        cancelToken: cancelToken);
 
     String str = resp.data;
     return WebdavXml.toFiles(path, str, skipSelf: false).first;
@@ -86,7 +84,7 @@ class Client {
   /// Create a folder
   Future<void> mkdir(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
-    var resp = await this.c.wdMkcol(this, path, cancelToken: cancelToken);
+    var resp = await wdDio.wdMkcol(this, path, cancelToken: cancelToken);
     var status = resp.statusCode;
     if (status != 201 && status != 405) {
       throw newResponseError(resp);
@@ -96,7 +94,7 @@ class Client {
   /// Recursively create folders
   Future<void> mkdirAll(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
-    var resp = await this.c.wdMkcol(this, path, cancelToken: cancelToken);
+    var resp = await wdDio.wdMkcol(this, path, cancelToken: cancelToken);
     var status = resp.statusCode;
     if (status == 201 || status == 405) {
       return;
@@ -107,8 +105,8 @@ class Client {
         if (e == '') {
           continue;
         }
-        sub += e + '/';
-        resp = await this.c.wdMkcol(this, sub, cancelToken: cancelToken);
+        sub += '$e/';
+        resp = await wdDio.wdMkcol(this, sub, cancelToken: cancelToken);
         status = resp.statusCode;
         if (status != 201 && status != 405) {
           throw newResponseError(resp);
@@ -127,7 +125,7 @@ class Client {
 
   /// Remove files
   Future<void> removeAll(String path, [CancelToken? cancelToken]) async {
-    var resp = await this.c.wdDelete(this, path, cancelToken: cancelToken);
+    var resp = await wdDio.wdDelete(this, path, cancelToken: cancelToken);
     if (resp.statusCode == 200 ||
         resp.statusCode == 204 ||
         resp.statusCode == 404) {
@@ -140,7 +138,7 @@ class Client {
   /// If you rename the folder, some webdav services require a '/' at the end of the path.
   Future<void> rename(String oldPath, String newPath, bool overwrite,
       [CancelToken? cancelToken]) {
-    return this.c.wdCopyMove(this, oldPath, newPath, false, overwrite);
+    return wdDio.wdCopyMove(this, oldPath, newPath, false, overwrite);
   }
 
   /// Copy a file / folder from A to B
@@ -148,7 +146,7 @@ class Client {
   /// Some webdav services have been tested and found to delete the original contents of the B folder!!!
   Future<void> copy(String oldPath, String newPath, bool overwrite,
       [CancelToken? cancelToken]) {
-    return this.c.wdCopyMove(this, oldPath, newPath, true, overwrite);
+    return wdDio.wdCopyMove(this, oldPath, newPath, true, overwrite);
   }
 
   /// Read the bytes of a file
@@ -158,12 +156,12 @@ class Client {
     void Function(int count, int total)? onProgress,
     CancelToken? cancelToken,
   }) {
-    return this.c.wdReadWithBytes(
-          this,
-          path,
-          onProgress: onProgress,
-          cancelToken: cancelToken,
-        );
+    return wdDio.wdReadWithBytes(
+      this,
+      path,
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
   }
 
   /// Read the bytes of a file with stream and write to a local file
@@ -173,13 +171,13 @@ class Client {
     void Function(int count, int total)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    await this.c.wdReadWithStream(
-          this,
-          path,
-          savePath,
-          onProgress: onProgress,
-          cancelToken: cancelToken,
-        );
+    await wdDio.wdReadWithStream(
+      this,
+      path,
+      savePath,
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
   }
 
   /// Write the bytes to remote path
@@ -190,14 +188,14 @@ class Client {
     CancelToken? cancelToken,
     void Function()? onSucess,
   }) {
-    return this.c.wdWriteWithBytes(
-          this,
-          path,
-          data,
-          onProgress: onProgress,
-          cancelToken: cancelToken,
-          onSucess: onSucess,
-        );
+    return wdDio.wdWriteWithBytes(
+      this,
+      path,
+      data,
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+      onSucess: onSucess,
+    );
   }
 
   /// Read local file stream and write to remote file
@@ -208,14 +206,14 @@ class Client {
     CancelToken? cancelToken,
   }) async {
     var file = io.File(localFilePath);
-    return this.c.wdWriteWithStream(
-          this,
-          path,
-          file.openRead(),
-          file.lengthSync(),
-          onProgress: onProgress,
-          cancelToken: cancelToken,
-        );
+    return wdDio.wdWriteWithStream(
+      this,
+      path,
+      file.openRead(),
+      file.lengthSync(),
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
   }
 }
 
@@ -224,7 +222,7 @@ Client newClient(String uri,
     {String user = '', String password = '', bool debug = false}) {
   return Client(
     uri: fixSlash(uri),
-    c: WdDio(debug: debug),
+    wdDio: WdDio(debug: debug),
     auth: Auth(user: user, pwd: password),
     debug: debug,
   );

@@ -66,14 +66,17 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       _endpointController.text = _webDavCloudServiceConfig!.endpoint ?? "";
       _accountController.text = _webDavCloudServiceConfig!.account ?? "";
       _secretController.text = _webDavCloudServiceConfig!.secret ?? "";
-      if (_webDavCloudServiceConfig!.isValid) {
+      if (await _webDavCloudServiceConfig!.isValid()) {
         _webDavCloudService = WebDavCloudService(_webDavCloudServiceConfig!);
-        await _webDavCloudService!.authenticate();
       }
     } else {
       _webDavCloudServiceConfig =
           CloudServiceConfig.init(type: CloudServiceType.Webdav);
       await CloudServiceConfigDao.insertConfig(_webDavCloudServiceConfig!);
+    }
+    if (_webDavCloudService != null) {
+      _webDavCloudServiceConfig!.connected =
+      await _webDavCloudService!.isConnected();
     }
     inited = true;
     setState(() {});
@@ -200,6 +203,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
         setState(() {
           _webDavCloudServiceConfig!.enabled =
               !_webDavCloudServiceConfig!.enabled;
+          CloudServiceConfigDao.updateConfigEnabled(
+              _webDavCloudServiceConfig!, _webDavCloudServiceConfig!.enabled);
         });
       },
     );
@@ -297,7 +302,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 dismissible: true,
               );
               try {
-                List<WebDavFile> files = await _webDavCloudService!.listBackups();
+                List<WebDavFileInfo> files = await _webDavCloudService!.listBackups();
                 CloudServiceConfigDao.updateLastPullTime(
                     _webDavCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();

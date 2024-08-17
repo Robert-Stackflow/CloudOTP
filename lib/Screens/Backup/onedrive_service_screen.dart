@@ -63,7 +63,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       _sizeController.text = _oneDriveCloudServiceConfig!.size;
       _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
       _emailController.text = _oneDriveCloudServiceConfig!.email ?? "";
-      if (_oneDriveCloudServiceConfig!.isValid) {
+      if (await _oneDriveCloudServiceConfig!.isValid()) {
         _oneDriveCloudService = OneDriveCloudService(
           context,
           _oneDriveCloudServiceConfig!,
@@ -178,6 +178,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
         setState(() {
           _oneDriveCloudServiceConfig!.enabled =
               !_oneDriveCloudServiceConfig!.enabled;
+          CloudServiceConfigDao.updateConfigEnabled(
+              _oneDriveCloudServiceConfig!, _oneDriveCloudServiceConfig!.enabled);
         });
       },
     );

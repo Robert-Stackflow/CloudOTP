@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
@@ -259,11 +258,14 @@ class AutoBackupLog {
     return status.any((element) => element.status.isFailed);
   }
 
-  addStatus(AutoBackupStatus status) {
+  addStatus(
+    AutoBackupStatus status, {
+    String? remark,
+  }) {
     this.status.add(AutoBackupLogStatusItem(
           status: status,
           timestamp: DateTime.now().millisecondsSinceEpoch,
-          remark: "",
+          remark: remark ?? "",
         ));
     switch (status) {
       case AutoBackupStatus.encrypting:

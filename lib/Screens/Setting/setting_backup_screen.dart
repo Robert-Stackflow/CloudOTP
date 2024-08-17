@@ -390,10 +390,9 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           context: context,
           title: S.current.cloudBackupServiceSetting,
           bottomRadius: true,
-          tip: _cloudBackupConfigured
+          description: _cloudBackupConfigured
               ? S.current.haveSetCloudBackupService("WebDav")
               : S.current.notCloudBackupService,
-          description: S.current.cloudBackupServiceSettingTip,
           onTap: () async {
             RouteUtil.pushCupertinoRoute(
               context,
