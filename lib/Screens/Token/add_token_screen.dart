@@ -1,6 +1,6 @@
 import 'package:cloudotp/Database/token_dao.dart';
-import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -46,11 +46,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   final GroupButtonController _typeController = GroupButtonController();
   final GroupButtonController _digitsController = GroupButtonController();
   final GroupButtonController _algorithmController = GroupButtonController();
-  late final InputStateController _issuerStateController;
-  late final InputStateController _secretStateController;
-  late final InputStateController _periodStateController;
-  late final InputStateController _pinStateController;
-  late final InputStateController _counterStateController;
   late OtpToken _otpToken;
   bool _isEditing = false;
   bool customedImage = false;
@@ -74,6 +69,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   List<TokenCategory> categories = [];
   List<int> selectedCategoryIds = [];
   List<int> oldSelectedCategoryIds = [];
+
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -118,55 +115,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     _counterController.addListener(() {
       _otpToken.counterString = _counterController.text;
     });
-    _issuerStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.issuerCannotBeEmpty);
-        }
-        return Future.value(null);
-      },
-    );
-    _secretStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.secretCannotBeEmpty);
-        }
-        if (!CheckTokenUtil.isSecretBase32(text)) {
-          return Future.value(S.current.secretNotBase32);
-        }
-        return Future.value(null);
-      },
-    );
-    _pinStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.pinCannotBeEmpty);
-        }
-        return Future.value(null);
-      },
-    );
-    _periodStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.periodCannotBeEmpty);
-        }
-        if (int.tryParse(text) == null) {
-          return Future.value(S.current.periodTooLong);
-        }
-        return Future.value(null);
-      },
-    );
-    _counterStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.counterCannotBeEmpty);
-        }
-        if (int.tryParse(text) == null) {
-          return Future.value(S.current.counterTooLong);
-        }
-        return Future.value(null);
-      },
-    );
     getCategories();
   }
 
@@ -184,33 +132,26 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   }
 
   Future<bool> isValid() async {
-    bool issuerValid = await _issuerStateController.isValid();
-    bool secretValid = await _secretStateController.isValid();
-    bool pinValid = await _pinStateController.isValid();
-    bool periodValid = await _periodStateController.isValid();
-    bool counterValid = await _counterStateController.isValid();
-    switch (_otpToken.tokenType) {
-      case OtpTokenType.TOTP:
-        return issuerValid && secretValid && periodValid;
-      case OtpTokenType.HOTP:
-        return issuerValid && secretValid && counterValid;
-      case OtpTokenType.MOTP:
-        return issuerValid && secretValid && pinValid;
-      case OtpTokenType.Yandex:
-        return issuerValid && secretValid && pinValid;
-      case OtpTokenType.Steam:
-        return issuerValid && secretValid;
-      default:
-        return false;
-    }
-  }
-
-  resetState() {
-    _issuerStateController.reset();
-    _secretStateController.reset();
-    _pinStateController.reset();
-    _periodStateController.reset();
-    _counterStateController.reset();
+    return formKey.currentState?.validate() ?? false;
+    // bool issuerValid = await _issuerStateController.isValid();
+    // bool secretValid = await _secretStateController.isValid();
+    // bool pinValid = await _pinStateController.isValid();
+    // bool periodValid = await _periodStateController.isValid();
+    // bool counterValid = await _counterStateController.isValid();
+    // switch (_otpToken.tokenType) {
+    //   case OtpTokenType.TOTP:
+    //     return issuerValid && secretValid && periodValid;
+    //   case OtpTokenType.HOTP:
+    //     return issuerValid && secretValid && counterValid;
+    //   case OtpTokenType.MOTP:
+    //     return issuerValid && secretValid && pinValid;
+    //   case OtpTokenType.Yandex:
+    //     return issuerValid && secretValid && pinValid;
+    //   case OtpTokenType.Steam:
+    //     return issuerValid && secretValid;
+    //   default:
+    //     return false;
+    // }
   }
 
   @override
@@ -229,7 +170,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           }
         },
         title: Text(
-          _isEditing?S.current.editToken:S.current.addToken,
+          _isEditing ? S.current.editToken : S.current.addToken,
           style: Theme.of(context)
               .textTheme
               .titleMedium
@@ -307,21 +248,25 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       children: [
-        Column(
-          children: [
-            _iconInfo(),
-            const SizedBox(height: 20),
-            _typeInfo(),
-            const SizedBox(height: 10),
-            _basicInfo(),
-            const SizedBox(height: 10),
-            if (!isSteam && !isYandex) _advancedInfo(),
-            if (!isSteam && !isYandex) const SizedBox(height: 10),
-            ..._categoryInfo(),
-            const SizedBox(height: 10),
-            if (_isEditing) ..._copyTimesInfo(),
-            if (_isEditing) ..._deleteButton(),
-          ],
+        Form(
+          key: formKey,
+          autovalidateMode: AutovalidateMode.always,
+          child: Column(
+            children: [
+              _iconInfo(),
+              const SizedBox(height: 20),
+              _typeInfo(),
+              const SizedBox(height: 10),
+              _basicInfo(),
+              const SizedBox(height: 10),
+              if (!isSteam && !isYandex) _advancedInfo(),
+              if (!isSteam && !isYandex) const SizedBox(height: 10),
+              ..._categoryInfo(),
+              const SizedBox(height: 10),
+              if (_isEditing) ..._copyTimesInfo(),
+              if (_isEditing) ..._deleteButton(),
+            ],
+          ),
         ),
       ],
     );
@@ -330,7 +275,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   _iconInfo() {
     return Utils.isEmpty(_otpToken.imagePath) && Utils.isEmpty(_otpToken.issuer)
         ? Container(
-            constraints: const BoxConstraints(maxWidth: 82),
+            constraints: const BoxConstraints(maxWidth: 81),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -341,8 +286,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               borderRadius: BorderRadius.circular(16),
               child: Image.asset(
                 'assets/logo.png',
-                height: 80,
-                width: 80,
+                height: 79,
+                width: 79,
                 fit: BoxFit.contain,
               ),
             ),
@@ -356,29 +301,23 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       topRadius: true,
       bottomRadius: true,
       padding: const EdgeInsets.only(right: 10),
-      child: Column(
-        children: [
-          ItemBuilder.buildGroupTile(
-            context: context,
-            title: S.current.tokenType,
-            // disabled: _isEditing,
-            controller: _typeController,
-            buttons: OtpTokenType.toLabels(),
-            onSelected: (value, index, isSelected) {
-              _otpToken.tokenType = index.otpTokenType;
-              _otpToken.digits = index.otpTokenType.defaultDigits;
-              _digitsController.selectIndex(_otpToken.digits.index);
-              _periodController.text = _otpToken.periodString =
-                  _otpToken.tokenType.defaultPeriod.toString();
-              if (_otpToken.tokenType == OtpTokenType.Yandex) {
-                _otpToken.digits = OtpDigits.D8;
-                _otpToken.algorithm = OtpAlgorithm.SHA256;
-              }
-              resetState();
-              setState(() {});
-            },
-          ),
-        ],
+      child: ItemBuilder.buildGroupTile(
+        context: context,
+        // title: S.current.tokenType,
+        controller: _typeController,
+        buttons: OtpTokenType.toLabels(),
+        onSelected: (value, index, isSelected) {
+          _otpToken.tokenType = index.otpTokenType;
+          _otpToken.digits = index.otpTokenType.defaultDigits;
+          _digitsController.selectIndex(_otpToken.digits.index);
+          _periodController.text = _otpToken.periodString =
+              _otpToken.tokenType.defaultPeriod.toString();
+          if (_otpToken.tokenType == OtpTokenType.Yandex) {
+            _otpToken.digits = OtpDigits.D8;
+            _otpToken.algorithm = OtpAlgorithm.SHA256;
+          }
+          setState(() {});
+        },
       ),
     );
   }
@@ -397,7 +336,12 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             leadingText: S.current.tokenIssuer,
             leadingType: InputItemLeadingType.text,
             topRadius: true,
-            stateController: _issuerStateController,
+            validator: (text) {
+              if (text.isEmpty) {
+                return S.current.issuerCannotBeEmpty;
+              }
+              return null;
+            },
             hint: S.current.tokenIssuerHint,
             maxLength: 32,
           ),
@@ -418,8 +362,16 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             inputFormatters: [
               RegexInputFormatter.onlyNumberAndLetter,
             ],
-            stateController: _secretStateController,
             bottomRadius: !isMotp,
+            validator: (text) {
+              if (text.isEmpty) {
+                return S.current.secretCannotBeEmpty;
+              }
+              if (!CheckTokenUtil.isSecretBase32(text)) {
+                return S.current.secretNotBase32;
+              }
+              return null;
+            },
           ),
           Visibility(
             visible: isMotp || isYandex,
@@ -432,7 +384,12 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               hint: S.current.tokenPinHint,
               maxLength: _otpToken.tokenType.maxPinLength,
               bottomRadius: true,
-              stateController: _pinStateController,
+              validator: (text) {
+                if (text.isEmpty) {
+                  return S.current.pinCannotBeEmpty;
+                }
+                return null;
+              },
             ),
           ),
         ],
@@ -525,7 +482,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       topRadius: true,
       bottomRadius: true,
       padding: EdgeInsets.only(
-          top: 15, bottom: 5, right: !isSteam && !isYandex ? 10 : 0),
+          top: 5, bottom: 5, right: !isSteam && !isYandex ? 10 : 0),
       child: Column(
         children: [
           Visibility(
@@ -533,7 +490,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             child: ItemBuilder.buildGroupTile(
               context: context,
               title: S.current.tokenDigits,
-              // disabled: _isEditing,
               controller: _digitsController,
               buttons: OtpDigits.toStrings(),
               onSelected: (value, index, isSelected) {
@@ -549,7 +505,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               title: S.current.tokenAlgorithm,
               controller: _algorithmController,
               buttons: OtpAlgorithm.toStrings(),
-              // disabled: _isEditing,
               onSelected: (value, index, isSelected) {
                 _otpToken.algorithm = index.otpAlgorithm;
                 setState(() {});
@@ -570,8 +525,15 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                     ? TextInputAction.done
                     : TextInputAction.next,
                 hint: S.current.tokenPeriodHint,
-                // disabled: _isEditing,
-                stateController: _periodStateController,
+                validator: (text) {
+                  if (text.isEmpty) {
+                    return S.current.periodCannotBeEmpty;
+                  }
+                  if (int.tryParse(text) == null) {
+                    return S.current.periodTooLong;
+                  }
+                  return null;
+                },
               ),
             ),
           ),
@@ -588,8 +550,15 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                 textInputAction: TextInputAction.done,
                 bottomRadius: true,
                 hint: S.current.tokenCounterHint,
-                // disabled: _isEditing,
-                stateController: _counterStateController,
+                validator: (text) {
+                  if (text.isEmpty) {
+                    return S.current.counterCannotBeEmpty;
+                  }
+                  if (int.tryParse(text) == null) {
+                    return S.current.counterTooLong;
+                  }
+                  return null;
+                },
               ),
             ),
           ),

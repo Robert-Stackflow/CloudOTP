@@ -7,7 +7,9 @@ import 'package:cloudotp/Utils/cache_util.dart';
 
 import '../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../TokenUtils/Cloud/onedrive_cloud_service.dart';
+import '../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../TokenUtils/Cloud/webdav_cloud_service.dart';
+import '../Utils/utils.dart';
 import '../generated/l10n.dart';
 
 enum CloudServiceType {
@@ -15,8 +17,7 @@ enum CloudServiceType {
   OneDrive,
   GoogleDrive,
   Dropbox,
-  // S3Cloud,
-  ;
+  S3Cloud;
 
   String get label {
     switch (this) {
@@ -28,8 +29,8 @@ enum CloudServiceType {
         return S.current.cloudTypeOneDrive;
       case CloudServiceType.Dropbox:
         return S.current.cloudTypeDropbox;
-      // case CloudServiceType.S3Cloud:
-      //   return S.current.cloudTypeS3Cloud;
+      case CloudServiceType.S3Cloud:
+        return S.current.cloudTypeS3Cloud;
     }
   }
 
@@ -49,8 +50,8 @@ extension CloudServiceTypeExtensionOnint on int {
         return CloudServiceType.OneDrive;
       case 3:
         return CloudServiceType.Dropbox;
-      // case 4:
-      //   return CloudServiceType.S3Cloud;
+      case 4:
+        return CloudServiceType.S3Cloud;
       default:
         throw Exception('Invalid CloudServiceType');
     }
@@ -61,10 +62,10 @@ class CloudServiceConfig {
   int id;
   CloudServiceType type;
   String? endpoint;
-  String? email;
-  String? account;
-  String? secret;
-  String? token;
+  String? email; // email or region
+  String? account; //account or bucket
+  String? secret; //secret or secretKey
+  String? token; //token or accessKey
   bool enabled;
   int totalSize;
   int usedSize;
@@ -74,26 +75,24 @@ class CloudServiceConfig {
   int lastFetchTimestamp;
   int lastBackupTimestamp;
   Map<String, dynamic> remark;
+  bool configured;
   bool connected = false;
 
   Future<bool> isValid() async {
     switch (type) {
       case CloudServiceType.Webdav:
-        return endpoint != null && account != null && secret != null;
+        return Utils.isNotEmpty(endpoint) &&
+            Utils.isNotEmpty(account) &&
+            Utils.isNotEmpty(secret);
       case CloudServiceType.GoogleDrive:
-        GoogleDriveCloudService googleDriveCloudService =
-            GoogleDriveCloudService(rootContext, this);
-        return googleDriveCloudService.isConnected();
       case CloudServiceType.OneDrive:
-        OneDriveCloudService oneDriveCloudService =
-            OneDriveCloudService(rootContext, this);
-        return oneDriveCloudService.isConnected();
       case CloudServiceType.Dropbox:
-        DropboxCloudService dropboxCloudService =
-            DropboxCloudService(rootContext, this);
-        return dropboxCloudService.isConnected();
-      // case CloudServiceType.S3Cloud:
-      // return true;
+        return configured;
+      case CloudServiceType.S3Cloud:
+        return Utils.isNotEmpty(endpoint) &&
+            Utils.isNotEmpty(account) &&
+            Utils.isNotEmpty(secret) &&
+            Utils.isNotEmpty(token);
     }
   }
 
@@ -107,8 +106,8 @@ class CloudServiceConfig {
         return OneDriveCloudService(rootContext, this);
       case CloudServiceType.Dropbox:
         return DropboxCloudService(rootContext, this);
-      // case CloudServiceType.S3Cloud:
-      // return S3CloudService(this);
+      case CloudServiceType.S3Cloud:
+        return S3CloudService(this);
     }
   }
 
@@ -127,6 +126,7 @@ class CloudServiceConfig {
     this.token,
     this.email,
     this.enabled = true,
+    this.configured = false,
     required this.createTimestamp,
     required this.editTimestamp,
     required this.lastFetchTimestamp,
@@ -149,6 +149,7 @@ class CloudServiceConfig {
         usedSize = -1,
         email = "",
         remainingSize = -1,
+        configured = false,
         createTimestamp = DateTime.now().millisecondsSinceEpoch,
         editTimestamp = DateTime.now().millisecondsSinceEpoch,
         lastFetchTimestamp = DateTime.now().millisecondsSinceEpoch,
@@ -173,6 +174,7 @@ class CloudServiceConfig {
       totalSize: map['total_size'] ?? -1,
       remainingSize: map['remaining_size'] ?? -1,
       usedSize: map['used_size'] ?? -1,
+      configured: map['configured'] == 1,
     );
   }
 
@@ -184,6 +186,7 @@ class CloudServiceConfig {
       'account': account,
       'secret': secret,
       'token': token,
+      'configured': configured ? 1 : 0,
       'create_timestamp': createTimestamp,
       'edit_timestamp': editTimestamp,
       'last_fetch_timestamp': lastFetchTimestamp,

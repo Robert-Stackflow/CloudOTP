@@ -3,6 +3,8 @@ import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/constant.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,6 +19,7 @@ import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 
@@ -43,15 +46,15 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
     with TickerProviderStateMixin {
   bool _enableAutoBackup = HiveUtil.getBool(HiveUtil.enableAutoBackupKey);
   bool _enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
-  bool _enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
   bool _useBackupPasswordToExportImport =
       HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey);
   String _autoBackupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
   String _autoBackupPassword = "";
-  bool _cloudBackupConfigured = false;
+  bool _enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
   CloudServiceConfig? _cloudServiceConfig;
   int _maxBackupsCount = HiveUtil.getMaxBackupsCount();
   final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
+  String validConfigs = "";
 
   @override
   void initState() {
@@ -86,7 +89,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
       child: Scaffold(
         appBar: ResponsiveUtil.isLandscape()
             ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.setting,
+                title: S.current.backupSetting,
                 context: context,
                 transparent: true,
               )
@@ -98,7 +101,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                   Navigator.pop(context);
                 },
                 title: Text(
-                  S.current.setting,
+                  S.current.backupSetting,
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -110,10 +113,10 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                   const SizedBox(width: 5),
                 ],
               ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
+        body: EasyRefresh(
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
               ..._backupSettings(),
               const SizedBox(height: 30),
@@ -129,8 +132,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
   bool get canLocalBackup =>
       _autoBackupPath.isNotEmpty && _autoBackupPassword.isNotEmpty;
 
-  bool get canCloudBackup =>
-      _cloudBackupConfigured && _autoBackupPassword.isNotEmpty;
+  bool get canCloudBackup => _autoBackupPassword.isNotEmpty;
 
   bool get canImmediateBackup =>
       canBackup &&
@@ -138,12 +140,10 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           (canCloudBackup && _enableCloudBackup));
 
   loadWebDavConfig() async {
-    _cloudServiceConfig = await CloudServiceConfigDao.getWebdavConfig();
+    List<CloudServiceConfig> configs =
+        await CloudServiceConfigDao.getValidConfigs();
     setState(() {
-      _cloudBackupConfigured = (_cloudServiceConfig != null &&
-          Utils.isNotEmpty(_cloudServiceConfig!.account) &&
-          Utils.isNotEmpty(_cloudServiceConfig!.secret) &&
-          Utils.isNotEmpty(_cloudServiceConfig!.endpoint));
+      validConfigs = configs.map((e) => e.type.label).join(", ");
     });
   }
 
@@ -151,7 +151,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
     int currentLocalBackupsCount = await ExportTokenUtil.getBackupsCount();
     late int currentCloudBackupsCount;
     if (!_enableCloudBackup ||
-        !_cloudBackupConfigured ||
+        !validConfigs.isNotEmpty ||
         _cloudServiceConfig == null) {
       currentCloudBackupsCount = 0;
     } else {
@@ -169,7 +169,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
   deleteOldBackups(int maxBackupsCount) async {
     await ExportTokenUtil.deleteOldBackup();
     if (_enableCloudBackup &&
-        _cloudBackupConfigured &&
+        validConfigs.isNotEmpty &&
         _cloudServiceConfig != null) {
       WebDavCloudService webDavCloudService =
           WebDavCloudService(_cloudServiceConfig!);
@@ -179,17 +179,14 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
 
   _backupSettings() {
     return [
-      const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.backupSetting),
       ItemBuilder.buildEntryItem(
         key: _setAutoBackupPasswordKey,
         context: context,
+        topRadius: true,
         title: Utils.isNotEmpty(_autoBackupPassword)
             ? S.current.editAutoBackupPassword
             : S.current.setAutoBackupPassword,
         onTap: () {
-          TextEditingController controller = TextEditingController();
           BottomSheetBuilder.showBottomSheet(
             context,
             responsive: true,
@@ -203,16 +200,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                   : S.current.setAutoBackupPasswordTip,
               hint: S.current.inputAutoBackupPassword,
               tailingType: InputItemTailingType.password,
-              controller: controller,
-              stateController: InputStateController(
-                validate: (text) {
-                  if (text.isEmpty) {
-                    return Future.value(
-                        S.current.autoBackupPasswordCannotBeEmpty);
-                  }
-                  return Future.value(null);
-                },
-              ),
+              validator: (text) {
+                if (text.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetter,
               ],
@@ -224,6 +217,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 ConfigDao.updateBackupPassword(text);
                 setState(() {
                   _autoBackupPassword = text;
+                  appProvider.showCloudEntry = _enableCloudBackup;
                 });
               },
             ),
@@ -232,6 +226,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
       ),
       ItemBuilder.buildRadioItem(
         context: context,
+        bottomRadius: true,
         value: canBackup ? _useBackupPasswordToExportImport : false,
         title: S.current.useBackupPasswordToExportImport,
         description: S.current.useBackupPasswordToExportImportTip,
@@ -245,12 +240,15 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           });
         },
       ),
+      const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
+        topRadius: true,
+        bottomRadius: !canImmediateBackup,
         value: canBackup ? _enableAutoBackup : false,
         title: S.current.autoBackup,
         description: S.current.autoBackupTip,
-        disabled: !canBackup,
+        disabled: !canBackup || !canImmediateBackup,
         onTap: () {
           setState(() {
             _enableAutoBackup = !_enableAutoBackup;
@@ -274,24 +272,21 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         visible: canImmediateBackup,
         child: ItemBuilder.buildEntryItem(
           context: context,
+          bottomRadius: true,
           title: S.current.maxBackupCount,
           description: S.current.maxBackupCountTip,
           tip: _maxBackupsCount.toString(),
           onTap: () async {
-            var stateController = InputStateController(
-              validate: (text) {
-                if (text.isEmpty) {
-                  return Future.value(S.current.maxBackupCountCannotBeEmpty);
-                }
-                if (int.tryParse(text) == null) {
-                  return Future.value(S.current.maxBackupCountTooLong);
-                }
-                return Future.value(null);
-              },
-            );
             CustomLoadingDialog.showLoading(title: S.current.loading);
             List<int> counts = await getBackupsCount();
             CustomLoadingDialog.dismissLoading();
+            InputValidateAsyncController validateAsyncController =
+                InputValidateAsyncController(
+                    controller: TextEditingController(
+                        text: _maxBackupsCount.toString()),
+                    validator: (text) async {
+                      return null;
+                    });
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,
@@ -303,7 +298,21 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 hint: S.current.inputMaxBackupCount,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 preventPop: true,
-                stateController: stateController,
+                validateAsyncController: validateAsyncController,
+                validator: (text) {
+                  if (text.isEmpty) {
+                    return S.current.maxBackupCountCannotBeEmpty;
+                  }
+                  int? count = int.tryParse(text);
+                  if (count == null) {
+                    return S.current.maxBackupCountTooLong;
+                  }
+                  if (count > maxBackupCountThrehold) {
+                    return S.current
+                        .maxBackupCountExceed(maxBackupCountThrehold);
+                  }
+                  return null;
+                },
                 onConfirm: (text) async {},
                 onValidConfirm: (text) async {
                   int count = int.parse(text);
@@ -312,8 +321,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                     setState(() {
                       _maxBackupsCount = count;
                     });
-                    stateController.pop?.call();
                     deleteOldBackups(count);
+                    validateAsyncController.doPop?.call();
                   }
 
                   if (count > 0 && (counts[0] > count || counts[1] > count)) {
@@ -336,11 +345,14 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           },
         ),
       ),
+      const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
         value: canBackup ? _enableLocalBackup : false,
         title: S.current.enableLocalBackup,
+        topRadius: true,
         description: S.current.enableLocalBackupTip,
+        bottomRadius: !_enableLocalBackup || !canBackup,
         disabled: !canLocalBackup,
         onTap: () {
           setState(() {
@@ -355,6 +367,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           context: context,
           title: S.current.autoBackupPath,
           description: _autoBackupPath,
+          bottomRadius: true,
           onTap: () async {
             String? selectedDirectory =
                 await FilePicker.platform.getDirectoryPath(
@@ -370,8 +383,10 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           },
         ),
       ),
+      const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
+        topRadius: true,
         value: canBackup ? _enableCloudBackup : false,
         title: S.current.enableCloudBackup,
         description: S.current.enableCloudBackupTip,
@@ -381,6 +396,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           setState(() {
             _enableCloudBackup = !_enableCloudBackup;
             HiveUtil.put(HiveUtil.enableCloudBackupKey, _enableCloudBackup);
+            appProvider.showCloudEntry = _enableCloudBackup;
           });
         },
       ),
@@ -390,8 +406,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           context: context,
           title: S.current.cloudBackupServiceSetting,
           bottomRadius: true,
-          description: _cloudBackupConfigured
-              ? S.current.haveSetCloudBackupService("WebDav")
+          description: validConfigs.isNotEmpty
+              ? S.current.haveSetCloudBackupService(validConfigs)
               : S.current.notCloudBackupService,
           onTap: () async {
             RouteUtil.pushCupertinoRoute(

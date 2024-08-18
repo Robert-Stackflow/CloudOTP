@@ -20,6 +20,7 @@ import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 
 import '../Api/github_api.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
@@ -54,10 +55,10 @@ class Utils {
     return screenHeight - appBarHeight - safeArea.top;
   }
 
-  static Rect getWindowRect(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    return Rect.fromLTWH(0, 0, screenWidth, screenHeight);
+  static Future<Rect> getWindowRect(BuildContext context) async {
+    Display primaryDisplay = await screenRetriever.getPrimaryDisplay();
+    return Rect.fromLTWH(
+        0, 0, primaryDisplay.size.width, primaryDisplay.size.height);
   }
 
   static String getRandomString({int length = 8}) {
@@ -462,7 +463,6 @@ class Utils {
                 }
               },
               onTapCancel: () {},
-
             );
           } else {
             DialogBuilder.showPageDialog(

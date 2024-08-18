@@ -167,6 +167,9 @@ class MainScreenState extends State<MainScreen>
     WidgetsBinding.instance.addObserver(this);
     initDeepLinks();
     FontEnum.downloadFont(showToast: false);
+    HiveUtil.showCloudEntry().then((value) {
+      appProvider.showCloudEntry = value;
+    });
     if (HiveUtil.getBool(HiveUtil.autoCheckUpdateKey)) fetchReleases();
     darkModeController = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -233,7 +236,7 @@ class MainScreenState extends State<MainScreen>
     return ResponsiveUtil.isLandscape()
         ? PopScope(
             canPop: !appProvider.canPopByProvider,
-            onPopInvoked: (_) {
+            onPopInvokedWithResult: (_, __) {
               if (canPopByKey) {
                 desktopNavigatorState?.pop();
               }
@@ -521,17 +524,24 @@ class MainScreenState extends State<MainScreen>
                   },
                 ),
                 const SizedBox(height: 4),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  text: S.current.cloudBackupServiceSetting,
-                  fontSizeDelta: -2,
-                  showText: false,
-                  direction: Axis.vertical,
-                  icon: const Icon(Icons.cloud_queue_rounded),
-                  onTap: () async {
-                    DialogBuilder.showPageDialog(context,
-                        child: const CloudServiceScreen(), showClose: true);
-                  },
+                Selector<AppProvider, bool>(
+                  selector: (context, appProvider) =>
+                      appProvider.showCloudEntry,
+                  builder: (context, showCloudEntry, child) => Visibility(
+                    visible: showCloudEntry,
+                    child: ItemBuilder.buildIconTextButton(
+                      context,
+                      text: S.current.cloudBackupServiceSetting,
+                      fontSizeDelta: -2,
+                      showText: false,
+                      direction: Axis.vertical,
+                      icon: const Icon(Icons.cloud_queue_rounded),
+                      onTap: () async {
+                        DialogBuilder.showPageDialog(context,
+                            child: const CloudServiceScreen(), showClose: true);
+                      },
+                    ),
+                  ),
                 ),
                 const Spacer(),
                 const SizedBox(height: 8),

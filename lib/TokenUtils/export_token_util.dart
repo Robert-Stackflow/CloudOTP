@@ -195,8 +195,8 @@ class ExportTokenUtil {
     Future.delayed(force ? Duration.zero : const Duration(seconds: 1),
         () async {
       if (!force && !await HiveUtil.canAutoBackup()) return;
-      List<CloudServiceConfig> configs =
-          await CloudServiceConfigDao.getConfigs();
+      List<CloudServiceConfig> validConfigs =
+          await CloudServiceConfigDao.getValidConfigs();
       bool enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
       bool enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
       late AutoBackupType type;
@@ -209,12 +209,6 @@ class ExportTokenUtil {
       } else {
         return;
       }
-      List<CloudServiceConfig> validConfigs = [];
-      for (CloudServiceConfig config in configs) {
-        if (await config.isValid()) {
-          validConfigs.add(config);
-        }
-      }
       AutoBackupLog log =
           AutoBackupLog.init(type: type, triggerType: triggerType);
       appProvider.pushAutoBackupLog(log);
@@ -222,7 +216,7 @@ class ExportTokenUtil {
         () async => ExportTokenUtil.backupEncryptToLocalAndCloud(
           showLoading: showLoading,
           showToast: showToast,
-          configs: configs,
+          configs: validConfigs,
           log: log,
           cloudServices: validConfigs.map((e) => e.toCloudService()).toList(),
         ),
@@ -277,17 +271,20 @@ class ExportTokenUtil {
           }
         }
         if (canCloudBackup) {
-          try {
-            bool uploadStatus = true;
-            if (cloudServices != null && cloudServices.isNotEmpty) {
-              for (CloudService cloudService in cloudServices) {
+          if (cloudServices != null && cloudServices.isNotEmpty) {
+            bool uploadStatus = false;
+            for (CloudService cloudService in cloudServices) {
+              try {
                 log.addStatus(AutoBackupStatus.uploading,
-                    remark: cloudService.type.label);
+                    type: cloudService.type);
                 if (showLoading && dialog != null) {
                   dialog.updateMessage(
-                      msg: S.current.webDavPushing, showProgress: true);
+                    msg: S.current.webDavPushingTo(cloudService.type.label),
+                    showProgress: true,
+                  );
+                  dialog.updateProgress(progress: 0);
                 }
-                uploadStatus &= await cloudService.uploadFile(
+                uploadStatus = await cloudService.uploadFile(
                   ExportTokenUtil.getExportFileName("bin"),
                   encryptedData,
                   onProgress: (c, t) {
@@ -296,25 +293,29 @@ class ExportTokenUtil {
                     }
                   },
                 );
+                if (uploadStatus) {
+                  log.addStatus(AutoBackupStatus.uploadSuccess,
+                      type: cloudService.type);
+                } else {
+                  log.addStatus(AutoBackupStatus.uploadFailed,
+                      type: cloudService.type);
+                }
+              } catch (e) {
+                log.addStatus(AutoBackupStatus.uploadFailed,
+                    type: cloudService.type);
               }
             }
-            if (configs != null && configs.isNotEmpty) {
-              for (CloudServiceConfig config in configs) {
-                CloudServiceConfigDao.updateLastBackupTime(config);
-              }
+          }
+          if (configs != null && configs.isNotEmpty) {
+            for (CloudServiceConfig config in configs) {
+              CloudServiceConfigDao.updateLastBackupTime(config);
             }
-            if (uploadStatus) {
-              log.addStatus(AutoBackupStatus.uploadSuccess);
-            } else {
-              log.addStatus(AutoBackupStatus.uploadFailed);
-            }
-          } catch (e) {
-            log.addStatus(AutoBackupStatus.uploadFailed);
           }
         }
         if (!log.haveFailed) {
           log.addStatus(AutoBackupStatus.complete);
-          if (showToast) IToast.showTop(S.current.backupSuccess);
+        } else {
+          log.addStatus(AutoBackupStatus.failed);
         }
       }
     } catch (e) {

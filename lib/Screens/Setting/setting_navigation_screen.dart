@@ -1,11 +1,12 @@
 import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
-import 'package:cloudotp/Screens/Setting/setting_privacy_screen.dart';
+import 'package:cloudotp/Screens/Setting/setting_safe_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
+import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 
@@ -58,10 +59,10 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
                   const SizedBox(width: 5),
                 ],
               ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
+        body: EasyRefresh(
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
               ItemBuilder.buildEntryItem(
                 context: context,

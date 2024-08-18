@@ -9,13 +9,15 @@ const defaultLofterID = "";
 
 const defaultMaxBackupCount = 50;
 
+const maxBackupCountThrehold = 200;
+
 const double kLoadExtentOffset = 1000;
 
 const Widget emptyWidget = SizedBox.shrink();
 
 const defaultWindowSize = Size(1120, 740);
 
-const minimumSize = Size(606, 540);
+const minimumSize = Size(620, 540);
 
 const double autoCopyNextCodeProgressThrehold = 0.25;
 const String placeholderText = "*";

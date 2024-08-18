@@ -1,22 +1,31 @@
 import 'dart:math';
 
+import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_view.dart';
 import 'package:cloudotp/Widgets/Window/window_caption.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Utils/hive_util.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
+import '../main_screen.dart';
 
 class PinVerifyScreen extends StatefulWidget {
-  const PinVerifyScreen(
-      {super.key, this.onSuccess, this.isModal = true, this.autoAuth = true});
+  const PinVerifyScreen({
+    super.key,
+    this.onSuccess,
+    this.isModal = true,
+    this.autoAuth = true,
+    this.jumpToMain = false,
+  });
 
   final bool isModal;
   final bool autoAuth;
+  final bool jumpToMain;
   final Function()? onSuccess;
   static const String routeName = "/pin/verify";
 
@@ -24,7 +33,7 @@ class PinVerifyScreen extends StatefulWidget {
   PinVerifyScreenState createState() => PinVerifyScreenState();
 }
 
-class PinVerifyScreenState extends State<PinVerifyScreen> {
+class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener{
   final String? _password = HiveUtil.getString(HiveUtil.guesturePasswdKey);
   late final bool _isUseBiometric =
       HiveUtil.getBool(HiveUtil.enableBiometricKey);
@@ -33,7 +42,26 @@ class PinVerifyScreenState extends State<PinVerifyScreen> {
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
 
   @override
+  Future<void> onWindowResized() async {
+    super.onWindowResized();
+    HiveUtil.setWindowSize(await windowManager.getSize());
+  }
+
+  @override
+  Future<void> onWindowMoved() async {
+    super.onWindowMoved();
+    HiveUtil.setWindowPosition(await windowManager.getPosition());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    windowManager.removeListener(this);
+  }
+
+  @override
   void initState() {
+    windowManager.addListener(this);
     super.initState();
     if (_isUseBiometric && widget.autoAuth) {
       auth();
@@ -41,11 +69,18 @@ class PinVerifyScreenState extends State<PinVerifyScreen> {
   }
 
   void auth() async {
-    Utils.localAuth(onAuthed: () {
-      if (widget.onSuccess != null) widget.onSuccess!();
-      Navigator.pop(context);
-      _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
-    });
+    Utils.localAuth(
+      onAuthed: () {
+        if (widget.onSuccess != null) widget.onSuccess!();
+        if (widget.jumpToMain) {
+          Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
+              ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+        } else {
+          Navigator.of(context).pop();
+        }
+        _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
+      },
+    );
   }
 
   @override
@@ -120,7 +155,12 @@ class PinVerifyScreenState extends State<PinVerifyScreen> {
         String password = GestureUnlockView.selectedToString(selected);
         if (_password == password) {
           if (widget.onSuccess != null) widget.onSuccess!();
-          Navigator.pop(context);
+          if (widget.jumpToMain) {
+            Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
+                ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+          } else {
+            Navigator.of(context).pop();
+          }
           _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
         } else {
           setState(() {

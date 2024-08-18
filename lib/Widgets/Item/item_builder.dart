@@ -215,44 +215,43 @@ class ItemBuilder {
 
   static buildGroupTile({
     required BuildContext context,
-    required String title,
+    String title = '',
     required List<String> buttons,
     GroupButtonController? controller,
     EdgeInsets? padding,
     bool disabled = false,
     bool enableDeselect = false,
-    double titleMinWidth = 40,
     bool constraintWidth = true,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return Container(
       padding:
-          padding ?? const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      child: Row(
+          padding ?? const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            alignment: Alignment.center,
-            constraints: BoxConstraints(minWidth: titleMinWidth),
-            child: Text(
-              title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.apply(fontWeightDelta: 2),
-            ),
-          ),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: buildGroupButtons(
-                buttons: buttons,
-                disabled: disabled,
-                controller: controller,
-                constraintWidth: constraintWidth,
-                radius: 8,
-                enableDeselect: enableDeselect,
-                onSelected: onSelected,
+          if (title.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: Text(
+                title,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelMedium
+                    ?.apply(fontWeightDelta: 2, fontSizeDelta: 1),
               ),
+            ),
+          SizedBox(
+            width: MediaQuery.sizeOf(context).width,
+            child: buildGroupButtons(
+              buttons: buttons,
+              disabled: disabled,
+              controller: controller,
+              constraintWidth: constraintWidth,
+              radius: 8,
+              enableDeselect: enableDeselect,
+              onSelected: onSelected,
             ),
           ),
         ],
@@ -275,6 +274,8 @@ class ItemBuilder {
       enableDeselect: enableDeselect,
       options: const GroupButtonOptions(
         mainGroupAlignment: MainGroupAlignment.start,
+        runSpacing: 6,
+        spacing: 6,
       ),
       disabled: disabled,
       onSelected: onSelected,

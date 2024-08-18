@@ -13,7 +13,6 @@ import '../../Database/category_dao.dart';
 import '../../Models/token_category.dart';
 import '../../Utils/itoast.dart';
 import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../generated/l10n.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -82,17 +81,21 @@ class _CategoryScreenState extends State<CategoryScreen>
                 (context) => InputBottomSheet(
                   title: S.current.addCategory,
                   hint: S.current.inputCategory,
-                  stateController: InputStateController(
-                    validate: (text) async {
-                      if (text.isEmpty) {
-                        return S.current.categoryNameCannotBeEmpty;
-                      }
+                  validateAsyncController: InputValidateAsyncController(
+                    validator: (text) async {
                       if (await CategoryDao.isCategoryExist(text)) {
                         return S.current.categoryNameDuplicate;
                       }
                       return null;
                     },
+                    controller: TextEditingController(),
                   ),
+                  validator: (text) {
+                    if (text.isEmpty) {
+                      return S.current.categoryNameCannotBeEmpty;
+                    }
+                    return null;
+                  },
                   maxLength: 32,
                   onValidConfirm: (text) async {
                     TokenCategory category = TokenCategory.title(title: text);
@@ -203,18 +206,22 @@ class _CategoryScreenState extends State<CategoryScreen>
                   hint: S.current.inputCategory,
                   maxLength: 32,
                   text: category.title,
-                  stateController: InputStateController(
-                    validate: (text) async {
-                      if (text.isEmpty) {
-                        return S.current.categoryNameCannotBeEmpty;
-                      }
+                  validateAsyncController: InputValidateAsyncController(
+                    validator: (text) async {
                       if (text != category.title &&
                           await CategoryDao.isCategoryExist(text)) {
                         return S.current.categoryNameDuplicate;
                       }
                       return null;
                     },
+                    controller: TextEditingController(),
                   ),
+                  validator: (text) {
+                    if (text.isEmpty) {
+                      return S.current.categoryNameCannotBeEmpty;
+                    }
+                    return null;
+                  },
                   onValidConfirm: (text) async {
                     category.title = text;
                     await CategoryDao.updateCategory(category);
@@ -258,7 +265,6 @@ class _CategoryScreenState extends State<CategoryScreen>
                   homeScreenState?.refreshCategories();
                 },
                 onTapCancel: () {},
-
               );
             },
           ),

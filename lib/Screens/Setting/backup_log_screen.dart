@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
-import 'package:cloudotp/Screens/Setting/setting_privacy_screen.dart';
-import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
@@ -36,6 +34,11 @@ class BackupLogScreenState extends State<BackupLogScreen> {
       setState(() {
         _autoBackupPassword = config.backupPassword;
       });
+    });
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (appProvider.autoBackupLoadingStatus == LoadingStatus.failed) {
+        appProvider.autoBackupLoadingStatus = LoadingStatus.none;
+      }
     });
   }
 
@@ -173,11 +176,15 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                   onTap: () {
                     if (ResponsiveUtil.isLandscape()) {
                       context.contextMenuOverlay.hide();
-                      RouteUtil.pushDialogRoute(context,
-                          const BackupSettingScreen(jumpToAutoBackupPassword: true));
+                      RouteUtil.pushDialogRoute(
+                          context,
+                          const BackupSettingScreen(
+                              jumpToAutoBackupPassword: true));
                     } else {
-                      RouteUtil.pushCupertinoRoute(context,
-                          const BackupSettingScreen(jumpToAutoBackupPassword: true));
+                      RouteUtil.pushCupertinoRoute(
+                          context,
+                          const BackupSettingScreen(
+                              jumpToAutoBackupPassword: true));
                     }
                   },
                 ),
@@ -250,7 +257,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                       radius: 5,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 4, vertical: 2),
-                      text: widget.log.lastStatus.labelShort,
+                      text: widget.log.lastStatusItem.labelShort,
                       textStyle: Theme.of(context).textTheme.labelSmall?.apply(
                           color: Colors.white,
                           fontSizeDelta: ResponsiveUtil.isLandscape() ? 0 : 1),
@@ -295,7 +302,7 @@ class BackupLogItemState extends State<BackupLogItem> {
         widget.log.status.length,
         (i) {
           AutoBackupLogStatusItem statusItem = widget.log.status[i];
-          return '[${Utils.timestampToDateString(statusItem.timestamp)}]: ${statusItem.status.label(widget.log)}';
+          return '[${Utils.timestampToDateString(statusItem.timestamp)}]: ${statusItem.label(widget.log)}';
         },
       ).join('<br>'),
     );

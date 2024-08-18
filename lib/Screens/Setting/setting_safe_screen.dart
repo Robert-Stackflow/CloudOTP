@@ -1,6 +1,7 @@
 import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
+import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
@@ -68,7 +69,7 @@ class _PrivacySettingScreenState extends State<PrivacySettingScreen>
                   Navigator.pop(context);
                 },
                 title: Text(
-                  S.current.setting,
+                  S.current.safeSetting,
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -80,10 +81,10 @@ class _PrivacySettingScreenState extends State<PrivacySettingScreen>
                   const SizedBox(width: 5),
                 ],
               ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
+        body: EasyRefresh(
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
               ..._privacySettings(),
               const SizedBox(height: 30),
@@ -96,13 +97,12 @@ class _PrivacySettingScreenState extends State<PrivacySettingScreen>
 
   _privacySettings() {
     return [
-      const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.safeSetting),
       ItemBuilder.buildRadioItem(
         context: context,
+        topRadius: true,
         value: _enableGuesturePasswd,
         title: S.current.enableGestureLock,
+        bottomRadius: !_enableGuesturePasswd,
         description: S.current.enableGestureLockTip,
         onTap: onEnablePinTapped,
       ),
@@ -110,6 +110,7 @@ class _PrivacySettingScreenState extends State<PrivacySettingScreen>
         visible: _enableGuesturePasswd,
         child: ItemBuilder.buildEntryItem(
           context: context,
+          bottomRadius: !_hasGuesturePasswd,
           title: _hasGuesturePasswd
               ? S.current.changeGestureLock
               : S.current.setGestureLock,
@@ -133,6 +134,8 @@ class _PrivacySettingScreenState extends State<PrivacySettingScreen>
       Visibility(
         visible: _enableGuesturePasswd && _hasGuesturePasswd,
         child: ItemBuilder.buildRadioItem(
+          bottomRadius:
+              !(_enableGuesturePasswd && _hasGuesturePasswd && _autoLock),
           context: context,
           value: _autoLock,
           title: S.current.autoLock,
@@ -147,6 +150,7 @@ class _PrivacySettingScreenState extends State<PrivacySettingScreen>
           builder: (context, autoLockTime, child) => ItemBuilder.buildEntryItem(
             context: context,
             title: S.current.autoLockDelay,
+            bottomRadius: true,
             tip: AppProvider.getAutoLockOptionLabel(autoLockTime),
             onTap: () {
               BottomSheetBuilder.showListBottomSheet(
@@ -167,9 +171,11 @@ class _PrivacySettingScreenState extends State<PrivacySettingScreen>
           ),
         ),
       ),
+      const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
         value: _enableSafeMode,
+        topRadius: true,
         title: S.current.safeMode,
         disabled: ResponsiveUtil.isDesktop(),
         description: S.current.safeModeTip,

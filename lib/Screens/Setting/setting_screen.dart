@@ -4,6 +4,7 @@ import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
+import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
@@ -13,7 +14,6 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
@@ -35,6 +35,7 @@ import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 import '../Lock/pin_change_screen.dart';
@@ -169,10 +170,10 @@ class _SettingScreenState extends State<SettingScreen>
                   const SizedBox(width: 5),
                 ],
               ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
+        body: EasyRefresh(
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
               ..._generalSettings(),
               ..._apperanceSettings(),
@@ -415,7 +416,6 @@ class _SettingScreenState extends State<SettingScreen>
             ? S.current.editAutoBackupPassword
             : S.current.setAutoBackupPassword,
         onTap: () {
-          TextEditingController controller = TextEditingController();
           BottomSheetBuilder.showBottomSheet(
             context,
             responsive: true,
@@ -429,16 +429,12 @@ class _SettingScreenState extends State<SettingScreen>
                   : S.current.setAutoBackupPasswordTip,
               hint: S.current.inputAutoBackupPassword,
               tailingType: InputItemTailingType.password,
-              controller: controller,
-              stateController: InputStateController(
-                validate: (text) {
-                  if (text.isEmpty) {
-                    return Future.value(
-                        S.current.autoBackupPasswordCannotBeEmpty);
-                  }
-                  return Future.value(null);
-                },
-              ),
+              validator: (text) {
+                if (text.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetter,
               ],
@@ -504,17 +500,6 @@ class _SettingScreenState extends State<SettingScreen>
           description: S.current.maxBackupCountTip,
           tip: _maxBackupsCount.toString(),
           onTap: () async {
-            var stateController = InputStateController(
-              validate: (text) {
-                if (text.isEmpty) {
-                  return Future.value(S.current.maxBackupCountCannotBeEmpty);
-                }
-                if (int.tryParse(text) == null) {
-                  return Future.value(S.current.maxBackupCountTooLong);
-                }
-                return Future.value(null);
-              },
-            );
             CustomLoadingDialog.showLoading(title: S.current.loading);
             List<int> counts = await getBackupsCount();
             CustomLoadingDialog.dismissLoading();
@@ -528,8 +513,15 @@ class _SettingScreenState extends State<SettingScreen>
                     '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0], counts[1])}',
                 hint: S.current.inputMaxBackupCount,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
-                preventPop: true,
-                stateController: stateController,
+                validator: (text) {
+                  if (text.isEmpty) {
+                    return S.current.maxBackupCountCannotBeEmpty;
+                  }
+                  if (int.tryParse(text) == null) {
+                    return S.current.maxBackupCountTooLong;
+                  }
+                  return null;
+                },
                 onConfirm: (text) async {},
                 onValidConfirm: (text) async {
                   int count = int.parse(text);
@@ -538,10 +530,10 @@ class _SettingScreenState extends State<SettingScreen>
                     setState(() {
                       _maxBackupsCount = count;
                     });
-                    stateController.pop?.call();
                     deleteOldBackups(count);
+                    return true;
                   }
-
+                  print("ddddddd");
                   if (count > 0 && (counts[0] > count || counts[1] > count)) {
                     DialogBuilder.showConfirmDialog(
                       context,
@@ -553,8 +545,9 @@ class _SettingScreenState extends State<SettingScreen>
                       },
                       onTapCancel: () {},
                     );
+                    return false;
                   } else {
-                    onValid();
+                    return onValid();
                   }
                 },
               ),

@@ -81,24 +81,29 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
     );
   }
 
-  _showImportPasswordDialog(
-    Function(TextEditingController, InputStateController, String)?
-        onValidConfirm,
-  ) {
-    TextEditingController controller = TextEditingController();
-    InputStateController stateController = InputStateController(
-      validate: (value) {
-        if (value.isEmpty) {
-          return Future.value(S.current.autoBackupPasswordCannotBeEmpty);
-        }
-        return Future.value(null);
-      },
-    );
+  _showImportPasswordDialog(String path) {
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
       (context) => InputBottomSheet(
-        stateController: stateController,
+        validator: (value) {
+          if (value.isEmpty) {
+            return S.current.autoBackupPasswordCannotBeEmpty;
+          }
+          return null;
+        },
+        validateAsyncController: InputValidateAsyncController(
+          controller: TextEditingController(),
+          listen: false,
+          validator: (text) async {
+            bool success = await ImportTokenUtil.importEncryptFile(path, text);
+            if (success) {
+              return null;
+            } else {
+              return S.current.encryptDatabasePasswordWrong;
+            }
+          },
+        ),
         title: S.current.inputImportPasswordTitle,
         message: S.current.inputImportPasswordTip,
         hint: S.current.inputImportPasswordHint,
@@ -106,9 +111,8 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           RegexInputFormatter.onlyNumberAndLetter,
         ],
         tailingType: InputItemTailingType.password,
-        preventPop: true,
         onValidConfirm: (password) async {
-          onValidConfirm?.call(controller, stateController, password);
+          return null;
         },
       ),
     );
@@ -133,17 +137,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             );
             if (result != null) {
               operation() {
-                _showImportPasswordDialog(
-                    (controller, stateController, password) async {
-                  bool success = await ImportTokenUtil.importEncryptFile(
-                      result.files.single.path!, password);
-                  if (success) {
-                    stateController.pop?.call();
-                  } else {
-                    stateController
-                        .setError(S.current.encryptDatabasePasswordWrong);
-                  }
-                });
+                _showImportPasswordDialog(result.files.single.path!);
               }
 
               if (await HiveUtil.canImportOrExportUseBackupPassword()) {
@@ -243,15 +237,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                   ExportTokenUtil.exportEncryptFile(
                       result, await ConfigDao.getBackupPassword());
                 } else {
-                  InputStateController stateController = InputStateController(
-                    validate: (value) {
-                      if (value.isEmpty) {
-                        return Future.value(
-                            S.current.encryptDatabasePasswordCannotBeEmpty);
-                      }
-                      return Future.value(null);
-                    },
-                  );
                   BottomSheetBuilder.showBottomSheet(
                     context,
                     responsive: true,
@@ -263,9 +248,15 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                       inputFormatters: [
                         RegexInputFormatter.onlyNumberAndLetter,
                       ],
-                      stateController: stateController,
-                      onValidConfirm: (password) {
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return S.current.encryptDatabasePasswordCannotBeEmpty;
+                        }
+                        return null;
+                      },
+                      onValidConfirm: (password) async {
                         ExportTokenUtil.exportEncryptFile(result, password);
+                        return null;
                       },
                     ),
                   );
@@ -276,15 +267,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                 ExportTokenUtil.exportEncryptToMobileDirectory(
                     password: await ConfigDao.getBackupPassword());
               } else {
-                InputStateController stateController = InputStateController(
-                  validate: (value) {
-                    if (value.isEmpty) {
-                      return Future.value(
-                          S.current.encryptDatabasePasswordCannotBeEmpty);
-                    }
-                    return Future.value(null);
-                  },
-                );
                 BottomSheetBuilder.showBottomSheet(
                   context,
                   responsive: true,
@@ -296,10 +278,16 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                     inputFormatters: [
                       RegexInputFormatter.onlyNumberAndLetter,
                     ],
-                    stateController: stateController,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return S.current.encryptDatabasePasswordCannotBeEmpty;
+                      }
+                      return null;
+                    },
                     onValidConfirm: (password) async {
                       ExportTokenUtil.exportEncryptToMobileDirectory(
                           password: password);
+                      return null;
                     },
                   ),
                 );

@@ -37,9 +37,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   final TextEditingController _endpointController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _secretController = TextEditingController();
-  late final InputStateController _endpointStateController;
-  late final InputStateController _secretStateController;
-  late final InputStateController _accountStateController;
   CloudServiceConfig? _webDavCloudServiceConfig;
   WebDavCloudService? _webDavCloudService;
 
@@ -51,6 +48,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     return _webDavCloudServiceConfig != null;
   }
 
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool inited = false;
 
   @override
@@ -76,15 +74,16 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     }
     if (_webDavCloudService != null) {
       _webDavCloudServiceConfig!.connected =
-      await _webDavCloudService!.isConnected();
+          await _webDavCloudService!.isConnected();
     }
     inited = true;
     setState(() {});
   }
 
+  RegExp urlRegex = RegExp(
+      r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\://)?(www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}(\:[0-9]{1,5})*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-@]+))*");
+
   initFields() {
-    RegExp urlRegex = RegExp(
-        r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\://)?(www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}(\:[0-9]{1,5})*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-@]+))*");
     _endpointController.addListener(() {
       _webDavCloudServiceConfig!.endpoint = _endpointController.text;
     });
@@ -94,46 +93,10 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     _secretController.addListener(() {
       _webDavCloudServiceConfig!.secret = _secretController.text;
     });
-    _endpointStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.webDavServerCannotBeEmpty);
-        }
-        if (!urlRegex.hasMatch(text)) {
-          return Future.value(S.current.webDavServerInvalid);
-        }
-        return Future.value(null);
-      },
-    );
-    _secretStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.webDavPasswordCannotBeEmpty);
-        }
-        return Future.value(null);
-      },
-    );
-    _accountStateController = InputStateController(
-      validate: (text) {
-        if (text.isEmpty) {
-          return Future.value(S.current.webDavUsernameCannotBeEmpty);
-        }
-        return Future.value(null);
-      },
-    );
   }
 
   Future<bool> isValid() async {
-    bool issuerValid = await _endpointStateController.isValid();
-    bool secretValid = await _secretStateController.isValid();
-    bool accountValid = await _accountStateController.isValid();
-    return issuerValid && secretValid && accountValid;
-  }
-
-  resetState() {
-    _endpointStateController.reset();
-    _secretStateController.reset();
-    _accountStateController.reset();
+    return formKey.currentState?.validate() ?? false;
   }
 
   @override
@@ -146,7 +109,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             background: Colors.transparent,
             text: S.current.cloudConnecting,
           );
-    ;
   }
 
   ping({
@@ -216,45 +178,64 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       topRadius: true,
       bottomRadius: true,
       padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
-      child: Column(
-        children: [
-          InputItem(
-            controller: _endpointController,
-            textInputAction: TextInputAction.next,
-            leadingText: S.current.webDavServer,
-            leadingType: InputItemLeadingType.text,
-            topRadius: true,
-            disabled: currentConfig.connected,
-            stateController: _endpointStateController,
-            hint: S.current.webDavServerHint,
-            // inputFormatters: [
-            //   RegexInputFormatter.onlyUrl,
-            // ],
-          ),
-          InputItem(
-            controller: _accountController,
-            stateController: _accountStateController,
-            textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
-            disabled: currentConfig.connected,
-            leadingText: S.current.webDavUsername,
-            hint: S.current.webDavUsernameHint,
-          ),
-          InputItem(
-            controller: _secretController,
-            textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
-            leadingText: S.current.webDavPassword,
-            tailingType: InputItemTailingType.password,
-            disabled: currentConfig.connected,
-            hint: S.current.webDavPasswordHint,
-            inputFormatters: [
-              RegexInputFormatter.onlyNumberAndLetter,
-            ],
-            stateController: _secretStateController,
-            bottomRadius: true,
-          ),
-        ],
+      child: Form(
+        key: formKey,
+        autovalidateMode: AutovalidateMode.always,
+        child: Column(
+          children: [
+            InputItem(
+              controller: _endpointController,
+              textInputAction: TextInputAction.next,
+              leadingText: S.current.webDavServer,
+              leadingType: InputItemLeadingType.text,
+              topRadius: true,
+              disabled: currentConfig.connected,
+              validator: (text) {
+                if (text.isEmpty) {
+                  return S.current.webDavServerCannotBeEmpty;
+                }
+                if (!urlRegex.hasMatch(text)) {
+                  return S.current.webDavServerInvalid;
+                }
+                return null;
+              },
+              hint: S.current.webDavServerHint,
+            ),
+            InputItem(
+              controller: _accountController,
+              textInputAction: TextInputAction.next,
+              leadingType: InputItemLeadingType.text,
+              disabled: currentConfig.connected,
+              leadingText: S.current.webDavUsername,
+              hint: S.current.webDavUsernameHint,
+              validator: (text) {
+                if (text.isEmpty) {
+                  return S.current.webDavUsernameCannotBeEmpty;
+                }
+                return null;
+              },
+            ),
+            InputItem(
+              controller: _secretController,
+              textInputAction: TextInputAction.next,
+              leadingType: InputItemLeadingType.text,
+              leadingText: S.current.webDavPassword,
+              tailingType: InputItemTailingType.password,
+              disabled: currentConfig.connected,
+              hint: S.current.webDavPasswordHint,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetter,
+              ],
+              validator: (text) {
+                if (text.isEmpty) {
+                  return S.current.webDavPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              bottomRadius: true,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -274,7 +255,11 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 await CloudServiceConfigDao.updateConfig(currentConfig);
                 _webDavCloudService =
                     WebDavCloudService(_webDavCloudServiceConfig!);
-                ping();
+                try {
+                  ping();
+                } catch (e) {
+                  IToast.show(S.current.cloudConnectionError);
+                }
               }
             },
           ),
@@ -302,7 +287,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 dismissible: true,
               );
               try {
-                List<WebDavFileInfo> files = await _webDavCloudService!.listBackups();
+                List<WebDavFileInfo> files =
+                    await _webDavCloudService!.listBackups();
                 CloudServiceConfigDao.updateLastPullTime(
                     _webDavCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
@@ -337,21 +323,41 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                         );
                         dialog.dismiss();
                         if (!success) {
-                          InputStateController stateController =
-                              InputStateController(
-                            validate: (value) {
-                              if (value.isEmpty) {
-                                return Future.value(
-                                    S.current.autoBackupPasswordCannotBeEmpty);
-                              }
-                              return Future.value(null);
-                            },
-                          );
                           BottomSheetBuilder.showBottomSheet(
                             context,
                             responsive: true,
                             (context) => InputBottomSheet(
-                              stateController: stateController,
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return S
+                                      .current.autoBackupPasswordCannotBeEmpty;
+                                }
+                                return null;
+                              },
+                              validateAsyncController:
+                                  InputValidateAsyncController(
+                                listen: false,
+                                validator: (text) async {
+                                  dialog.show(
+                                    msg: S.current.importing,
+                                    showProgress: false,
+                                  );
+                                  bool success =
+                                      await ImportTokenUtil.importBackupFile(
+                                    password: text,
+                                    res,
+                                    showLoading: false,
+                                  );
+                                  dialog.dismiss();
+                                  if (success) {
+                                    return null;
+                                  } else {
+                                    return S
+                                        .current.invalidPasswordOrDataCorrupted;
+                                  }
+                                },
+                                controller: TextEditingController(),
+                              ),
                               title: S.current.inputImportPasswordTitle,
                               message: S.current.inputImportPasswordTip,
                               hint: S.current.inputImportPasswordHint,
@@ -359,27 +365,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                                 RegexInputFormatter.onlyNumberAndLetter,
                               ],
                               tailingType: InputItemTailingType.password,
-                              preventPop: true,
-                              onValidConfirm: (password) async {
-                                dialog.show(
-                                  msg: S.current.importing,
-                                  showProgress: false,
-                                );
-                                bool success =
-                                    await ImportTokenUtil.importBackupFile(
-                                  password: password,
-                                  res,
-                                  showLoading: false,
-                                );
-                                dialog.dismiss();
-                                if (success) {
-                                  IToast.show(S.current.importSuccess);
-                                  stateController.pop?.call();
-                                } else {
-                                  stateController.setError(
-                                      S.current.invalidPasswordOrDataCorrupted);
-                                }
-                              },
+                              onValidConfirm: (password) async {},
                             ),
                           );
                         }

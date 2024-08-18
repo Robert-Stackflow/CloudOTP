@@ -8,6 +8,9 @@ class CloudServiceConfigDao {
 
   static Future<int> insertConfig(CloudServiceConfig config) async {
     final db = await DatabaseManager.getDataBase();
+    if (await getSpecifyConfig(config.type) != null) {
+      return -1;
+    }
     config.id = await getMaxId() + 1;
     config.createTimestamp = DateTime.now().millisecondsSinceEpoch;
     config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
@@ -36,6 +39,17 @@ class CloudServiceConfigDao {
     return List.generate(maps.length, (i) {
       return CloudServiceConfig.fromMap(maps[i]);
     });
+  }
+
+  static Future<List<CloudServiceConfig>> getValidConfigs() async {
+    List<CloudServiceConfig> configs = await getConfigs();
+    List<CloudServiceConfig> validConfigs = [];
+    for (CloudServiceConfig config in configs) {
+      if (config.enabled && (await config.isValid())) {
+        validConfigs.add(config);
+      }
+    }
+    return validConfigs;
   }
 
   static Future<int> updateLastBackupTime(CloudServiceConfig config) async {
@@ -130,5 +144,9 @@ class CloudServiceConfigDao {
 
   static Future<CloudServiceConfig?> getDropboxConfig() async {
     return getSpecifyConfig(CloudServiceType.Dropbox);
+  }
+
+  static Future<CloudServiceConfig?> getS3CloudConfig() async {
+    return getSpecifyConfig(CloudServiceType.S3Cloud);
   }
 }

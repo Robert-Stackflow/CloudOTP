@@ -10,6 +10,7 @@ import '../../Models/cloud_service_config.dart';
 import 'cloud_service.dart';
 
 class WebDavCloudService extends CloudService {
+  @override
   CloudServiceType get type => CloudServiceType.Webdav;
   static const String _webdavPath = '/CloudOTP';
   final CloudServiceConfig _config;
@@ -167,14 +168,5 @@ class WebDavCloudService extends CloudService {
       await deleteFile(file.path!);
     }
     return true;
-  }
-
-  @override
-  Future<bool> isConfigured() {
-    return Future.value(
-      _config.endpoint != null &&
-          _config.account != null &&
-          _config.secret != null,
-    );
   }
 }

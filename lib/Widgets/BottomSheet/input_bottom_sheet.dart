@@ -13,7 +13,6 @@ class InputBottomSheet extends StatefulWidget {
     this.maxLines = 5,
     this.minLines = 1,
     this.hint,
-    this.controller,
     this.onConfirm,
     this.onValidConfirm,
     this.message = "",
@@ -25,7 +24,6 @@ class InputBottomSheet extends StatefulWidget {
     this.obscureText,
     this.tailingType = InputItemTailingType.none,
     this.leadingType = InputItemLeadingType.none,
-    this.stateController,
     this.tailingText,
     this.showTailing,
     this.tailingIcon,
@@ -43,6 +41,8 @@ class InputBottomSheet extends StatefulWidget {
     this.inputFormatters = const [],
     this.leadingMinWidth,
     this.preventPop = false,
+    this.validator,
+    this.validateAsyncController,
   });
 
   final String? hint;
@@ -51,17 +51,16 @@ class InputBottomSheet extends StatefulWidget {
   final String message;
   final int maxLines;
   final int minLines;
+  final InputValidateAsyncController? validateAsyncController;
+  final FormFieldValidator? validator;
   final Function()? onCancel;
   final Function(String)? onConfirm;
   final Function(String)? onValidConfirm;
-  final TextEditingController? controller;
-
   final TextInputAction? textInputAction;
   final IconData? leadingIcon;
   final bool? obscureText;
   final InputItemTailingType tailingType;
   final InputItemLeadingType leadingType;
-  final InputStateController? stateController;
   final String? tailingText;
   final bool? showTailing;
   final IconData? tailingIcon;
@@ -86,17 +85,15 @@ class InputBottomSheet extends StatefulWidget {
 
 class InputBottomSheetState extends State<InputBottomSheet> {
   late TextEditingController controller;
-  late InputStateController stateController;
   final FocusNode _focusNode = FocusNode();
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    controller = widget.controller ?? TextEditingController();
+    controller = widget.validateAsyncController?.controller??TextEditingController();
     controller.value = TextEditingValue(text: widget.text);
-    stateController = widget.stateController ??
-        InputStateController(validate: (_) => Future.value(null));
-    stateController.pop = () {
+    widget.validateAsyncController?.doPop = () {
       Navigator.of(context).pop();
     };
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -132,37 +129,43 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                   _buildHeader(),
                 const SizedBox(height: 8.0),
                 Center(
-                  child: InputItem(
-                    controller: controller,
-                    stateController: stateController,
-                    focusNode: _focusNode,
-                    hint: widget.hint,
-                    maxLines: widget.tailingType ==
-                                InputItemTailingType.password ||
-                            (widget.obscureText != null && widget.obscureText!)
-                        ? 1
-                        : widget.maxLines,
-                    minLines: widget.minLines,
-                    textInputAction: widget.textInputAction,
-                    leadingIcon: widget.leadingIcon,
-                    obscureText: widget.obscureText,
-                    tailingType: widget.tailingType,
-                    leadingType: widget.leadingType,
-                    tailingText: widget.tailingText,
-                    showTailing: widget.showTailing,
-                    tailingIcon: widget.tailingIcon,
-                    onTailingTap: widget.onTailingTap,
-                    tailingWidget: widget.tailingWidget,
-                    leadingWidget: widget.leadingWidget,
-                    leadingText: widget.leadingText,
-                    backgroundColor: widget.backgroundColor,
-                    keyboardType: widget.keyboardType,
-                    topRadius: widget.topRadius,
-                    bottomRadius: widget.bottomRadius,
-                    disabled: widget.readOnly,
-                    maxLength: widget.maxLength,
-                    inputFormatters: widget.inputFormatters,
-                    leadingMinWidth: widget.leadingMinWidth,
+                  child: Form(
+                    key: formKey,
+                    autovalidateMode: AutovalidateMode.always,
+                    child: InputItem(
+                      controller: controller,
+                      focusNode: _focusNode,
+                      hint: widget.hint,
+                      maxLines:
+                          widget.tailingType == InputItemTailingType.password ||
+                                  (widget.obscureText != null &&
+                                      widget.obscureText!)
+                              ? 1
+                              : widget.maxLines,
+                      minLines: widget.minLines,
+                      validator: widget.validator,
+                      validateAsyncController: widget.validateAsyncController,
+                      textInputAction: widget.textInputAction,
+                      leadingIcon: widget.leadingIcon,
+                      obscureText: widget.obscureText,
+                      tailingType: widget.tailingType,
+                      leadingType: widget.leadingType,
+                      tailingText: widget.tailingText,
+                      showTailing: widget.showTailing,
+                      tailingIcon: widget.tailingIcon,
+                      onTailingTap: widget.onTailingTap,
+                      tailingWidget: widget.tailingWidget,
+                      leadingWidget: widget.leadingWidget,
+                      leadingText: widget.leadingText,
+                      backgroundColor: widget.backgroundColor,
+                      keyboardType: widget.keyboardType,
+                      topRadius: widget.topRadius,
+                      bottomRadius: widget.bottomRadius,
+                      disabled: widget.readOnly,
+                      maxLength: widget.maxLength,
+                      inputFormatters: widget.inputFormatters,
+                      leadingMinWidth: widget.leadingMinWidth,
+                    ),
                   ),
                 ),
                 _buildFooter(),
@@ -228,11 +231,16 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 color: Colors.white,
                 text: S.current.confirm,
                 onTap: () async {
-                  String? error = await stateController.doValidate();
+                  bool isValid = formKey.currentState?.validate() ?? false;
+                  String? error =
+                      await widget.validateAsyncController?.validate();
+                  bool isValidAsync = (error == null);
                   widget.onConfirm?.call(controller.text);
-                  if (error == null) {
-                    widget.onValidConfirm?.call(controller.text);
-                    if (!widget.preventPop) Navigator.of(context).pop();
+                  if (isValid && isValidAsync) {
+                    await widget.onValidConfirm?.call(controller.text);
+                    if (!widget.preventPop) {
+                      Navigator.of(context).pop();
+                    }
                   }
                 },
                 fontSizeDelta: 2,

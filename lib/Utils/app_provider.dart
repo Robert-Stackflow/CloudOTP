@@ -1,13 +1,13 @@
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
+import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:queue/queue.dart';
-import 'package:cloudotp/Utils/Tuple/tuple.dart';
 
 import '../Screens/home_screen.dart';
 import '../Widgets/Custom/keyboard_handler.dart';
@@ -79,6 +79,15 @@ class AppProvider with ChangeNotifier {
 
   set autoBackupLoadingStatus(LoadingStatus value) {
     _autoBackupStatus = value;
+    notifyListeners();
+  }
+
+  bool _showCloudEntry = false;
+
+  bool get showCloudEntry => _showCloudEntry;
+
+  set showCloudEntry(bool value) {
+    _showCloudEntry = value;
     notifyListeners();
   }
 

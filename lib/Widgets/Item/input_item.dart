@@ -10,60 +10,41 @@ enum InputItemTailingType { none, clear, password, icon, text, widget }
 
 enum InputItemLeadingType { none, icon, text, widget }
 
-enum InputState { normal, success, error }
-
-class InputStateController {
-  TextEditingController? controller;
-  InputState state = InputState.normal;
+class InputValidateAsyncController {
+  TextEditingController controller;
   String? errorMessage;
-  Future<String?> Function(String) validate;
-  void Function() onStateChanged = () {};
-  Function()? pop;
+  Future<String?> Function(String) validator;
+  void Function() onError = () {};
+  Function()? doPop;
 
-  InputStateController({
-    this.state = InputState.normal,
+  InputValidateAsyncController({
     this.errorMessage,
-    required this.validate,
-  });
+    required this.validator,
+    required this.controller,
+    bool listen = true,
+  }) {
+    if (listen) controller.addListener(validate);
+  }
 
-  Future<String?> doValidate() async {
-    if (controller == null) {
-      return null;
-    }
-    String? error = await validate(controller!.text);
+  Future<String?> validate() async {
+    String? error = await validator(controller.text);
     errorMessage = error;
-    if (Utils.isNotEmpty(error)) {
-      setInputState(InputState.error);
-    } else {
-      setInputState(InputState.success);
-    }
-    onStateChanged();
+    onError();
     return error;
   }
 
   void reset() {
-    setInputState(InputState.normal);
     errorMessage = null;
-    onStateChanged();
+    onError();
   }
 
   Future<bool> isValid() async {
-    return await doValidate() == null;
-  }
-
-  void setInputState(InputState state) {
-    this.state = state;
+    return await validate() == null;
   }
 
   void setError(String error) {
     errorMessage = error;
-    setInputState(InputState.error);
-    onStateChanged();
-  }
-
-  void setTextEditingController(TextEditingController controller) {
-    this.controller = controller;
-    controller.addListener(doValidate);
+    onError();
   }
 }
 
@@ -74,10 +55,10 @@ class InputItem extends StatefulWidget {
     this.leadingIcon,
     this.hint,
     this.controller,
+    this.validateAsyncController,
     this.obscureText,
     this.tailingType = InputItemTailingType.none,
     this.leadingType = InputItemLeadingType.none,
-    this.stateController,
     this.tailingText,
     this.showTailing,
     this.tailingIcon,
@@ -98,7 +79,8 @@ class InputItem extends StatefulWidget {
     this.minLines,
     this.onSubmit,
     this.showBorder = true,
-    this.showErrorLine = true,
+    this.validator,
+    this.dense = false,
   });
 
   final TextInputAction? textInputAction;
@@ -108,8 +90,10 @@ class InputItem extends StatefulWidget {
   final bool? obscureText;
   final InputItemTailingType tailingType;
   final InputItemLeadingType leadingType;
-  final InputStateController? stateController;
+  final InputValidateAsyncController? validateAsyncController;
+  final FormFieldValidator? validator;
   final String? tailingText;
+  final bool dense;
   final bool? showTailing;
   final IconData? tailingIcon;
   final Function()? onTailingTap;
@@ -129,7 +113,6 @@ class InputItem extends StatefulWidget {
   final double? leadingMinWidth;
   final Function(String)? onSubmit;
   final bool showBorder;
-  final bool showErrorLine;
 
   @override
   State<StatefulWidget> createState() => InputItemState();
@@ -138,7 +121,6 @@ class InputItem extends StatefulWidget {
 class InputItemState extends State<InputItem> {
   TextInputAction get textInputAction =>
       widget.textInputAction ?? TextInputAction.done;
-  late InputStateController stateController;
 
   List<TextInputFormatter> get inputFormatters => widget.inputFormatters;
 
@@ -146,7 +128,7 @@ class InputItemState extends State<InputItem> {
 
   String? get hint => widget.hint;
 
-  late TextEditingController controller;
+  TextEditingController? controller;
 
   late bool obscureText;
 
@@ -172,7 +154,7 @@ class InputItemState extends State<InputItem> {
 
   TextInputType get keyboardType => widget.keyboardType ?? TextInputType.text;
 
-  FocusNode? get focusNode => widget.focusNode ;
+  FocusNode? get focusNode => widget.focusNode;
 
   bool get topRadius => widget.topRadius ?? false;
 
@@ -180,9 +162,7 @@ class InputItemState extends State<InputItem> {
 
   bool get readOnly => widget.disabled ?? false;
 
-  InputState get state => stateController.state;
-
-  String get errorMessage => stateController.errorMessage ?? '';
+  String? get errorMessage => widget.validateAsyncController?.errorMessage;
 
   int? get maxLength => widget.maxLength;
 
@@ -195,161 +175,115 @@ class InputItemState extends State<InputItem> {
   @override
   void initState() {
     super.initState();
-    controller = widget.controller ?? TextEditingController();
+    controller =
+        widget.validateAsyncController?.controller ?? widget.controller;
     obscureText = widget.obscureText ?? false;
-    stateController = widget.stateController ??
-        InputStateController(validate: (value) => Future.value(null));
-    stateController.setTextEditingController(controller);
-    stateController.onStateChanged = () {
+    widget.validateAsyncController?.onError = () {
       if (mounted) setState(() {});
     };
-    controller.addListener(() {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     Widget? leading = getLeading();
     Widget? tailing = getTailing();
+    ThemeData theme = Theme.of(context);
+    TextTheme textTheme = theme.textTheme;
     return Container(
+      margin: EdgeInsets.only(
+          left: widget.dense ? 0 : 10,
+          right: widget.dense ? 0 : 10,
+          bottom: widget.dense ? 0 : 10),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Theme.of(context).canvasColor,
+        color: backgroundColor ?? theme.canvasColor,
         shape: BoxShape.rectangle,
         borderRadius: BorderRadius.vertical(
           top: topRadius ? const Radius.circular(10) : Radius.zero,
           bottom: bottomRadius ? const Radius.circular(10) : Radius.zero,
         ),
       ),
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (leading != null)
-            Container(
-              margin: const EdgeInsets.only(top: 5),
-              child: leading,
-            ),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: widget.showBorder
-                          ? BorderSide(
-                              color: state == InputState.error
-                                  ? Colors.red
-                                  : focusNode?.hasFocus ?? false
-                                      ? Theme.of(context).primaryColor
-                                      : Theme.of(context).dividerColor,
-                              width: 0.5,
-                            )
-                          : BorderSide.none,
+          if (leading != null) leading,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: Material(
+                  color: Colors.transparent,
+                  child: TextFormField(
+                    focusNode: focusNode,
+                    controller: controller,
+                    textInputAction: textInputAction,
+                    keyboardType: keyboardType,
+                    readOnly: readOnly,
+                    obscureText: obscureText,
+                    maxLength: maxLength,
+                    enabled: !readOnly,
+                    onFieldSubmitted: widget.onSubmit,
+                    style: textTheme.titleMedium?.copyWith(
+                      letterSpacing: 1.1,
+                      color: readOnly ? textTheme.labelSmall?.color : null,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(
-                        child: Material(
-                          color: Colors.transparent,
-                          child: TextField(
-                            focusNode: focusNode,
-                            controller: controller,
-                            textInputAction: textInputAction,
-                            keyboardType: keyboardType,
-                            readOnly: readOnly,
-                            obscureText: obscureText,
-                            maxLength: maxLength,
-                            onSubmitted: widget.onSubmit,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  letterSpacing: 1.1,
-                                  color: readOnly
-                                      ? Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.color
-                                      : null,
-                                ),
-                            maxLines: widget.tailingType ==
-                                        InputItemTailingType.password ||
-                                    (widget.obscureText != null &&
-                                        widget.obscureText!)
-                                ? 1
-                                : widget.maxLines,
-                            minLines: minLines,
-                            inputFormatters: [
-                              // TrimInputFormatter(),
-                              if (maxLength != null && maxLength! > 0)
-                                LengthLimitingTextInputFormatter(maxLength),
-                              ...inputFormatters
-                            ],
-                            cursorColor: Theme.of(context).primaryColor,
-                            cursorHeight: 24,
-                            cursorRadius: const Radius.circular(5),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              isCollapsed: true,
-                              hintText: hint,
-                              contentPadding: EdgeInsets.only(
-                                  top: 8, left: leading != null ? 10 : 5),
-                              counterText: '',
-                              counter: Container(),
-                              hintStyle: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.apply(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.color),
-                              prefixIcon: null,
-                            ),
-                            contextMenuBuilder: (contextMenuContext, details) =>
-                                ItemBuilder.editTextContextMenuBuilder(
-                                    contextMenuContext, details,
-                                    context: context),
-                          ),
-                        ),
-                      ),
-                      if (tailing != null) tailing,
+                    maxLines: widget.tailingType ==
+                                InputItemTailingType.password ||
+                            (widget.obscureText != null && widget.obscureText!)
+                        ? 1
+                        : widget.maxLines,
+                    minLines: minLines,
+                    inputFormatters: [
+                      if (maxLength != null && maxLength! > 0)
+                        LengthLimitingTextInputFormatter(maxLength),
+                      ...inputFormatters
                     ],
+                    cursorColor: theme.primaryColor,
+                    cursorRadius: const Radius.circular(5),
+                    validator: widget.validator,
+                    forceErrorText: errorMessage,
+                    decoration: InputDecoration(
+                      hintText: hint,
+                      contentPadding: EdgeInsets.only(
+                          left: 5, bottom: widget.dense ? 5 : 0),
+                      counterStyle: textTheme.bodySmall,
+                      isDense: widget.dense,
+                      hintStyle: textTheme.titleSmall
+                          ?.apply(color: textTheme.bodySmall?.color),
+                      border: widget.showBorder
+                          ? UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: theme.primaryColor, width: 0.5))
+                          : InputBorder.none,
+                      focusedBorder: UnderlineInputBorder(
+                          borderSide:
+                              BorderSide(color: theme.primaryColor, width: 1)),
+                      enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: theme.primaryColor, width: 0.5)),
+                      disabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: textTheme.bodySmall!.color!, width: 0.5)),
+                      prefixIcon: null,
+                      errorStyle: textTheme.bodySmall?.apply(color: Colors.red),
+                      errorBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red, width: 1)),
+                      errorMaxLines: 1,
+                      focusedErrorBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red, width: 2)),
+                    ),
+                    contextMenuBuilder: (contextMenuContext, details) =>
+                        ItemBuilder.editTextContextMenuBuilder(
+                            contextMenuContext, details,
+                            context: context),
                   ),
                 ),
-                if (widget.showErrorLine) const SizedBox(height: 5),
-                if (widget.showErrorLine)
-                  Row(
-                    children: [
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: Text(
-                          state == InputState.error && errorMessage.isNotEmpty
-                              ? errorMessage
-                              : '',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.apply(color: Colors.red),
-                        ),
-                      ),
-                      if (maxLength != null && maxLength! > 0)
-                        Text(
-                          '${controller.text.characters.length}/$maxLength',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      const SizedBox(width: 5),
-                    ],
-                  ),
-              ],
-            ),
+              ),
+              if (tailing != null) tailing,
+            ],
           ),
         ],
       ),
@@ -358,23 +292,22 @@ class InputItemState extends State<InputItem> {
 
   Widget? getLeading() {
     Widget? leading;
+    ThemeData theme = Theme.of(context);
+    TextTheme textTheme = theme.textTheme;
     if (leadingType == InputItemLeadingType.text &&
         Utils.isNotEmpty(leadingText)) {
       leading = Container(
-        alignment: Alignment.center,
         constraints: BoxConstraints(minWidth: leadingMinWidth),
-        margin: const EdgeInsets.only(left: 10, right: 5),
+        margin: const EdgeInsets.only(left: 5, right: 5),
         child: Text(
           leadingText!,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.apply(fontWeightDelta: 2),
+          style: textTheme.titleMedium
+              ?.apply(fontWeightDelta: 2, fontSizeDelta: -2),
         ),
       );
     }
     if (leadingType == InputItemLeadingType.icon && leadingIcon != null) {
-      leading = Icon(leadingIcon, color: Theme.of(context).iconTheme.color);
+      leading = Icon(leadingIcon, color: theme.iconTheme.color);
     }
     if (leadingType == InputItemLeadingType.widget && leadingWidget != null) {
       leading = leadingWidget;
@@ -385,11 +318,13 @@ class InputItemState extends State<InputItem> {
   Widget? getTailing() {
     Widget? tailing;
     Function()? defaultTapFunction;
+    ThemeData theme = Theme.of(context);
+    TextTheme textTheme = theme.textTheme;
     if (tailingType == InputItemTailingType.clear) {
       tailing = Icon(Icons.clear_rounded,
-          color: Theme.of(context).iconTheme.color?.withAlpha(120));
+          color: theme.iconTheme.color?.withAlpha(120));
       defaultTapFunction = () {
-        controller.clear();
+        if (controller != null) controller!.clear();
       };
     }
     if (tailingType == InputItemTailingType.password) {
@@ -402,24 +337,21 @@ class InputItemState extends State<InputItem> {
         child: ItemBuilder.buildIconButton(
           context: context,
           icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off,
-              color: Theme.of(context).iconTheme.color?.withAlpha(120),
-              size: 16),
+              color: theme.iconTheme.color?.withAlpha(120), size: 16),
           onTap: defaultTapFunction,
         ),
       );
     }
     if (tailingType == InputItemTailingType.icon && tailingIcon != null) {
-      tailing = Icon(tailingIcon, color: Theme.of(context).iconTheme.color);
+      tailing = Icon(tailingIcon, color: theme.iconTheme.color);
     }
     if (tailingType == InputItemTailingType.text && tailingText != null) {
       tailing = Text(
         tailingText!,
-        style: Theme.of(context).textTheme.titleSmall?.apply(
-              color: showTailing
-                  ? Theme.of(context).primaryColor
-                  : Theme.of(context).textTheme.labelSmall?.color,
-              fontWeightDelta: 2,
-            ),
+        style: textTheme.titleSmall?.apply(
+          color: showTailing ? theme.primaryColor : textTheme.labelSmall?.color,
+          fontWeightDelta: 2,
+        ),
       );
     }
     if (tailingType == InputItemTailingType.widget && tailingWidget != null) {

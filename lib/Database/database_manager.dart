@@ -15,7 +15,7 @@ import '../Utils/hive_util.dart';
 
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
-  static const _dbVersion = 4;
+  static const _dbVersion = 5;
   static Database? _database;
   static final dbFactory = createDatabaseFactoryFfi(ffiInit: ffiInit);
 
@@ -33,6 +33,7 @@ class DatabaseManager {
       String path = join(await FileUtil.getDatabaseDir(), _dbName);
       if (!await dbFactory.databaseExists(path)) {
         password = await HiveUtil.regeneratePassword();
+        print("Database not exist and new password is $password");
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }
@@ -75,18 +76,29 @@ class DatabaseManager {
     await db.execute(Sql.createAutoBackupLogTable.sql);
   }
 
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  static Future<void> _onUpgrade(
+      Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute("alter table otp_token add column description TEXT NOT NULL DEFAULT ''");
-      await db.execute("alter table cloud_service_config add column enabled INTEGER NOT NULL DEFAULT 1");
+      await db.execute(
+          "alter table otp_token add column description TEXT NOT NULL DEFAULT ''");
+      await db.execute(
+          "alter table cloud_service_config add column enabled INTEGER NOT NULL DEFAULT 1");
     }
     if (oldVersion < 3) {
-      await db.execute("alter table cloud_service_config add column total_size INTEGER NOT NULL DEFAULT -1");
-      await db.execute("alter table cloud_service_config add column remaining_size INTEGER NOT NULL DEFAULT -1");
-      await db.execute("alter table cloud_service_config add column used_size INTEGER NOT NULL DEFAULT -1");
+      await db.execute(
+          "alter table cloud_service_config add column total_size INTEGER NOT NULL DEFAULT -1");
+      await db.execute(
+          "alter table cloud_service_config add column remaining_size INTEGER NOT NULL DEFAULT -1");
+      await db.execute(
+          "alter table cloud_service_config add column used_size INTEGER NOT NULL DEFAULT -1");
     }
     if (oldVersion < 4) {
-      await db.execute("alter table cloud_service_config add column email TEXT NOT NULL DEFAULT ''");
+      await db.execute(
+          "alter table cloud_service_config add column email TEXT NOT NULL DEFAULT ''");
+    }
+    if (oldVersion < 5) {
+      await db.execute(
+          "alter table cloud_service_config add column configured INTEGER NOT NULL DEFAULT 0");
     }
   }
 

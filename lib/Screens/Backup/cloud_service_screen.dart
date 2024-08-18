@@ -2,6 +2,7 @@ import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/dropbox_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/googledrive_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/onedrive_service_screen.dart';
+import 'package:cloudotp/Screens/Backup/s3_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -99,7 +100,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
             _typeInfo(),
             const SizedBox(height: 10),
             SizedBox(
-              height: 500,
+              height: MediaQuery.sizeOf(context).height - 150,
               child: PageView(
                 physics: const NeverScrollableScrollPhysics(),
                 controller: pageController,
@@ -108,6 +109,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
                   OneDriveServiceScreen(),
                   GoogleDriveServiceScreen(),
                   DropboxServiceScreen(),
+                  S3CloudServiceScreen(),
                 ],
               ),
             ),
@@ -127,7 +129,6 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
         children: [
           ItemBuilder.buildGroupTile(
             context: context,
-            title: S.current.cloudType,
             controller: _typeController,
             constraintWidth: false,
             buttons: CloudServiceType.toStrings(),
@@ -137,6 +138,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
               });
               pageController.jumpToPage(index);
             },
+            title: '',
           ),
         ],
       ),

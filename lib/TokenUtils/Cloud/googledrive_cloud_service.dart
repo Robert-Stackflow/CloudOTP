@@ -11,6 +11,7 @@ import '../export_token_util.dart';
 import 'cloud_service.dart';
 
 class GoogleDriveCloudService extends CloudService {
+  @override
   CloudServiceType get type => CloudServiceType.GoogleDrive;
   static const String _redirectUrl =
       'com.cloudchewie.cloudotp:/auth/googledrive/callback';
@@ -146,8 +147,4 @@ class GoogleDriveCloudService extends CloudService {
     return response.isSuccess;
   }
 
-  @override
-  Future<bool> isConfigured() {
-    return Future.value(googledrive.isConnected());
-  }
 }

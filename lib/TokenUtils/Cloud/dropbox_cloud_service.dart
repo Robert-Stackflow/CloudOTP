@@ -12,6 +12,7 @@ import '../export_token_util.dart';
 import 'cloud_service.dart';
 
 class DropboxCloudService extends CloudService {
+  @override
   CloudServiceType get type => CloudServiceType.Dropbox;
   static const String _redirectUrl = 'cloudotp://auth/dropbox/callback';
   static const String _clientID = 'ljyx5bk2jq92esr';
@@ -147,8 +148,4 @@ class DropboxCloudService extends CloudService {
     return response.isSuccess;
   }
 
-  @override
-  Future<bool> isConfigured() {
-    return Future.value(dropbox.isConnected());
-  }
 }

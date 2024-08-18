@@ -1,24 +1,10 @@
-import 'package:cloudotp/Database/config_dao.dart';
-import 'package:cloudotp/Models/cloud_service_config.dart';
-import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
-import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
-import 'package:cloudotp/TokenUtils/export_token_util.dart';
-import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
-import 'package:cloudotp/Widgets/Item/input_item.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../../Database/cloud_service_config_dao.dart';
-import '../../Database/database_manager.dart';
-import '../../Database/token_dao.dart';
 import '../../Models/github_response.dart';
 import '../../Resources/fonts.dart';
 import '../../Resources/theme_color_data.dart';
@@ -32,13 +18,11 @@ import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
-import '../Lock/pin_change_screen.dart';
-import '../Lock/pin_verify_screen.dart';
 
 class GeneralSettingScreen extends StatefulWidget {
   const GeneralSettingScreen({super.key});
@@ -107,7 +91,7 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
             Navigator.pop(context);
           },
           title: Text(
-            S.current.setting,
+            S.current.generalSetting,
             style: Theme.of(context)
                 .textTheme
                 .titleMedium
@@ -119,10 +103,10 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
             const SizedBox(width: 5),
           ],
         ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
+        body: EasyRefresh(
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
               ..._generalSettings(),
               ..._apperanceSettings(),
@@ -210,7 +194,6 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   _generalSettings() {
     return [
-      const SizedBox(height: 10),
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.generalSetting),
       Selector<AppProvider, Locale?>(

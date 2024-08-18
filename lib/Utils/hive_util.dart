@@ -98,6 +98,12 @@ class HiveUtil {
     await HiveUtil.put(HiveUtil.dragToReorderKey, !ResponsiveUtil.isMobile());
   }
 
+  static Future<bool> showCloudEntry() async {
+    String autoBackupPassword = (await ConfigDao.getConfig()).backupPassword;
+    bool enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
+    return enableCloudBackup && autoBackupPassword.isNotEmpty;
+  }
+
   static int getMaxBackupsCount() {
     return getInt(HiveUtil.maxBackupsCountKey,
         defaultValue: defaultMaxBackupCount);

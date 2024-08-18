@@ -1,11 +1,13 @@
 import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Utils/route_util.dart';
+import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/database_manager.dart';
+import '../../Utils/hive_util.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../Widgets/Window/window_caption.dart';
@@ -19,25 +21,54 @@ class DatabaseDecryptScreen extends StatefulWidget {
   DatabaseDecryptScreenState createState() => DatabaseDecryptScreenState();
 }
 
-class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
-  final TextEditingController _controller = TextEditingController();
-  late InputStateController _stateController;
+class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
+    with WindowListener {
   final FocusNode _focusNode = FocusNode();
+  late InputValidateAsyncController validateAsyncController;
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  @override
+  Future<void> onWindowResized() async {
+    super.onWindowResized();
+    HiveUtil.setWindowSize(await windowManager.getSize());
+  }
+
+  @override
+  Future<void> onWindowMoved() async {
+    super.onWindowMoved();
+    HiveUtil.setWindowPosition(await windowManager.getPosition());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    windowManager.removeListener(this);
+  }
 
   @override
   void initState() {
     super.initState();
-    _stateController = InputStateController(
-      validate: (value) {
-        if (value.isEmpty) {
-          return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);
-        }
-        return Future.value(null);
-      },
-    );
+    windowManager.addListener(this);
     Future.delayed(const Duration(milliseconds: 200), () {
       FocusScope.of(context).requestFocus(_focusNode);
     });
+    validateAsyncController = InputValidateAsyncController(
+      listen: false,
+      validator: (text) async {
+        if (text.isNotEmpty) {
+          try {
+            await DatabaseManager.initDataBase(text);
+            if (DatabaseManager.initialized) {
+              return null;
+            }
+          } catch (e) {
+            return S.current.encryptDatabasePasswordWrong;
+          }
+        }
+        return null;
+      },
+      controller: TextEditingController(),
+    );
   }
 
   @override
@@ -59,14 +90,16 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
   }
 
   onSubmit() async {
-    try {
-      await DatabaseManager.initDataBase(_controller.text);
-    } catch (e) {
-      _stateController.setError(S.current.encryptDatabasePasswordWrong);
-    }
-    if (DatabaseManager.initialized) {
-      Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
-          ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+    CustomLoadingDialog.showLoading(
+        title: S.current.decryptingDatabasePassword);
+    String? error = await validateAsyncController.validate();
+    bool isValidAsync = (error == null);
+    CustomLoadingDialog.dismissLoading();
+    if (isValidAsync) {
+      if (DatabaseManager.initialized) {
+        Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
+            ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+      }
     }
   }
 
@@ -85,22 +118,31 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen> {
             color: Colors.grey.withAlpha(40),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: InputItem(
-            controller: _controller,
-            stateController: _stateController,
-            focusNode: _focusNode,
-            maxLines: 1,
-            textInputAction: TextInputAction.done,
-            backgroundColor: Colors.transparent,
-            tailingType: InputItemTailingType.password,
-            leadingType: InputItemLeadingType.none,
-            hint: S.current.inputEncryptDatabasePassword,
-            topRadius: true,
-            onSubmit: (_) => onSubmit(),
-            bottomRadius: true,
-            inputFormatters: [
-              RegexInputFormatter.onlyNumberAndLetter,
-            ],
+          child: Form(
+            key: formKey,
+            autovalidateMode: AutovalidateMode.always,
+            child: InputItem(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return S.current.encryptDatabasePasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              validateAsyncController: validateAsyncController,
+              focusNode: _focusNode,
+              maxLines: 1,
+              onSubmit: (_) => onSubmit(),
+              textInputAction: TextInputAction.done,
+              backgroundColor: Colors.transparent,
+              tailingType: InputItemTailingType.password,
+              leadingType: InputItemLeadingType.none,
+              hint: S.current.inputEncryptDatabasePassword,
+              topRadius: true,
+              bottomRadius: true,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetter,
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 30),

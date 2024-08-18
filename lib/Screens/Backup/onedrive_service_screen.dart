@@ -63,13 +63,11 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       _sizeController.text = _oneDriveCloudServiceConfig!.size;
       _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
       _emailController.text = _oneDriveCloudServiceConfig!.email ?? "";
-      if (await _oneDriveCloudServiceConfig!.isValid()) {
-        _oneDriveCloudService = OneDriveCloudService(
-          context,
-          _oneDriveCloudServiceConfig!,
-          onConfigChanged: updateConfig,
-        );
-      }
+      _oneDriveCloudService = OneDriveCloudService(
+        context,
+        _oneDriveCloudServiceConfig!,
+        onConfigChanged: updateConfig,
+      );
     } else {
       _oneDriveCloudServiceConfig =
           CloudServiceConfig.init(type: CloudServiceType.OneDrive);
@@ -81,8 +79,9 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       );
     }
     if (_oneDriveCloudService != null) {
-      _oneDriveCloudServiceConfig!.connected =
-          await _oneDriveCloudService!.isConnected();
+      _oneDriveCloudServiceConfig!.configured = _oneDriveCloudServiceConfig!
+          .connected = await _oneDriveCloudService!.isConnected();
+      updateConfig(_oneDriveCloudServiceConfig!);
     }
     inited = true;
     setState(() {});
@@ -115,8 +114,9 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   _buildUnsupportBody() {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          const SizedBox(height: 50),
           Text(S.current.cloudTypeNotSupport(S.current.cloudTypeOneDrive)),
           const SizedBox(height: 10),
         ],
@@ -131,7 +131,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
     }
-    await currentService.authenticate().then((value) {
+    await currentService.authenticate().then((value) async {
       setState(() {
         currentConfig.connected = value == CloudServiceStatus.success;
       });
@@ -148,6 +148,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             break;
         }
       } else {
+        _oneDriveCloudServiceConfig!.configured = true;
+        updateConfig(_oneDriveCloudServiceConfig!);
         if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
       }
     });
@@ -179,7 +181,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           _oneDriveCloudServiceConfig!.enabled =
               !_oneDriveCloudServiceConfig!.enabled;
           CloudServiceConfigDao.updateConfigEnabled(
-              _oneDriveCloudServiceConfig!, _oneDriveCloudServiceConfig!.enabled);
+              _oneDriveCloudServiceConfig!,
+              _oneDriveCloudServiceConfig!.enabled);
         });
       },
     );
@@ -230,7 +233,11 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             background: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              ping();
+              try {
+                ping();
+              } catch (e) {
+                IToast.show(S.current.cloudConnectionError);
+              }
             },
           ),
         ),
@@ -257,16 +264,18 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                 dismissible: true,
               );
               try {
-                List<OneDriveFileInfo> files = await _oneDriveCloudService!.listBackups();
+                List<OneDriveFileInfo> files =
+                    await _oneDriveCloudService!.listBackups();
                 CloudServiceConfigDao.updateLastPullTime(
                     _oneDriveCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
-                files.sort((a, b) => b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
                 if (files.isNotEmpty) {
                   BottomSheetBuilder.showBottomSheet(
                     context,
                     responsive: true,
-                        (dialogContext) => OneDriveBackupsBottomSheet(
+                    (dialogContext) => OneDriveBackupsBottomSheet(
                       files: files,
                       cloudService: _oneDriveCloudService!,
                       onSelected: (selectedFile) async {
@@ -274,7 +283,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res = await _oneDriveCloudService!.downloadFile(
+                        Uint8List res =
+                            await _oneDriveCloudService!.downloadFile(
                           selectedFile.id,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
@@ -292,21 +302,41 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                         );
                         dialog.dismiss();
                         if (!success) {
-                          InputStateController stateController =
-                          InputStateController(
-                            validate: (value) {
-                              if (value.isEmpty) {
-                                return Future.value(
-                                    S.current.autoBackupPasswordCannotBeEmpty);
-                              }
-                              return Future.value(null);
-                            },
-                          );
                           BottomSheetBuilder.showBottomSheet(
                             context,
                             responsive: true,
-                                (context) => InputBottomSheet(
-                              stateController: stateController,
+                            (context) => InputBottomSheet(
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return S
+                                      .current.autoBackupPasswordCannotBeEmpty;
+                                }
+                                return null;
+                              },
+                              validateAsyncController:
+                                  InputValidateAsyncController(
+                                listen: false,
+                                validator: (text) async {
+                                  dialog.show(
+                                    msg: S.current.importing,
+                                    showProgress: false,
+                                  );
+                                  bool success =
+                                      await ImportTokenUtil.importBackupFile(
+                                    password: text,
+                                    res,
+                                    showLoading: false,
+                                  );
+                                  dialog.dismiss();
+                                  if (success) {
+                                    return null;
+                                  } else {
+                                    return S
+                                        .current.invalidPasswordOrDataCorrupted;
+                                  }
+                                },
+                                controller: TextEditingController(),
+                              ),
                               title: S.current.inputImportPasswordTitle,
                               message: S.current.inputImportPasswordTip,
                               hint: S.current.inputImportPasswordHint,
@@ -314,27 +344,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                                 RegexInputFormatter.onlyNumberAndLetter,
                               ],
                               tailingType: InputItemTailingType.password,
-                              preventPop: true,
-                              onValidConfirm: (password) async {
-                                dialog.show(
-                                  msg: S.current.importing,
-                                  showProgress: false,
-                                );
-                                bool success =
-                                await ImportTokenUtil.importBackupFile(
-                                  password: password,
-                                  res,
-                                  showLoading: false,
-                                );
-                                dialog.dismiss();
-                                if (success) {
-                                  IToast.show(S.current.importSuccess);
-                                  stateController.pop?.call();
-                                } else {
-                                  stateController.setError(
-                                      S.current.invalidPasswordOrDataCorrupted);
-                                }
-                              },
+                              onValidConfirm: (password) async {},
                             ),
                           );
                         }

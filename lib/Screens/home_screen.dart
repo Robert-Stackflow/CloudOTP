@@ -4,9 +4,6 @@ import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
-import 'package:cloudotp/Screens/Setting/setting_screen.dart';
-import 'package:cloudotp/Screens/Token/add_token_screen.dart';
-import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -14,7 +11,6 @@ import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/BottomSheet/add_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Custom/marquee_widget.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:cloudotp/Widgets/Scaffold/my_drawer.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -358,7 +354,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ? _buildMainContent()
           : PopScope(
               canPop: !_shownSearchbarNotifier.value,
-              onPopInvoked: (_) {
+              onPopInvokedWithResult: (_, __) {
                 if (mounted && _shownSearchbarNotifier.value) {
                   changeSearchBar(false);
                 }
@@ -426,8 +422,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  _buildMobileAppbar() {
-    var actions = [
+  getActions(bool showCloudEntry) {
+    return [
       ItemBuilder.buildIconButton(
         context: context,
         padding: EdgeInsets.zero,
@@ -445,6 +441,22 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         },
       ),
       const SizedBox(width: 5),
+      Offstage(
+        offstage: !showCloudEntry,
+        child: Container(
+          margin: const EdgeInsets.only(right: 5),
+          child: ItemBuilder.buildIconButton(
+            context: context,
+            icon: Icon(
+              Icons.cloud_queue_rounded,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            onTap: () {
+              RouteUtil.pushCupertinoRoute(context, const CloudServiceScreen());
+            },
+          ),
+        ),
+      ),
       ItemBuilder.buildPopupMenuButton(
         context: context,
         icon: Icon(Icons.dashboard_outlined,
@@ -504,14 +516,14 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         context, const SettingNavigationScreen());
                   },
                 ),
-                ContextMenuButtonConfig(
-                  S.current.cloudBackupServiceSetting,
-                  icon: const Icon(Icons.cloud_queue_rounded),
-                  onPressed: () {
-                    RouteUtil.pushCupertinoRoute(
-                        context, const CloudServiceScreen());
-                  },
-                ),
+                // ContextMenuButtonConfig(
+                //   S.current.cloudType,
+                //   icon: const Icon(Icons.cloud_queue_rounded),
+                //   onPressed: () {
+                //     RouteUtil.pushCupertinoRoute(
+                //         context, const CloudServiceScreen());
+                //   },
+                // ),
                 ContextMenuButtonConfig(
                   S.current.about,
                   icon: ClipRRect(
@@ -535,83 +547,90 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
       const SizedBox(width: 5),
     ];
+  }
+
+  _buildMobileAppbar() {
     return Selector<AppProvider, bool>(
-      selector: (context, provider) => provider.hideAppbarWhenScrolling,
-      builder: (context, hideAppbarWhenScrolling, child) =>
-          ValueListenableBuilder(
-        valueListenable: _shownSearchbarNotifier,
-        builder: (context, shownSearchbar, child) =>
-            ItemBuilder.buildSliverAppBar(
-          context: context,
-          floating: hideAppbarWhenScrolling,
-          pinned: !hideAppbarWhenScrolling,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          title: SizedBox(
-            height: kToolbarHeight,
-            child: MarqueeWidget(
-              count: 2,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: GestureDetector(
-                      onTap: () {
-                        if (!_shownSearchbarNotifier.value) {
-                          changeSearchBar(true);
-                        }
-                      },
-                      child: Text(
-                        appName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .apply(fontWeightDelta: 2),
+      selector: (context, appProvider) => appProvider.showCloudEntry,
+      builder: (context, showCloudEntry, child) => Selector<AppProvider, bool>(
+        selector: (context, provider) => provider.hideAppbarWhenScrolling,
+        builder: (context, hideAppbarWhenScrolling, child) =>
+            ValueListenableBuilder(
+          valueListenable: _shownSearchbarNotifier,
+          builder: (context, shownSearchbar, child) =>
+              ItemBuilder.buildSliverAppBar(
+            context: context,
+            floating: hideAppbarWhenScrolling,
+            pinned: !hideAppbarWhenScrolling,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            title: SizedBox(
+              height: kToolbarHeight,
+              child: MarqueeWidget(
+                count: 2,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (!_shownSearchbarNotifier.value) {
+                            changeSearchBar(true);
+                          }
+                        },
+                        child: Text(
+                          appName,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium!
+                              .apply(fontWeightDelta: 2),
+                        ),
                       ),
-                    ),
-                  );
-                } else {
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 24),
-                      child: Row(
-                        children: [
-                          ItemBuilder.buildIconButton(
-                            context: context,
-                            icon: Icon(
-                              Icons.arrow_back_rounded,
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                            onTap: () {
-                              changeSearchBar(false);
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: InputItem(
-                              hint: S.current.searchToken,
-                              onSubmit: (text) {
-                                performSearch(text);
+                    );
+                  } else {
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 24),
+                        child: Row(
+                          children: [
+                            ItemBuilder.buildIconButton(
+                              context: context,
+                              icon: Icon(
+                                Icons.arrow_back_rounded,
+                                color: Theme.of(context).iconTheme.color,
+                              ),
+                              onTap: () {
+                                changeSearchBar(false);
                               },
-                              showErrorLine: false,
-                              focusNode: _searchFocusNode,
-                              controller: _searchController,
-                              backgroundColor: Colors.transparent,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: InputItem(
+                                hint: S.current.searchToken,
+                                onSubmit: (text) {
+                                  performSearch(text);
+                                },
+                                dense: true,
+                                focusNode: _searchFocusNode,
+                                controller: _searchController,
+                                backgroundColor: Colors.transparent,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }
-              },
-              autoPlay: false,
-              controller: _marqueeController,
+                    );
+                  }
+                },
+                autoPlay: false,
+                controller: _marqueeController,
+              ),
             ),
+            expandedHeight: kToolbarHeight,
+            collapsedHeight: kToolbarHeight,
+            actions:
+                _shownSearchbarNotifier.value ? [] : getActions(showCloudEntry),
           ),
-          expandedHeight: kToolbarHeight,
-          collapsedHeight: kToolbarHeight,
-          actions: _shownSearchbarNotifier.value ? [] : actions,
         ),
       ),
     );
@@ -785,18 +804,22 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         hint: S.current.inputCategory,
         maxLength: 32,
         text: category.title,
-        stateController: InputStateController(
-          validate: (text) async {
-            if (text.isEmpty) {
-              return S.current.categoryNameCannotBeEmpty;
-            }
+        validateAsyncController: InputValidateAsyncController(
+          validator: (text) async {
             if (text != category.title &&
                 await CategoryDao.isCategoryExist(text)) {
               return S.current.categoryNameDuplicate;
             }
             return null;
           },
+          controller: TextEditingController(),
         ),
+        validator: (text) {
+          if (text.isEmpty) {
+            return S.current.categoryNameCannotBeEmpty;
+          }
+          return null;
+        },
         onValidConfirm: (text) async {
           category.title = text;
           await CategoryDao.updateCategory(category);
@@ -814,21 +837,26 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         (context) => InputBottomSheet(
           title: S.current.addCategory,
           hint: S.current.inputCategory,
-          stateController: InputStateController(
-            validate: (text) async {
-              if (text.isEmpty) {
-                return S.current.categoryNameCannotBeEmpty;
-              }
+          validator: (text) {
+            if (text.isEmpty) {
+              return S.current.categoryNameCannotBeEmpty;
+            }
+            return null;
+          },
+          validateAsyncController: InputValidateAsyncController(
+            validator: (text) async {
               if (await CategoryDao.isCategoryExist(text)) {
                 return S.current.categoryNameDuplicate;
               }
               return null;
             },
+            controller: TextEditingController(),
           ),
           maxLength: 32,
           onValidConfirm: (text) async {
             await CategoryDao.insertCategory(TokenCategory.title(title: text));
             refreshCategories();
+            return true;
           },
         ),
       );

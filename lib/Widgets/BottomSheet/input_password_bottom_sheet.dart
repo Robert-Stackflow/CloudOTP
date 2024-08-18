@@ -28,29 +28,14 @@ class InputPasswordBottomSheet extends StatefulWidget {
 }
 
 class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
-  TextEditingController _controller = TextEditingController();
-  TextEditingController _confirmController = TextEditingController();
-  late InputStateController _stateController;
-  late InputStateController _confirmStateController;
+  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _confirmController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _stateController = InputStateController(
-        validate: (value) {
-          if (value.isEmpty) {
-            return Future.value(S.current.encryptDatabasePasswordCannotBeEmpty);
-          }
-          return Future.value(null);
-        });
-    _confirmStateController = InputStateController(
-        validate: (value) {
-          if (value != _controller.text) {
-            return Future.value(S.current.encryptDatabasePasswordNotMatch);
-          }
-          return Future.value(null);
-        });
     Future.delayed(const Duration(milliseconds: 200), () {
       FocusScope.of(context).requestFocus(_focusNode);
     });
@@ -74,41 +59,55 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                       : Radius.zero),
               color: Theme.of(context).canvasColor,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                if (Utils.isNotEmpty(widget.title) ||
-                    Utils.isNotEmpty(widget.message))
-                  _buildHeader(),
-                const SizedBox(height: 8.0),
-                Center(
-                  child: InputItem(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    textInputAction: TextInputAction.next,
-                    tailingType: InputItemTailingType.password,
-                    stateController: _stateController,
-                    inputFormatters: [
-                      RegexInputFormatter.onlyNumberAndLetter,
-                    ],
+            child: Form(
+              key: formKey,
+              autovalidateMode: AutovalidateMode.always,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  if (Utils.isNotEmpty(widget.title) ||
+                      Utils.isNotEmpty(widget.message))
+                    _buildHeader(),
+                  const SizedBox(height: 8.0),
+                  Center(
+                    child: InputItem(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      textInputAction: TextInputAction.next,
+                      tailingType: InputItemTailingType.password,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return S.current.encryptDatabasePasswordCannotBeEmpty;
+                        }
+                        return null;
+                      },
+                      inputFormatters: [
+                        RegexInputFormatter.onlyNumberAndLetter,
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8.0),
-                Center(
-                  child: InputItem(
-                    controller: _confirmController,
-                    textInputAction: TextInputAction.done,
-                    tailingType: InputItemTailingType.password,
-                    stateController: _confirmStateController,
-                    inputFormatters: [
-                      RegexInputFormatter.onlyNumberAndLetter,
-                    ],
+                  const SizedBox(height: 8.0),
+                  Center(
+                    child: InputItem(
+                      controller: _confirmController,
+                      textInputAction: TextInputAction.done,
+                      tailingType: InputItemTailingType.password,
+                      validator: (value) {
+                        if (value != _controller.text) {
+                          return S.current.encryptDatabasePasswordNotMatch;
+                        }
+                        return null;
+                      },
+                      inputFormatters: [
+                        RegexInputFormatter.onlyNumberAndLetter,
+                      ],
+                    ),
                   ),
-                ),
-                _buildFooter(),
-              ],
+                  _buildFooter(),
+                ],
+              ),
             ),
           ),
         ],
@@ -170,11 +169,10 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                 color: Colors.white,
                 text: S.current.confirm,
                 onTap: () async {
-                  String? error1 = await _stateController.doValidate();
-                  String? error2 = await _confirmStateController.doValidate();
+                  bool isValid = formKey.currentState?.validate() ?? false;
                   widget.onConfirm
                       ?.call(_controller.text, _confirmController.text);
-                  if (error1 == null && error2 == null) {
+                  if (isValid) {
                     widget.onValidConfirm
                         ?.call(_controller.text, _confirmController.text);
                     Navigator.of(context).pop();

@@ -36,72 +36,6 @@ enum AutoBackupStatus {
         this == AutoBackupStatus.encryptFailed;
   }
 
-  String get labelShort {
-    switch (this) {
-      case AutoBackupStatus.pending:
-        return S.current.pendingBackupShort;
-      case AutoBackupStatus.encrypting:
-        return S.current.encryptingBackupFileShort;
-      case AutoBackupStatus.encryptFailed:
-        return S.current.encryptBackupFileFailedShort;
-      case AutoBackupStatus.encrpytSuccess:
-        return S.current.encryptBackupFileSuccessShort;
-      case AutoBackupStatus.saving:
-        return S.current.savingBackupFileShort;
-      case AutoBackupStatus.saveFailed:
-        return S.current.saveBackupFileFailedShort;
-      case AutoBackupStatus.saveSuccess:
-        return S.current.saveBackupFileSuccessShort;
-      case AutoBackupStatus.uploading:
-        return S.current.uploadingBackupFileShort;
-      case AutoBackupStatus.uploadFailed:
-        return S.current.uploadBackupFileFailedShort;
-      case AutoBackupStatus.uploadSuccess:
-        return S.current.uploadBackupFileSuccessShort;
-      case AutoBackupStatus.complete:
-        return S.current.autoBackupCompleteShort;
-      case AutoBackupStatus.failed:
-        return S.current.autoBackupFailedShort;
-      default:
-        return S.current.pendingBackupShort;
-    }
-  }
-
-  String label(AutoBackupLog log) {
-    switch (this) {
-      case AutoBackupStatus.pending:
-        return S.current.pendingBackup(log.type.label);
-      case AutoBackupStatus.encrypting:
-        return S.current.encryptingBackupFile;
-      case AutoBackupStatus.encryptFailed:
-        return S.current.encryptBackupFileFailed;
-      case AutoBackupStatus.encrpytSuccess:
-        return S.current.encryptBackupFileSuccess;
-      case AutoBackupStatus.saving:
-        return S.current.savingBackupFile;
-      case AutoBackupStatus.saveFailed:
-        return S.current.saveBackupFileFailed;
-      case AutoBackupStatus.saveSuccess:
-        return S.current.saveBackupFileSuccess(log.backupPath);
-      case AutoBackupStatus.uploading:
-        return S.current.uploadingBackupFile;
-      case AutoBackupStatus.uploadFailed:
-        return S.current.uploadBackupFileFailed;
-      case AutoBackupStatus.uploadSuccess:
-        if (log.cloudServiceType == null) {
-          return S.current.uploadBackupFileFailed;
-        } else {
-          return S.current.uploadBackupFileSuccess(log.cloudServiceType!.label);
-        }
-      case AutoBackupStatus.complete:
-        return S.current.autoBackupComplete;
-      case AutoBackupStatus.failed:
-        return S.current.autoBackupFailed;
-      default:
-        return S.current.pendingBackup(log.type.label);
-    }
-  }
-
   Color get color {
     switch (this) {
       case AutoBackupStatus.pending:
@@ -217,7 +151,6 @@ class AutoBackupLog {
   List<AutoBackupLogStatusItem> status;
   AutoBackupTriggerType triggerType;
   String backupPath;
-  CloudServiceType? cloudServiceType;
 
   AutoBackupLogStatusItem get lastStatusItem {
     return status.last;
@@ -234,14 +167,12 @@ class AutoBackupLog {
     required this.status,
     required this.type,
     required this.backupPath,
-    required this.cloudServiceType,
     this.triggerType = AutoBackupTriggerType.manual,
   });
 
   AutoBackupLog.init({
     required this.type,
     required this.triggerType,
-    this.cloudServiceType,
   })  : id = 0,
         startTimestamp = DateTime.now().millisecondsSinceEpoch,
         endTimestamp = 0,
@@ -260,12 +191,13 @@ class AutoBackupLog {
 
   addStatus(
     AutoBackupStatus status, {
-    String? remark,
+    CloudServiceType? type,
   }) {
     this.status.add(AutoBackupLogStatusItem(
           status: status,
           timestamp: DateTime.now().millisecondsSinceEpoch,
-          remark: remark ?? "",
+          cloudServiceType: type,
+          remark: '',
         ));
     switch (status) {
       case AutoBackupStatus.encrypting:
@@ -302,9 +234,6 @@ class AutoBackupLog {
       type: AutoBackupType.values[map['type']],
       triggerType: AutoBackupTriggerType.values[map['trigger_type']],
       backupPath: map['backup_path'],
-      cloudServiceType: map['cloud_service_type'] == null
-          ? null
-          : CloudServiceType.values[map['cloud_service_type']],
     );
   }
 
@@ -319,7 +248,6 @@ class AutoBackupLog {
       'type': type.index,
       'trigger_type': triggerType.index,
       'backup_path': backupPath,
-      'cloud_service_type': cloudServiceType?.index,
     };
   }
 }
@@ -328,11 +256,13 @@ class AutoBackupLogStatusItem {
   final AutoBackupStatus status;
   final int timestamp;
   final String remark;
+  final CloudServiceType? cloudServiceType;
 
   AutoBackupLogStatusItem({
     required this.status,
     required this.timestamp,
     required this.remark,
+    this.cloudServiceType,
   });
 
   factory AutoBackupLogStatusItem.fromMap(Map<String, dynamic> map) {
@@ -340,6 +270,9 @@ class AutoBackupLogStatusItem {
       status: AutoBackupStatus.values[map['status']],
       timestamp: map['timestamp'],
       remark: map['remark'],
+      cloudServiceType: map['cloud_service_type'] == null
+          ? null
+          : CloudServiceType.values[map['cloud_service_type']],
     );
   }
 
@@ -348,6 +281,77 @@ class AutoBackupLogStatusItem {
       'status': status.index,
       'timestamp': timestamp,
       'remark': remark,
+      'cloud_service_type': cloudServiceType?.index,
     };
+  }
+
+  String get labelShort {
+    switch (status) {
+      case AutoBackupStatus.pending:
+        return S.current.pendingBackupShort;
+      case AutoBackupStatus.encrypting:
+        return S.current.encryptingBackupFileShort;
+      case AutoBackupStatus.encryptFailed:
+        return S.current.encryptBackupFileFailedShort;
+      case AutoBackupStatus.encrpytSuccess:
+        return S.current.encryptBackupFileSuccessShort;
+      case AutoBackupStatus.saving:
+        return S.current.savingBackupFileShort;
+      case AutoBackupStatus.saveFailed:
+        return S.current.saveBackupFileFailedShort;
+      case AutoBackupStatus.saveSuccess:
+        return S.current.saveBackupFileSuccessShort;
+      case AutoBackupStatus.uploading:
+        return S.current.uploadingBackupFileShort;
+      case AutoBackupStatus.uploadFailed:
+        return S.current.uploadBackupFileFailedShort;
+      case AutoBackupStatus.uploadSuccess:
+        return S.current.uploadBackupFileSuccessShort;
+      case AutoBackupStatus.complete:
+        return S.current.autoBackupCompleteShort;
+      case AutoBackupStatus.failed:
+        return S.current.autoBackupFailedShort;
+      default:
+        return S.current.pendingBackupShort;
+    }
+  }
+
+  String label(AutoBackupLog log) {
+    switch (status) {
+      case AutoBackupStatus.pending:
+        return S.current.pendingBackup(log.type.label);
+      case AutoBackupStatus.encrypting:
+        return S.current.encryptingBackupFile;
+      case AutoBackupStatus.encryptFailed:
+        return S.current.encryptBackupFileFailed;
+      case AutoBackupStatus.encrpytSuccess:
+        return S.current.encryptBackupFileSuccess;
+      case AutoBackupStatus.saving:
+        return S.current.savingBackupFile;
+      case AutoBackupStatus.saveFailed:
+        return S.current.saveBackupFileFailed;
+      case AutoBackupStatus.saveSuccess:
+        return S.current.saveBackupFileSuccess(log.backupPath);
+      case AutoBackupStatus.uploading:
+        if (cloudServiceType == null) {
+          return S.current.uploadBackupFileFailed;
+        } else {
+          return S.current.uploadingBackupFileTo(cloudServiceType!.label);
+        }
+      case AutoBackupStatus.uploadFailed:
+        return S.current.uploadBackupFileFailed;
+      case AutoBackupStatus.uploadSuccess:
+        if (cloudServiceType == null) {
+          return S.current.uploadBackupFileFailed;
+        } else {
+          return S.current.uploadBackupFileSuccess(cloudServiceType!.label);
+        }
+      case AutoBackupStatus.complete:
+        return S.current.autoBackupComplete;
+      case AutoBackupStatus.failed:
+        return S.current.autoBackupFailed;
+      default:
+        return S.current.pendingBackup(log.type.label);
+    }
   }
 }

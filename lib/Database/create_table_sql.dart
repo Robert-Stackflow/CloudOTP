@@ -61,6 +61,7 @@ enum Sql {
         total_size INTEGER NOT NULL DEFAULT -1,
         remaining_size INTEGER NOT NULL DEFAULT -1,
         used_size INTEGER NOT NULL DEFAULT -1,
+        configured INTEGER NOT NULL DEFAULT 0,
         email TEXT NOT NULL DEFAULT ''
       );
     '''),

@@ -63,6 +63,7 @@ Future<void> runMyApp(List<String> args) async {
     home = const PinVerifyScreen(
       isModal: true,
       autoAuth: true,
+      jumpToMain: true,
     );
   } else {
     home = MainScreen(key: mainScreenKey);
@@ -169,10 +170,10 @@ class MyApp extends StatelessWidget {
     this.title = 'CloudOTP',
   });
 
-  moveToCenter(BuildContext context) {
+  moveToCenter(BuildContext context) async {
     if (!ResponsiveUtil.isDesktop()) return;
     Offset position = HiveUtil.getWindowPosition();
-    Rect rect = Utils.getWindowRect(context);
+    Rect rect = await Utils.getWindowRect(context);
     if (!rect.contains(position)) {
       windowManager.setAlignment(Alignment.center);
     }

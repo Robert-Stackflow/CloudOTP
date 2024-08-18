@@ -28,7 +28,8 @@ class GoogleDriveServiceScreen extends StatefulWidget {
   static const String routeName = "/service/googledrive";
 
   @override
-  State<GoogleDriveServiceScreen> createState() => _GoogleDriveServiceScreenState();
+  State<GoogleDriveServiceScreen> createState() =>
+      _GoogleDriveServiceScreenState();
 }
 
 class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
@@ -58,18 +59,16 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
 
   loadConfig() async {
     _googledriveCloudServiceConfig =
-    await CloudServiceConfigDao.getGoogleDriveConfig();
+        await CloudServiceConfigDao.getGoogleDriveConfig();
     if (_googledriveCloudServiceConfig != null) {
       _sizeController.text = _googledriveCloudServiceConfig!.size;
       _accountController.text = _googledriveCloudServiceConfig!.account ?? "";
       _emailController.text = _googledriveCloudServiceConfig!.email ?? "";
-      if (await _googledriveCloudServiceConfig!.isValid()) {
-        _googledriveCloudService = GoogleDriveCloudService(
-          context,
-          _googledriveCloudServiceConfig!,
-          onConfigChanged: updateConfig,
-        );
-      }
+      _googledriveCloudService = GoogleDriveCloudService(
+        context,
+        _googledriveCloudServiceConfig!,
+        onConfigChanged: updateConfig,
+      );
     } else {
       _googledriveCloudServiceConfig =
           CloudServiceConfig.init(type: CloudServiceType.GoogleDrive);
@@ -81,8 +80,10 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
       );
     }
     if (_googledriveCloudService != null) {
-      _googledriveCloudServiceConfig!.connected =
-      await _googledriveCloudService!.isConnected();
+      _googledriveCloudServiceConfig!.configured =
+          _googledriveCloudServiceConfig!.connected =
+              await _googledriveCloudService!.isConnected();
+      updateConfig(_googledriveCloudServiceConfig!);
     }
     inited = true;
     setState(() {});
@@ -104,19 +105,20 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     return ResponsiveUtil.isDesktop()
         ? _buildUnsupportBody()
         : inited
-        ? _buildBody()
-        : ItemBuilder.buildLoadingDialog(
-      context,
-      background: Colors.transparent,
-      text: S.current.cloudConnecting,
-    );
+            ? _buildBody()
+            : ItemBuilder.buildLoadingDialog(
+                context,
+                background: Colors.transparent,
+                text: S.current.cloudConnecting,
+              );
   }
 
   _buildUnsupportBody() {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          const SizedBox(height: 50),
           Text(S.current.cloudTypeNotSupport(S.current.cloudTypeGoogleDrive)),
           const SizedBox(height: 10),
         ],
@@ -131,7 +133,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
     }
-    await currentService.authenticate().then((value) {
+    await currentService.authenticate().then((value) async {
       setState(() {
         currentConfig.connected = value == CloudServiceStatus.success;
       });
@@ -148,6 +150,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             break;
         }
       } else {
+        _googledriveCloudServiceConfig!.configured = true;
+        updateConfig(_googledriveCloudServiceConfig!);
         if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
       }
     });
@@ -177,7 +181,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
       onTap: () {
         setState(() {
           _googledriveCloudServiceConfig!.enabled =
-          !_googledriveCloudServiceConfig!.enabled;
+              !_googledriveCloudServiceConfig!.enabled;
           CloudServiceConfigDao.updateConfigEnabled(
               _googledriveCloudServiceConfig!,
               _googledriveCloudServiceConfig!.enabled);
@@ -231,7 +235,11 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             background: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              ping();
+              try {
+                ping();
+              } catch (e) {
+                IToast.show(S.current.cloudConnectionError);
+              }
             },
           ),
         ),
@@ -258,16 +266,18 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                 dismissible: true,
               );
               try {
-                List<GoogleDriveFileInfo> files = await _googledriveCloudService!.listBackups();
+                List<GoogleDriveFileInfo> files =
+                    await _googledriveCloudService!.listBackups();
                 CloudServiceConfigDao.updateLastPullTime(
                     _googledriveCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
-                files.sort((a, b) => b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
                 if (files.isNotEmpty) {
                   BottomSheetBuilder.showBottomSheet(
                     context,
                     responsive: true,
-                        (dialogContext) => GoogleDriveBackupsBottomSheet(
+                    (dialogContext) => GoogleDriveBackupsBottomSheet(
                       files: files,
                       cloudService: _googledriveCloudService!,
                       onSelected: (selectedFile) async {
@@ -275,7 +285,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res = await _googledriveCloudService!.downloadFile(
+                        Uint8List res =
+                            await _googledriveCloudService!.downloadFile(
                           selectedFile.id,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
@@ -293,21 +304,41 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                         );
                         dialog.dismiss();
                         if (!success) {
-                          InputStateController stateController =
-                          InputStateController(
-                            validate: (value) {
-                              if (value.isEmpty) {
-                                return Future.value(
-                                    S.current.autoBackupPasswordCannotBeEmpty);
-                              }
-                              return Future.value(null);
-                            },
-                          );
                           BottomSheetBuilder.showBottomSheet(
                             context,
                             responsive: true,
-                                (context) => InputBottomSheet(
-                              stateController: stateController,
+                            (context) => InputBottomSheet(
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return S
+                                      .current.autoBackupPasswordCannotBeEmpty;
+                                }
+                                return null;
+                              },
+                              validateAsyncController:
+                                  InputValidateAsyncController(
+                                listen: false,
+                                validator: (text) async {
+                                  dialog.show(
+                                    msg: S.current.importing,
+                                    showProgress: false,
+                                  );
+                                  bool success =
+                                      await ImportTokenUtil.importBackupFile(
+                                    password: text,
+                                    res,
+                                    showLoading: false,
+                                  );
+                                  dialog.dismiss();
+                                  if (success) {
+                                    return null;
+                                  } else {
+                                    return S
+                                        .current.invalidPasswordOrDataCorrupted;
+                                  }
+                                },
+                                controller: TextEditingController(),
+                              ),
                               title: S.current.inputImportPasswordTitle,
                               message: S.current.inputImportPasswordTip,
                               hint: S.current.inputImportPasswordHint,
@@ -315,27 +346,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                                 RegexInputFormatter.onlyNumberAndLetter,
                               ],
                               tailingType: InputItemTailingType.password,
-                              preventPop: true,
-                              onValidConfirm: (password) async {
-                                dialog.show(
-                                  msg: S.current.importing,
-                                  showProgress: false,
-                                );
-                                bool success =
-                                await ImportTokenUtil.importBackupFile(
-                                  password: password,
-                                  res,
-                                  showLoading: false,
-                                );
-                                dialog.dismiss();
-                                if (success) {
-                                  IToast.show(S.current.importSuccess);
-                                  stateController.pop?.call();
-                                } else {
-                                  stateController.setError(
-                                      S.current.invalidPasswordOrDataCorrupted);
-                                }
-                              },
+                              onValidConfirm: (password) async {},
                             ),
                           );
                         }
@@ -384,7 +395,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                 _googledriveCloudServiceConfig!.email = "";
                 _googledriveCloudServiceConfig!.totalSize =
                     _googledriveCloudServiceConfig!.remainingSize =
-                    _googledriveCloudServiceConfig!.usedSize = -1;
+                        _googledriveCloudServiceConfig!.usedSize = -1;
                 updateConfig(_googledriveCloudServiceConfig!);
               });
             },
