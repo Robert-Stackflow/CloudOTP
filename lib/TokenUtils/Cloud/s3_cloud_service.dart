@@ -53,12 +53,11 @@ class S3CloudService extends CloudService {
     try {
       bool isAuthorized = await s3Storage.bucketExists(bucket);
       if (!isAuthorized) {
-        return CloudServiceStatus.unauthorized;
+        return CloudServiceStatus.connectionError;
       } else {
         return CloudServiceStatus.success;
       }
-    } catch (e, t) {
-      print("$e $t");
+    } catch (e) {
       return CloudServiceStatus.unknownError;
     }
   }
@@ -92,7 +91,8 @@ class S3CloudService extends CloudService {
   Future<bool> deleteOldBackup([int? maxCount]) async {
     try {
       maxCount ??= HiveUtil.getMaxBackupsCount();
-      List<S3CloudFileInfo> list = await listBackups();
+      List<S3CloudFileInfo>? list = await listBackups();
+      if (list == null) return false;
       list.sort((a, b) {
         return a.modifyTimestamp.compareTo(b.modifyTimestamp);
       });
@@ -108,7 +108,7 @@ class S3CloudService extends CloudService {
   }
 
   @override
-  Future<Uint8List> downloadFile(
+  Future<Uint8List?> downloadFile(
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
@@ -118,20 +118,20 @@ class S3CloudService extends CloudService {
         path,
       );
       return await response.toBytes();
-    } catch (e, t) {
-      print("$e\n$t");
-      return Uint8List(0);
+    } catch (e) {
+      return null;
     }
   }
 
   @override
   Future<int> getBackupsCount() async {
-    return (await listBackups()).length;
+    return (await listBackups())?.length ?? 0;
   }
 
   @override
-  Future<List<S3CloudFileInfo>> listBackups() async {
+  Future<List<S3CloudFileInfo>?> listBackups() async {
     var list = await listFiles();
+    if (list == null) return null;
     list = list
         .where((element) => ExportTokenUtil.isBackup(element.name))
         .toList();
@@ -139,7 +139,7 @@ class S3CloudService extends CloudService {
   }
 
   @override
-  Future<List<S3CloudFileInfo>> listFiles() async {
+  Future<List<S3CloudFileInfo>?> listFiles() async {
     try {
       ListObjectsResult res = await s3Storage.listAllObjects(
         bucket,
@@ -159,7 +159,7 @@ class S3CloudService extends CloudService {
       return files;
     } catch (e, t) {
       print("$e\n$t");
-      return [];
+      return null;
     }
   }
 
@@ -172,12 +172,16 @@ class S3CloudService extends CloudService {
     Uint8List fileData, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    String response = await s3Storage
-        .putObject(bucket, join(_s3CloudPath, fileName), Stream.value(fileData),
-            onProgress: (bytes) {
-      onProgress?.call(bytes, fileData.length);
-    });
-    deleteOldBackup();
-    return response.isNotEmpty;
+    try {
+      String response = await s3Storage.putObject(
+          bucket, join(_s3CloudPath, fileName), Stream.value(fileData),
+          onProgress: (bytes) {
+        onProgress?.call(bytes, fileData.length);
+      });
+      deleteOldBackup();
+      return response.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 }

@@ -127,7 +127,9 @@ class DefaultTokenManager extends ITokenManager {
       return tokenMap;
     } catch (err) {
       debugPrint("# DefaultTokenManager -> _refreshToken: $err");
-      await clearStoredToken();
+      if (err is! http.ClientException) {
+        await clearStoredToken();
+      }
     }
 
     return null;

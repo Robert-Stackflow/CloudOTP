@@ -75,36 +75,39 @@ class _CategoryScreenState extends State<CategoryScreen>
             icon: Icon(Icons.add_rounded,
                 color: Theme.of(context).iconTheme.color),
             onTap: () {
+              InputValidateAsyncController validateAsyncController =
+                  InputValidateAsyncController(
+                validator: (text) async {
+                  if (text.isEmpty) {
+                    return S.current.categoryNameCannotBeEmpty;
+                  }
+                  if (await CategoryDao.isCategoryExist(text)) {
+                    return S.current.categoryNameDuplicate;
+                  }
+                  return null;
+                },
+                controller: TextEditingController(),
+              );
+              GlobalKey<InputBottomSheetState> key = GlobalKey();
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                (context) => InputBottomSheet(
-                  title: S.current.addCategory,
-                  hint: S.current.inputCategory,
-                  validateAsyncController: InputValidateAsyncController(
-                    validator: (text) async {
-                      if (await CategoryDao.isCategoryExist(text)) {
-                        return S.current.categoryNameDuplicate;
-                      }
-                      return null;
+                (context) {
+                  return InputBottomSheet(
+                    key: key,
+                    title: S.current.addCategory,
+                    hint: S.current.inputCategory,
+                    validateAsyncController: validateAsyncController,
+                    maxLength: 32,
+                    onValidConfirm: (text) async {
+                      TokenCategory category = TokenCategory.title(title: text);
+                      await CategoryDao.insertCategory(category);
+                      categories.add(category);
+                      setState(() {});
+                      homeScreenState?.refreshCategories();
                     },
-                    controller: TextEditingController(),
-                  ),
-                  validator: (text) {
-                    if (text.isEmpty) {
-                      return S.current.categoryNameCannotBeEmpty;
-                    }
-                    return null;
-                  },
-                  maxLength: 32,
-                  onValidConfirm: (text) async {
-                    TokenCategory category = TokenCategory.title(title: text);
-                    await CategoryDao.insertCategory(category);
-                    categories.add(category);
-                    setState(() {});
-                    homeScreenState?.refreshCategories();
-                  },
-                ),
+                  );
+                }
               );
             },
           ),
@@ -198,6 +201,20 @@ class _CategoryScreenState extends State<CategoryScreen>
             context: context,
             icon: const Icon(Icons.edit_rounded, size: 20),
             onTap: () {
+              InputValidateAsyncController validateAsyncController =
+                  InputValidateAsyncController(
+                validator: (text) async {
+                  if (text.isEmpty) {
+                    return S.current.categoryNameCannotBeEmpty;
+                  }
+                  if (text != category.title &&
+                      await CategoryDao.isCategoryExist(text)) {
+                    return S.current.categoryNameDuplicate;
+                  }
+                  return null;
+                },
+                controller: TextEditingController(),
+              );
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
@@ -206,22 +223,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                   hint: S.current.inputCategory,
                   maxLength: 32,
                   text: category.title,
-                  validateAsyncController: InputValidateAsyncController(
-                    validator: (text) async {
-                      if (text != category.title &&
-                          await CategoryDao.isCategoryExist(text)) {
-                        return S.current.categoryNameDuplicate;
-                      }
-                      return null;
-                    },
-                    controller: TextEditingController(),
-                  ),
-                  validator: (text) {
-                    if (text.isEmpty) {
-                      return S.current.categoryNameCannotBeEmpty;
-                    }
-                    return null;
-                  },
+                  validateAsyncController: validateAsyncController,
                   onValidConfirm: (text) async {
                     category.title = text;
                     await CategoryDao.updateCategory(category);

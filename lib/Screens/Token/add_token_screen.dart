@@ -250,7 +250,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       children: [
         Form(
           key: formKey,
-          autovalidateMode: AutovalidateMode.always,
           child: Column(
             children: [
               _iconInfo(),

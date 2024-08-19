@@ -14,7 +14,6 @@ import 'package:webdav_client/webdav_client.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
@@ -75,9 +74,12 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     if (_webDavCloudService != null) {
       _webDavCloudServiceConfig!.connected =
           await _webDavCloudService!.isConnected();
+      if (!_webDavCloudServiceConfig!.connected) {
+        IToast.showTop(S.current.cloudConnectionError);
+      }
     }
     inited = true;
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   RegExp urlRegex = RegExp(
@@ -108,6 +110,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             context,
             background: Colors.transparent,
             text: S.current.cloudConnecting,
+            mainAxisAlignment: MainAxisAlignment.start,
+            topPadding: 100,
           );
   }
 
@@ -180,7 +184,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
       child: Form(
         key: formKey,
-        autovalidateMode: AutovalidateMode.always,
         child: Column(
           children: [
             InputItem(
@@ -282,13 +285,15 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(
-                title: S.current.webDavPulling,
-                dismissible: true,
-              );
+              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
               try {
-                List<WebDavFileInfo> files =
+                List<WebDavFileInfo>? files =
                     await _webDavCloudService!.listBackups();
+                if (files == null) {
+                  CustomLoadingDialog.dismissLoading();
+                  IToast.show(S.current.webDavPullFailed);
+                  return;
+                }
                 CloudServiceConfigDao.updateLastPullTime(
                     _webDavCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
@@ -305,70 +310,14 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res = await _webDavCloudService!.downloadFile(
+                        Uint8List? res =
+                            await _webDavCloudService!.downloadFile(
                           selectedFile.name!,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
                           },
                         );
-
-                        dialog.updateMessage(
-                          msg: S.current.importing,
-                          showProgress: false,
-                        );
-
-                        bool success = await ImportTokenUtil.importBackupFile(
-                          res,
-                          showLoading: false,
-                        );
-                        dialog.dismiss();
-                        if (!success) {
-                          BottomSheetBuilder.showBottomSheet(
-                            context,
-                            responsive: true,
-                            (context) => InputBottomSheet(
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return S
-                                      .current.autoBackupPasswordCannotBeEmpty;
-                                }
-                                return null;
-                              },
-                              validateAsyncController:
-                                  InputValidateAsyncController(
-                                listen: false,
-                                validator: (text) async {
-                                  dialog.show(
-                                    msg: S.current.importing,
-                                    showProgress: false,
-                                  );
-                                  bool success =
-                                      await ImportTokenUtil.importBackupFile(
-                                    password: text,
-                                    res,
-                                    showLoading: false,
-                                  );
-                                  dialog.dismiss();
-                                  if (success) {
-                                    return null;
-                                  } else {
-                                    return S
-                                        .current.invalidPasswordOrDataCorrupted;
-                                  }
-                                },
-                                controller: TextEditingController(),
-                              ),
-                              title: S.current.inputImportPasswordTitle,
-                              message: S.current.inputImportPasswordTip,
-                              hint: S.current.inputImportPasswordHint,
-                              inputFormatters: [
-                                RegexInputFormatter.onlyNumberAndLetter,
-                              ],
-                              tailingType: InputItemTailingType.password,
-                              onValidConfirm: (password) async {},
-                            ),
-                          );
-                        }
+                        ImportTokenUtil.importFromCloud(context, res, dialog);
                       },
                     ),
                   );

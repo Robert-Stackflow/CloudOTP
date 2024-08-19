@@ -14,7 +14,6 @@ import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -53,7 +52,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   @override
   void initState() {
     super.initState();
-    loadConfig();
+    if (!ResponsiveUtil.isDesktop()) loadConfig();
   }
 
   loadConfig() async {
@@ -81,6 +80,9 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     if (_oneDriveCloudService != null) {
       _oneDriveCloudServiceConfig!.configured = _oneDriveCloudServiceConfig!
           .connected = await _oneDriveCloudService!.isConnected();
+      if (!_oneDriveCloudServiceConfig!.connected) {
+        IToast.showTop(S.current.cloudConnectionError);
+      }
       updateConfig(_oneDriveCloudServiceConfig!);
     }
     inited = true;
@@ -108,6 +110,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                 context,
                 background: Colors.transparent,
                 text: S.current.cloudConnecting,
+                mainAxisAlignment: MainAxisAlignment.start,
+                topPadding: 100,
               );
   }
 
@@ -116,7 +120,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          const SizedBox(height: 50),
+          const SizedBox(height: 100),
           Text(S.current.cloudTypeNotSupport(S.current.cloudTypeOneDrive)),
           const SizedBox(height: 10),
         ],
@@ -259,13 +263,15 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(
-                title: S.current.webDavPulling,
-                dismissible: true,
-              );
+              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
               try {
-                List<OneDriveFileInfo> files =
+                List<OneDriveFileInfo>? files =
                     await _oneDriveCloudService!.listBackups();
+                if (files == null) {
+                  CustomLoadingDialog.dismissLoading();
+                  IToast.show(S.current.webDavPullFailed);
+                  return;
+                }
                 CloudServiceConfigDao.updateLastPullTime(
                     _oneDriveCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
@@ -283,71 +289,14 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res =
+                        Uint8List? res =
                             await _oneDriveCloudService!.downloadFile(
                           selectedFile.id,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
                           },
                         );
-
-                        dialog.updateMessage(
-                          msg: S.current.importing,
-                          showProgress: false,
-                        );
-
-                        bool success = await ImportTokenUtil.importBackupFile(
-                          res,
-                          showLoading: false,
-                        );
-                        dialog.dismiss();
-                        if (!success) {
-                          BottomSheetBuilder.showBottomSheet(
-                            context,
-                            responsive: true,
-                            (context) => InputBottomSheet(
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return S
-                                      .current.autoBackupPasswordCannotBeEmpty;
-                                }
-                                return null;
-                              },
-                              validateAsyncController:
-                                  InputValidateAsyncController(
-                                listen: false,
-                                validator: (text) async {
-                                  dialog.show(
-                                    msg: S.current.importing,
-                                    showProgress: false,
-                                  );
-                                  bool success =
-                                      await ImportTokenUtil.importBackupFile(
-                                    password: text,
-                                    res,
-                                    showLoading: false,
-                                  );
-                                  dialog.dismiss();
-                                  if (success) {
-                                    return null;
-                                  } else {
-                                    return S
-                                        .current.invalidPasswordOrDataCorrupted;
-                                  }
-                                },
-                                controller: TextEditingController(),
-                              ),
-                              title: S.current.inputImportPasswordTitle,
-                              message: S.current.inputImportPasswordTip,
-                              hint: S.current.inputImportPasswordHint,
-                              inputFormatters: [
-                                RegexInputFormatter.onlyNumberAndLetter,
-                              ],
-                              tailingType: InputItemTailingType.password,
-                              onValidConfirm: (password) async {},
-                            ),
-                          );
-                        }
+                        ImportTokenUtil.importFromCloud(context, res, dialog);
                       },
                     ),
                   );

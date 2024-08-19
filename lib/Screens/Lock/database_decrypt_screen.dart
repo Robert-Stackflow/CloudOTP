@@ -120,7 +120,6 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           ),
           child: Form(
             key: formKey,
-            autovalidateMode: AutovalidateMode.always,
             child: InputItem(
               validator: (value) {
                 if (value.isEmpty) {

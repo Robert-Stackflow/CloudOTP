@@ -43,14 +43,12 @@ class OneDriveCloudService extends CloudService {
         context,
         windowName: S.current.cloudTypeOneDriveAuthenticateWindowName,
       );
-      if (isAuthorized) {
-        await fetchInfo();
-        return CloudServiceStatus.success;
-      } else {
-        return CloudServiceStatus.unauthorized;
-      }
-    } else {
+    }
+    if (isAuthorized) {
+      await fetchInfo();
       return CloudServiceStatus.success;
+    } else {
+      return CloudServiceStatus.unauthorized;
     }
   }
 
@@ -71,7 +69,8 @@ class OneDriveCloudService extends CloudService {
   Future<bool> isConnected() async {
     bool connected = await onedrive.isConnected();
     if (connected) {
-      await fetchInfo();
+      OneDriveUserInfo? info = await fetchInfo();
+      return info != null;
     }
     return connected;
   }
@@ -85,7 +84,8 @@ class OneDriveCloudService extends CloudService {
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
     maxCount ??= HiveUtil.getMaxBackupsCount();
-    List<OneDriveFileInfo> list = await listBackups();
+    List<OneDriveFileInfo>? list = await listBackups();
+    if (list == null) return false;
     list.sort((a, b) {
       return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
     });
@@ -97,22 +97,23 @@ class OneDriveCloudService extends CloudService {
   }
 
   @override
-  Future<Uint8List> downloadFile(
+  Future<Uint8List?> downloadFile(
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
     OneDriveResponse response = await onedrive.pullById(path);
-    return response.bodyBytes ?? Uint8List(0);
+    return response.isSuccess ? response.bodyBytes ?? Uint8List(0) : null;
   }
 
   @override
   Future<int> getBackupsCount() async {
-    return (await listBackups()).length;
+    return (await listBackups())?.length ?? 0;
   }
 
   @override
-  Future<List<OneDriveFileInfo>> listBackups() async {
+  Future<List<OneDriveFileInfo>?> listBackups() async {
     var list = await listFiles();
+    if (list == null) return null;
     list = list
         .where((element) => ExportTokenUtil.isBackup(element.name))
         .toList();
@@ -120,8 +121,10 @@ class OneDriveCloudService extends CloudService {
   }
 
   @override
-  Future<List<OneDriveFileInfo>> listFiles() async {
-    List<OneDriveFileInfo> files = (await onedrive.list(_onedrivePath)).files;
+  Future<List<OneDriveFileInfo>?> listFiles() async {
+    OneDriveResponse response = await onedrive.list(_onedrivePath);
+    if (!response.isSuccess) return null;
+    List<OneDriveFileInfo> files = response.files;
     return files;
   }
 

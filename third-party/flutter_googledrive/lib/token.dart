@@ -60,6 +60,7 @@ class DefaultTokenManager extends ITokenManager {
         _secureStorage.delete(key: _accessTokenKey),
         _secureStorage.delete(key: _refreshTokenKey),
       ]);
+      debugPrint("# DefaultTokenManager -> clearStoredToken: Token has been cleared");
     } catch (err) {
       debugPrint("# DefaultTokenManager -> clearStoredToken: $err");
     }
@@ -114,7 +115,6 @@ class DefaultTokenManager extends ITokenManager {
         'redirect_uri': redirectURL,
       });
       if (resp.statusCode != 200) {
-        // refresh failed
         debugPrint(
             "# DefaultTokenManager -> _refreshToken: ${resp.statusCode}\n# Body: ${resp.body}");
 
@@ -129,7 +129,9 @@ class DefaultTokenManager extends ITokenManager {
       return tokenMap;
     } catch (err) {
       debugPrint("# DefaultTokenManager -> _refreshToken: $err");
-      await clearStoredToken();
+      if (err is! http.ClientException) {
+        await clearStoredToken();
+      }
     }
 
     return null;

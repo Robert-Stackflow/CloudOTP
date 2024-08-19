@@ -44,14 +44,14 @@ class DropboxCloudService extends CloudService {
         context,
         windowName: S.current.cloudTypeDropboxAuthenticateWindowName,
       );
-      if (isAuthorized) {
-        await fetchInfo();
-        return CloudServiceStatus.success;
-      } else {
-        return CloudServiceStatus.unauthorized;
-      }
+    }
+    if (isAuthorized) {
+      DropboxUserInfo? info = await fetchInfo();
+      return info != null
+          ? CloudServiceStatus.success
+          : CloudServiceStatus.connectionError;
     } else {
-      return CloudServiceStatus.success;
+      return CloudServiceStatus.unauthorized;
     }
   }
 
@@ -71,22 +71,23 @@ class DropboxCloudService extends CloudService {
   Future<bool> isConnected() async {
     bool connected = await dropbox.isConnected();
     if (connected) {
-      await fetchInfo();
+      DropboxUserInfo? info = await fetchInfo();
+      return info != null;
     }
     return connected;
   }
 
   @override
   Future<bool> deleteFile(String path) async {
-    DropboxResponse response =
-        await dropbox.delete(join(_dropboxPath, path));
+    DropboxResponse response = await dropbox.delete(join(_dropboxPath, path));
     return response.isSuccess;
   }
 
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
     maxCount ??= HiveUtil.getMaxBackupsCount();
-    List<DropboxFileInfo> list = await listBackups();
+    List<DropboxFileInfo>? list = await listBackups();
+    if (list == null) return false;
     list.sort((a, b) {
       return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
     });
@@ -101,22 +102,23 @@ class DropboxCloudService extends CloudService {
   }
 
   @override
-  Future<Uint8List> downloadFile(
+  Future<Uint8List?> downloadFile(
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
     DropboxResponse response = await dropbox.pull(path);
-    return response.bodyBytes ?? Uint8List(0);
+    return response.isSuccess ? response.bodyBytes ?? Uint8List(0) : null;
   }
 
   @override
   Future<int> getBackupsCount() async {
-    return (await listBackups()).length;
+    return (await listBackups())?.length ?? 0;
   }
 
   @override
-  Future<List<DropboxFileInfo>> listBackups() async {
+  Future<List<DropboxFileInfo>?> listBackups() async {
     var list = await listFiles();
+    if (list == null) return null;
     list = list
         .where((element) => ExportTokenUtil.isBackup(element.name))
         .toList();
@@ -124,8 +126,10 @@ class DropboxCloudService extends CloudService {
   }
 
   @override
-  Future<List<DropboxFileInfo>> listFiles() async {
-    List<DropboxFileInfo> files = (await dropbox.list(_dropboxEmptyPath)).files;
+  Future<List<DropboxFileInfo>?> listFiles() async {
+    DropboxResponse response = await dropbox.list(_dropboxEmptyPath);
+    if (!response.isSuccess) return null;
+    List<DropboxFileInfo> files = response.files;
     return files;
   }
 
@@ -147,5 +151,4 @@ class DropboxCloudService extends CloudService {
     deleteOldBackup();
     return response.isSuccess;
   }
-
 }

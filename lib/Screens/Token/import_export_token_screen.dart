@@ -82,6 +82,22 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
   }
 
   _showImportPasswordDialog(String path) {
+    InputValidateAsyncController validateAsyncController =
+        InputValidateAsyncController(
+      controller: TextEditingController(),
+      listen: false,
+      validator: (text) async {
+        if (text.isEmpty) {
+          return S.current.autoBackupPasswordCannotBeEmpty;
+        }
+        bool success = await ImportTokenUtil.importEncryptFile(path, text);
+        if (success) {
+          return null;
+        } else {
+          return S.current.invalidPasswordOrDataCorrupted;
+        }
+      },
+    );
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
@@ -92,18 +108,8 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           }
           return null;
         },
-        validateAsyncController: InputValidateAsyncController(
-          controller: TextEditingController(),
-          listen: false,
-          validator: (text) async {
-            bool success = await ImportTokenUtil.importEncryptFile(path, text);
-            if (success) {
-              return null;
-            } else {
-              return S.current.encryptDatabasePasswordWrong;
-            }
-          },
-        ),
+        checkSyncValidator: false,
+        validateAsyncController: validateAsyncController,
         title: S.current.inputImportPasswordTitle,
         message: S.current.inputImportPasswordTip,
         hint: S.current.inputImportPasswordHint,
@@ -111,9 +117,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           RegexInputFormatter.onlyNumberAndLetter,
         ],
         tailingType: InputItemTailingType.password,
-        onValidConfirm: (password) async {
-          return null;
-        },
+        onValidConfirm: (password) async {},
       ),
     );
   }

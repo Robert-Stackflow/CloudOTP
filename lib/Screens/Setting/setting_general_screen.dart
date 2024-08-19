@@ -36,7 +36,7 @@ class GeneralSettingScreen extends StatefulWidget {
 class _GeneralSettingScreenState extends State<GeneralSettingScreen>
     with TickerProviderStateMixin {
   bool _enableLandscapeInTablet =
-  HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey, defaultValue: true);
+      HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey, defaultValue: true);
   FontEnum _currentFont = FontEnum.getCurrentFont();
   bool enableMinimizeToTray = HiveUtil.getBool(HiveUtil.enableCloseToTrayKey);
   bool recordWindowState = HiveUtil.getBool(HiveUtil.recordWindowStateKey);
@@ -50,9 +50,9 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
   bool inAppBrowser = HiveUtil.getBool(HiveUtil.inappWebviewKey);
 
   bool hideAppbarWhenScrolling =
-  HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
+      HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
   bool hideBottombarWhenScrolling =
-  HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
+      HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
   final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
 
   @override
@@ -79,30 +79,30 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
       child: Scaffold(
         appBar: ResponsiveUtil.isLandscape()
             ? ItemBuilder.buildSimpleAppBar(
-          title: S.current.generalSetting,
-          context: context,
-          transparent: true,
-        )
+                title: S.current.generalSetting,
+                context: context,
+                transparent: true,
+              )
             : ItemBuilder.buildAppBar(
-          context: context,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          leading: Icons.arrow_back_rounded,
-          onLeadingTap: () {
-            Navigator.pop(context);
-          },
-          title: Text(
-            S.current.generalSetting,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.apply(fontWeightDelta: 2),
-          ),
-          center: true,
-          actions: [
-            ItemBuilder.buildBlankIconButton(context),
-            const SizedBox(width: 5),
-          ],
-        ),
+                context: context,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                leading: Icons.arrow_back_rounded,
+                onLeadingTap: () {
+                  Navigator.pop(context);
+                },
+                title: Text(
+                  S.current.generalSetting,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontWeightDelta: 2),
+                ),
+                center: true,
+                actions: [
+                  ItemBuilder.buildBlankIconButton(context),
+                  const SizedBox(width: 5),
+                ],
+              ),
         body: EasyRefresh(
           child: ListView(
             physics: const BouncingScrollPhysics(),
@@ -134,9 +134,9 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
           onTap: () {
             BottomSheetBuilder.showListBottomSheet(
               context,
-                  (context) => TileList.fromOptions(
+              (context) => TileList.fromOptions(
                 AppProvider.getSupportedThemeMode(),
-                    (item2) {
+                (item2) {
                   appProvider.themeMode = item2;
                   Navigator.pop(context);
                 },
@@ -153,16 +153,16 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
         selector: (context, appProvider) => appProvider.lightTheme,
         builder: (context, lightTheme, child) =>
             Selector<AppProvider, ThemeColorData>(
-              selector: (context, appProvider) => appProvider.darkTheme,
-              builder: (context, darkTheme, child) => ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.selectTheme,
-                tip: "${lightTheme.intlName}/${darkTheme.intlName}",
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(context, const SelectThemeScreen());
-                },
-              ),
-            ),
+          selector: (context, appProvider) => appProvider.darkTheme,
+          builder: (context, darkTheme, child) => ItemBuilder.buildEntryItem(
+            context: context,
+            title: S.current.selectTheme,
+            tip: "${lightTheme.intlName}/${darkTheme.intlName}",
+            onTap: () {
+              RouteUtil.pushCupertinoRoute(context, const SelectThemeScreen());
+            },
+          ),
+        ),
       ),
       ItemBuilder.buildEntryItem(
         context: context,
@@ -172,9 +172,9 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
         onTap: () {
           BottomSheetBuilder.showListBottomSheet(
             context,
-                (sheetContext) => TileList.fromOptions(
+            (sheetContext) => TileList.fromOptions(
               FontEnum.getFontList(),
-                  (item2) async {
+              (item2) async {
                 FontEnum t = item2 as FontEnum;
                 _currentFont = t;
                 Navigator.pop(sheetContext);
@@ -206,9 +206,9 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
             filterLocale();
             BottomSheetBuilder.showListBottomSheet(
               context,
-                  (context) => TileList.fromOptions(
+              (context) => TileList.fromOptions(
                 _supportedLocaleTuples,
-                    (item2) {
+                (item2) {
                   appProvider.locale = item2;
                   Navigator.pop(context);
                 },
@@ -240,9 +240,9 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
             ? S.current.newVersion(latestVersion)
             : S.current.alreadyLatestVersion,
         descriptionColor:
-        Utils.compareVersion(latestVersion, currentVersion) > 0
-            ? Colors.redAccent
-            : null,
+            Utils.compareVersion(latestVersion, currentVersion) > 0
+                ? Colors.redAccent
+                : null,
         tip: currentVersion,
         onTap: () {
           fetchReleases(true);
@@ -260,7 +260,7 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
         context: context,
         title: S.current.closeWindowOption,
         tip:
-        enableMinimizeToTray ? S.current.minimizeToTray : S.current.exitApp,
+            enableMinimizeToTray ? S.current.minimizeToTray : S.current.exitApp,
         onTap: () {
           List<Tuple2<String, dynamic>> options = [
             Tuple2(S.current.minimizeToTray, 0),
@@ -268,9 +268,9 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
           ];
           BottomSheetBuilder.showListBottomSheet(
             context,
-                (sheetContext) => TileList.fromOptions(
+            (sheetContext) => TileList.fromOptions(
               options,
-                  (idx) {
+              (idx) {
                 Navigator.pop(sheetContext);
                 if (idx == 0) {
                   setState(() {
@@ -415,15 +415,19 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
       showUpdateDialog: showTip,
       showNoUpdateToast: showTip,
       onGetCurrentVersion: (currentVersion) {
-        setState(() {
-          this.currentVersion = currentVersion;
-        });
+        if (mounted) {
+          setState(() {
+            this.currentVersion = currentVersion;
+          });
+        }
       },
       onGetLatestRelease: (latestVersion, latestReleaseItem) {
-        setState(() {
-          this.latestVersion = latestVersion;
-          this.latestReleaseItem = latestReleaseItem;
-        });
+        if (mounted) {
+          setState(() {
+            this.latestVersion = latestVersion;
+            this.latestReleaseItem = latestReleaseItem;
+          });
+        }
       },
     );
   }

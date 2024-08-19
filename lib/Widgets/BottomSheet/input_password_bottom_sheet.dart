@@ -61,7 +61,6 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
             ),
             child: Form(
               key: formKey,
-              autovalidateMode: AutovalidateMode.always,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,

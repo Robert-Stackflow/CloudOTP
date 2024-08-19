@@ -107,7 +107,6 @@ class WdDio with DioMixin implements Dio {
         }
         // error
         else {
-          print('error1: $w3AHeader');
           throw newResponseError(resp);
         }
       }
@@ -119,7 +118,6 @@ class WdDio with DioMixin implements Dio {
             pwd: self.auth.pwd,
             dParts: DigestParts(w3AHeader));
       } else {
-        print('error2: $w3AHeader');
         await req(
           self,
           method,

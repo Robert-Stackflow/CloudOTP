@@ -409,7 +409,8 @@ class Utils {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
     }
-    String currentVersion = (await PackageInfo.fromPlatform()).version;
+    String currentVersion =
+        "2.0.0" ?? (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
     String latestVersion = "0.0.0";
     await GithubApi.getReleases("Robert-Stackflow", "CloudOTP")
@@ -445,13 +446,13 @@ class Utils {
               messageTextAlign: TextAlign.start,
               confirmButtonText: S.current.immediatelyDownload,
               cancelButtonText: S.current.updateLater,
-              onTapConfirm: () {
+              onTapConfirm: () async {
                 if (ResponsiveUtil.isDesktop()) {
                   UriUtil.openExternal(latestReleaseItem!.htmlUrl);
                   return;
-                } else {
-                  ReleaseAsset androidAssset =
-                      FileUtil.getAndroidAsset(latestReleaseItem!);
+                } else if (ResponsiveUtil.isAndroid()) {
+                  ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
+                      latestVersion, latestReleaseItem!);
                   if (ResponsiveUtil.isAndroid()) {
                     FileUtil.downloadAndUpdate(
                       context,

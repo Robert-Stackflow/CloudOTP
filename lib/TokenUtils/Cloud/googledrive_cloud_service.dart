@@ -45,14 +45,12 @@ class GoogleDriveCloudService extends CloudService {
         context,
         windowName: S.current.cloudTypeGoogleDriveAuthenticateWindowName,
       );
-      if (isAuthorized) {
-        await fetchInfo();
-        return CloudServiceStatus.success;
-      } else {
-        return CloudServiceStatus.unauthorized;
-      }
-    } else {
+    }
+    if (isAuthorized) {
+      await fetchInfo();
       return CloudServiceStatus.success;
+    } else {
+      return CloudServiceStatus.unauthorized;
     }
   }
 
@@ -72,7 +70,8 @@ class GoogleDriveCloudService extends CloudService {
   Future<bool> isConnected() async {
     bool connected = await googledrive.isConnected();
     if (connected) {
-      await fetchInfo();
+      GoogleDriveUserInfo? info = await fetchInfo();
+      return info != null;
     }
     return connected;
   }
@@ -86,7 +85,8 @@ class GoogleDriveCloudService extends CloudService {
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
     maxCount ??= HiveUtil.getMaxBackupsCount();
-    List<GoogleDriveFileInfo> list = await listBackups();
+    List<GoogleDriveFileInfo>? list = await listBackups();
+    if (list == null) return false;
     list.sort((a, b) {
       return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
     });
@@ -98,22 +98,23 @@ class GoogleDriveCloudService extends CloudService {
   }
 
   @override
-  Future<Uint8List> downloadFile(
+  Future<Uint8List?> downloadFile(
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
     GoogleDriveResponse response = await googledrive.pullById(path);
-    return response.bodyBytes ?? Uint8List(0);
+    return response.isSuccess ? response.bodyBytes ?? Uint8List(0) : null;
   }
 
   @override
   Future<int> getBackupsCount() async {
-    return (await listBackups()).length;
+    return (await listBackups())?.length ?? 0;
   }
 
   @override
-  Future<List<GoogleDriveFileInfo>> listBackups() async {
+  Future<List<GoogleDriveFileInfo>?> listBackups() async {
     var list = await listFiles();
+    if (list == null) return null;
     list = list
         .where((element) => ExportTokenUtil.isBackup(element.name))
         .toList();
@@ -121,9 +122,10 @@ class GoogleDriveCloudService extends CloudService {
   }
 
   @override
-  Future<List<GoogleDriveFileInfo>> listFiles() async {
-    List<GoogleDriveFileInfo> files =
-        (await googledrive.list(_googledrivePath)).files;
+  Future<List<GoogleDriveFileInfo>?> listFiles() async {
+    GoogleDriveResponse response = await googledrive.list(_googledrivePath);
+    if (!response.isSuccess) return null;
+    List<GoogleDriveFileInfo> files = response.files;
     return files;
   }
 
@@ -146,5 +148,4 @@ class GoogleDriveCloudService extends CloudService {
     deleteOldBackup();
     return response.isSuccess;
   }
-
 }

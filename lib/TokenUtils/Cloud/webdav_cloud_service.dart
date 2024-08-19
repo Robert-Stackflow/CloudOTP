@@ -81,14 +81,19 @@ class WebDavCloudService extends CloudService {
   }
 
   @override
-  Future<dynamic> listFiles() async {
-    var list = await client.readDir(_webdavPath);
-    return list;
+  Future<List<WebDavFileInfo>?> listFiles() async {
+    try {
+      var list = await client.readDir(_webdavPath);
+      return list;
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
-  Future<dynamic> listBackups() async {
+  Future<List<WebDavFileInfo>?> listBackups() async {
     var list = await listFiles();
+    if (list == null) return null;
     list = list
         .where((element) => ExportTokenUtil.isBackup(element.path ?? ""))
         .toList();
@@ -97,7 +102,7 @@ class WebDavCloudService extends CloudService {
 
   @override
   Future<int> getBackupsCount() async {
-    return (await listBackups()).length;
+    return (await listBackups())?.length ?? 0;
   }
 
   @override
@@ -106,41 +111,49 @@ class WebDavCloudService extends CloudService {
     Uint8List fileData, {
     Function(int, int)? onProgress,
   }) async {
-    CancelToken c = CancelToken();
-    double progress = 0;
-    await client.write(
-      join(_webdavPath, fileName),
-      fileData,
-      onProgress: (c, t) {
-        onProgress?.call(c, t);
-        progress = c / t;
-      },
-      cancelToken: c,
-    );
-    deleteOldBackup();
-    if (progress >= 1) {
-      return true;
-    } else {
+    try {
+      CancelToken c = CancelToken();
+      double progress = 0;
+      await client.write(
+        join(_webdavPath, fileName),
+        fileData,
+        onProgress: (c, t) {
+          onProgress?.call(c, t);
+          progress = c / t;
+        },
+        cancelToken: c,
+      );
+      deleteOldBackup();
+      if (progress >= 1) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
       return false;
     }
   }
 
   @override
-  Future<Uint8List> downloadFile(
+  Future<Uint8List?> downloadFile(
     String path, {
     Function(int, int)? onProgress,
   }) async {
     if (!path.startsWith(_webdavPath)) {
       path = join(_webdavPath, path);
     }
-    return Uint8List.fromList(
-      await client.read(
-        path,
-        onProgress: (c, t) {
-          onProgress?.call(c, t);
-        },
-      ),
-    );
+    try {
+      return Uint8List.fromList(
+        await client.read(
+          path,
+          onProgress: (c, t) {
+            onProgress?.call(c, t);
+          },
+        ),
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
@@ -158,7 +171,8 @@ class WebDavCloudService extends CloudService {
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
     maxCount ??= HiveUtil.getMaxBackupsCount();
-    List<WebDavFileInfo> list = await listBackups();
+    List<WebDavFileInfo>? list = await listBackups();
+    if (list == null) return false;
     list.sort((a, b) {
       if (a.mTime == null || b.mTime == null) return 0;
       return a.mTime!.compareTo(b.mTime!);

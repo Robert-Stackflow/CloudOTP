@@ -29,7 +29,7 @@ abstract class CloudService {
     Function(int, int)? onProgress,
   });
 
-  Future<Uint8List> downloadFile(
+  Future<Uint8List?> downloadFile(
     String path, {
     Function(int, int)? onProgress,
   });

@@ -23,7 +23,9 @@ class InputValidateAsyncController {
     required this.controller,
     bool listen = true,
   }) {
-    if (listen) controller.addListener(validate);
+    if (listen) {
+      controller.addListener(validate);
+    }
   }
 
   Future<String?> validate() async {
@@ -128,7 +130,7 @@ class InputItemState extends State<InputItem> {
 
   String? get hint => widget.hint;
 
-  TextEditingController? controller;
+  late TextEditingController controller;
 
   late bool obscureText;
 
@@ -175,8 +177,9 @@ class InputItemState extends State<InputItem> {
   @override
   void initState() {
     super.initState();
-    controller =
-        widget.validateAsyncController?.controller ?? widget.controller;
+    controller = widget.validateAsyncController?.controller ??
+        widget.controller ??
+        TextEditingController();
     obscureText = widget.obscureText ?? false;
     widget.validateAsyncController?.onError = () {
       if (mounted) setState(() {});
@@ -218,6 +221,7 @@ class InputItemState extends State<InputItem> {
                   color: Colors.transparent,
                   child: TextFormField(
                     focusNode: focusNode,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: controller,
                     textInputAction: textInputAction,
                     keyboardType: keyboardType,
@@ -324,7 +328,7 @@ class InputItemState extends State<InputItem> {
       tailing = Icon(Icons.clear_rounded,
           color: theme.iconTheme.color?.withAlpha(120));
       defaultTapFunction = () {
-        if (controller != null) controller!.clear();
+        controller.clear();
       };
     }
     if (tailingType == InputItemTailingType.password) {

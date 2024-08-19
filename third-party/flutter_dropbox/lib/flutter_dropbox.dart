@@ -181,8 +181,7 @@ class Dropbox with ChangeNotifier {
   Future<DropboxResponse> list(String remotePath) async {
     final accessToken = await _tokenManager.getAccessToken();
     if (accessToken == null) {
-      return DropboxResponse(
-          message: "Null access token", bodyBytes: Uint8List(0));
+      return DropboxResponse(message: "Null access token");
     }
 
     final url = Uri.parse("$apiEndpoint/files/list_folder");
@@ -225,14 +224,12 @@ class Dropbox with ChangeNotifier {
         return DropboxResponse(
             statusCode: resp.statusCode,
             body: resp.body,
-            message: "Url not found.",
-            bodyBytes: Uint8List(0));
+            message: "Url not found.");
       } else {
         return DropboxResponse(
             statusCode: resp.statusCode,
             body: resp.body,
-            message: "Error while listing files.",
-            bodyBytes: Uint8List(0));
+            message: "Error while listing files.");
       }
     } catch (err) {
       debugPrint("# Dropbox -> list: $err");

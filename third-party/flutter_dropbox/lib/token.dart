@@ -72,7 +72,6 @@ class DefaultTokenManager extends ITokenManager {
       if ((accessToken?.isEmpty) ?? true) {
         return null;
       }
-
       final accessTokenExpiresAt = await _secureStorage.read(key: _expireInKey);
       if ((accessTokenExpiresAt?.isEmpty) ?? true) {
         return null;
@@ -82,13 +81,10 @@ class DefaultTokenManager extends ITokenManager {
           .add(const Duration(minutes: -2));
 
       if (DateTime.now().toUtc().isAfter(expAt)) {
-        // expired, refresh
         final tokenMap = await _refreshToken();
         if (tokenMap == null) {
-          // refresh failed
           return null;
         }
-        // refresh success
         return tokenMap['access_token'];
       }
 
@@ -129,7 +125,9 @@ class DefaultTokenManager extends ITokenManager {
       return tokenMap;
     } catch (err) {
       debugPrint("# DefaultTokenManager -> _refreshToken: $err");
-      await clearStoredToken();
+      if (err is! http.ClientException) {
+        await clearStoredToken();
+      }
     }
 
     return null;

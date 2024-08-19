@@ -533,7 +533,6 @@ class _SettingScreenState extends State<SettingScreen>
                     deleteOldBackups(count);
                     return true;
                   }
-                  print("ddddddd");
                   if (count > 0 && (counts[0] > count || counts[1] > count)) {
                     DialogBuilder.showConfirmDialog(
                       context,

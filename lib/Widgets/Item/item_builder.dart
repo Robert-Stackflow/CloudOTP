@@ -238,8 +238,8 @@ class ItemBuilder {
                 title,
                 style: Theme.of(context)
                     .textTheme
-                    .labelMedium
-                    ?.apply(fontWeightDelta: 2, fontSizeDelta: 1),
+                    .titleMedium
+                    ?.apply(fontWeightDelta: 2, fontSizeDelta: -2),
               ),
             ),
           SizedBox(
@@ -251,6 +251,7 @@ class ItemBuilder {
               constraintWidth: constraintWidth,
               radius: 8,
               enableDeselect: enableDeselect,
+              mainGroupAlignment: MainGroupAlignment.start,
               onSelected: onSelected,
             ),
           ),
@@ -266,14 +267,15 @@ class ItemBuilder {
     bool disabled = false,
     bool isRadio = true,
     double? radius,
+    MainGroupAlignment mainGroupAlignment = MainGroupAlignment.center,
     bool constraintWidth = true,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return GroupButton(
       isRadio: isRadio,
       enableDeselect: enableDeselect,
-      options: const GroupButtonOptions(
-        mainGroupAlignment: MainGroupAlignment.start,
+      options: GroupButtonOptions(
+        mainGroupAlignment: mainGroupAlignment,
         runSpacing: 6,
         spacing: 6,
       ),
@@ -316,7 +318,9 @@ class ItemBuilder {
       isRadio: isRadio,
       enableDeselect: enableDeselect,
       options: const GroupButtonOptions(
-        mainGroupAlignment: MainGroupAlignment.start,
+        mainGroupAlignment: MainGroupAlignment.center,
+        runSpacing: 6,
+        spacing: 6,
       ),
       disabled: disabled,
       onSelected: onSelected,
@@ -1363,6 +1367,7 @@ class ItemBuilder {
     String? text,
     bool forceDark = false,
     Color? background,
+    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.center,
   }) {
     return Center(
       child: Container(
@@ -1371,7 +1376,7 @@ class ItemBuilder {
         padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
         child: Column(
           mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: mainAxisAlignment,
           children: [
             LottieUtil.load(
               LottieUtil.getLoadingPath(context, forceDark: forceDark),

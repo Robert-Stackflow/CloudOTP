@@ -282,11 +282,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
             CustomLoadingDialog.dismissLoading();
             InputValidateAsyncController validateAsyncController =
                 InputValidateAsyncController(
-                    controller: TextEditingController(
-                        text: _maxBackupsCount.toString()),
-                    validator: (text) async {
-                      return null;
-                    });
+              controller:
+                  TextEditingController(text: _maxBackupsCount.toString()),
+              validator: (text) async {
+                return null;
+              },
+            );
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,

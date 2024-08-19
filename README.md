@@ -1,20 +1,17 @@
 ## Introduction
 
-This is a awesome two-factor authenticator for Android which supports dropbox.
-
-The algorithm part comes from https://github.com/freeotp/freeotp-android.
+This is an awesome two-factor authenticator based on Flutter for Android and Windows which supports cloud backup.
 
 ## Highlights
 
-- Support TOTP and HOTP
-- Support manual filling and QR code scanning to add tokens
-- Support import/export of JSON/URI file
-- Support import/export of encrypted files (using standard AES-256 algorithm)
-- Support backing up encrypted files to Dropbox
-- Support password lock and biometric identification
-- Support dark mode and switching theme colors
-- Support sort;batch export;batch delete
-- Support multiple languages: English, Simplified Chinese, Traditional Chinese, Japanese
+- Reconstructed based on Flutter architecture, supports Android and Windows
+- Support TOTP, HOTP, MOTP, Steam, Yandex
+- Supports scanning QR code to add, identify pictures, and manually enter keys
+- Supports custom icons and categories, supports sorting and multiple token layouts
+- Supports dark mode, multiple languages, and multiple themes
+- Supports local backup and automatic backup, supports WebDav, Onedrive, GoogleDrive, Dropbox, S3 storage and other cloud backup methods
+- Supports import/export of encrypted files and URI lists
+- Supports database encryption and gesture password
 
 ## Screenshots
 
@@ -23,15 +20,3 @@ The algorithm part comes from https://github.com/freeotp/freeotp-android.
 <img src="art/setting.jpg" alt="Setting" style="zoom: 25%;" /><img src="art/theme.jpg" alt="Theme" style="zoom: 25%;" /><img src="art/lock.jpg" alt="Lock" style="zoom: 25%;" />
 
 <img src="art/export_import.jpg" alt="Export and  Import" style="zoom: 25%;" /><img src="art/dropbox.jpg" alt="Dropbox" style="zoom: 25%;" />
-## TODO
-
-- [ ] Support Google Drive
-- [ ] Support WebDAV services such as Box
-- [ ] Support more encryption algorithms
-- [ ] Support encrypting local SQLite database
-- [ ] ~~Support desktop widgets(No longer implemented due to security considerations)~~
-
-### Known Bugs
-
-- [ ] When exporting a file, if you overwrite an existing file, the original article content cannot be cleared.
-- [ ] When importing an encrypted file, if the file name is illegal (such as containing spaces), the import will fail.

@@ -196,7 +196,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     int updateIndex = tokens.indexWhere((element) => element.id == token.id);
     tokens[updateIndex] = token;
     tokenKeyMap
-        .putIfAbsent(updateIndex, () => GlobalKey())
+        .putIfAbsent(token.id, () => GlobalKey())
         .currentState
         ?.updateInfo();
     if (pinnedStateChanged) performSort();
@@ -796,6 +796,19 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   processEditCategory(TokenCategory category) {
+    InputValidateAsyncController validateAsyncController =
+        InputValidateAsyncController(
+      validator: (text) async {
+        if (text.isEmpty) {
+          return S.current.categoryNameCannotBeEmpty;
+        }
+        if (text != category.title && await CategoryDao.isCategoryExist(text)) {
+          return S.current.categoryNameDuplicate;
+        }
+        return null;
+      },
+      controller: TextEditingController(),
+    );
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
@@ -804,22 +817,13 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         hint: S.current.inputCategory,
         maxLength: 32,
         text: category.title,
-        validateAsyncController: InputValidateAsyncController(
-          validator: (text) async {
-            if (text != category.title &&
-                await CategoryDao.isCategoryExist(text)) {
-              return S.current.categoryNameDuplicate;
-            }
-            return null;
-          },
-          controller: TextEditingController(),
-        ),
         validator: (text) {
           if (text.isEmpty) {
             return S.current.categoryNameCannotBeEmpty;
           }
           return null;
         },
+        validateAsyncController: validateAsyncController,
         onValidConfirm: (text) async {
           category.title = text;
           await CategoryDao.updateCategory(category);
@@ -831,6 +835,19 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   _buildTabContextMenuButtons(TokenCategory? category) {
     addCategory() async {
+      InputValidateAsyncController validateAsyncController =
+          InputValidateAsyncController(
+        validator: (text) async {
+          if (text.isEmpty) {
+            return S.current.categoryNameCannotBeEmpty;
+          }
+          if (await CategoryDao.isCategoryExist(text)) {
+            return S.current.categoryNameDuplicate;
+          }
+          return null;
+        },
+        controller: TextEditingController(),
+      );
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,
@@ -843,15 +860,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             }
             return null;
           },
-          validateAsyncController: InputValidateAsyncController(
-            validator: (text) async {
-              if (await CategoryDao.isCategoryExist(text)) {
-                return S.current.categoryNameDuplicate;
-              }
-              return null;
-            },
-            controller: TextEditingController(),
-          ),
+          validateAsyncController: validateAsyncController,
           maxLength: 32,
           onValidConfirm: (text) async {
             await CategoryDao.insertCategory(TokenCategory.title(title: text));
@@ -889,6 +898,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }),
         ContextMenuButtonConfig.warning(
           S.current.deleteCategory,
+          textColor: Colors.red,
           onPressed: () {
             DialogBuilder.showConfirmDialog(
               context,

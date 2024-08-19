@@ -43,6 +43,7 @@ class InputBottomSheet extends StatefulWidget {
     this.preventPop = false,
     this.validator,
     this.validateAsyncController,
+    this.checkSyncValidator = true,
   });
 
   final String? hint;
@@ -51,6 +52,7 @@ class InputBottomSheet extends StatefulWidget {
   final String message;
   final int maxLines;
   final int minLines;
+  final bool checkSyncValidator;
   final InputValidateAsyncController? validateAsyncController;
   final FormFieldValidator? validator;
   final Function()? onCancel;
@@ -91,13 +93,14 @@ class InputBottomSheetState extends State<InputBottomSheet> {
   @override
   void initState() {
     super.initState();
-    controller = widget.validateAsyncController?.controller??TextEditingController();
-    controller.value = TextEditingValue(text: widget.text);
+    controller =
+        widget.validateAsyncController?.controller ?? TextEditingController();
+    if (mounted) controller.value = TextEditingValue(text: widget.text);
     widget.validateAsyncController?.doPop = () {
       Navigator.of(context).pop();
     };
     Future.delayed(const Duration(milliseconds: 200), () {
-      FocusScope.of(context).requestFocus(_focusNode);
+      if (mounted) FocusScope.of(context).requestFocus(_focusNode);
     });
   }
 
@@ -131,7 +134,6 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 Center(
                   child: Form(
                     key: formKey,
-                    autovalidateMode: AutovalidateMode.always,
                     child: InputItem(
                       controller: controller,
                       focusNode: _focusNode,
@@ -165,6 +167,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                       maxLength: widget.maxLength,
                       inputFormatters: widget.inputFormatters,
                       leadingMinWidth: widget.leadingMinWidth,
+                      onSubmit: (_) => processConfirm(),
                     ),
                   ),
                 ),
@@ -199,6 +202,20 @@ class InputBottomSheetState extends State<InputBottomSheet> {
     );
   }
 
+  processConfirm() async {
+    bool isValid = widget.checkSyncValidator
+        ? formKey.currentState?.validate() ?? false
+        : true;
+    bool isValidAsync = await widget.validateAsyncController?.isValid() ?? true;
+    widget.onConfirm?.call(controller.text);
+    if (isValid && isValidAsync) {
+      await widget.onValidConfirm?.call(controller.text);
+      if (!widget.preventPop) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   _buildFooter() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
@@ -230,19 +247,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
                 background: Theme.of(context).primaryColor,
                 color: Colors.white,
                 text: S.current.confirm,
-                onTap: () async {
-                  bool isValid = formKey.currentState?.validate() ?? false;
-                  String? error =
-                      await widget.validateAsyncController?.validate();
-                  bool isValidAsync = (error == null);
-                  widget.onConfirm?.call(controller.text);
-                  if (isValid && isValidAsync) {
-                    await widget.onValidConfirm?.call(controller.text);
-                    if (!widget.preventPop) {
-                      Navigator.of(context).pop();
-                    }
-                  }
-                },
+                onTap: processConfirm,
                 fontSizeDelta: 2,
               ),
             ),

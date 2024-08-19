@@ -71,76 +71,57 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
   }
 
   _buildBody() {
-    return ListView(
-      shrinkWrap: true,
+    return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      children: [
-        Column(
-          children: [
-            // Container(
-            //   constraints: const BoxConstraints(maxWidth: 82),
-            //   alignment: Alignment.center,
-            //   decoration: BoxDecoration(
-            //     borderRadius: BorderRadius.circular(16),
-            //     border:
-            //         Border.all(color: Colors.grey.withOpacity(0.1), width: 0.5),
-            //   ),
-            //   child: ClipRRect(
-            //     borderRadius: BorderRadius.circular(16),
-            //     child: Image.asset(
-            //       'assets/logo.png',
-            //       height: 80,
-            //       width: 80,
-            //       fit: BoxFit.contain,
-            //     ),
-            //   ),
-            // ),
-            // const SizedBox(height: 20),
-            _typeInfo(),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: MediaQuery.sizeOf(context).height - 150,
-              child: PageView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: pageController,
-                children: const [
-                  WebDavServiceScreen(),
-                  OneDriveServiceScreen(),
-                  GoogleDriveServiceScreen(),
-                  DropboxServiceScreen(),
-                  S3CloudServiceScreen(),
-                ],
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _typeInfo(),
+          SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: PageView(
+              physics: const NeverScrollableScrollPhysics(),
+              controller: pageController,
+              children: const [
+                WebDavServiceScreen(),
+                OneDriveServiceScreen(),
+                GoogleDriveServiceScreen(),
+                DropboxServiceScreen(),
+                S3CloudServiceScreen(),
+              ],
             ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
   _typeInfo() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
-      topRadius: true,
-      bottomRadius: true,
-      padding: const EdgeInsets.only(right: 10),
-      child: Column(
-        children: [
-          ItemBuilder.buildGroupTile(
-            context: context,
-            controller: _typeController,
-            constraintWidth: false,
-            buttons: CloudServiceType.toStrings(),
-            onSelected: (value, index, isSelected) {
-              setState(() {
-                _currentType = index.toCloudServiceType;
-              });
-              pageController.jumpToPage(index);
-            },
-            title: '',
-          ),
-        ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ItemBuilder.buildContainerItem(
+        context: context,
+        topRadius: true,
+        bottomRadius: true,
+        padding: const EdgeInsets.only(right: 10),
+        child: Column(
+          children: [
+            ItemBuilder.buildGroupTile(
+              context: context,
+              controller: _typeController,
+              constraintWidth: false,
+              buttons: CloudServiceType.toStrings(),
+              onSelected: (value, index, isSelected) {
+                setState(() {
+                  _currentType = index.toCloudServiceType;
+                });
+                pageController.jumpToPage(index);
+              },
+              title: '',
+            ),
+          ],
+        ),
       ),
     );
   }

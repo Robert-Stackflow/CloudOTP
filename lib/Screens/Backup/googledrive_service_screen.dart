@@ -14,7 +14,6 @@ import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/googledrive_backups_bottom_sheet.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -54,7 +53,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
   @override
   void initState() {
     super.initState();
-    loadConfig();
+    if (!ResponsiveUtil.isDesktop()) loadConfig();
   }
 
   loadConfig() async {
@@ -83,6 +82,9 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
       _googledriveCloudServiceConfig!.configured =
           _googledriveCloudServiceConfig!.connected =
               await _googledriveCloudService!.isConnected();
+      if(!_googledriveCloudServiceConfig!.connected) {
+        IToast.showTop(S.current.cloudConnectionError);
+      }
       updateConfig(_googledriveCloudServiceConfig!);
     }
     inited = true;
@@ -110,6 +112,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                 context,
                 background: Colors.transparent,
                 text: S.current.cloudConnecting,
+                mainAxisAlignment: MainAxisAlignment.start,
+                topPadding: 100,
               );
   }
 
@@ -118,7 +122,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          const SizedBox(height: 50),
+          const SizedBox(height: 100),
           Text(S.current.cloudTypeNotSupport(S.current.cloudTypeGoogleDrive)),
           const SizedBox(height: 10),
         ],
@@ -261,13 +265,15 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(
-                title: S.current.webDavPulling,
-                dismissible: true,
-              );
+              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
               try {
-                List<GoogleDriveFileInfo> files =
+                List<GoogleDriveFileInfo>? files =
                     await _googledriveCloudService!.listBackups();
+                if (files == null) {
+                  CustomLoadingDialog.dismissLoading();
+                  IToast.show(S.current.webDavPullFailed);
+                  return;
+                }
                 CloudServiceConfigDao.updateLastPullTime(
                     _googledriveCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
@@ -285,71 +291,14 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res =
+                        Uint8List? res =
                             await _googledriveCloudService!.downloadFile(
                           selectedFile.id,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
                           },
                         );
-
-                        dialog.updateMessage(
-                          msg: S.current.importing,
-                          showProgress: false,
-                        );
-
-                        bool success = await ImportTokenUtil.importBackupFile(
-                          res,
-                          showLoading: false,
-                        );
-                        dialog.dismiss();
-                        if (!success) {
-                          BottomSheetBuilder.showBottomSheet(
-                            context,
-                            responsive: true,
-                            (context) => InputBottomSheet(
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return S
-                                      .current.autoBackupPasswordCannotBeEmpty;
-                                }
-                                return null;
-                              },
-                              validateAsyncController:
-                                  InputValidateAsyncController(
-                                listen: false,
-                                validator: (text) async {
-                                  dialog.show(
-                                    msg: S.current.importing,
-                                    showProgress: false,
-                                  );
-                                  bool success =
-                                      await ImportTokenUtil.importBackupFile(
-                                    password: text,
-                                    res,
-                                    showLoading: false,
-                                  );
-                                  dialog.dismiss();
-                                  if (success) {
-                                    return null;
-                                  } else {
-                                    return S
-                                        .current.invalidPasswordOrDataCorrupted;
-                                  }
-                                },
-                                controller: TextEditingController(),
-                              ),
-                              title: S.current.inputImportPasswordTitle,
-                              message: S.current.inputImportPasswordTip,
-                              hint: S.current.inputImportPasswordHint,
-                              inputFormatters: [
-                                RegexInputFormatter.onlyNumberAndLetter,
-                              ],
-                              tailingType: InputItemTailingType.password,
-                              onValidConfirm: (password) async {},
-                            ),
-                          );
-                        }
+                        ImportTokenUtil.importFromCloud(context, res, dialog);
                       },
                     ),
                   );

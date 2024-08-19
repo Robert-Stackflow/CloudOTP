@@ -14,7 +14,6 @@ import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/dropbox_backups_bottom_sheet.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -53,7 +52,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   @override
   void initState() {
     super.initState();
-    loadConfig();
+    if (!ResponsiveUtil.isDesktop()) loadConfig();
   }
 
   loadConfig() async {
@@ -80,6 +79,9 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     if (_dropboxCloudService != null) {
       _dropboxCloudServiceConfig!.configured = _dropboxCloudServiceConfig!
           .connected = await _dropboxCloudService!.isConnected();
+      if (!_dropboxCloudServiceConfig!.connected) {
+        IToast.showTop(S.current.cloudConnectionError);
+      }
       updateConfig(_dropboxCloudServiceConfig!);
     }
     inited = true;
@@ -107,6 +109,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                 context,
                 background: Colors.transparent,
                 text: S.current.cloudConnecting,
+                mainAxisAlignment: MainAxisAlignment.start,
+                topPadding: 100,
               );
   }
 
@@ -115,7 +119,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          const SizedBox(height: 50),
+          const SizedBox(height: 100),
           Text(S.current.cloudTypeNotSupport(S.current.cloudTypeDropbox)),
           const SizedBox(height: 10),
         ],
@@ -132,7 +136,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     }
     await currentService.authenticate().then((value) async {
       setState(() {
-        currentConfig.connected = value == CloudServiceStatus.success;
+        currentConfig.connected = (value == CloudServiceStatus.success);
       });
       if (!currentConfig.connected) {
         switch (value) {
@@ -147,8 +151,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             break;
         }
       } else {
-        _dropboxCloudServiceConfig!.configured =
-            await _dropboxCloudService!.isConnected();
+        _dropboxCloudServiceConfig!.configured = true;
         updateConfig(_dropboxCloudServiceConfig!);
         if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
       }
@@ -258,13 +261,15 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(
-                title: S.current.webDavPulling,
-                dismissible: true,
-              );
+              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
               try {
-                List<DropboxFileInfo> files =
+                List<DropboxFileInfo>? files =
                     await _dropboxCloudService!.listBackups();
+                if (files == null) {
+                  CustomLoadingDialog.dismissLoading();
+                  IToast.show(S.current.webDavPullFailed);
+                  return;
+                }
                 CloudServiceConfigDao.updateLastPullTime(
                     _dropboxCloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
@@ -282,71 +287,14 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res =
+                        Uint8List? res =
                             await _dropboxCloudService!.downloadFile(
                           selectedFile.id,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
                           },
                         );
-
-                        dialog.updateMessage(
-                          msg: S.current.importing,
-                          showProgress: false,
-                        );
-
-                        bool success = await ImportTokenUtil.importBackupFile(
-                          res,
-                          showLoading: false,
-                        );
-                        dialog.dismiss();
-                        if (!success) {
-                          BottomSheetBuilder.showBottomSheet(
-                            context,
-                            responsive: true,
-                            (context) => InputBottomSheet(
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return S
-                                      .current.autoBackupPasswordCannotBeEmpty;
-                                }
-                                return null;
-                              },
-                              validateAsyncController:
-                                  InputValidateAsyncController(
-                                listen: false,
-                                validator: (text) async {
-                                  dialog.show(
-                                    msg: S.current.importing,
-                                    showProgress: false,
-                                  );
-                                  bool success =
-                                      await ImportTokenUtil.importBackupFile(
-                                    password: text,
-                                    res,
-                                    showLoading: false,
-                                  );
-                                  dialog.dismiss();
-                                  if (success) {
-                                    return null;
-                                  } else {
-                                    return S
-                                        .current.invalidPasswordOrDataCorrupted;
-                                  }
-                                },
-                                controller: TextEditingController(),
-                              ),
-                              title: S.current.inputImportPasswordTitle,
-                              message: S.current.inputImportPasswordTip,
-                              hint: S.current.inputImportPasswordHint,
-                              inputFormatters: [
-                                RegexInputFormatter.onlyNumberAndLetter,
-                              ],
-                              tailingType: InputItemTailingType.password,
-                              onValidConfirm: (password) async {},
-                            ),
-                          );
-                        }
+                        ImportTokenUtil.importFromCloud(context, res, dialog);
                       },
                     ),
                   );

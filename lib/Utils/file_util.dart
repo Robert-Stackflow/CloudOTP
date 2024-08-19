@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/github_response.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -32,7 +33,7 @@ class FileUtil {
   }
 
   static Future<String> getBackupDir() async {
-    Directory directory = Directory(join(await getApplicationDir(), "Backup" ));
+    Directory directory = Directory(join(await getApplicationDir(), "Backup"));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -40,7 +41,8 @@ class FileUtil {
   }
 
   static Future<String> getScreenshotDir() async {
-    Directory directory = Directory(join(await getApplicationDir(), "Screenshots"));
+    Directory directory =
+        Directory(join(await getApplicationDir(), "Screenshots"));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -64,7 +66,8 @@ class FileUtil {
   }
 
   static Future<String> getDatabaseDir() async {
-    Directory directory = Directory(join(await getApplicationDir(), "Database"));
+    Directory directory =
+        Directory(join(await getApplicationDir(), "Database"));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -201,10 +204,30 @@ class FileUtil {
     return copiedFile;
   }
 
-  static ReleaseAsset getAndroidAsset(ReleaseItem item) {
-    return item.assets.firstWhere((element) =>
-        element.contentType == "application/vnd.android.package-archive" &&
-        element.name.endsWith(".zip"));
+  static Future<ReleaseAsset> getAndroidAsset(
+      String latestVersion, ReleaseItem item) async {
+    List<ReleaseAsset> assets = item.assets
+        .where((element) =>
+            element.contentType == "application/vnd.android.package-archive" &&
+            element.name.endsWith(".apk"))
+        .toList();
+    ReleaseAsset generalAsset = assets.firstWhere(
+        (element) => element.name == "CloudOTP-$latestVersion.apk",
+        orElse: () => assets.first);
+    try {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      List<String> supportedAbis =
+          androidInfo.supportedAbis.map((e) => e.toLowerCase()).toList();
+      for (var asset in assets) {
+        String abi =
+            asset.name.split("CloudOTP-$latestVersion-").last.split(".").first;
+        if (supportedAbis.contains(abi.toLowerCase())) {
+          return asset;
+        }
+      }
+    } finally {}
+    return generalAsset;
   }
 
   static ReleaseAsset getWindowsPortableAsset(ReleaseItem item) {

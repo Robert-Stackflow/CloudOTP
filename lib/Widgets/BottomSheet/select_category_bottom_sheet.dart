@@ -99,7 +99,9 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
       alignment: Alignment.center,
       child: Text(
         textAlign: TextAlign.center,
-        S.current.setCategoryForToken(widget.token.issuer),
+        widget.token.issuer.isNotEmpty
+            ? S.current.setCategoryForTokenDetail(widget.token.issuer)
+            : S.current.setCategoryForToken,
         style: Theme.of(context).textTheme.titleLarge,
       ),
     );

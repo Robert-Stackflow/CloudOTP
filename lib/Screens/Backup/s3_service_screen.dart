@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/s3_backups_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -122,6 +121,8 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             context,
             background: Colors.transparent,
             text: S.current.cloudConnecting,
+            mainAxisAlignment: MainAxisAlignment.start,
+            topPadding: 100,
           );
   }
 
@@ -193,7 +194,6 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
       padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
       child: Form(
         key: formKey,
-        autovalidateMode: AutovalidateMode.always,
         child: Column(
           children: [
             InputItem(
@@ -322,13 +322,15 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(
-                title: S.current.webDavPulling,
-                dismissible: true,
-              );
+              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
               try {
-                List<S3CloudFileInfo> files =
+                List<S3CloudFileInfo>? files =
                     await _s3CloudService!.listBackups();
+                if (files == null) {
+                  CustomLoadingDialog.dismissLoading();
+                  IToast.show(S.current.webDavPullFailed);
+                  return;
+                }
                 CloudServiceConfigDao.updateLastPullTime(
                     _s3CloudServiceConfig!);
                 CustomLoadingDialog.dismissLoading();
@@ -346,69 +348,13 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                           msg: S.current.webDavPulling,
                           showProgress: true,
                         );
-                        Uint8List res = await _s3CloudService!.downloadFile(
+                        Uint8List? res = await _s3CloudService!.downloadFile(
                           selectedFile.path,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
                           },
                         );
-                        dialog.updateMessage(
-                          msg: S.current.importing,
-                          showProgress: false,
-                        );
-
-                        bool success = await ImportTokenUtil.importBackupFile(
-                          res,
-                          showLoading: false,
-                        );
-                        dialog.dismiss();
-                        if (!success) {
-                          BottomSheetBuilder.showBottomSheet(
-                            context,
-                            responsive: true,
-                            (context) => InputBottomSheet(
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return S
-                                      .current.autoBackupPasswordCannotBeEmpty;
-                                }
-                                return null;
-                              },
-                              validateAsyncController:
-                                  InputValidateAsyncController(
-                                listen: false,
-                                validator: (text) async {
-                                  dialog.show(
-                                    msg: S.current.importing,
-                                    showProgress: false,
-                                  );
-                                  bool success =
-                                      await ImportTokenUtil.importBackupFile(
-                                    password: text,
-                                    res,
-                                    showLoading: false,
-                                  );
-                                  dialog.dismiss();
-                                  if (success) {
-                                    return null;
-                                  } else {
-                                    return S
-                                        .current.invalidPasswordOrDataCorrupted;
-                                  }
-                                },
-                                controller: TextEditingController(),
-                              ),
-                              title: S.current.inputImportPasswordTitle,
-                              message: S.current.inputImportPasswordTip,
-                              hint: S.current.inputImportPasswordHint,
-                              inputFormatters: [
-                                RegexInputFormatter.onlyNumberAndLetter,
-                              ],
-                              tailingType: InputItemTailingType.password,
-                              onValidConfirm: (password) async {},
-                            ),
-                          );
-                        }
+                        ImportTokenUtil.importFromCloud(context, res, dialog);
                       },
                     ),
                   );

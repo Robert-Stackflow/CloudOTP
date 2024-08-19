@@ -8,6 +8,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
+import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
@@ -20,7 +21,9 @@ import '../Utils/constant.dart';
 import '../Utils/file_util.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../Widgets/BottomSheet/token_option_bottom_sheet.dart';
+import '../Widgets/Item/input_item.dart';
 import '../generated/l10n.dart';
 import 'Backup/backup.dart';
 import 'Backup/backup_encrypt_interface.dart';
@@ -472,5 +475,75 @@ class ImportTokenUtil {
       homeScreenState?.refresh();
     }
     return newCategoryList.length;
+  }
+
+  static importFromCloud(
+    BuildContext context,
+    Uint8List? res,
+    ProgressDialog dialog,
+  ) async {
+    dialog.updateMessage(
+      msg: S.current.importing,
+      showProgress: false,
+    );
+    if (res == null) {
+      dialog.dismiss();
+      IToast.showTop(S.current.webDavPullFailed);
+      return;
+    }
+    bool success = await ImportTokenUtil.importBackupFile(
+      res,
+      showLoading: false,
+    );
+    dialog.dismiss();
+    if (!success) {
+      InputValidateAsyncController validateAsyncController =
+          InputValidateAsyncController(
+        listen: false,
+        validator: (text) async {
+          if (text.isEmpty) {
+            return S.current.autoBackupPasswordCannotBeEmpty;
+          }
+          dialog.show(
+            msg: S.current.importing,
+            showProgress: false,
+          );
+          bool success = await ImportTokenUtil.importBackupFile(
+            password: text,
+            res,
+            showLoading: false,
+          );
+          dialog.dismiss();
+          if (success) {
+            return null;
+          } else {
+            return S.current.invalidPasswordOrDataCorrupted;
+          }
+        },
+        controller: TextEditingController(),
+      );
+      BottomSheetBuilder.showBottomSheet(
+        context,
+        responsive: true,
+        (context) => InputBottomSheet(
+          validator: (value) {
+            if (value.isEmpty) {
+              return S.current.autoBackupPasswordCannotBeEmpty;
+            }
+            return null;
+          },
+          checkSyncValidator: false,
+          validateAsyncController: validateAsyncController,
+          title: S.current.inputImportPasswordTitle,
+          message: S.current.inputImportPasswordTip,
+          hint: S.current.inputImportPasswordHint,
+          inputFormatters: [
+            RegexInputFormatter.onlyNumberAndLetter,
+          ],
+          tailingType: InputItemTailingType.password,
+          onValidConfirm: (password) async {},
+        ),
+      );
+    }
   }
 }
