@@ -126,7 +126,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
               ),
               ItemBuilder.buildIconButton(
                 context: context,
-                icon: const Icon(Icons.cloud_download_outlined),
+                icon: const Icon(Icons.file_present_outlined),
                 onTap: () async {
                   Navigator.pop(context);
                   widget.onSelected(file);

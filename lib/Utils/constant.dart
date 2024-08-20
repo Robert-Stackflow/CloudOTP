@@ -20,7 +20,9 @@ const defaultWindowSize = Size(1120, 740);
 const minimumSize = Size(620, 540);
 
 const double autoCopyNextCodeProgressThrehold = 0.25;
+const int defaultHOTPPeriod = 15;
 const String placeholderText = "*";
+const String hotpPlaceholderText = "-";
 
 String shareAppText = S.current.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";

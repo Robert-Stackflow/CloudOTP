@@ -18,6 +18,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive/hive.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
@@ -53,7 +54,6 @@ Future<void> runMyApp(List<String> args) async {
   }
   if (ResponsiveUtil.isDesktop()) {
     await initWindow();
-    initTray();
     await HotKeyManager.instance.unregisterAll();
   }
   late Widget home;
@@ -70,6 +70,9 @@ Future<void> runMyApp(List<String> args) async {
   }
   runApp(MyApp(home: KeyboardHandler(key: keyboardHandlerKey, child: home)));
   FlutterNativeSplash.remove();
+  if (ResponsiveUtil.isDesktop()) {
+    Utils.initTray();
+  }
 }
 
 Future<void> initApp(WidgetsBinding widgetsBinding) async {
@@ -108,41 +111,6 @@ Future<void> initWindow() async {
     await windowManager.show();
     await windowManager.focus();
   });
-}
-
-Future<void> initTray() async {
-  await trayManager.setIcon(
-    ResponsiveUtil.isWindows()
-        ? 'assets/logo-transparent.ico'
-        : 'assets/logo-transparent.png',
-  );
-  Menu menu = Menu(
-    items: [
-      MenuItem(
-        key: 'show_window',
-        label: '显示 CloudOTP',
-      ),
-      MenuItem(
-        key: 'lock_window',
-        label: '锁定 CloudOTP',
-      ),
-      MenuItem.separator(),
-      MenuItem(
-        key: 'show_official_website',
-        label: '官网',
-      ),
-      MenuItem(
-        key: 'show_github_repo',
-        label: 'GitHub',
-      ),
-      MenuItem.separator(),
-      MenuItem(
-        key: 'exit_app',
-        label: '退出 CloudOTP',
-      ),
-    ],
-  );
-  await trayManager.setContextMenu(menu);
 }
 
 Future<void> initDisplayMode() async {

@@ -15,8 +15,10 @@ import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
+import 'package:move_to_background/move_to_background.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
@@ -91,29 +93,48 @@ class TokenLayoutState extends State<TokenLayout>
     super.dispose();
   }
 
-  updateInfo() {
+  updateInfo({
+    bool counterChanged = false,
+  }) {
     setState(() {});
+    if (isHOTP && counterChanged) {
+      tokenLayoutNotifier.codeVisiable = true;
+      resetTimer();
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    tokenLayoutNotifier.code = getCurrentCode();
+    updateCode();
     progressNotifier.value = currentProgress;
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (mounted) {
-        progressNotifier.value = currentProgress;
-        if (!isHOTP &&
-            remainingMilliseconds <= 180 &&
-            appProvider.autoHideCode) {
+    resetTimer();
+  }
+
+  resetTimer() {
+    if (isHOTP) {
+      updateCode();
+      _timer?.cancel();
+      _timer = Timer(const Duration(seconds: defaultHOTPPeriod), () {
+        if (mounted) {
           tokenLayoutNotifier.codeVisiable = false;
+          updateCode();
         }
-        if (remainingMilliseconds <= 200) {
-          tokenLayoutNotifier.code = getNextCode();
+      });
+    } else {
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+        if (mounted) {
+          progressNotifier.value = currentProgress;
+          if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
+            tokenLayoutNotifier.codeVisiable = false;
+          }
+          updateCode();
+          if (remainingMilliseconds <= 100) {
+            tokenLayoutNotifier.code = getNextCode();
+          }
         }
-      }
-    });
-    tokenLayoutNotifier.code = getCurrentCode();
+      });
+    }
   }
 
   @override
@@ -284,7 +305,7 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
-  _processResetCopyTimes(){
+  _processResetCopyTimes() {
     DialogBuilder.showConfirmDialog(
       context,
       title: S.current.resetCopyTimesTitle,
@@ -312,6 +333,199 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
+  _buildHOTPRefreshButton({
+    double padding = 8,
+    Color? color,
+  }) {
+    return ChangeNotifierProvider.value(
+      value: tokenLayoutNotifier,
+      child: Selector<TokenLayoutNotifier, bool>(
+        selector: (context, tokenLayoutNotifier) =>
+            tokenLayoutNotifier.codeVisiable,
+        builder: (context, codeVisiable, child) => !codeVisiable
+            ? Container(
+                margin: const EdgeInsets.only(left: 8),
+                child: ItemBuilder.buildIconButton(
+                  onTap: () {
+                    widget.token.counterString =
+                        (widget.token.counter + 1).toString();
+                    TokenDao.updateTokenCounter(widget.token);
+                    tokenLayoutNotifier.codeVisiable = true;
+                    resetTimer();
+                    setState(() {});
+                  },
+                  padding: EdgeInsets.all(padding),
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    size: 20,
+                    color:
+                        color ?? Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  context: context,
+                ),
+              )
+            : emptyWidget,
+      ),
+    );
+  }
+
+  _buildCodeLayout({
+    double letterSpacing = 5,
+    AlignmentGeometry alignment = Alignment.centerLeft,
+  }) {
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.hideProgressBar,
+      builder: (context, hideProgressBar, child) =>
+          ChangeNotifierProvider.value(
+        value: tokenLayoutNotifier,
+        child: Selector<TokenLayoutNotifier, bool>(
+          selector: (context, tokenLayoutNotifier) =>
+              tokenLayoutNotifier.codeVisiable,
+          builder: (context, codeVisiable, child) =>
+              Selector<TokenLayoutNotifier, String>(
+            selector: (context, tokenLayoutNotifier) =>
+                tokenLayoutNotifier.code,
+            builder: (context, code, child) => Container(
+              constraints: BoxConstraints(
+                  minHeight: isHOTP && !hideProgressBar ? 47 : 36),
+              alignment: alignment,
+              child: AutoSizeText(
+                codeVisiable
+                    ? code
+                    : (isHOTP ? hotpPlaceholderText : placeholderText) *
+                        widget.token.digits.digit,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 24,
+                      letterSpacing: letterSpacing,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                maxLines: 1,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  _buildLinearProgress() {
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.hideProgressBar,
+      builder: (context, hideProgressBar, child) => hideProgressBar
+          ? const SizedBox(height: 3)
+          : isHOTP
+              ? const SizedBox(height: 6)
+              : ValueListenableBuilder(
+                  valueListenable: progressNotifier,
+                  builder: (context, progress, child) {
+                    return Container(
+                      margin: const EdgeInsets.only(top: 3, bottom: 13),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 1,
+                        color: progress > autoCopyNextCodeProgressThrehold
+                            ? Theme.of(context).primaryColor
+                            : Colors.red,
+                        borderRadius: BorderRadius.circular(5),
+                        backgroundColor: Colors.grey.withOpacity(0.3),
+                      ),
+                    );
+                  },
+                ),
+    );
+  }
+
+  _buildCircleProgress() {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        children: [
+          ValueListenableBuilder(
+            valueListenable: progressNotifier,
+            builder: (context, value, child) {
+              return CircularProgressIndicator(
+                value: progressNotifier.value,
+                color: progressNotifier.value > autoCopyNextCodeProgressThrehold
+                    ? Theme.of(context).primaryColor
+                    : Colors.red,
+                backgroundColor: Colors.grey.withOpacity(0.3),
+              );
+            },
+          ),
+          Center(
+            child: ValueListenableBuilder(
+              valueListenable: progressNotifier,
+              builder: (context, value, child) {
+                return Text(
+                  (remainingMilliseconds / 1000).toStringAsFixed(0),
+                  style: Theme.of(context).textTheme.bodyMedium?.apply(
+                        color:
+                            currentProgress > autoCopyNextCodeProgressThrehold
+                                ? Theme.of(context).primaryColor
+                                : Colors.red,
+                        fontSizeDelta: -2,
+                      ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  updateCode() {
+    if (appProvider.autoDisplayNextCode &&
+        currentProgress < autoCopyNextCodeProgressThrehold) {
+      tokenLayoutNotifier.code = getNextCode();
+    } else {
+      tokenLayoutNotifier.code = getCurrentCode();
+    }
+  }
+
+  _processTap() {
+    if (isHOTP) {
+      if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
+        if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
+            currentProgress < autoCopyNextCodeProgressThrehold) {
+          _processCopyNextCode();
+        } else {
+          _processCopyCode();
+        }
+        if (HiveUtil.getBool(HiveUtil.autoMinimizeAfterClickToCopyKey,
+            defaultValue: false)) {
+          if (ResponsiveUtil.isDesktop()) {
+            windowManager.minimize();
+          } else {
+            MoveToBackground.moveTaskToBack();
+          }
+        }
+      }
+    } else {
+      tokenLayoutNotifier.codeVisiable = true;
+      updateCode();
+      if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
+        if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
+            currentProgress < autoCopyNextCodeProgressThrehold) {
+          _processCopyNextCode();
+        } else {
+          _processCopyCode();
+        }
+        if (HiveUtil.getBool(HiveUtil.autoMinimizeAfterClickToCopyKey,
+            defaultValue: false)) {
+          if (ResponsiveUtil.isDesktop()) {
+            windowManager.minimize();
+          } else {
+            MoveToBackground.moveTaskToBack();
+          }
+        }
+      }
+    }
+  }
+
   _buildSimpleLayout() {
     return ItemBuilder.buildClickItem(
       Material(
@@ -334,8 +548,8 @@ class TokenLayoutState extends State<TokenLayout>
                 Row(
                   children: [
                     ItemBuilder.buildTokenImage(widget.token, size: 32),
-                    const SizedBox(width: 12),
-                    Flexible(
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
                         widget.token.issuer,
                         maxLines: 1,
@@ -346,129 +560,20 @@ class TokenLayoutState extends State<TokenLayout>
                             ?.apply(fontWeightDelta: 2),
                       ),
                     ),
+                    if (isHOTP) _buildHOTPRefreshButton(padding: 6),
                   ],
                 ),
                 const SizedBox(height: 8),
                 _buildCodeLayout(
                     letterSpacing: 10, alignment: Alignment.center),
-                const SizedBox(height: 8),
-                isHOTP ? const SizedBox(height: 1) : _buildLinearProgress(),
-                const SizedBox(height: 13),
+                const SizedBox(height: 5),
+                _buildLinearProgress(),
               ],
             ),
           ),
         ),
       ),
     );
-  }
-
-  _buildCodeLayout({
-    double letterSpacing = 5,
-    AlignmentGeometry alignment = Alignment.centerLeft,
-  }) {
-    return ChangeNotifierProvider.value(
-      value: tokenLayoutNotifier,
-      child: Selector<TokenLayoutNotifier, bool>(
-        selector: (context, tokenLayoutNotifier) =>
-            tokenLayoutNotifier.codeVisiable,
-        builder: (context, codeVisiable, child) {
-          return Selector<TokenLayoutNotifier, String>(
-            selector: (context, tokenLayoutNotifier) =>
-                tokenLayoutNotifier.code,
-            builder: (context, code, child) {
-              return Container(
-                constraints: const BoxConstraints(minHeight: 36),
-                alignment: alignment,
-                child: AutoSizeText(
-                  codeVisiable ? code : "*" * widget.token.digits.digit,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 24,
-                        letterSpacing: letterSpacing,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                  maxLines: 1,
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  _buildLinearProgress() {
-    return ValueListenableBuilder(
-      valueListenable: progressNotifier,
-      builder: (context, progress, child) {
-        return LinearProgressIndicator(
-          value: progress,
-          minHeight: 1,
-          color: progress > autoCopyNextCodeProgressThrehold
-              ? Theme.of(context).primaryColor
-              : Colors.red,
-          borderRadius: BorderRadius.circular(5),
-          backgroundColor: Colors.grey.withOpacity(0.3),
-        );
-      },
-    );
-  }
-
-  _buildCircleProgress() {
-    return isHOTP
-        ? const SizedBox.shrink()
-        : SizedBox(
-            width: 24,
-            height: 24,
-            child: Stack(
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: progressNotifier,
-                  builder: (context, value, child) {
-                    return CircularProgressIndicator(
-                      value: progressNotifier.value,
-                      color: progressNotifier.value >
-                              autoCopyNextCodeProgressThrehold
-                          ? Theme.of(context).primaryColor
-                          : Colors.red,
-                      backgroundColor: Colors.grey.withOpacity(0.3),
-                    );
-                  },
-                ),
-                Center(
-                  child: ValueListenableBuilder(
-                    valueListenable: progressNotifier,
-                    builder: (context, value, child) {
-                      return Text(
-                        (remainingMilliseconds / 1000).toStringAsFixed(0),
-                        style: Theme.of(context).textTheme.bodyMedium?.apply(
-                              color: currentProgress >
-                                      autoCopyNextCodeProgressThrehold
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.red,
-                              fontSizeDelta: -2,
-                            ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-  }
-
-  _processTap() {
-    tokenLayoutNotifier.codeVisiable = true;
-    tokenLayoutNotifier.code = getCurrentCode();
-    if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
-      if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-          currentProgress < autoCopyNextCodeProgressThrehold) {
-        _processCopyNextCode();
-      } else {
-        _processCopyCode();
-      }
-    }
   }
 
   _buildCompactLayout() {
@@ -518,11 +623,16 @@ class TokenLayoutState extends State<TokenLayout>
                     ItemBuilder.buildTokenImage(widget.token, size: 28),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(child: _buildCodeLayout()),
+                    if (isHOTP)
+                      _buildHOTPRefreshButton(
+                        padding: 4,
+                        color: Theme.of(context).textTheme.labelSmall?.color,
+                      ),
                     ItemBuilder.buildIconButton(
                       context: context,
                       padding: const EdgeInsets.all(4),
@@ -535,9 +645,7 @@ class TokenLayoutState extends State<TokenLayout>
                     ),
                   ],
                 ),
-                const SizedBox(height: 3),
-                isHOTP ? const SizedBox(height: 1) : _buildLinearProgress(),
-                const SizedBox(height: 13),
+                _buildLinearProgress(),
               ],
             ),
           ),
@@ -593,6 +701,7 @@ class TokenLayoutState extends State<TokenLayout>
                         ],
                       ),
                     ),
+                    if (isHOTP) _buildHOTPRefreshButton(),
                     ItemBuilder.buildIconButton(
                         context: context,
                         icon: Icon(Icons.edit_rounded,
@@ -605,11 +714,8 @@ class TokenLayoutState extends State<TokenLayout>
                         onTap: _processViewQrCode),
                     ItemBuilder.buildIconButton(
                       context: context,
-                      icon: Icon(
-                        Icons.more_vert_rounded,
-                        color: Theme.of(context).iconTheme.color,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.more_vert_rounded,
+                          color: Theme.of(context).iconTheme.color, size: 20),
                       onTap: showContextMenu,
                     ),
                   ],
@@ -619,9 +725,8 @@ class TokenLayoutState extends State<TokenLayout>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [_buildCodeLayout()],
                 ),
-                const SizedBox(height: 3),
-                isHOTP ? const SizedBox(height: 1) : _buildLinearProgress(),
-                const SizedBox(height: 13),
+                _buildLinearProgress(),
+                const SizedBox(height: 2),
               ],
             ),
           ),
@@ -661,7 +766,10 @@ class TokenLayoutState extends State<TokenLayout>
                 ),
                 _buildCodeLayout(),
                 if (!isHOTP) const SizedBox(width: 8),
-                _buildCircleProgress(),
+                if (!isHOTP) _buildCircleProgress(),
+                if (isHOTP)
+                  _buildHOTPRefreshButton(
+                      padding: 6, color: Theme.of(context).primaryColor),
               ],
             ),
           ),

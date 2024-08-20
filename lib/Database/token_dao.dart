@@ -58,7 +58,10 @@ class TokenDao {
     return maps[0]["seq"] ?? -1;
   }
 
-  static Future<int> updateToken(OtpToken token) async {
+  static Future<int> updateToken(
+    OtpToken token, {
+    bool autoBackup = true,
+  }) async {
     token.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
     final db = await DatabaseManager.getDataBase();
     int id = await db.update(
@@ -67,8 +70,15 @@ class TokenDao {
       where: 'id = ?',
       whereArgs: [token.id],
     );
-    ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokenUpdated);
+    if (autoBackup) {
+      ExportTokenUtil.autoBackup(
+          triggerType: AutoBackupTriggerType.tokenUpdated);
+    }
     return id;
+  }
+
+  static Future<int> updateTokenCounter(OtpToken token) async {
+    return updateToken(token, autoBackup: false);
   }
 
   static Future<int> updateTokens(

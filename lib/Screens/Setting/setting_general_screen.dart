@@ -40,6 +40,7 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
   FontEnum _currentFont = FontEnum.getCurrentFont();
   bool enableMinimizeToTray = HiveUtil.getBool(HiveUtil.enableCloseToTrayKey);
   bool recordWindowState = HiveUtil.getBool(HiveUtil.recordWindowStateKey);
+  bool showTray = HiveUtil.getBool(HiveUtil.showTrayKey);
   bool enableCloseNotice = HiveUtil.getBool(HiveUtil.enableCloseNoticeKey);
   List<Tuple2<String, Locale?>> _supportedLocaleTuples = [];
   String currentVersion = "";
@@ -210,6 +211,8 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
                 _supportedLocaleTuples,
                 (item2) {
                   appProvider.locale = item2;
+                  Utils.initTray();
+                  homeScreenState?.initTab();
                   Navigator.pop(context);
                 },
                 selected: locale,
@@ -256,44 +259,64 @@ class _GeneralSettingScreenState extends State<GeneralSettingScreen>
       const SizedBox(height: 10),
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.desktopSetting),
-      ItemBuilder.buildEntryItem(
+      ItemBuilder.buildRadioItem(
         context: context,
-        title: S.current.closeWindowOption,
-        tip:
-            enableMinimizeToTray ? S.current.minimizeToTray : S.current.exitApp,
-        onTap: () {
-          List<Tuple2<String, dynamic>> options = [
-            Tuple2(S.current.minimizeToTray, 0),
-            Tuple2(S.current.exitApp, 1),
-          ];
-          BottomSheetBuilder.showListBottomSheet(
-            context,
-            (sheetContext) => TileList.fromOptions(
-              options,
-              (idx) {
-                Navigator.pop(sheetContext);
-                if (idx == 0) {
-                  setState(() {
-                    enableMinimizeToTray = true;
-                    HiveUtil.put(
-                        HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
-                  });
-                } else if (idx == 1) {
-                  setState(() {
-                    enableMinimizeToTray = false;
-                    HiveUtil.put(
-                        HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
-                  });
-                }
-              },
-              selected: enableMinimizeToTray ? 0 : 1,
-              title: S.current.chooseCloseWindowOption,
-              context: context,
-              onCloseTap: () => Navigator.pop(sheetContext),
-              crossAxisAlignment: CrossAxisAlignment.start,
-            ),
-          );
+        title: S.current.showTray,
+        value: showTray,
+        onTap: () async {
+          setState(() {
+            showTray = !showTray;
+            HiveUtil.put(HiveUtil.showTrayKey, showTray);
+            if (showTray) {
+              Utils.initTray();
+            } else {
+              Utils.removeTray();
+            }
+          });
         },
+      ),
+      Visibility(
+        visible: showTray,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.closeWindowOption,
+          tip: enableMinimizeToTray
+              ? S.current.minimizeToTray
+              : S.current.exitApp,
+          onTap: () {
+            List<Tuple2<String, dynamic>> options = [
+              Tuple2(S.current.minimizeToTray, 0),
+              Tuple2(S.current.exitApp, 1),
+            ];
+            BottomSheetBuilder.showListBottomSheet(
+              context,
+              (sheetContext) => TileList.fromOptions(
+                options,
+                (idx) {
+                  Navigator.pop(sheetContext);
+                  if (idx == 0) {
+                    setState(() {
+                      enableMinimizeToTray = true;
+                      HiveUtil.put(
+                          HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
+                    });
+                  } else if (idx == 1) {
+                    setState(() {
+                      enableMinimizeToTray = false;
+                      HiveUtil.put(
+                          HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
+                    });
+                  }
+                },
+                selected: enableMinimizeToTray ? 0 : 1,
+                title: S.current.chooseCloseWindowOption,
+                context: context,
+                onCloseTap: () => Navigator.pop(sheetContext),
+                crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+            );
+          },
+        ),
       ),
       ItemBuilder.buildRadioItem(
         context: context,

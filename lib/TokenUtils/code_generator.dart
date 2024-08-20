@@ -70,7 +70,7 @@ class CodeGenerator {
         case OtpTokenType.HOTP:
           code = OTP.generateHOTPCodeString(
             token.secret,
-            token.counter + 1,
+            token.counter,
             length: token.digits.digit,
             algorithm: token.algorithm.algorithm,
             isGoogle: true,

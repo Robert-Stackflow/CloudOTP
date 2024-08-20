@@ -20,7 +20,6 @@ class ResponsiveUtil {
 
   static Future<void> returnToMainScreen(BuildContext context) async {
     if (ResponsiveUtil.isDesktop()) {
-      appProvider.canPopByProvider = false;
       desktopNavigatorKey = GlobalKey<NavigatorState>();
       globalNavigatorState?.pushAndRemoveUntil(
         RouteUtil.getFadeRoute(const MainScreen(), duration: Duration.zero),

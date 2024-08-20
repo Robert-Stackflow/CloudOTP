@@ -206,6 +206,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       List<int> newSelectedCategoryIds = selectedCategoryIds
           .where((element) => !oldSelectedCategoryIds.contains(element))
           .toList();
+      bool counterChanged = widget.token?.counter != _otpToken.counter;
       try {
         if (_isEditing) {
           widget.token?.copyFrom(_otpToken);
@@ -225,7 +226,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         if (!_isEditing) {
           homeScreenState?.insertToken(_otpToken, forceAll: true);
         } else {
-          homeScreenState?.updateToken(_otpToken);
+          homeScreenState?.updateToken(_otpToken,
+              counterChanged: counterChanged);
         }
         homeScreenState?.changeCategoriesForToken(
           _otpToken,

@@ -73,12 +73,6 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
           return null;
         },
       ),
-      HomeIntent: CallbackAction(
-        onInvoke: (_) {
-          mainScreenState?.goHome();
-          return null;
-        },
-      ),
       EscapeIntent: CallbackAction(
         onInvoke: (_) {
           if (Navigator.of(rootContext).canPop()) {
@@ -132,12 +126,6 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
     ChangeLayoutTypeIntent: CallbackAction(
       onInvoke: (_) {
         homeScreenState?.changeLayoutType();
-        return null;
-      },
-    ),
-    BackIntent: CallbackAction(
-      onInvoke: (_) {
-        mainScreenState?.goBack();
         return null;
       },
     ),

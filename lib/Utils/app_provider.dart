@@ -101,6 +101,26 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _autoDisplayNextCode = HiveUtil.getBool(HiveUtil.autoDisplayNextCodeKey);
+
+  bool get autoDisplayNextCode => _autoDisplayNextCode;
+
+  set autoDisplayNextCode(bool value) {
+    _autoDisplayNextCode = value;
+    HiveUtil.put(HiveUtil.autoDisplayNextCodeKey, value);
+    notifyListeners();
+  }
+
+  bool _hideProgressBar = HiveUtil.getBool(HiveUtil.hideProgressBarKey);
+
+  bool get hideProgressBar => _hideProgressBar;
+
+  set hideProgressBar(bool value) {
+    _hideProgressBar = value;
+    HiveUtil.put(HiveUtil.hideProgressBarKey, value);
+    notifyListeners();
+  }
+
   bool _enableLandscapeInTablet =
       HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
 

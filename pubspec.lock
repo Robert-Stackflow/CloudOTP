@@ -1176,6 +1176,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.0"
+  move_to_background:
+    dependency: "direct main"
+    description:
+      name: move_to_background
+      sha256: "00caad17a6ce149910777131503f43f8ed80025681f94684e3a6a87d979b914c"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.2"
   msix:
     dependency: "direct dev"
     description:

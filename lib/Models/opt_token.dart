@@ -9,6 +9,7 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import '../TokenUtils/Otp/otp.dart';
 import '../TokenUtils/check_token_util.dart';
 import '../Utils/Base32/base32.dart';
+import '../Utils/constant.dart';
 import '../Utils/utils.dart';
 import 'Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 
@@ -112,7 +113,7 @@ enum OtpTokenType {
       case OtpTokenType.TOTP:
         return 30;
       case OtpTokenType.HOTP:
-        return 0;
+        return defaultHOTPPeriod;
       case OtpTokenType.MOTP:
         return 30;
       case OtpTokenType.Steam:

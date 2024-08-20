@@ -23,6 +23,7 @@ import 'package:context_menus/context_menus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:move_to_background/move_to_background.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -233,18 +234,25 @@ class MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return ResponsiveUtil.isLandscape()
-        ? PopScope(
-            canPop: !appProvider.canPopByProvider,
+    return ResponsiveUtil.isDesktop()
+        ? _buildBodyByPlatform()
+        : PopScope(
+            canPop: false,
             onPopInvokedWithResult: (_, __) {
-              if (canPopByKey) {
-                desktopNavigatorState?.pop();
-              }
-              appProvider.canPopByProvider = canPopByKey;
+              MoveToBackground.moveTaskToBack();
             },
             child: _buildBodyByPlatform(),
-          )
-        : _buildBodyByPlatform();
+          );
+  }
+
+  goHome() {
+    while (Navigator.of(rootContext).canPop()) {
+      Navigator.of(rootContext).pop();
+    }
+    while (desktopNavigatorState!.canPop()) {
+      desktopNavigatorState?.pop();
+    }
+    appProvider.canPopByProvider = false;
   }
 
   _buildBodyByPlatform() {
@@ -622,44 +630,6 @@ class MainScreenState extends State<MainScreen>
             margin: const EdgeInsets.symmetric(vertical: 12),
             child: Row(
               children: [
-                // Selector<AppProvider, bool>(
-                //   selector: (context, appProvider) =>
-                //       appProvider.canPopByProvider,
-                //   builder: (context, desktopCanpop, child) => MouseRegion(
-                //     cursor: desktopCanpop
-                //         ? SystemMouseCursors.click
-                //         : SystemMouseCursors.basic,
-                //     child: ItemBuilder.buildRoundIconButton(
-                //       context: context,
-                //       disabled: !desktopCanpop,
-                //       normalBackground: Colors.grey.withAlpha(40),
-                //       icon: Icon(
-                //         Icons.arrow_back_ios_new_rounded,
-                //         size: 20,
-                //         color: desktopCanpop
-                //             ? Theme.of(context).iconTheme.color
-                //             : Colors.grey,
-                //       ),
-                //       onTap: () {
-                //         goBack();
-                //       },
-                //     ),
-                //   ),
-                // ),
-                // const SizedBox(width: 8),
-                // ItemBuilder.buildRoundIconButton(
-                //   context: context,
-                //   normalBackground: Colors.grey.withAlpha(40),
-                //   icon: Icon(
-                //     Icons.home_filled,
-                //     size: 20,
-                //     color: Theme.of(context).iconTheme.color,
-                //   ),
-                //   onTap: () {
-                //     goHome();
-                //   },
-                // ),
-                // const SizedBox(width: 8),
                 const SizedBox(width: 12),
                 Container(
                   constraints:
@@ -739,7 +709,8 @@ class MainScreenState extends State<MainScreen>
                         colors: MyColors.getCloseButtonColors(context),
                         borderRadius: BorderRadius.circular(8),
                         onPressed: () {
-                          if (HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {
+                          if (HiveUtil.getBool(HiveUtil.showTrayKey) &&
+                              HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {
                             windowManager.hide();
                           } else {
                             windowManager.close();
@@ -773,23 +744,6 @@ class MainScreenState extends State<MainScreen>
         ],
       ),
     );
-  }
-
-  goBack() {
-    if (canPopByKey) {
-      desktopNavigatorState?.pop();
-    }
-    appProvider.canPopByProvider = canPopByKey;
-  }
-
-  goHome() {
-    while (Navigator.of(rootContext).canPop()) {
-      Navigator.of(rootContext).pop();
-    }
-    while (desktopNavigatorState!.canPop()) {
-      desktopNavigatorState?.pop();
-    }
-    appProvider.canPopByProvider = false;
   }
 
   void cancleTimer() {

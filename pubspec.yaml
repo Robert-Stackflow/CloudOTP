@@ -88,6 +88,7 @@ dependencies:
   flutter_resizable_container: ^2.0.0 # 可调整大小的容器
   desktop_webview_window: ^0.2.3 # Webview窗口
   flutter_windowmanager: ^0.2.0
+  move_to_background: ^1.0.2 # 移动到后台
   window_manager:
     path: third-party/window_manager
 

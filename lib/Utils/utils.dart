@@ -22,6 +22,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:tray_manager/tray_manager.dart';
 
 import '../Api/github_api.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
@@ -529,5 +530,47 @@ class Utils {
 
   static String getFormattedDate(DateTime dateTime) {
     return DateFormat("yyyy-MM-dd-HH-mm-ss").format(dateTime);
+  }
+
+  static void removeTray() {
+    trayManager.destroy();
+  }
+
+  static Future<void> initTray() async {
+    await trayManager.setIcon(
+      ResponsiveUtil.isWindows()
+          ? 'assets/logo-transparent.ico'
+          : 'assets/logo-transparent.png',
+    );
+    var packageInfo = await PackageInfo.fromPlatform();
+    await trayManager
+        .setToolTip("${packageInfo.appName}-${packageInfo.version}");
+    Menu menu = Menu(
+      items: [
+        MenuItem(
+          key: 'show_window',
+          label: S.current.displayAppTray,
+        ),
+        MenuItem(
+          key: 'lock_window',
+          label: S.current.lockAppTray,
+        ),
+        MenuItem.separator(),
+        MenuItem(
+          key: 'show_official_website',
+          label: S.current.officialWebsiteTray,
+        ),
+        MenuItem(
+          key: 'show_github_repo',
+          label: S.current.repoTray,
+        ),
+        MenuItem.separator(),
+        MenuItem(
+          key: 'exit_app',
+          label: S.current.exitAppTray,
+        ),
+      ],
+    );
+    await trayManager.setContextMenu(menu);
   }
 }

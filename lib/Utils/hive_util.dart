@@ -35,6 +35,7 @@ class HiveUtil {
   static const String dragToReorderKey = "dragToReorder";
   static const String windowSizeKey = "windowSize";
   static const String windowPositionKey = "windowPosition";
+  static const String showTrayKey = "showTray";
   static const String enableCloseToTrayKey = "enableCloseToTray";
   static const String enableCloseNoticeKey = "enableCloseNotice";
   static const String autoCheckUpdateKey = "autoCheckUpdate";
@@ -42,6 +43,10 @@ class HiveUtil {
 
   static const String clickToCopyKey = "clickToCopy";
   static const String autoCopyNextCodeKey = "autoCopyNextCode";
+  static const String autoDisplayNextCodeKey = "autoDisplayNextCode";
+  static const String autoMinimizeAfterClickToCopyKey =
+      "autoMinimizeAfterClickToCopy";
+  static const String hideProgressBarKey = "hideProgressBar";
   static const String autoHideCodeKey = "autoHideCode";
   static const String defaultHideCodeKey = "defaultHideCode";
 
@@ -96,6 +101,7 @@ class HiveUtil {
     await HiveUtil.put(HiveUtil.maxBackupsCountKey, defaultMaxBackupCount);
     await HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getBackupDir());
     await HiveUtil.put(HiveUtil.dragToReorderKey, !ResponsiveUtil.isMobile());
+    await HiveUtil.put(HiveUtil.autoMinimizeAfterClickToCopyKey, false);
   }
 
   static Future<bool> showCloudEntry() async {

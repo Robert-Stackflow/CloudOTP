@@ -10,14 +10,15 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:provider/provider.dart';
 
 import '../../Database/token_dao.dart';
 import '../../Screens/Token/add_token_screen.dart';
+import '../../Screens/Token/token_layout.dart';
 import '../../TokenUtils/code_generator.dart';
 import '../../TokenUtils/otp_token_parser.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/constant.dart';
-import '../../Utils/hive_util.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
@@ -42,10 +43,9 @@ class TokenOptionBottomSheet extends StatefulWidget {
 }
 
 class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
-  final ValueNotifier<double> _progressNotifier = ValueNotifier(1);
-  final ValueNotifier<String> _codeNotifier = ValueNotifier("");
-  final ValueNotifier<bool> _codeVisiableNotifier =
-      ValueNotifier(!HiveUtil.getBool(HiveUtil.defaultHideCodeKey));
+  TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
+
+  final ValueNotifier<double> progressNotifier = ValueNotifier(0);
   Timer? _timer;
 
   int get remainingMilliseconds => widget.token.period == 0
@@ -70,22 +70,48 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
 
   @override
   void initState() {
-    _codeNotifier.value = getCurrentCode();
+    updateCode();
     if (widget.forceShowCode != null) {
-      _codeVisiableNotifier.value = widget.forceShowCode!;
+      tokenLayoutNotifier.codeVisiable = widget.forceShowCode!;
     }
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (mounted) {
-        _progressNotifier.value = currentProgress;
-        _codeNotifier.value = getCurrentCode();
-        if (remainingMilliseconds <= 180 &&
-            appProvider.autoHideCode &&
-            widget.forceShowCode != true) {
-          _codeVisiableNotifier.value = false;
+    resetTimer();
+    progressNotifier.value = currentProgress;
+  }
+
+  resetTimer() {
+    if (isHOTP) {
+      updateCode();
+      _timer?.cancel();
+      _timer = Timer(Duration(seconds: widget.token.period), () {
+        if (mounted) {
+          tokenLayoutNotifier.codeVisiable = false;
+          updateCode();
         }
-      }
-    });
+      });
+    } else {
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+        if (mounted) {
+          progressNotifier.value = currentProgress;
+          if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
+            tokenLayoutNotifier.codeVisiable = false;
+          }
+          updateCode();
+          if (remainingMilliseconds <= 100) {
+            tokenLayoutNotifier.code = getNextCode();
+          }
+        }
+      });
+    }
+  }
+
+  updateCode() {
+    if (appProvider.autoDisplayNextCode &&
+        currentProgress < autoCopyNextCodeProgressThrehold) {
+      tokenLayoutNotifier.code = getNextCode();
+    } else {
+      tokenLayoutNotifier.code = getCurrentCode();
+    }
   }
 
   @override
@@ -125,37 +151,63 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           ItemBuilder.buildTokenImage(widget.token, size: 36),
           const SizedBox(width: 12),
           ItemBuilder.buildClickItem(
+            clickable: !isHOTP,
             GestureDetector(
               onTap: () {
-                _codeVisiableNotifier.value = !_codeVisiableNotifier.value;
-                HapticFeedback.lightImpact();
+                if (isHOTP) {
+                } else {
+                  tokenLayoutNotifier.codeVisiable =
+                      !tokenLayoutNotifier.codeVisiable;
+                  HapticFeedback.lightImpact();
+                }
               },
-              child: ValueListenableBuilder(
-                valueListenable: _codeVisiableNotifier,
-                builder: (context, value, child) {
-                  return ValueListenableBuilder(
-                    valueListenable: _codeNotifier,
-                    builder: (context, value, child) {
-                      return AutoSizeText(
-                        _codeVisiableNotifier.value
-                            ? _codeNotifier.value
-                            : "*" * widget.token.digits.digit,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 24,
-                                  letterSpacing: 10,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                        maxLines: 1,
-                      );
-                    },
-                  );
-                },
+              child: ChangeNotifierProvider.value(
+                value: tokenLayoutNotifier,
+                child: Selector<TokenLayoutNotifier, bool>(
+                  selector: (context, tokenLayoutNotifier) =>
+                      tokenLayoutNotifier.codeVisiable,
+                  builder: (context, codeVisiable, child) =>
+                      Selector<TokenLayoutNotifier, String>(
+                    selector: (context, tokenLayoutNotifier) =>
+                        tokenLayoutNotifier.code,
+                    builder: (context, code, child) => AutoSizeText(
+                      codeVisiable
+                          ? code
+                          : (isHOTP ? hotpPlaceholderText : placeholderText) *
+                              widget.token.digits.digit,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 24,
+                            letterSpacing: 10,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                      maxLines: 1,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
           const Spacer(),
+          if (isHOTP)
+            ItemBuilder.buildIconButton(
+              onTap: () {
+                widget.token.counterString =
+                    (widget.token.counter + 1).toString();
+                TokenDao.updateTokenCounter(widget.token);
+                homeScreenState?.updateToken(widget.token,
+                    counterChanged: true);
+                tokenLayoutNotifier.codeVisiable = true;
+                resetTimer();
+                setState(() {});
+              },
+              icon: Icon(
+                Icons.refresh_rounded,
+                size: 20,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+              context: context,
+            ),
           if (!isHOTP)
             SizedBox(
               width: 28,
@@ -163,12 +215,11 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               child: Stack(
                 children: [
                   ValueListenableBuilder(
-                    valueListenable: _progressNotifier,
+                    valueListenable: progressNotifier,
                     builder: (context, value, child) {
                       return CircularProgressIndicator(
-                        value: _progressNotifier.value,
-                        color: _progressNotifier.value >
-                                autoCopyNextCodeProgressThrehold
+                        value: value,
+                        color: value > autoCopyNextCodeProgressThrehold
                             ? Theme.of(context).primaryColor
                             : Colors.red,
                         backgroundColor: Colors.grey.withOpacity(0.3),
@@ -177,13 +228,12 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                   ),
                   Center(
                     child: ValueListenableBuilder(
-                      valueListenable: _progressNotifier,
+                      valueListenable: progressNotifier,
                       builder: (context, value, child) {
                         return Text(
                           (remainingMilliseconds / 1000).toStringAsFixed(0),
                           style: Theme.of(context).textTheme.bodyMedium?.apply(
-                                color: currentProgress >
-                                        autoCopyNextCodeProgressThrehold
+                                color: value > autoCopyNextCodeProgressThrehold
                                     ? Theme.of(context).primaryColor
                                     : Colors.red,
                                 fontWeightDelta: 2,
@@ -222,7 +272,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.content_copy_rounded,
+          leading: Icons.token_outlined,
           title: S.current.copyNextTokenCode,
           onTap: () {
             Navigator.pop(context);
@@ -329,8 +379,14 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
             );
           },
         ),
+        if (widget.token.tokenType == OtpTokenType.HOTP)
+          _buildItem(
+            leading: Icons.plus_one_rounded,
+            title: S.current.currentCounter(widget.token.counter),
+            onTap: () {},
+          ),
         _buildItem(
-          leading: Icons.plus_one_rounded,
+          leading: Icons.calculate_outlined,
           title: S.current.currentCopyTimes(widget.token.copyTimes),
           onTap: () {},
         ),
@@ -417,9 +473,9 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                   title,
                   maxLines: 1,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: titleColor ??
-                        Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
+                        color: titleColor ??
+                            Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
                 ),
               ),
             ],

@@ -70,14 +70,14 @@ enum LayoutType {
     }
   }
 
-  double get height {
+  double getHeight([bool hideProgressBar = false]) {
     switch (this) {
       case LayoutType.Simple:
-        return 110;
+        return hideProgressBar ? 96 : 110;
       case LayoutType.Compact:
-        return 113;
+        return hideProgressBar ? 97 : 111;
       case LayoutType.Tile:
-        return 113;
+        return hideProgressBar ? 101 : 115;
       case LayoutType.List:
         return 60;
     }
@@ -192,13 +192,14 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   updateToken(
     OtpToken token, {
     bool pinnedStateChanged = false,
+    bool counterChanged = false,
   }) {
     int updateIndex = tokens.indexWhere((element) => element.id == token.id);
     tokens[updateIndex] = token;
     tokenKeyMap
         .putIfAbsent(token.id, () => GlobalKey())
         .currentState
-        ?.updateInfo();
+        ?.updateInfo(counterChanged:counterChanged);
     if (pinnedStateChanged) performSort();
   }
 
@@ -671,57 +672,62 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   _buildMainContent() {
     Widget gridView = Selector<AppProvider, bool>(
       selector: (context, provider) => provider.dragToReorder,
-      builder: (context, dragToReorder, child) => ReorderableGridView.builder(
-        controller: _scrollController,
-        gridItemsNotifier: gridItemsNotifier,
-        padding:
-            const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
-        gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          preferredHeight: layoutType.height,
+      builder: (context, dragToReorder, child) => Selector<AppProvider, bool>(
+        selector: (context, provider) => provider.hideProgressBar,
+        builder: (context, hideProgressBar, child) =>
+            ReorderableGridView.builder(
+          controller: _scrollController,
+          gridItemsNotifier: gridItemsNotifier,
+          padding:
+              const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
+          gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            preferredHeight: layoutType.getHeight(hideProgressBar),
+          ),
+          dragToReorder: dragToReorder,
+          cacheExtent: 9999,
+          itemDragEnable: (index) {
+            if (tokens[index].pinnedInt == 1) {
+              return false;
+            }
+            return true;
+          },
+          onReorder: (int oldIndex, int newIndex) async {
+            final item = tokens.removeAt(oldIndex);
+            tokens.insert(newIndex, item);
+            for (int i = 0; i < tokens.length; i++) {
+              tokens[i].seq = tokens.length - i;
+            }
+            await TokenDao.updateTokens(tokens, autoBackup: false);
+            changeOrderType(type: OrderType.Default, doPerformSort: true);
+          },
+          proxyDecorator:
+              (Widget child, int index, Animation<double> animation) {
+            return Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).shadowColor,
+                    offset: const Offset(0, 4),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  ).scale(2),
+                ],
+              ),
+              child: child,
+            );
+          },
+          itemCount: tokens.length,
+          itemBuilder: (context, index) {
+            return TokenLayout(
+              key: tokenKeyMap.putIfAbsent(tokens[index].id, () => GlobalKey()),
+              token: tokens[index],
+              layoutType: layoutType,
+            );
+          },
         ),
-        dragToReorder: dragToReorder,
-        cacheExtent: 9999,
-        itemDragEnable: (index) {
-          if (tokens[index].pinnedInt == 1) {
-            return false;
-          }
-          return true;
-        },
-        onReorder: (int oldIndex, int newIndex) async {
-          final item = tokens.removeAt(oldIndex);
-          tokens.insert(newIndex, item);
-          for (int i = 0; i < tokens.length; i++) {
-            tokens[i].seq = tokens.length - i;
-          }
-          await TokenDao.updateTokens(tokens, autoBackup: false);
-          changeOrderType(type: OrderType.Default, doPerformSort: true);
-        },
-        proxyDecorator: (Widget child, int index, Animation<double> animation) {
-          return Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).shadowColor,
-                  offset: const Offset(0, 4),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ).scale(2),
-              ],
-            ),
-            child: child,
-          );
-        },
-        itemCount: tokens.length,
-        itemBuilder: (context, index) {
-          return TokenLayout(
-            key: tokenKeyMap.putIfAbsent(tokens[index].id, () => GlobalKey()),
-            token: tokens[index],
-            layoutType: layoutType,
-          );
-        },
       ),
     );
     Widget body = tokens.isEmpty

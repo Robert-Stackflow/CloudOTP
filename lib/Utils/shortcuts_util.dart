@@ -44,10 +44,6 @@ class ChangeDayNightModeIntent extends Intent {
   const ChangeDayNightModeIntent();
 }
 
-class BackIntent extends Intent {
-  const BackIntent();
-}
-
 class EscapeIntent extends Intent {
   const EscapeIntent();
 }
@@ -67,26 +63,11 @@ final defaultCloudOTPShortcuts = [
   ),
   CloudOTPShortcut.all(
     key: HotKey(
-      key: LogicalKeyboardKey.arrowLeft,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const BackIntent(),
-    labelProvider: (s) => s.back,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
       key: LogicalKeyboardKey.keyH,
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const HomeIntent(),
     labelProvider: (s) => s.home,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.escape,
-    ).singleActivator,
-    intent: const EscapeIntent(),
-    labelProvider: (s) => s.escape,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
@@ -143,6 +124,13 @@ final defaultCloudOTPShortcuts = [
     ).singleActivator,
     intent: const LockIntent(),
     labelProvider: (s) => s.lock,
+  ),
+  CloudOTPShortcut.all(
+    key: HotKey(
+      key: LogicalKeyboardKey.escape,
+    ).singleActivator,
+    intent: const EscapeIntent(),
+    labelProvider: (s) => s.escape,
   ),
   CloudOTPShortcut.all(
     key: HotKey(
