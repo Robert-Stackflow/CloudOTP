@@ -485,6 +485,19 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ItemBuilder.buildIconTextButton(
                   context,
+                  text: S.current.category,
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.category_outlined),
+                  onTap: () async {
+                    DialogBuilder.showPageDialog(context,
+                        child: const CategoryScreen(), showClose: false);
+                  },
+                ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
                   text: S.current.scanToken,
                   fontSizeDelta: -2,
                   showText: false,
@@ -508,19 +521,6 @@ class MainScreenState extends State<MainScreen>
                       context,
                       child: const ImportExportTokenScreen(),
                     );
-                  },
-                ),
-                const SizedBox(height: 4),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  text: S.current.category,
-                  fontSizeDelta: -2,
-                  showText: false,
-                  direction: Axis.vertical,
-                  icon: const Icon(Icons.category_outlined),
-                  onTap: () async {
-                    DialogBuilder.showPageDialog(context,
-                        child: const CategoryScreen(), showClose: false);
                   },
                 ),
                 const SizedBox(height: 4),

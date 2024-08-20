@@ -40,5 +40,7 @@ abstract class CloudService {
 
   Future<bool> isConnected();
 
+  Future<bool> hasConfigured();
+
   Future<void> signOut();
 }

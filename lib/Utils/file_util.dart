@@ -196,8 +196,12 @@ class FileUtil {
     );
   }
 
-  static Future<File> copyAndRenameFile(File file, String newFileName) async {
-    String dir = file.parent.path;
+  static Future<File> copyAndRenameFile(
+    File file,
+    String newFileName, {
+    String? dir,
+  }) async {
+    dir ??= file.parent.path;
     String newPath = '$dir/$newFileName';
     File copiedFile = await file.copy(newPath);
     await copiedFile.rename(newPath);

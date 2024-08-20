@@ -4,7 +4,7 @@ import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/BottomSheet/onedrive_backups_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_onedrive/onedrive_response.dart';
@@ -78,9 +78,12 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       );
     }
     if (_oneDriveCloudService != null) {
-      _oneDriveCloudServiceConfig!.configured = _oneDriveCloudServiceConfig!
-          .connected = await _oneDriveCloudService!.isConnected();
-      if (!_oneDriveCloudServiceConfig!.connected) {
+      _oneDriveCloudServiceConfig!.configured =
+          await _oneDriveCloudService!.hasConfigured();
+      _oneDriveCloudServiceConfig!.connected =
+          await _oneDriveCloudService!.isConnected();
+      if (_oneDriveCloudServiceConfig!.configured &&
+          !_oneDriveCloudServiceConfig!.connected) {
         IToast.showTop(S.current.cloudConnectionError);
       }
       updateConfig(_oneDriveCloudServiceConfig!);
@@ -165,7 +168,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       children: [
         if (_configInitialized) _enableInfo(),
         const SizedBox(height: 10),
-        if (_configInitialized) _accountInfo(),
+        if (_configInitialized && currentConfig.connected) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
         if (_configInitialized && currentConfig.connected) _operationButtons(),

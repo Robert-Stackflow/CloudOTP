@@ -25,7 +25,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showDialog<T>(
@@ -44,7 +44,7 @@ class CustomInfoDialog {
           imagePath: imagePath,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -64,7 +64,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -94,7 +94,7 @@ class CustomInfoDialog {
           buttonTextColor: buttonTextColor,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -114,7 +114,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -144,7 +144,7 @@ class CustomInfoDialog {
           buttonTextColor: buttonTextColor,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -164,7 +164,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -194,7 +194,7 @@ class CustomInfoDialog {
           buttonTextColor: buttonTextColor,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -214,7 +214,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -244,7 +244,7 @@ class CustomInfoDialog {
           buttonTextColor: buttonTextColor,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -264,7 +264,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -294,7 +294,7 @@ class CustomInfoDialog {
           buttonTextColor: buttonTextColor,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -314,7 +314,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -344,7 +344,7 @@ class CustomInfoDialog {
           buttonTextColor: buttonTextColor,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -368,14 +368,14 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showDialog<T>(
         barrierDismissible: barrierDismissible,
         context: context,
         builder: (context) => CustomConfirmDialogWidget(
-          noImage: noImage,
+          renderHtml: renderHtml,
           title: title,
           message: message,
           messageTextAlign: messageTextAlign,
@@ -411,7 +411,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -443,7 +443,7 @@ class CustomConfirmDialog {
           imagePath: imagePath,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -465,7 +465,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -497,7 +497,7 @@ class CustomConfirmDialog {
           messageTextAlign: messageTextAlign,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -519,7 +519,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -551,7 +551,7 @@ class CustomConfirmDialog {
           messageTextAlign: messageTextAlign,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -573,7 +573,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -605,7 +605,7 @@ class CustomConfirmDialog {
           messageTextAlign: messageTextAlign,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -627,7 +627,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -659,7 +659,7 @@ class CustomConfirmDialog {
           imagePath: imagePath,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );
@@ -681,7 +681,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -713,7 +713,7 @@ class CustomConfirmDialog {
           imagePath: imagePath,
           margin: margin,
           padding: padding,
-          noImage: noImage,
+          renderHtml: renderHtml,
           align: align,
         ),
       );

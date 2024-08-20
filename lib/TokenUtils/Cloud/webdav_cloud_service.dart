@@ -183,4 +183,9 @@ class WebDavCloudService extends CloudService {
     }
     return true;
   }
+
+  @override
+  Future<bool> hasConfigured() async {
+    return _config.isValid();
+  }
 }

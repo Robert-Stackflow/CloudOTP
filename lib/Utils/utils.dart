@@ -10,6 +10,7 @@ import 'package:cloudotp/Utils/enums.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
+import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -410,7 +411,7 @@ class Utils {
       CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
     }
     String currentVersion =
-        "2.0.0" ?? (await PackageInfo.fromPlatform()).version;
+        "0.0.0" ?? (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
     String latestVersion = "0.0.0";
     await GithubApi.getReleases("Robert-Stackflow", "CloudOTP")
@@ -439,6 +440,7 @@ class Utils {
           if (ResponsiveUtil.isMobile()) {
             DialogBuilder.showConfirmDialog(
               context,
+              renderHtml: true,
               title: S.current.getNewVersion(latestVersion),
               message: S.current.doesImmediateUpdate +
                   S.current.updateLogAsFollow(
@@ -447,31 +449,34 @@ class Utils {
               confirmButtonText: S.current.immediatelyDownload,
               cancelButtonText: S.current.updateLater,
               onTapConfirm: () async {
-                if (ResponsiveUtil.isDesktop()) {
-                  UriUtil.openExternal(latestReleaseItem!.htmlUrl);
-                  return;
-                } else if (ResponsiveUtil.isAndroid()) {
+                if (ResponsiveUtil.isAndroid()) {
                   ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
                       latestVersion, latestReleaseItem!);
-                  if (ResponsiveUtil.isAndroid()) {
-                    FileUtil.downloadAndUpdate(
-                      context,
-                      androidAssset.browserDownloadUrl,
-                      latestReleaseItem.htmlUrl,
-                      version: latestVersion,
-                    );
-                  }
+                  print(androidAssset.browserDownloadUrl);
+                  FileUtil.downloadAndUpdate(
+                    context,
+                    androidAssset.browserDownloadUrl,
+                    latestReleaseItem.htmlUrl,
+                    version: latestVersion,
+                  );
+                } else {
+                  UriUtil.openExternal(latestReleaseItem!.htmlUrl);
+                  return;
                 }
               },
               onTapCancel: () {},
             );
           } else {
+            GlobalKey<DialogWrapperWidgetState> overrideDialogNavigatorKey =
+                GlobalKey();
             DialogBuilder.showPageDialog(
               context,
+              overrideDialogNavigatorKey: overrideDialogNavigatorKey,
               child: UpdateScreen(
                 currentVersion: currentVersion,
                 latestReleaseItem: latestReleaseItem,
                 latestVersion: latestVersion,
+                overrideDialogNavigatorKey: overrideDialogNavigatorKey,
               ),
             );
           }

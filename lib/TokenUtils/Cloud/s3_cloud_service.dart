@@ -184,4 +184,9 @@ class S3CloudService extends CloudService {
       return false;
     }
   }
+
+  @override
+  Future<bool> hasConfigured() async {
+    return _config.isValid();
+  }
 }

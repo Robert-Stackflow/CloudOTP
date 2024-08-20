@@ -1,35 +1,35 @@
-import 'package:cloudotp/TokenUtils/Cloud/onedrive_cloud_service.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_onedrive/onedrive_response.dart';
+import 'package:flutter_dropbox/dropbox_response.dart';
 
-import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../../TokenUtils/Cloud/dropbox_cloud_service.dart';
+import '../../../Utils/utils.dart';
+import '../../../generated/l10n.dart';
 
-class OneDriveBackupsBottomSheet extends StatefulWidget {
-  const OneDriveBackupsBottomSheet({
+class DropboxBackupsBottomSheet extends StatefulWidget {
+  const DropboxBackupsBottomSheet({
     super.key,
     required this.files,
     required this.onSelected,
     required this.cloudService,
   });
 
-  final List<OneDriveFileInfo> files;
-  final Function(OneDriveFileInfo) onSelected;
-  final OneDriveCloudService cloudService;
+  final List<DropboxFileInfo> files;
+  final Function(DropboxFileInfo) onSelected;
+  final DropboxCloudService cloudService;
 
   @override
-  OneDriveBackupsBottomSheetState createState() =>
-      OneDriveBackupsBottomSheetState();
+  DropboxBackupsBottomSheetState createState() =>
+      DropboxBackupsBottomSheetState();
 }
 
-class OneDriveBackupsBottomSheetState
-    extends State<OneDriveBackupsBottomSheet> {
-  late List<OneDriveFileInfo> files;
+class DropboxBackupsBottomSheetState
+    extends State<DropboxBackupsBottomSheet> {
+  late List<DropboxFileInfo> files;
 
   @override
   void initState() {
@@ -74,7 +74,7 @@ class OneDriveBackupsBottomSheetState
       child: Text(
         S.current.webDavBackupFiles(widget.files.length),
         style:
-            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -87,7 +87,7 @@ class OneDriveBackupsBottomSheetState
     );
   }
 
-  _buildItem(OneDriveFileInfo file) {
+  _buildItem(DropboxFileInfo file) {
     String size = CacheUtil.renderSize(file.size.toDouble(), fractionDigits: 0);
     String time = Utils.formatTimestamp(file.lastModifiedDateTime);
     return Material(
@@ -134,11 +134,11 @@ class OneDriveBackupsBottomSheetState
               ItemBuilder.buildIconButton(
                 context: context,
                 icon:
-                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                const Icon(Icons.delete_outline_rounded, color: Colors.red),
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {
-                    await widget.cloudService.deleteFile(file.id);
+                    await widget.cloudService.deleteFile(file.name);
                     setState(() {
                       files.remove(file);
                     });

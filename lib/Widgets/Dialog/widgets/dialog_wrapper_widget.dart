@@ -60,7 +60,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
               BoxShadow(
                 color: Utils.isDark(context)
                     ? Theme.of(context).shadowColor
-                    : Colors.grey.shade400,
+                    : Colors.transparent,
                 offset: const Offset(0, 4),
                 blurRadius: 10,
                 spreadRadius: 0,

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloudotp/Database/token_dao.dart';
@@ -19,6 +20,7 @@ import '../Database/config_dao.dart';
 import '../Models/token_category.dart';
 import '../Utils/constant.dart';
 import '../Utils/file_util.dart';
+import '../Utils/hive_util.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/input_bottom_sheet.dart';
@@ -224,7 +226,7 @@ class ImportTokenUtil {
         IToast.showTop(S.current.fileNotExist);
         return;
       } else {
-        String content = file.readAsStringSync();
+        String content = file.readAsStringSync(encoding: utf8);
         await importText(
           content,
           showLoading: showLoading,
@@ -281,6 +283,65 @@ class ImportTokenUtil {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
       }
+    }
+  }
+
+  static _showImportPasswordDialog(BuildContext context, String path) {
+    InputValidateAsyncController validateAsyncController =
+        InputValidateAsyncController(
+      controller: TextEditingController(),
+      listen: false,
+      validator: (text) async {
+        if (text.isEmpty) {
+          return S.current.autoBackupPasswordCannotBeEmpty;
+        }
+        bool success = await ImportTokenUtil.importEncryptFile(path, text);
+        if (success) {
+          return null;
+        } else {
+          return S.current.invalidPasswordOrDataCorrupted;
+        }
+      },
+    );
+    BottomSheetBuilder.showBottomSheet(
+      context,
+      responsive: true,
+      (context) => InputBottomSheet(
+        validator: (value) {
+          if (value.isEmpty) {
+            return S.current.autoBackupPasswordCannotBeEmpty;
+          }
+          return null;
+        },
+        checkSyncValidator: false,
+        validateAsyncController: validateAsyncController,
+        title: S.current.inputImportPasswordTitle,
+        message: S.current.inputImportPasswordTip,
+        hint: S.current.inputImportPasswordHint,
+        inputFormatters: [
+          RegexInputFormatter.onlyNumberAndLetter,
+        ],
+        tailingType: InputItemTailingType.password,
+        onValidConfirm: (password) async {},
+      ),
+    );
+  }
+
+  static importEncryptFileWrapper(
+    BuildContext context,
+    String filePath, {
+    bool showLoading = true,
+  }) async {
+    operation() {
+      _showImportPasswordDialog(context, filePath);
+    }
+
+    if (await HiveUtil.canImportOrExportUseBackupPassword()) {
+      bool success = await ImportTokenUtil.importEncryptFile(
+          filePath, await ConfigDao.getBackupPassword());
+      if (!success) operation();
+    } else {
+      operation();
     }
   }
 

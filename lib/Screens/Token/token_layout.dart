@@ -153,6 +153,8 @@ class TokenLayoutState extends State<TokenLayout>
         ContextMenuButtonConfig(S.current.copyTokenUri,
             onPressed: _processCopyUri),
         ContextMenuButtonConfig.divider(),
+        ContextMenuButtonConfig.warning(S.current.resetCopyTimes,
+            textColor: Colors.red, onPressed: _processResetCopyTimes),
         ContextMenuButtonConfig.warning(S.current.deleteToken,
             textColor: Colors.red, onPressed: _processDelete),
       ],
@@ -166,7 +168,15 @@ class TokenLayoutState extends State<TokenLayout>
           ? const [ContextMenuShowBehavior.secondaryTap]
           : const [],
       contextMenu: _buildContextMenuButtons(),
-      child: _buildBody(),
+      child: Selector<AppProvider, bool>(
+        selector: (context, provider) => provider.dragToReorder,
+        builder: (context, dragToReorder, child) => GestureDetector(
+          onLongPress: dragToReorder && !ResponsiveUtil.isLandscape()
+              ? showContextMenu
+              : null,
+          child: _buildBody(),
+        ),
+      ),
     );
   }
 
@@ -269,6 +279,20 @@ class TokenLayoutState extends State<TokenLayout>
       message: S.current.copyUriClearWarningTip,
       onTapConfirm: () {
         Utils.copy(context, OtpTokenParser.toUri(widget.token));
+      },
+      onTapCancel: () {},
+    );
+  }
+
+  _processResetCopyTimes(){
+    DialogBuilder.showConfirmDialog(
+      context,
+      title: S.current.resetCopyTimesTitle,
+      message: S.current.resetCopyTimesMessage(widget.token.title),
+      onTapConfirm: () async {
+        await TokenDao.resetSingleTokenCopyTimes(widget.token);
+        homeScreenState?.resetCopyTimesSingle(widget.token);
+        IToast.showTop(S.current.resetSuccess);
       },
       onTapCancel: () {},
     );

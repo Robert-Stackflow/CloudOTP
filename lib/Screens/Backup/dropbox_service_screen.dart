@@ -12,8 +12,8 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Widgets/BottomSheet/Backups/dropbox_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/dropbox_backups_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -77,9 +77,12 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
       );
     }
     if (_dropboxCloudService != null) {
-      _dropboxCloudServiceConfig!.configured = _dropboxCloudServiceConfig!
-          .connected = await _dropboxCloudService!.isConnected();
-      if (!_dropboxCloudServiceConfig!.connected) {
+      _dropboxCloudServiceConfig!.configured =
+          await _dropboxCloudService!.hasConfigured();
+      _dropboxCloudServiceConfig!.connected =
+          await _dropboxCloudService!.isConnected();
+      if (_dropboxCloudServiceConfig!.configured &&
+          !_dropboxCloudServiceConfig!.connected) {
         IToast.showTop(S.current.cloudConnectionError);
       }
       updateConfig(_dropboxCloudServiceConfig!);
@@ -89,9 +92,10 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   }
 
   updateConfig(CloudServiceConfig config) {
-    setState(() {
-      _dropboxCloudServiceConfig = config;
-    });
+    if (mounted)
+      setState(() {
+        _dropboxCloudServiceConfig = config;
+      });
     _sizeController.text = _dropboxCloudServiceConfig!.size;
     _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
     _emailController.text = _dropboxCloudServiceConfig!.email ?? "";
@@ -164,7 +168,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
       children: [
         if (_configInitialized) _enableInfo(),
         const SizedBox(height: 10),
-        if (_configInitialized) _accountInfo(),
+        if (_configInitialized && currentConfig.connected) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
         if (_configInitialized && currentConfig.connected) _operationButtons(),

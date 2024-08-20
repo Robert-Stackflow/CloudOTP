@@ -11,11 +11,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
+import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
+import '../../Widgets/BottomSheet/Backups/local_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
@@ -368,7 +370,6 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           context: context,
           title: S.current.autoBackupPath,
           description: _autoBackupPath,
-          bottomRadius: true,
           onTap: () async {
             String? selectedDirectory =
                 await FilePicker.platform.getDirectoryPath(
@@ -381,6 +382,26 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 HiveUtil.put(HiveUtil.backupPathKey, selectedDirectory);
               });
             }
+          },
+        ),
+      ),
+      Visibility(
+        visible: canBackup && _enableLocalBackup,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.viewLocalBackup,
+          bottomRadius: true,
+          onTap: () async {
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              responsive: true,
+              (dialogContext) => LocalBackupsBottomSheet(
+                onSelected: (selectedFile) async {
+                  ImportTokenUtil.importEncryptFileWrapper(
+                      context, selectedFile.path);
+                },
+              ),
+            );
           },
         ),
       ),

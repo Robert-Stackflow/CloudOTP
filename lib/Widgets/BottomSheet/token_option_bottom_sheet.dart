@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
@@ -94,7 +95,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: MyTheme.getCardBackground(context),
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
                 bottom: ResponsiveUtil.isLandscape()
@@ -245,8 +246,10 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               : Icons.push_pin_outlined,
           title:
               widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
-          titleColor: widget.token.pinned ? Theme.of(context).primaryColor : null,
-          leadingColor: widget.token.pinned ? Theme.of(context).primaryColor : null,
+          titleColor:
+              widget.token.pinned ? Theme.of(context).primaryColor : null,
+          leadingColor:
+              widget.token.pinned ? Theme.of(context).primaryColor : null,
           onTap: () async {
             Navigator.pop(context);
             await TokenDao.updateTokenPinned(
@@ -327,12 +330,37 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
+          leading: Icons.plus_one_rounded,
+          title: S.current.currentCopyTimes(widget.token.copyTimes),
+          onTap: () {},
+        ),
+        _buildItem(
+          leading: Icons.repeat_one_rounded,
+          title: S.current.resetCopyTimes,
+          titleColor: Colors.red,
+          leadingColor: Colors.red,
+          onTap: () {
+            DialogBuilder.showConfirmDialog(
+              context,
+              title: S.current.resetCopyTimesTitle,
+              message: S.current.resetCopyTimesMessage(widget.token.title),
+              onTapConfirm: () async {
+                await TokenDao.resetSingleTokenCopyTimes(widget.token);
+                homeScreenState?.resetCopyTimesSingle(widget.token);
+                IToast.showTop(S.current.resetSuccess);
+                setState(() {});
+                Navigator.pop(context);
+              },
+              onTapCancel: () {},
+            );
+          },
+        ),
+        _buildItem(
           leading: Icons.delete_outline_rounded,
           title: S.current.deleteToken,
           titleColor: Colors.red,
           leadingColor: Colors.red,
           onTap: () {
-            Navigator.pop(context);
             DialogBuilder.showConfirmDialog(
               context,
               title: S.current.deleteTokenTitle(widget.token.title),
@@ -343,6 +371,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                       S.current.deleteTokenSuccess(widget.token.title));
                   homeScreenState?.removeToken(widget.token);
                 });
+                Navigator.pop(context);
               },
               onTapCancel: () {},
             );
@@ -361,7 +390,9 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
     Function()? onTap,
   }) {
     return Material(
-      color: backgroundColor ?? Theme.of(context).canvasColor,
+      color: backgroundColor ?? Utils.isDark(context)
+          ? MyTheme.getBackground(context).withOpacity(0.5)
+          : MyTheme.getBackground(context),
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
@@ -380,12 +411,16 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                     Theme.of(context).textTheme.bodyMedium?.color,
               ),
               const SizedBox(height: 10),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: titleColor ??
-                          Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
+              SizedBox(
+                height: 20,
+                child: AutoSizeText(
+                  title,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: titleColor ??
+                        Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
               ),
             ],
           ),

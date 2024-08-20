@@ -1,9 +1,9 @@
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:cloudotp/Widgets/General/Animation/animated_fade.dart';
 import 'package:flutter/material.dart';
 
+import '../../Utils/app_provider.dart';
 import '../../generated/l10n.dart';
 import 'custom_dialog.dart';
 
@@ -25,7 +25,7 @@ class DialogBuilder {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
@@ -42,7 +42,7 @@ class DialogBuilder {
         margin: margin,
         padding: padding,
         barrierDismissible: barrierDismissible,
-        noImage: noImage,
+        renderHtml: renderHtml,
         align: Alignment.center,
         confirmButtonText: confirmButtonText ?? S.current.confirm,
         cancelButtonText: cancelButtonText ?? S.current.cancel,
@@ -63,7 +63,7 @@ class DialogBuilder {
         margin: margin,
         padding: padding,
         barrierDismissible: barrierDismissible,
-        noImage: noImage,
+        renderHtml: renderHtml,
         align: Alignment.bottomCenter,
         confirmButtonText: confirmButtonText ?? S.current.confirm,
         cancelButtonText: cancelButtonText ?? S.current.cancel,
@@ -89,7 +89,7 @@ class DialogBuilder {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool noImage = true,
+    bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
@@ -107,7 +107,7 @@ class DialogBuilder {
         margin: margin,
         padding: padding,
         barrierDismissible: barrierDismissible,
-        noImage: noImage,
+        renderHtml: renderHtml,
         align: Alignment.center,
         customDialogType: customDialogType ?? CustomDialogType.normal,
         onTapDismiss: onTapDismiss ?? () {},
@@ -126,7 +126,7 @@ class DialogBuilder {
         margin: margin,
         padding: padding,
         barrierDismissible: barrierDismissible,
-        noImage: noImage,
+        renderHtml: renderHtml,
         align: Alignment.bottomCenter,
         customDialogType: customDialogType ?? CustomDialogType.normal,
         onTapDismiss: onTapDismiss ?? () {},
@@ -142,12 +142,15 @@ class DialogBuilder {
     Function(dynamic)? onThen,
     double? preferMinWidth,
     double? preferMinHeight,
+    GlobalKey<DialogWrapperWidgetState>? overrideDialogNavigatorKey,
   }) {
     showGeneralDialog(
       barrierDismissible: barrierDismissible,
       context: context,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.35),
+      barrierColor: overrideDialogNavigatorKey != null
+          ? Colors.black.withOpacity(0.15)
+          : Colors.black.withOpacity(0.35),
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return AnimatedFade(
@@ -157,7 +160,7 @@ class DialogBuilder {
       },
       pageBuilder: (context, animation, secondaryAnimation) =>
           DialogWrapperWidget(
-        key: dialogNavigatorKey,
+        key: overrideDialogNavigatorKey ?? dialogNavigatorKey,
         showClose: showClose,
         preferMinWidth: preferMinWidth,
         preferMinHeight: preferMinHeight,

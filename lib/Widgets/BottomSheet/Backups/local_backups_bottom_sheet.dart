@@ -1,39 +1,39 @@
+import 'dart:io';
+
 import 'package:cloudotp/Utils/cache_util.dart';
+import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dropbox/dropbox_response.dart';
 
-import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
-import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../../TokenUtils/export_token_util.dart';
+import '../../../Utils/utils.dart';
+import '../../../generated/l10n.dart';
 
-class DropboxBackupsBottomSheet extends StatefulWidget {
-  const DropboxBackupsBottomSheet({
+class LocalBackupsBottomSheet extends StatefulWidget {
+  const LocalBackupsBottomSheet({
     super.key,
-    required this.files,
     required this.onSelected,
-    required this.cloudService,
   });
 
-  final List<DropboxFileInfo> files;
-  final Function(DropboxFileInfo) onSelected;
-  final DropboxCloudService cloudService;
+  final Function(FileSystemEntity) onSelected;
 
   @override
-  DropboxBackupsBottomSheetState createState() =>
-      DropboxBackupsBottomSheetState();
+  LocalBackupsBottomSheetState createState() => LocalBackupsBottomSheetState();
 }
 
-class DropboxBackupsBottomSheetState
-    extends State<DropboxBackupsBottomSheet> {
-  late List<DropboxFileInfo> files;
+class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
+  List<FileSystemEntity> files = const [];
 
   @override
   void initState() {
-    files = widget.files;
+    ExportTokenUtil.getLocalBackups().then((value) {
+      setState(() {
+        files = value;
+      });
+    });
     super.initState();
   }
 
@@ -72,9 +72,9 @@ class DropboxBackupsBottomSheetState
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.webDavBackupFiles(widget.files.length),
+        S.current.webDavBackupFiles(files.length),
         style:
-        Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -87,9 +87,11 @@ class DropboxBackupsBottomSheetState
     );
   }
 
-  _buildItem(DropboxFileInfo file) {
-    String size = CacheUtil.renderSize(file.size.toDouble(), fractionDigits: 0);
-    String time = Utils.formatTimestamp(file.lastModifiedDateTime);
+  _buildItem(FileSystemEntity file) {
+    String size = CacheUtil.renderSize(file.statSync().size.toDouble(),
+        fractionDigits: 0);
+    String time =
+        Utils.formatTimestamp(file.statSync().modified.millisecondsSinceEpoch);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -112,7 +114,7 @@ class DropboxBackupsBottomSheetState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      file.name,
+                      FileUtil.extractFileNameFromUrl(file.path),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
@@ -134,11 +136,11 @@ class DropboxBackupsBottomSheetState
               ItemBuilder.buildIconButton(
                 context: context,
                 icon:
-                const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {
-                    await widget.cloudService.deleteFile(file.name);
+                    await file.delete();
                     setState(() {
                       files.remove(file);
                     });

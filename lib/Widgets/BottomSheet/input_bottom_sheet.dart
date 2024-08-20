@@ -213,6 +213,8 @@ class InputBottomSheetState extends State<InputBottomSheet> {
       if (!widget.preventPop) {
         Navigator.of(context).pop();
       }
+    } else {
+      _focusNode.requestFocus();
     }
   }
 

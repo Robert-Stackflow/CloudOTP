@@ -62,23 +62,43 @@ class AddBottomSheetState extends State<AddBottomSheet>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _subscription = scannerController.barcodes.listen(_handleBarcode);
-    initCamera();
+    // initCamera();
   }
 
   initCamera() async {
-    Permission.camera.onDeniedCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).onGrantedCallback(() async {
-      unawaited(scannerController.start());
-    }).onPermanentlyDeniedCallback(() {
-      IToast.showTop(S.current.hasRejectedCameraPermission);
-    }).onRestrictedCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).onLimitedCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).onProvisionalCallback(() {
-      IToast.showTop(S.current.pleaseGrantCameraPermission);
-    }).request();
+    await Permission.camera
+        .onDeniedCallback(() {
+          print("onDeniedCallback");
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .onGrantedCallback(() async {
+          print("onGrantedCallback");
+          unawaited(scannerController.start());
+        })
+        .onPermanentlyDeniedCallback(() {
+          print("onPermanentlyDeniedCallback");
+          IToast.showTop(S.current.hasRejectedCameraPermission);
+        })
+        .onRestrictedCallback(() {
+          print("onRestrictedCallback");
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .onLimitedCallback(() {
+          print("onLimitedCallback");
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .onProvisionalCallback(() {
+          print("onProvisionalCallback");
+          IToast.showTop(S.current.pleaseGrantCameraPermission);
+        })
+        .request()
+        .then((value) {
+          print("value:${value}");
+          if (value.isGranted) {
+            print("Camera permission granted");
+            unawaited(scannerController.start());
+          }
+        });
   }
 
   _handleBarcode(
@@ -212,7 +232,6 @@ class AddBottomSheetState extends State<AddBottomSheet>
               setState(() {
                 _zoomFactor += _scaleSensitivity * (details.scale - 1);
                 _zoomFactor = _zoomFactor.clamp(0.0, 1.0);
-                print(_zoomFactor);
                 scannerController.setZoomScale(_zoomFactor);
               });
             },
@@ -220,6 +239,20 @@ class AddBottomSheetState extends State<AddBottomSheet>
               borderRadius: BorderRadius.circular(20),
               child: MobileScanner(
                 controller: scannerController,
+                placeholderBuilder: (context, child) {
+                  return ColoredBox(
+                    color: Colors.black,
+                    child: Center(
+                      child: Text(
+                        S.current.scanPlaceholder,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.apply(color: Colors.white),
+                      ),
+                    ),
+                  );
+                },
                 errorBuilder: (context, error, child) {
                   return ScannerErrorWidget(error: error);
                 },

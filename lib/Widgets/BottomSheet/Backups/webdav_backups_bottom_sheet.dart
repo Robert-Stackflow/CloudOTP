@@ -1,34 +1,34 @@
+import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:webdav_client/webdav_client.dart';
 
-import '../../Models/s3_cloud_file_info.dart';
-import '../../TokenUtils/Cloud/s3_cloud_service.dart';
-import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../../Utils/utils.dart';
+import '../../../generated/l10n.dart';
 
-class S3CloudBackupsBottomSheet extends StatefulWidget {
-  const S3CloudBackupsBottomSheet({
+class WebDavBackupsBottomSheet extends StatefulWidget {
+  const WebDavBackupsBottomSheet({
     super.key,
     required this.files,
     required this.onSelected,
     required this.cloudService,
   });
 
-  final List<S3CloudFileInfo> files;
-  final Function(S3CloudFileInfo) onSelected;
-  final S3CloudService cloudService;
+  final List<WebDavFileInfo> files;
+  final Function(WebDavFileInfo) onSelected;
+  final WebDavCloudService cloudService;
 
   @override
-  S3CloudBackupsBottomSheetState createState() =>
-      S3CloudBackupsBottomSheetState();
+  WebDavBackupsBottomSheetState createState() =>
+      WebDavBackupsBottomSheetState();
 }
 
-class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
-  late List<S3CloudFileInfo> files;
+class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
+  late List<WebDavFileInfo> files;
 
   @override
   void initState() {
@@ -85,11 +85,11 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
     );
   }
 
-  _buildItem(S3CloudFileInfo file) {
+  _buildItem(WebDavFileInfo file) {
     String size =
-    CacheUtil.renderSize(file.size.toDouble(), fractionDigits: 0);
+        CacheUtil.renderSize(file.size?.toDouble() ?? 0, fractionDigits: 0);
     String time =
-    Utils.formatTimestamp(file.modifyTimestamp);
+        Utils.formatTimestamp(file.mTime?.millisecondsSinceEpoch ?? 0);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -112,7 +112,7 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      file.name,
+                      file.name ?? "",
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
@@ -134,11 +134,11 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
               ItemBuilder.buildIconButton(
                 context: context,
                 icon:
-                const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {
-                    await widget.cloudService.deleteFile(file.path);
+                    await widget.cloudService.deleteFile(file.path ?? "");
                     setState(() {
                       files.remove(file);
                     });

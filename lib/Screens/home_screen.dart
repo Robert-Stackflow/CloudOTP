@@ -387,7 +387,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   changeSearchBar(bool shown) {
-    _shownSearchbarNotifier.value = shown;
+    Future.delayed(const Duration(milliseconds: 200), () {
+      _shownSearchbarNotifier.value = shown;
+    });
     _marqueeController.animateToPage(shown ? 1 : 0,
         duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     if (shown) {
@@ -722,16 +724,19 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         },
       ),
     );
-    return EasyRefresh(
-      child: tokens.isEmpty
-          ? ListView(
-              controller: _scrollController,
-              children: [
-                ItemBuilder.buildEmptyPlaceholder(
-                    context: context, text: S.current.noToken),
-              ],
-            )
-          : gridView,
+    Widget body = tokens.isEmpty
+        ? ListView(
+            controller: _scrollController,
+            children: [
+              ItemBuilder.buildEmptyPlaceholder(
+                  context: context, text: S.current.noToken),
+            ],
+          )
+        : gridView;
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.dragToReorder,
+      builder: (context, dragToReorder, child) =>
+          dragToReorder ? body : EasyRefresh(child: body),
     );
   }
 
@@ -775,11 +780,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             : const [],
         contextMenu: _buildTabContextMenuButtons(category),
         child: GestureDetector(
-          onDoubleTap: () {
-            if (category != null) {
-              processEditCategory(category);
-            }
-          },
           onLongPress: () {
             if (category != null) {
               HapticFeedback.lightImpact();

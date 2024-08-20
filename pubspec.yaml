@@ -1,5 +1,5 @@
 name: cloudotp
-version: 2.1.0
+version: 2.2.0
 description: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
 publish_to: none
 
@@ -87,8 +87,7 @@ dependencies:
   flutter_local_notifications: ^17.2.1+2 # 本地通知
   flutter_resizable_container: ^2.0.0 # 可调整大小的容器
   desktop_webview_window: ^0.2.3 # Webview窗口
-  flutter_windowmanager:
-    path: third-party/flutter_windowmanager
+  flutter_windowmanager: ^0.2.0
   window_manager:
     path: third-party/window_manager
 

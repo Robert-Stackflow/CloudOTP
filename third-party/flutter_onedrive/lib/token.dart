@@ -13,6 +13,8 @@ abstract class ITokenManager {
 
   /// get access token
   Future<String?> getAccessToken();
+
+  Future<bool> isAuthorized();
 }
 
 class DefaultTokenManager extends ITokenManager {
@@ -47,6 +49,22 @@ class DefaultTokenManager extends ITokenManager {
       // ignore: empty_catches
     } catch (err) {
       debugPrint("# DefaultTokenManager -> _saveTokenMap: $err");
+    }
+  }
+
+  @override
+  Future<bool> isAuthorized() async {
+    try {
+      final accessToken = await _secureStorage.read(key: _accessTokenKey);
+      final accessTokenExpiresAt = await _secureStorage.read(key: _expireInKey);
+      if (((accessToken?.isEmpty) ?? true) &&
+          ((accessTokenExpiresAt?.isEmpty) ?? true)) {
+        return false;
+      }
+      return true;
+    } catch (err) {
+      debugPrint("# DefaultTokenManager -> getAccessToken: $err");
+      return false;
     }
   }
 

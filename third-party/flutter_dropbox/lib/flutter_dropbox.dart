@@ -48,6 +48,11 @@ class Dropbox with ChangeNotifier {
     return (accessToken?.isNotEmpty) ?? false;
   }
 
+  Future<bool> hasAuthorized() async {
+    final accessToken = await _tokenManager.getAccessToken();
+    return (accessToken?.isNotEmpty) ?? false;
+  }
+
   String generateCodeVerifier() {
     return myBase64Encode(randomBytes(32));
   }

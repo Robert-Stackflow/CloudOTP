@@ -1,6 +1,7 @@
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,11 +20,13 @@ class UpdateScreen extends StatefulWidget {
     required this.latestReleaseItem,
     required this.latestVersion,
     required this.currentVersion,
+    this.overrideDialogNavigatorKey,
   });
 
   final String latestVersion;
   final String currentVersion;
   final ReleaseItem latestReleaseItem;
+  final GlobalKey<DialogWrapperWidgetState>? overrideDialogNavigatorKey;
 
   static const String routeName = "/setting/update";
 
@@ -119,7 +122,11 @@ class _UpdateScreenState extends State<UpdateScreen>
               context,
               text: S.current.updateLater,
               onTap: () {
-                dialogNavigatorState?.popPage();
+                if (widget.overrideDialogNavigatorKey != null) {
+                  widget.overrideDialogNavigatorKey?.currentState?.popPage();
+                } else {
+                  dialogNavigatorState?.popPage();
+                }
               },
               fontSizeDelta: 2,
             ),
@@ -157,7 +164,19 @@ class _UpdateScreenState extends State<UpdateScreen>
                         downloadState == DownloadState.normal;
                       });
                     } catch (e) {
-                      IToast.showTop(e.toString());
+                      if (e is ShellException) {
+                        print(
+                            "Error is ${e.runtimeType}:${e.toString()} , and exitcode: ${e.result?.exitCode}");
+                        if (e.result?.exitCode == 2) {
+                          IToast.showTop(S.current.installCanceled);
+                        } else if (e.result?.exitCode == null &&
+                            e.toString().contains("ProcessException")) {
+                          IToast.showTop(
+                              S.current.installFileNotFound(savePath));
+                        }
+                      } else {
+                        IToast.showTop(e.toString());
+                      }
                       setState(() {
                         buttonText = S.current.immediatelyInstall;
                       });

@@ -12,8 +12,8 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/googledrive_backups_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -80,9 +80,11 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     }
     if (_googledriveCloudService != null) {
       _googledriveCloudServiceConfig!.configured =
-          _googledriveCloudServiceConfig!.connected =
-              await _googledriveCloudService!.isConnected();
-      if(!_googledriveCloudServiceConfig!.connected) {
+          await _googledriveCloudService!.hasConfigured();
+      _googledriveCloudServiceConfig!.connected =
+          await _googledriveCloudService!.isConnected();
+      if (_googledriveCloudServiceConfig!.configured &&
+          !_googledriveCloudServiceConfig!.connected) {
         IToast.showTop(S.current.cloudConnectionError);
       }
       updateConfig(_googledriveCloudServiceConfig!);
@@ -167,7 +169,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
       children: [
         if (_configInitialized) _enableInfo(),
         const SizedBox(height: 10),
-        if (_configInitialized) _accountInfo(),
+        if (_configInitialized && currentConfig.connected) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
         if (_configInitialized && currentConfig.connected) _operationButtons(),

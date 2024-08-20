@@ -36,8 +36,7 @@ class GoogleDrive with ChangeNotifier {
   static const String apiUpload =
       "https://www.googleapis.com/upload/drive/v3/files";
   static const String errCANCELED = "CANCELED";
-  static const permission =
-      "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile";
+  static const permission = "https://www.googleapis.com/auth/drive.file";
 
   late final ITokenManager _tokenManager;
   late final String redirectURL;
@@ -70,6 +69,11 @@ class GoogleDrive with ChangeNotifier {
   }
 
   Future<bool> isConnected() async {
+    final accessToken = await _tokenManager.getAccessToken();
+    return (accessToken?.isNotEmpty) ?? false;
+  }
+
+  Future<bool> hasAuthorized() async {
     final accessToken = await _tokenManager.getAccessToken();
     return (accessToken?.isNotEmpty) ?? false;
   }

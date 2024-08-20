@@ -1,7 +1,6 @@
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
-import '../../../Utils/asset_util.dart';
 import '../../../Utils/utils.dart';
 import '../colors.dart';
 import '../custom_dialog.dart';
@@ -24,7 +23,7 @@ class CustomConfirmDialogWidget extends StatelessWidget {
   final double borderRadius;
   final TextAlign? messageTextAlign;
 
-  final bool noImage;
+  final bool renderHtml;
 
   final Alignment align;
 
@@ -44,7 +43,7 @@ class CustomConfirmDialogWidget extends StatelessWidget {
     this.imagePath,
     this.padding = const EdgeInsets.all(24),
     this.margin = const EdgeInsets.all(24),
-    required this.noImage,
+    required this.renderHtml,
     this.borderRadius = 24,
     this.align = Alignment.bottomCenter,
     this.messageTextAlign = TextAlign.center,
@@ -73,20 +72,6 @@ class CustomConfirmDialogWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (!noImage)
-                Image.asset(
-                  imagePath ?? AssetUtil.emptyIcon,
-                  width: 84,
-                  height: 84,
-                  color: imagePath != null
-                      ? null
-                      : CustomDialogColors.getBgColor(
-                          context,
-                          customDialogType,
-                          color,
-                        ),
-                ),
-              if (!noImage) const SizedBox(height: 24),
               if (Utils.isNotEmpty(title))
                 Text(
                   title!,
@@ -99,16 +84,27 @@ class CustomConfirmDialogWidget extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               if (Utils.isNotEmpty(title)) const SizedBox(height: 20),
-              Text(
-                message,
-                style: TextStyle(
-                  color:
-                      textColor ?? Theme.of(context).textTheme.bodySmall?.color,
-                  height: 1.5,
-                  fontSize: 15,
-                ),
-                textAlign: messageTextAlign,
-              ),
+              renderHtml
+                  ? ItemBuilder.buildHtmlWidget(
+                      context,
+                      message,
+                      textStyle: TextStyle(
+                        color: textColor ??
+                            Theme.of(context).textTheme.bodySmall?.color,
+                        height: 1.5,
+                        fontSize: 15,
+                      ),
+                    )
+                  : Text(
+                      message,
+                      style: TextStyle(
+                        color: textColor ??
+                            Theme.of(context).textTheme.bodySmall?.color,
+                        height: 1.5,
+                        fontSize: 15,
+                      ),
+                      textAlign: messageTextAlign,
+                    ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -4,6 +4,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Widgets/BottomSheet/Backups/local_backups_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
@@ -67,7 +68,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               .titleMedium
               ?.apply(fontWeightDelta: 2),
         ),
-        center: true,
+        center: !ResponsiveUtil.isLandscape(),
         actions: ResponsiveUtil.isLandscape()
             ? []
             : [
@@ -77,47 +78,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
       ),
       body: EasyRefresh(
         child: _buildBody(),
-      ),
-    );
-  }
-
-  _showImportPasswordDialog(String path) {
-    InputValidateAsyncController validateAsyncController =
-        InputValidateAsyncController(
-      controller: TextEditingController(),
-      listen: false,
-      validator: (text) async {
-        if (text.isEmpty) {
-          return S.current.autoBackupPasswordCannotBeEmpty;
-        }
-        bool success = await ImportTokenUtil.importEncryptFile(path, text);
-        if (success) {
-          return null;
-        } else {
-          return S.current.invalidPasswordOrDataCorrupted;
-        }
-      },
-    );
-    BottomSheetBuilder.showBottomSheet(
-      context,
-      responsive: true,
-      (context) => InputBottomSheet(
-        validator: (value) {
-          if (value.isEmpty) {
-            return S.current.autoBackupPasswordCannotBeEmpty;
-          }
-          return null;
-        },
-        checkSyncValidator: false,
-        validateAsyncController: validateAsyncController,
-        title: S.current.inputImportPasswordTitle,
-        message: S.current.inputImportPasswordTip,
-        hint: S.current.inputImportPasswordHint,
-        inputFormatters: [
-          RegexInputFormatter.onlyNumberAndLetter,
-        ],
-        tailingType: InputItemTailingType.password,
-        onValidConfirm: (password) async {},
       ),
     );
   }
@@ -140,19 +100,26 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               lockParentWindow: true,
             );
             if (result != null) {
-              operation() {
-                _showImportPasswordDialog(result.files.single.path!);
-              }
-
-              if (await HiveUtil.canImportOrExportUseBackupPassword()) {
-                bool success = await ImportTokenUtil.importEncryptFile(
-                    result.files.single.path!,
-                    await ConfigDao.getBackupPassword());
-                if (!success) operation();
-              } else {
-                operation();
-              }
+              ImportTokenUtil.importEncryptFileWrapper(
+                  context, result.files.single.path!);
             }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importFromLocalBackup,
+          description: S.current.importFromLocalBackupHint,
+          onTap: () async {
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              responsive: true,
+              (dialogContext) => LocalBackupsBottomSheet(
+                onSelected: (selectedFile) async {
+                  ImportTokenUtil.importEncryptFileWrapper(
+                      context, selectedFile.path);
+                },
+              ),
+            );
           },
         ),
         // ItemBuilder.buildEntryItem(

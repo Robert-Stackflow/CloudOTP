@@ -54,6 +54,11 @@ class OneDrive with ChangeNotifier {
     return (accessToken?.isNotEmpty) ?? false;
   }
 
+  Future<bool> hasAuthorized() async {
+    final accessToken = await _tokenManager.getAccessToken();
+    return (accessToken?.isNotEmpty) ?? false;
+  }
+
   Future<bool> connect(
     BuildContext context, {
     String? windowName,

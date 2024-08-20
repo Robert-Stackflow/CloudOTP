@@ -4,7 +4,6 @@ import 'package:cloudotp/Screens/Backup/googledrive_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/onedrive_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/s3_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
@@ -45,11 +44,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: Icons.close_rounded,
         onLeadingTap: () {
-          if (ResponsiveUtil.isLandscape()) {
-            dialogNavigatorState?.popPage();
-          } else {
-            Navigator.pop(context);
-          }
+          Navigator.pop(context);
         },
         title: Text(
           S.current.cloudBackupServiceSetting,

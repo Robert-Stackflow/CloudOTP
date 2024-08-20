@@ -151,4 +151,9 @@ class DropboxCloudService extends CloudService {
     deleteOldBackup();
     return response.isSuccess;
   }
+
+  @override
+  Future<bool> hasConfigured() async {
+    return await dropbox.hasAuthorized();
+  }
 }

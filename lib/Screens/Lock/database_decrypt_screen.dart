@@ -100,6 +100,8 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
         Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
             ItemBuilder.buildContextMenuOverlay(const MainScreen())));
       }
+    } else {
+      _focusNode.requestFocus();
     }
   }
 

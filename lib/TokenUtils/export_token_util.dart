@@ -198,7 +198,9 @@ class ExportTokenUtil {
       List<CloudServiceConfig> validConfigs =
           await CloudServiceConfigDao.getValidConfigs();
       bool enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
-      bool enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
+      bool enableCloudBackup =
+          HiveUtil.getBool(HiveUtil.enableCloudBackupKey) &&
+              validConfigs.isNotEmpty;
       late AutoBackupType type;
       if (enableLocalBackup && enableCloudBackup) {
         type = AutoBackupType.localAndCloud;
@@ -314,8 +316,10 @@ class ExportTokenUtil {
         }
         if (!log.haveFailed) {
           log.addStatus(AutoBackupStatus.complete);
+          if (showToast) IToast.showTop(S.current.backupSuccess);
         } else {
           log.addStatus(AutoBackupStatus.failed);
+          if (showToast) IToast.showTop(S.current.backupFailed);
         }
       }
     } catch (e) {
@@ -427,10 +431,10 @@ class ExportTokenUtil {
   }
 
   static Future<int> getBackupsCount() async {
-    return (await getBackups()).length;
+    return (await getLocalBackups()).length;
   }
 
-  static Future<List<FileSystemEntity>> getBackups() async {
+  static Future<List<FileSystemEntity>> getLocalBackups() async {
     String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
     Directory directory = Directory(backupPath);
     if (!directory.existsSync()) {
@@ -449,7 +453,7 @@ class ExportTokenUtil {
   static Future<void> deleteOldBackup() async {
     int maxBackupCount = HiveUtil.getMaxBackupsCount();
     if (maxBackupCount == 0) return;
-    List<FileSystemEntity> backups = await getBackups();
+    List<FileSystemEntity> backups = await getLocalBackups();
     backups.sort((a, b) {
       return a.statSync().modified.compareTo(b.statSync().modified);
     });
