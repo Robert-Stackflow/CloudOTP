@@ -18,6 +18,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive/hive.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -101,6 +103,13 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   }
   if (ResponsiveUtil.isDesktop()) {
     await initWindow();
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    LaunchAtStartup.instance.setup(
+      appName: packageInfo.appName,
+      appPath: Platform.resolvedExecutable,
+    );
+    HiveUtil.put(HiveUtil.launchAtStartupKey,
+        await LaunchAtStartup.instance.isEnabled());
     for (String scheme in kWindowsSchemes) {
       await protocolHandler.register(scheme);
     }

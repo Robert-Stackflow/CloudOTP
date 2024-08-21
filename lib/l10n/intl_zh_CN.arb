@@ -349,6 +349,7 @@
   "officialWebsiteTray": "官网",
   "repoTray": "GitHub",
   "exitAppTray": "退出",
+  "launchAtStartup": "开机自启动",
   "autoMemoryWindowPositionAndSize": "记忆窗口位置和大小",
   "autoMemoryWindowPositionAndSizeTip": "关闭后，每次打开CloudOTP都会居中显示且具有默认窗口大小",
   "dragToReorder": "拖动立即重新排序",

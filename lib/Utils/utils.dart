@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -543,6 +544,7 @@ class Utils {
           : 'assets/logo-transparent.png',
     );
     var packageInfo = await PackageInfo.fromPlatform();
+    bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
     await trayManager
         .setToolTip("${packageInfo.appName}-${packageInfo.version}");
     Menu menu = Menu(
@@ -563,6 +565,12 @@ class Utils {
         MenuItem(
           key: 'show_github_repo',
           label: S.current.repoTray,
+        ),
+        MenuItem.separator(),
+        MenuItem.checkbox(
+          checked: lauchAtStartup,
+          key: 'launch_at_start',
+          label: S.current.launchAtStartup,
         ),
         MenuItem.separator(),
         MenuItem(

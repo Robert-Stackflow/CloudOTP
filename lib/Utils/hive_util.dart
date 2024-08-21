@@ -31,6 +31,7 @@ class HiveUtil {
   static const String selectedCategoryIdKey = "selectedCategoryId";
   static const String autoCompleteParameterKey = "autoCompleteParameter";
   static const String localeKey = "locale";
+  static const String launchAtStartupKey = "launchAtStartup";
   static const String recordWindowStateKey = "recordWindowState";
   static const String dragToReorderKey = "dragToReorder";
   static const String windowSizeKey = "windowSize";

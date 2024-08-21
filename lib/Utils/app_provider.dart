@@ -1,5 +1,6 @@
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Resources/theme_color_data.dart';
+import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -23,8 +24,14 @@ NavigatorState? get desktopNavigatorState => desktopNavigatorKey.currentState;
 
 NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
 
+GlobalKey<GeneralSettingScreenState> generalSettingScreenKey =
+GlobalKey<GeneralSettingScreenState>();
+
+GeneralSettingScreenState? get generalSettingScreenState =>
+    generalSettingScreenKey.currentState;
+
 GlobalKey<DialogWrapperWidgetState> dialogNavigatorKey =
-    GlobalKey<DialogWrapperWidgetState>();
+GlobalKey<DialogWrapperWidgetState>();
 
 DialogWrapperWidgetState? get dialogNavigatorState =>
     dialogNavigatorKey.currentState;
@@ -38,7 +45,7 @@ GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
 GlobalKey<KeyboardHandlerState> keyboardHandlerKey =
-    GlobalKey<KeyboardHandlerState>();
+GlobalKey<KeyboardHandlerState>();
 
 HomeScreenState? get homeScreenState => homeScreenKey.currentState;
 
@@ -122,7 +129,7 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _enableLandscapeInTablet =
-      HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
+  HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
 
   bool get enableLandscapeInTablet => _enableLandscapeInTablet;
 
@@ -144,7 +151,8 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _showCloudBackupButton =
-      HiveUtil.getBool(HiveUtil.showCloudBackupButtonKey, defaultValue: ResponsiveUtil.isLandscape(false));
+  HiveUtil.getBool(HiveUtil.showCloudBackupButtonKey,
+      defaultValue: ResponsiveUtil.isLandscape(false));
 
   bool get showCloudBackupButton => _showCloudBackupButton;
 
@@ -175,7 +183,8 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _showBackupLogButton =
-      HiveUtil.getBool(HiveUtil.showBackupLogButtonKey, defaultValue: ResponsiveUtil.isLandscape(false));
+  HiveUtil.getBool(HiveUtil.showBackupLogButtonKey,
+      defaultValue: ResponsiveUtil.isLandscape(false));
 
   bool get showBackupLogButton => _showBackupLogButton;
 
@@ -197,7 +206,7 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _hideAppbarWhenScrolling =
-      HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
+  HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
 
   bool get hideAppbarWhenScrolling => _hideAppbarWhenScrolling;
 
@@ -208,7 +217,7 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _hideBottombarWhenScrolling =
-      HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
+  HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
 
   bool get hideBottombarWhenScrolling => _hideBottombarWhenScrolling;
 

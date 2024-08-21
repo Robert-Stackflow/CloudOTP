@@ -351,6 +351,7 @@
   "officialWebsiteTray": "Official website",
   "repoTray": "GitHub",
   "exitAppTray": "Exit",
+  "launchAtStartup": "Launch at startup",
   "autoMemoryWindowPositionAndSize": "Memory window position and size",
   "autoMemoryWindowPositionAndSizeTip": "After closing, each time you open CloudOTP, it will be displayed in the center and have the default window size",
   "platformSetting": "Platform settings",

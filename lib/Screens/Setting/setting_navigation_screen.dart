@@ -5,6 +5,7 @@ import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_safe_screen.dart';
 import 'package:flutter/material.dart';
 
+import '../../Utils/app_provider.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
@@ -73,8 +74,8 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
                 topRadius: true,
                 bottomRadius: true,
                 onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const GeneralSettingScreen());
+                  RouteUtil.pushCupertinoRoute(context,
+                      GeneralSettingScreen(key: generalSettingScreenKey));
                 },
               ),
               const SizedBox(height: 10),
