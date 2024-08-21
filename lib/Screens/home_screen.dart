@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
@@ -14,6 +16,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:move_to_background/move_to_background.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
@@ -29,7 +32,6 @@ import '../Widgets/BottomSheet/select_token_bottom_sheet.dart';
 import '../Widgets/Custom/custom_tab_indicator.dart';
 import '../Widgets/Custom/loading_icon.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
-import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/Hidable/scroll_to_hide.dart';
 import '../Widgets/Item/input_item.dart';
 import '../Widgets/Scaffold/my_scaffold.dart';
@@ -51,105 +53,25 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-enum LayoutType {
-  Simple,
-  Compact,
-  Tile,
-  List;
-
-  double get maxCrossAxisExtent {
-    switch (this) {
-      case LayoutType.Simple:
-        return 250;
-      case LayoutType.Compact:
-        return 250;
-      case LayoutType.Tile:
-        return 420;
-      case LayoutType.List:
-        return 480;
-    }
-  }
-
-  double getHeight([bool hideProgressBar = false]) {
-    switch (this) {
-      case LayoutType.Simple:
-        return hideProgressBar ? 96 : 110;
-      case LayoutType.Compact:
-        return hideProgressBar ? 97 : 111;
-      case LayoutType.Tile:
-        return hideProgressBar ? 101 : 115;
-      case LayoutType.List:
-        return 60;
-    }
-  }
-}
-
-enum OrderType {
-  Default,
-  AlphabeticalASC,
-  AlphabeticalDESC,
-  CopyTimesDESC,
-  CopyTimesASC,
-  LastCopyTimeDESC,
-  LastCopyTimeASC,
-  CreateTimeDESC,
-  CreateTimeASC;
-
-  String get title {
-    switch (this) {
-      case OrderType.Default:
-        return S.current.defaultOrder;
-      case OrderType.AlphabeticalASC:
-        return S.current.alphabeticalASCOrder;
-      case OrderType.AlphabeticalDESC:
-        return S.current.alphabeticalDESCOrder;
-      case OrderType.CopyTimesDESC:
-        return S.current.copyTimesDESCOrder;
-      case OrderType.CopyTimesASC:
-        return S.current.copyTimesASCOrder;
-      case OrderType.LastCopyTimeDESC:
-        return S.current.lastCopyTimeDESCOrder;
-      case OrderType.LastCopyTimeASC:
-        return S.current.lastCopyTimeASCOrder;
-      case OrderType.CreateTimeDESC:
-        return S.current.createTimeDESCOrder;
-      case OrderType.CreateTimeASC:
-        return S.current.createTimeASCOrder;
-    }
-  }
-}
-
-extension LayoutTypeExtension on int {
-  LayoutType get layoutType {
-    return LayoutType.values[Utils.patchEnum(0, LayoutType.values.length)];
-  }
-}
-
-extension OrderTypeExtension on int {
-  OrderType get orderType {
-    return OrderType.values[Utils.patchEnum(0, OrderType.values.length)];
-  }
-}
-
 class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String appName = "";
   LayoutType layoutType = HiveUtil.getLayoutType();
   OrderType orderType = HiveUtil.getOrderType();
   List<OtpToken> tokens = [];
   List<TokenCategory> categories = [];
-  late TabController _tabController;
   List<Tab> tabList = [];
-  Map<int, GlobalKey<TokenLayoutState>> tokenKeyMap = {};
   int _currentTabIndex = 0;
   String _searchKey = "";
+  Map<int, GlobalKey<TokenLayoutState>> tokenKeyMap = {};
+  late TabController _tabController;
   ScrollController _scrollController = ScrollController();
   final ScrollController _nestScrollController = ScrollController();
-  final EasyRefreshController _refreshController =
-      EasyRefreshController(controlFinishRefresh: true);
+  final ScrollToHideController _scrollToHideController =
+      ScrollToHideController();
   final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
   final PageController _marqueeController = PageController();
   late AnimationController _animationController;
+  final FocusNode _searchFocusNode = FocusNode();
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
 
@@ -186,28 +108,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       setState(() {
         appName = info.appName;
       });
-    });
-  }
-
-  updateToken(
-    OtpToken token, {
-    bool pinnedStateChanged = false,
-    bool counterChanged = false,
-  }) {
-    int updateIndex = tokens.indexWhere((element) => element.id == token.id);
-    tokens[updateIndex] = token;
-    tokenKeyMap
-        .putIfAbsent(token.id, () => GlobalKey())
-        .currentState
-        ?.updateInfo(counterChanged:counterChanged);
-    if (pinnedStateChanged) performSort();
-  }
-
-  removeToken(OtpToken token) {
-    int removeIndex = tokens.indexWhere((element) => element.id == token.id);
-    if (removeIndex != -1) tokens.removeAt(removeIndex);
-    gridItemsNotifier.notifyItemRemoved?.call(removeIndex, () {
-      setState(() {});
     });
   }
 
@@ -269,13 +169,45 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  updateToken(
+    OtpToken token, {
+    bool pinnedStateChanged = false,
+    bool counterChanged = false,
+  }) {
+    int updateIndex = tokens.indexWhere((element) => element.id == token.id);
+    tokens[updateIndex] = token;
+    tokenKeyMap
+        .putIfAbsent(token.id, () => GlobalKey())
+        .currentState
+        ?.updateInfo(counterChanged: counterChanged);
+    if (pinnedStateChanged) performSort();
+  }
+
+  removeToken(OtpToken token) {
+    int removeIndex = tokens.indexWhere((element) => element.id == token.id);
+    if (removeIndex != -1) tokens.removeAt(removeIndex);
+    gridItemsNotifier.notifyItemRemoved?.call(removeIndex, () {
+      setState(() {});
+    });
+  }
+
   changeCategoriesForToken(OtpToken token, List<int> unselectedCategoryIds,
       List<int> selectedCategoryIds) {
     if (unselectedCategoryIds.contains(currentCategoryId)) {
       removeToken(token);
     }
+    for (var id in unselectedCategoryIds) {
+      TokenCategory category =
+          categories.firstWhere((element) => element.id == id);
+      category.tokenIds.remove(token.id);
+    }
     if (selectedCategoryIds.contains(currentCategoryId)) {
       insertToken(token);
+    }
+    for (var id in selectedCategoryIds) {
+      TokenCategory category =
+          categories.firstWhere((element) => element.id == id);
+      category.tokenIds.add(token.id);
     }
   }
 
@@ -354,10 +286,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       body: ResponsiveUtil.isLandscape()
           ? _buildMainContent()
           : PopScope(
-              canPop: !_shownSearchbarNotifier.value,
+              canPop: false,
               onPopInvokedWithResult: (_, __) {
                 if (mounted && _shownSearchbarNotifier.value) {
                   changeSearchBar(false);
+                } else {
+                  MoveToBackground.moveTaskToBack();
                 }
               },
               child: _buildMobileBody(),
@@ -365,8 +299,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       bottomNavigationBar: ResponsiveUtil.isLandscape() || categories.isEmpty
           ? null
           : _buildMobileBottombar(),
-      floatingActionButton:
-          ResponsiveUtil.isLandscape() ? null : _buildFloatingActionButton(),
+      floatingActionButton: !ResponsiveUtil.isLandscape() && categories.isEmpty
+          ? _buildFloatingActionButton()
+          : null,
     );
   }
 
@@ -403,50 +338,57 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  _buildFloatingActionButton() {
-    return ScrollToHide(
-      scrollController: _scrollController,
-      height: kToolbarHeight,
-      duration: const Duration(milliseconds: 300),
-      hideDirection: Axis.vertical,
-      child: FloatingActionButton(
-        onPressed: () {
-          BottomSheetBuilder.showBottomSheet(
-            context,
-            enableDrag: false,
-            (context) => const AddBottomSheet(),
-          );
-        },
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 28),
-      ),
+  _buildFloatingActionButton([bool scrollTohide = true]) {
+    var button = FloatingActionButton(
+      heroTag: "Hero-${categories.length}",
+      onPressed: () {
+        BottomSheetBuilder.showBottomSheet(
+          context,
+          enableDrag: false,
+          (context) => const AddBottomSheet(),
+        );
+      },
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: Theme.of(context).primaryColor,
+      child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 28),
     );
+    return scrollTohide
+        ? ScrollToHide(
+            scrollController: _scrollController,
+            controller: _scrollToHideController,
+            height: kToolbarHeight,
+            duration: const Duration(milliseconds: 300),
+            hideDirection: Axis.vertical,
+            child: button,
+          )
+        : button;
   }
 
-  getActions(bool showCloudEntry) {
+  getActions(AppProvider provider) {
     return [
-      ItemBuilder.buildIconButton(
-        context: context,
-        padding: EdgeInsets.zero,
-        icon: Selector<AppProvider, LoadingStatus>(
-          selector: (context, appProvider) =>
-              appProvider.autoBackupLoadingStatus,
-          builder: (context, autoBackupLoadingStatus, child) => LoadingIcon(
-            status: autoBackupLoadingStatus,
-            normalIcon: Icon(Icons.history_rounded,
-                color: Theme.of(context).iconTheme.color),
+      if (provider.showBackupLogButton)
+        Container(
+          margin: const EdgeInsets.only(right: 5),
+          child: ItemBuilder.buildIconButton(
+            context: context,
+            padding: EdgeInsets.zero,
+            icon: Selector<AppProvider, LoadingStatus>(
+              selector: (context, appProvider) =>
+                  appProvider.autoBackupLoadingStatus,
+              builder: (context, autoBackupLoadingStatus, child) => LoadingIcon(
+                status: autoBackupLoadingStatus,
+                normalIcon: Icon(Icons.history_rounded,
+                    color: Theme.of(context).iconTheme.color),
+              ),
+            ),
+            onTap: () {
+              RouteUtil.pushCupertinoRoute(context, const BackupLogScreen());
+            },
           ),
         ),
-        onTap: () {
-          RouteUtil.pushCupertinoRoute(context, const BackupLogScreen());
-        },
-      ),
-      const SizedBox(width: 5),
-      Offstage(
-        offstage: !showCloudEntry,
-        child: Container(
+      if (provider.canShowCloudBackupButton && provider.showCloudBackupButton)
+        Container(
           margin: const EdgeInsets.only(right: 5),
           child: ItemBuilder.buildIconButton(
             context: context,
@@ -459,36 +401,42 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             },
           ),
         ),
-      ),
-      ItemBuilder.buildPopupMenuButton(
-        context: context,
-        icon: Icon(Icons.dashboard_outlined,
-            color: Theme.of(context).iconTheme.color),
-        itemBuilder: (context) {
-          return ItemBuilder.buildPopupMenuItems(
-            context,
-            MainScreenState.buildLayoutContextMenuButtons(),
-          );
-        },
-        onSelected: (_) {
-          globalNavigatorState?.pop();
-        },
-      ),
-      const SizedBox(width: 5),
-      ItemBuilder.buildPopupMenuButton(
-        context: context,
-        icon:
-            Icon(Icons.sort_rounded, color: Theme.of(context).iconTheme.color),
-        itemBuilder: (context) {
-          return ItemBuilder.buildPopupMenuItems(
-            context,
-            MainScreenState.buildSortContextMenuButtons(),
-          );
-        },
-        onSelected: (_) {
-          globalNavigatorState?.pop();
-        },
-      ),
+      if (provider.showLayoutButton)
+        Container(
+          margin: const EdgeInsets.only(right: 5),
+          child: ItemBuilder.buildPopupMenuButton(
+            context: context,
+            icon: Icon(Icons.dashboard_outlined,
+                color: Theme.of(context).iconTheme.color),
+            itemBuilder: (context) {
+              return ItemBuilder.buildPopupMenuItems(
+                context,
+                MainScreenState.buildLayoutContextMenuButtons(),
+              );
+            },
+            onSelected: (_) {
+              globalNavigatorState?.pop();
+            },
+          ),
+        ),
+      if (provider.showSortButton)
+        Container(
+          margin: const EdgeInsets.only(right: 5),
+          child: ItemBuilder.buildPopupMenuButton(
+            context: context,
+            icon: Icon(Icons.sort_rounded,
+                color: Theme.of(context).iconTheme.color),
+            itemBuilder: (context) {
+              return ItemBuilder.buildPopupMenuItems(
+                context,
+                MainScreenState.buildSortContextMenuButtons(),
+              );
+            },
+            onSelected: (_) {
+              globalNavigatorState?.pop();
+            },
+          ),
+        ),
       ItemBuilder.buildPopupMenuButton(
         context: context,
         icon: Icon(Icons.more_vert_rounded,
@@ -553,117 +501,128 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   _buildMobileAppbar() {
-    return Selector<AppProvider, bool>(
-      selector: (context, appProvider) => appProvider.showCloudEntry,
-      builder: (context, showCloudEntry, child) => Selector<AppProvider, bool>(
-        selector: (context, provider) => provider.hideAppbarWhenScrolling,
-        builder: (context, hideAppbarWhenScrolling, child) =>
-            ValueListenableBuilder(
-          valueListenable: _shownSearchbarNotifier,
-          builder: (context, shownSearchbar, child) =>
-              ItemBuilder.buildSliverAppBar(
-            context: context,
-            floating: hideAppbarWhenScrolling,
-            pinned: !hideAppbarWhenScrolling,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            title: SizedBox(
-              height: kToolbarHeight,
-              child: MarqueeWidget(
-                count: 2,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return Align(
-                      alignment: Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (!_shownSearchbarNotifier.value) {
-                            changeSearchBar(true);
-                          }
-                        },
-                        child: Text(
-                          appName,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium!
-                              .apply(fontWeightDelta: 2),
-                        ),
+    return Consumer<AppProvider>(
+      builder: (context, provider, child) => ValueListenableBuilder(
+        valueListenable: _shownSearchbarNotifier,
+        builder: (context, shownSearchbar, child) =>
+            ItemBuilder.buildSliverAppBar(
+          context: context,
+          floating: provider.hideAppbarWhenScrolling,
+          pinned: !provider.hideAppbarWhenScrolling,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          title: SizedBox(
+            height: kToolbarHeight,
+            child: MarqueeWidget(
+              count: 2,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!_shownSearchbarNotifier.value) {
+                          changeSearchBar(true);
+                        }
+                      },
+                      child: Text(
+                        appName,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .apply(fontWeightDelta: 2),
                       ),
-                    );
-                  } else {
-                    return Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 24),
-                        child: Row(
-                          children: [
-                            ItemBuilder.buildIconButton(
-                              context: context,
-                              icon: Icon(
-                                Icons.arrow_back_rounded,
-                                color: Theme.of(context).iconTheme.color,
-                              ),
-                              onTap: () {
-                                changeSearchBar(false);
+                    ),
+                  );
+                } else {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 24),
+                      child: Row(
+                        children: [
+                          ItemBuilder.buildIconButton(
+                            context: context,
+                            icon: Icon(
+                              Icons.arrow_back_rounded,
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            onTap: () {
+                              changeSearchBar(false);
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: InputItem(
+                              hint: S.current.searchToken,
+                              onSubmit: (text) {
+                                performSearch(text);
                               },
+                              dense: true,
+                              focusNode: _searchFocusNode,
+                              controller: _searchController,
+                              backgroundColor: Colors.transparent,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: InputItem(
-                                hint: S.current.searchToken,
-                                onSubmit: (text) {
-                                  performSearch(text);
-                                },
-                                dense: true,
-                                focusNode: _searchFocusNode,
-                                controller: _searchController,
-                                backgroundColor: Colors.transparent,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    );
-                  }
-                },
-                autoPlay: false,
-                controller: _marqueeController,
-              ),
+                    ),
+                  );
+                }
+              },
+              autoPlay: false,
+              controller: _marqueeController,
             ),
-            expandedHeight: kToolbarHeight,
-            collapsedHeight: kToolbarHeight,
-            actions:
-                _shownSearchbarNotifier.value ? [] : getActions(showCloudEntry),
           ),
+          expandedHeight: kToolbarHeight,
+          collapsedHeight: kToolbarHeight,
+          actions: _shownSearchbarNotifier.value ? [] : getActions(provider),
         ),
       ),
     );
   }
 
-  _buildMobileBottombar({double verticalPadding = 5}) {
+  _buildMobileBottombar({double verticalPadding = 10}) {
     double height = kToolbarHeight + verticalPadding * 2;
     return Selector<AppProvider, bool>(
       selector: (context, provider) => provider.hideBottombarWhenScrolling,
       builder: (context, hideBottombarWhenScrolling, child) => ScrollToHide(
         enabled: hideBottombarWhenScrolling,
         scrollController: _scrollController,
+        controller: _scrollToHideController,
         height: height,
         duration: const Duration(milliseconds: 300),
         hideDirection: Axis.vertical,
-        child: Container(
-          alignment: Alignment.centerLeft,
-          height: height,
-          decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).shadowColor.withAlpha(127),
-                blurRadius: Utils.isDark(context) ? 50 : 10,
-                spreadRadius: 1,
+        child: Stack(
+          children: [
+            ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  alignment: Alignment.centerLeft,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).canvasColor.withOpacity(0.9),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).shadowColor.withAlpha(127),
+                        blurRadius: Utils.isDark(context) ? 50 : 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding)
+                      .copyWith(right: 70),
+                  child:
+                      _buildTabBar(const EdgeInsets.only(left: 10, right: 10)),
+                ),
               ),
-            ],
-          ),
-          padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding),
-          child: _buildTabBar(const EdgeInsets.symmetric(horizontal: 10)),
+            ),
+            Positioned(
+              top: verticalPadding,
+              right: 15,
+              child: _buildFloatingActionButton(false),
+            ),
+          ],
         ),
       ),
     );
@@ -678,6 +637,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ReorderableGridView.builder(
           controller: _scrollController,
           gridItemsNotifier: gridItemsNotifier,
+          autoScroll: true,
+          physics: const AlwaysScrollableScrollPhysics(),
           padding:
               const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
           gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
@@ -693,6 +654,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               return false;
             }
             return true;
+          },
+          onReorderStart: (_) {
+            _scrollToHideController.hide();
+          },
+          onReorderEnd: (_, __) {
+            _scrollToHideController.show();
           },
           onReorder: (int oldIndex, int newIndex) async {
             final item = tokens.removeAt(oldIndex);
@@ -739,11 +706,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           )
         : gridView;
-    return Selector<AppProvider, bool>(
-      selector: (context, provider) => provider.dragToReorder,
-      builder: (context, dragToReorder, child) =>
-          dragToReorder ? body : EasyRefresh(child: body),
-    );
+    return body;
   }
 
   _buildTabBar([EdgeInsetsGeometry? padding]) {
@@ -756,7 +719,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       dividerHeight: 0,
       padding: padding,
       tabAlignment: TabAlignment.start,
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       labelStyle:
           Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       unselectedLabelStyle:
@@ -765,7 +728,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         borderColor: Theme.of(context).primaryColor,
       ),
       onTap: (index) {
-        _refreshController.finishRefresh();
         if (_nestScrollController.hasClients) {
           _nestScrollController.animateTo(0,
               duration: const Duration(milliseconds: 300),
@@ -935,7 +897,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (type != null) {
         layoutType = type;
       } else {
-        layoutType = layoutType == LayoutType.Tile
+        layoutType = layoutType == LayoutType.values.last
             ? LayoutType.Simple
             : LayoutType.values[layoutType.index + 1];
       }
@@ -1014,5 +976,85 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
     tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
     setState(() {});
+  }
+}
+
+enum LayoutType {
+  Simple,
+  Compact,
+  Tile,
+  List;
+
+  double get maxCrossAxisExtent {
+    switch (this) {
+      case LayoutType.Simple:
+        return 250;
+      case LayoutType.Compact:
+        return 250;
+      case LayoutType.Tile:
+        return 420;
+      case LayoutType.List:
+        return 480;
+    }
+  }
+
+  double getHeight([bool hideProgressBar = false]) {
+    switch (this) {
+      case LayoutType.Simple:
+        return hideProgressBar ? 96 : 110;
+      case LayoutType.Compact:
+        return hideProgressBar ? 97 : 111;
+      case LayoutType.Tile:
+        return hideProgressBar ? 101 : 115;
+      case LayoutType.List:
+        return 60;
+    }
+  }
+}
+
+enum OrderType {
+  Default,
+  AlphabeticalASC,
+  AlphabeticalDESC,
+  CopyTimesDESC,
+  CopyTimesASC,
+  LastCopyTimeDESC,
+  LastCopyTimeASC,
+  CreateTimeDESC,
+  CreateTimeASC;
+
+  String get title {
+    switch (this) {
+      case OrderType.Default:
+        return S.current.defaultOrder;
+      case OrderType.AlphabeticalASC:
+        return S.current.alphabeticalASCOrder;
+      case OrderType.AlphabeticalDESC:
+        return S.current.alphabeticalDESCOrder;
+      case OrderType.CopyTimesDESC:
+        return S.current.copyTimesDESCOrder;
+      case OrderType.CopyTimesASC:
+        return S.current.copyTimesASCOrder;
+      case OrderType.LastCopyTimeDESC:
+        return S.current.lastCopyTimeDESCOrder;
+      case OrderType.LastCopyTimeASC:
+        return S.current.lastCopyTimeASCOrder;
+      case OrderType.CreateTimeDESC:
+        return S.current.createTimeDESCOrder;
+      case OrderType.CreateTimeASC:
+        return S.current.createTimeASCOrder;
+    }
+  }
+}
+
+extension LayoutTypeExtension on int {
+  LayoutType get layoutType {
+    return LayoutType.values[Utils.patchEnum(0, LayoutType.values.length)];
+  }
+}
+
+extension OrderTypeExtension on int {
+  OrderType get orderType {
+    return OrderType.values[Utils.patchEnum(0, OrderType.values.length)];
   }
 }

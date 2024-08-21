@@ -4,7 +4,7 @@ import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_googledrive/googledrive_response.dart';
+import 'package:flutter_cloud/googledrive_response.dart';
 
 import '../../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../../Utils/utils.dart';

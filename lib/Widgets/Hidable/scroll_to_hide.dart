@@ -1,6 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+class ScrollToHideController {
+  Function()? doShow;
+  Function()? doHide;
+
+  void show() {
+    doShow?.call();
+  }
+
+  void hide() {
+    doHide?.call();
+  }
+}
+
 /// A widget that hides its child when the user scrolls down and shows it again when the user scrolls up.
 /// This behavior is commonly used to hide elements like a bottom navigation bar to provide a more immersive user experience.
 class ScrollToHide extends StatefulWidget {
@@ -24,7 +37,10 @@ class ScrollToHide extends StatefulWidget {
     this.width,
     this.enabled = true,
     this.height,
+    this.controller,
   });
+
+  final ScrollToHideController? controller;
 
   final bool enabled;
 
@@ -48,15 +64,17 @@ class ScrollToHide extends StatefulWidget {
   final double? width;
 
   @override
-  State<ScrollToHide> createState() => _ScrollToHideState();
+  State<ScrollToHide> createState() => ScrollToHideState();
 }
 
-class _ScrollToHideState extends State<ScrollToHide> {
+class ScrollToHideState extends State<ScrollToHide> {
   bool isShown = true;
 
   @override
   void initState() {
     widget.scrollController.addListener(listen);
+    widget.controller?.doShow = show;
+    widget.controller?.doHide = hide;
     super.initState();
   }
 

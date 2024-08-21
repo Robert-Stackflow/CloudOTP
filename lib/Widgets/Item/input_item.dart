@@ -229,6 +229,7 @@ class InputItemState extends State<InputItem> {
                     obscureText: obscureText,
                     maxLength: maxLength,
                     enabled: !readOnly,
+                    scrollPhysics: const ClampingScrollPhysics(),
                     onFieldSubmitted: widget.onSubmit,
                     style: textTheme.titleMedium?.copyWith(
                       letterSpacing: 1.1,

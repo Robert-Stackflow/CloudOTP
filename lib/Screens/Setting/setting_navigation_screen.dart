@@ -1,3 +1,4 @@
+import 'package:cloudotp/Screens/Setting/setting_appearance_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
@@ -67,13 +68,26 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
               ItemBuilder.buildEntryItem(
                 context: context,
                 title: S.current.generalSetting,
-                leading: Icons.color_lens_outlined,
+                leading: Icons.now_widgets_outlined,
                 showLeading: true,
                 topRadius: true,
                 bottomRadius: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(
                       context, const GeneralSettingScreen());
+                },
+              ),
+              const SizedBox(height: 10),
+              ItemBuilder.buildEntryItem(
+                context: context,
+                title: S.current.appearanceSetting,
+                leading: Icons.color_lens_outlined,
+                showLeading: true,
+                topRadius: true,
+                bottomRadius: true,
+                onTap: () {
+                  RouteUtil.pushCupertinoRoute(
+                      context, const AppearanceSettingScreen());
                 },
               ),
               const SizedBox(height: 10),

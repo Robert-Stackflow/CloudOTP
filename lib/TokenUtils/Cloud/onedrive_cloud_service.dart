@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_onedrive/flutter_onedrive.dart';
-import 'package:flutter_onedrive/onedrive_response.dart';
+import 'package:flutter_cloud/onedrive.dart';
+import 'package:flutter_cloud/onedrive_response.dart';
 import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
@@ -14,13 +15,18 @@ import 'cloud_service.dart';
 class OneDriveCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.OneDrive;
-  static const String _redirectUrl = 'cloudotp://auth/onedrive/callback';
+  static const String _customRedirectUrl =
+      'cloudotp://auth/onedrive/callback';
   static const String _clientID = '3b953ca4-3dd4-4148-a80b-b1ac8c39fd97';
   static const String _onedrivePath = '/CloudOTP';
   final CloudServiceConfig _config;
   late OneDrive onedrive;
   late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
+
+  String get _redirectUrl {
+    return ResponsiveUtil.isDesktop() ? _customRedirectUrl : _customRedirectUrl;
+  }
 
   OneDriveCloudService(
     this.context,

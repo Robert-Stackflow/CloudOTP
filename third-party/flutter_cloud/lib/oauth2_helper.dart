@@ -1,0 +1,79 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:http/http.dart' as http;
+
+class OAuth2Helper {
+  static Future<http.Response?> browserAuth({
+    required BuildContext? context,
+    required Uri authEndpoint,
+    required Uri tokenEndpoint,
+    required String callbackUrl,
+    required String callbackUrlScheme,
+    required String clientID,
+    required String redirectURL,
+    String? windowName,
+    String? scopes,
+  }) async {
+    try {
+      final result = await FlutterWebAuth2.authenticate(
+        url: authEndpoint.toString(),
+        callbackUrl: callbackUrl,
+        callbackUrlScheme: callbackUrlScheme,
+        options: FlutterWebAuth2Options(
+          timeout: 60,
+          windowName: windowName,
+          useWebview: false,
+        ),
+      );
+      final String code = Uri.parse(result).queryParameters['code'] ?? "";
+      http.Response resp = await http.post(tokenEndpoint, body: {
+        'client_id': clientID,
+        'redirect_uri': redirectURL,
+        'grant_type': 'authorization_code',
+        'code': code,
+      });
+      return resp;
+    } catch (e, t) {
+      print("$e\n$t");
+      return null;
+    }
+  }
+
+  static Future<http.Response?> browserAuthWithVerifier({
+    required BuildContext? context,
+    required Uri authEndpoint,
+    required Uri tokenEndpoint,
+    required String callbackUrl,
+    required String callbackUrlScheme,
+    required String clientID,
+    required String redirectURL,
+    required String codeVerifier,
+    String? windowName,
+    String? scopes,
+  }) async {
+    try {
+      final result = await FlutterWebAuth2.authenticate(
+        url: authEndpoint.toString(),
+        callbackUrl: callbackUrl,
+        callbackUrlScheme: callbackUrlScheme,
+        options: FlutterWebAuth2Options(
+          timeout: 60,
+          windowName: windowName,
+          useWebview: false,
+        ),
+      );
+      final String code = Uri.parse(result).queryParameters['code'] ?? "";
+      http.Response resp = await http.post(tokenEndpoint, body: {
+        'client_id': clientID,
+        'redirect_uri': redirectURL,
+        'code_verifier': codeVerifier,
+        'grant_type': 'authorization_code',
+        'code': code,
+      });
+      return resp;
+    } catch (e, t) {
+      print("$e $t");
+      return null;
+    }
+  }
+}

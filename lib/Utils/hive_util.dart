@@ -51,6 +51,10 @@ class HiveUtil {
   static const String defaultHideCodeKey = "defaultHideCode";
 
   //Appearance
+  static const String showCloudBackupButtonKey = "showCloudBackupButton";
+  static const String showSortButtonKey = "showSortButton";
+  static const String showLayoutButtonKey = "showLayoutButton";
+  static const String showBackupLogButtonKey = "showBackupLogButton";
   static const String hideAppbarWhenScrollingKey = "hideAppbarWhenScrolling";
   static const String hideBottombarWhenScrollingKey =
       "hideBottombarWhenScrolling";

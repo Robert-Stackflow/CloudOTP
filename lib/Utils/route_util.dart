@@ -4,6 +4,8 @@ import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
+
 class RouteUtil {
   static pushMaterialRoute(BuildContext context, Widget page) {
     return Navigator.push(
@@ -78,6 +80,7 @@ class RouteUtil {
     double? preferMinWidth,
     double? preferMinHeight,
     Function(dynamic)? onThen,
+    GlobalKey<DialogWrapperWidgetState>? overrideDialogNavigatorKey,
   }) {
     if (ResponsiveUtil.isLandscape()) {
       DialogBuilder.showPageDialog(
@@ -88,6 +91,7 @@ class RouteUtil {
         onThen: onThen,
         preferMinWidth: preferMinWidth,
         preferMinHeight: preferMinHeight,
+        overrideDialogNavigatorKey: overrideDialogNavigatorKey,
       );
     } else {
       pushCupertinoRoute(context, page, onThen: onThen);

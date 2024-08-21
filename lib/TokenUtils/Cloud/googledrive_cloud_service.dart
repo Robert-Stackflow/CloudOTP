@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_googledrive/flutter_googledrive.dart';
-import 'package:flutter_googledrive/googledrive_response.dart';
+import 'package:flutter_cloud/googledrive.dart';
+import 'package:flutter_cloud/googledrive_response.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/responsive_util.dart';
 import '../../generated/l10n.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
@@ -13,7 +14,7 @@ import 'cloud_service.dart';
 class GoogleDriveCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.GoogleDrive;
-  static const String _redirectUrl =
+  static const String _customRedirectUrl =
       'com.cloudchewie.cloudotp:/auth/googledrive/callback';
   static const String _clientID =
       '631913875304-rk71cm691d0ckl1iu9lv6ahv63htrlij.apps.googleusercontent.com';
@@ -23,6 +24,10 @@ class GoogleDriveCloudService extends CloudService {
   late GoogleDrive googledrive;
   late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
+
+  String get _redirectUrl {
+    return ResponsiveUtil.isDesktop() ? _customRedirectUrl : _customRedirectUrl;
+  }
 
   GoogleDriveCloudService(
     this.context,

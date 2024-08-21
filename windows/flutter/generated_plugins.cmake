@@ -3,13 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  app_links
+  desktop_webview_auth
   desktop_webview_window
   flutter_secure_storage_windows
   hotkey_manager_windows
   isar_flutter_libs
   local_auth_windows
   permission_handler_windows
+  protocol_handler_windows
   screen_capturer_windows
   screen_retriever
   share_plus
@@ -17,6 +18,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   url_launcher_windows
   window_manager
   window_to_front
+  windows_single_instance
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

@@ -84,9 +84,9 @@ class AppProvider with ChangeNotifier {
 
   bool _showCloudEntry = false;
 
-  bool get showCloudEntry => _showCloudEntry;
+  bool get canShowCloudBackupButton => _showCloudEntry;
 
-  set showCloudEntry(bool value) {
+  set canShowCloudBackupButton(bool value) {
     _showCloudEntry = value;
     notifyListeners();
   }
@@ -140,6 +140,48 @@ class AppProvider with ChangeNotifier {
 
   set canPopByProvider(bool value) {
     _canPopByProvider = value;
+    notifyListeners();
+  }
+
+  bool _showCloudBackupButton =
+      HiveUtil.getBool(HiveUtil.showCloudBackupButtonKey, defaultValue: ResponsiveUtil.isLandscape(false));
+
+  bool get showCloudBackupButton => _showCloudBackupButton;
+
+  set showCloudBackupButton(bool value) {
+    _showCloudBackupButton = value;
+    HiveUtil.put(HiveUtil.showCloudBackupButtonKey, value);
+    notifyListeners();
+  }
+
+  bool _showLayoutButton = HiveUtil.getBool(HiveUtil.showLayoutButtonKey);
+
+  bool get showLayoutButton => _showLayoutButton;
+
+  set showLayoutButton(bool value) {
+    _showLayoutButton = value;
+    HiveUtil.put(HiveUtil.showLayoutButtonKey, value);
+    notifyListeners();
+  }
+
+  bool _showSortButton = HiveUtil.getBool(HiveUtil.showSortButtonKey);
+
+  bool get showSortButton => _showSortButton;
+
+  set showSortButton(bool value) {
+    _showSortButton = value;
+    HiveUtil.put(HiveUtil.showSortButtonKey, value);
+    notifyListeners();
+  }
+
+  bool _showBackupLogButton =
+      HiveUtil.getBool(HiveUtil.showBackupLogButtonKey, defaultValue: ResponsiveUtil.isLandscape(false));
+
+  bool get showBackupLogButton => _showBackupLogButton;
+
+  set showBackupLogButton(bool value) {
+    _showBackupLogButton = value;
+    HiveUtil.put(HiveUtil.showBackupLogButtonKey, value);
     notifyListeners();
   }
 

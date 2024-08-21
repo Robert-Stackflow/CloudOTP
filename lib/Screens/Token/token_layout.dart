@@ -15,6 +15,7 @@ import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +61,15 @@ class TokenLayoutNotifier extends ChangeNotifier {
 
   set codeVisiable(bool value) {
     _codeVisiable = value;
+    notifyListeners();
+  }
+
+  bool _haveToResetHOTP = false;
+
+  bool get haveToResetHOTP => _haveToResetHOTP;
+
+  set haveToResetHOTP(bool value) {
+    _haveToResetHOTP = value;
     notifyListeners();
   }
 }
@@ -112,29 +122,20 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   resetTimer() {
-    if (isHOTP) {
-      updateCode();
-      _timer?.cancel();
-      _timer = Timer(const Duration(seconds: defaultHOTPPeriod), () {
-        if (mounted) {
+    tokenLayoutNotifier.haveToResetHOTP = false;
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (mounted) {
+        progressNotifier.value = currentProgress;
+        if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
           tokenLayoutNotifier.codeVisiable = false;
-          updateCode();
         }
-      });
-    } else {
-      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-        if (mounted) {
-          progressNotifier.value = currentProgress;
-          if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
-            tokenLayoutNotifier.codeVisiable = false;
-          }
-          updateCode();
-          if (remainingMilliseconds <= 100) {
-            tokenLayoutNotifier.code = getNextCode();
-          }
+        updateCode();
+        if (remainingMilliseconds <= 100) {
+          tokenLayoutNotifier.haveToResetHOTP = true;
+          tokenLayoutNotifier.code = getNextCode();
         }
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -193,7 +194,10 @@ class TokenLayoutState extends State<TokenLayout>
         selector: (context, provider) => provider.dragToReorder,
         builder: (context, dragToReorder, child) => GestureDetector(
           onLongPress: dragToReorder && !ResponsiveUtil.isLandscape()
-              ? showContextMenu
+              ? () {
+                  showContextMenu();
+                  HapticFeedback.lightImpact();
+                }
               : null,
           child: _buildBody(),
         ),
@@ -341,8 +345,8 @@ class TokenLayoutState extends State<TokenLayout>
       value: tokenLayoutNotifier,
       child: Selector<TokenLayoutNotifier, bool>(
         selector: (context, tokenLayoutNotifier) =>
-            tokenLayoutNotifier.codeVisiable,
-        builder: (context, codeVisiable, child) => !codeVisiable
+            tokenLayoutNotifier.haveToResetHOTP,
+        builder: (context, haveToResetHOTP, child) => haveToResetHOTP
             ? Container(
                 margin: const EdgeInsets.only(left: 8),
                 child: ItemBuilder.buildIconButton(
@@ -487,40 +491,21 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _processTap() {
-    if (isHOTP) {
-      if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
-        if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-            currentProgress < autoCopyNextCodeProgressThrehold) {
-          _processCopyNextCode();
-        } else {
-          _processCopyCode();
-        }
-        if (HiveUtil.getBool(HiveUtil.autoMinimizeAfterClickToCopyKey,
-            defaultValue: false)) {
-          if (ResponsiveUtil.isDesktop()) {
-            windowManager.minimize();
-          } else {
-            MoveToBackground.moveTaskToBack();
-          }
-        }
+    tokenLayoutNotifier.codeVisiable = true;
+    updateCode();
+    if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
+      if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
+          currentProgress < autoCopyNextCodeProgressThrehold) {
+        _processCopyNextCode();
+      } else {
+        _processCopyCode();
       }
-    } else {
-      tokenLayoutNotifier.codeVisiable = true;
-      updateCode();
-      if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
-        if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-            currentProgress < autoCopyNextCodeProgressThrehold) {
-          _processCopyNextCode();
+      if (HiveUtil.getBool(HiveUtil.autoMinimizeAfterClickToCopyKey,
+          defaultValue: false)) {
+        if (ResponsiveUtil.isDesktop()) {
+          windowManager.minimize();
         } else {
-          _processCopyCode();
-        }
-        if (HiveUtil.getBool(HiveUtil.autoMinimizeAfterClickToCopyKey,
-            defaultValue: false)) {
-          if (ResponsiveUtil.isDesktop()) {
-            windowManager.minimize();
-          } else {
-            MoveToBackground.moveTaskToBack();
-          }
+          MoveToBackground.moveTaskToBack();
         }
       }
     }

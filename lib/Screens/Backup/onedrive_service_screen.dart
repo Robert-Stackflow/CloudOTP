@@ -3,11 +3,10 @@ import 'dart:typed_data';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_onedrive/onedrive_response.dart';
+import 'package:flutter_cloud/onedrive_response.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
@@ -52,7 +51,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   @override
   void initState() {
     super.initState();
-    if (!ResponsiveUtil.isDesktop()) loadConfig();
+    loadConfig();
   }
 
   loadConfig() async {
@@ -105,17 +104,15 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return ResponsiveUtil.isDesktop()
-        ? _buildUnsupportBody()
-        : inited
-            ? _buildBody()
-            : ItemBuilder.buildLoadingDialog(
-                context,
-                background: Colors.transparent,
-                text: S.current.cloudConnecting,
-                mainAxisAlignment: MainAxisAlignment.start,
-                topPadding: 100,
-              );
+    return inited
+        ? _buildBody()
+        : ItemBuilder.buildLoadingDialog(
+            context,
+            background: Colors.transparent,
+            text: S.current.cloudConnecting,
+            mainAxisAlignment: MainAxisAlignment.start,
+            topPadding: 100,
+          );
   }
 
   _buildUnsupportBody() {

@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:cloudotp/Utils/route_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:cloudotp/Utils/route_util.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -103,9 +103,9 @@ class ResponsiveUtil {
         orientation == Orientation.landscape;
   }
 
-  static bool isLandscape() {
+  static bool isLandscape([bool useAppProvider = true]) {
     return isWeb() ||
         isDesktop() ||
-        (appProvider.enableLandscapeInTablet && isTablet());
+        (useAppProvider && appProvider.enableLandscapeInTablet && isTablet());
   }
 }

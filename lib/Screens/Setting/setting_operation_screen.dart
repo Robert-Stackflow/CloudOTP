@@ -90,6 +90,7 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
         context: context,
         value: autoDisplayNextCode,
         topRadius: true,
+        bottomRadius: true,
         title: S.current.autoDisplayNextCode,
         description: S.current.autoDisplayNextCodeTip,
         onTap: () {
@@ -99,9 +100,11 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
           });
         },
       ),
+      const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
         value: clipToCopy,
+        topRadius: true,
         bottomRadius: !clipToCopy,
         title: S.current.clickToCopy,
         description: S.current.clickToCopyTip,

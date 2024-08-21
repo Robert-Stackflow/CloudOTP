@@ -5,7 +5,7 @@ import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_onedrive/onedrive_response.dart';
+import 'package:flutter_cloud/onedrive_response.dart';
 
 import '../../../Utils/utils.dart';
 import '../../../generated/l10n.dart';

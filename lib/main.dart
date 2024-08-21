@@ -18,9 +18,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive/hive.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'Screens/main_screen.dart';
@@ -32,6 +31,10 @@ import 'Utils/utils.dart';
 import 'Widgets/Custom/keyboard_handler.dart';
 import 'generated/l10n.dart';
 
+const List<String> kWindowsSchemes = ["cloudotp", "com.cloudchewie.cloudotp"];
+
+const String kWindowSingleInstanceName = "cloudotp_singleinstance";
+
 Future<void> main(List<String> args) async {
   runMyApp(args);
 }
@@ -41,21 +44,14 @@ Future<void> runMyApp(List<String> args) async {
     return;
   }
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // if (ResponsiveUtil.isWindows()) {
+  //   await WindowsSingleInstance.ensureSingleInstance(
+  //     args,
+  //     kWindowSingleInstanceName,
+  //     onSecondWindow: (args) {},
+  //   );
+  // }
   await initApp(widgetsBinding);
-  if (ResponsiveUtil.isMobile()) {
-    await initDisplayMode();
-    if (ResponsiveUtil.isAndroid()) {
-      await RequestHeaderUtil.initAndroidInfo();
-      SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark);
-      SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
-    }
-  }
-  if (ResponsiveUtil.isDesktop()) {
-    await initWindow();
-    await HotKeyManager.instance.unregisterAll();
-  }
   late Widget home;
   if (!DatabaseManager.initialized) {
     home = const DatabaseDecryptScreen();
@@ -70,7 +66,7 @@ Future<void> runMyApp(List<String> args) async {
   }
   runApp(MyApp(home: KeyboardHandler(key: keyboardHandlerKey, child: home)));
   FlutterNativeSplash.remove();
-  if (ResponsiveUtil.isDesktop()) {
+  if (ResponsiveUtil.isDesktop() && HiveUtil.getBool(HiveUtil.showTrayKey)) {
     Utils.initTray();
   }
 }
@@ -93,6 +89,23 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   }
   NotificationUtil.init();
   await TokenImageUtil.loadBrandLogos();
+  if (ResponsiveUtil.isMobile()) {
+    await initDisplayMode();
+    if (ResponsiveUtil.isAndroid()) {
+      await RequestHeaderUtil.initAndroidInfo();
+      SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark);
+      SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+    }
+  }
+  if (ResponsiveUtil.isDesktop()) {
+    await initWindow();
+    for (String scheme in kWindowsSchemes) {
+      await protocolHandler.register(scheme);
+    }
+    await HotKeyManager.instance.unregisterAll();
+  }
 }
 
 Future<void> initWindow() async {

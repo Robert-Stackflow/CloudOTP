@@ -51,12 +51,8 @@ dependencies:
     path: third-party/s3_storage
   webdav_client:
     path: third-party/webdav_client
-  flutter_onedrive:
-    path: third-party/flutter_onedrive
-  flutter_dropbox:
-    path: third-party/flutter_dropbox
-  flutter_googledrive:
-    path: third-party/flutter_googledrive
+  flutter_cloud:
+    path: third-party/flutter_cloud
   # 工具
   intl_utils: ^2.8.7
   html: ^0.15.0
@@ -73,7 +69,7 @@ dependencies:
   package_info_plus: ^8.0.0 # 应用信息
   device_info_plus: ^10.1.0 # 设备信息
   share_plus: ^9.0.0 # 分享
-  app_links: ^6.1.4 # 应用URI
+  protocol_handler: ^0.2.0 # 协议处理
   url_launcher: ^6.3.0 # URL跳转
   # 平台适配
   process_run: ^1.0.0+1 # 运行
@@ -89,6 +85,7 @@ dependencies:
   desktop_webview_window: ^0.2.3 # Webview窗口
   flutter_windowmanager: ^0.2.0
   move_to_background: ^1.0.2 # 移动到后台
+  windows_single_instance: ^1.0.1 # 单实例
   window_manager:
     path: third-party/window_manager
 

@@ -1,6 +1,7 @@
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
+import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
@@ -219,7 +220,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 ConfigDao.updateBackupPassword(text);
                 setState(() {
                   _autoBackupPassword = text;
-                  appProvider.showCloudEntry = _enableCloudBackup;
+                  appProvider.canShowCloudBackupButton = _enableCloudBackup;
                 });
               },
             ),
@@ -274,6 +275,23 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         visible: canImmediateBackup,
         child: ItemBuilder.buildEntryItem(
           context: context,
+          bottomRadius: true,
+          title: S.current.backupLogs,
+          onTap: () async {
+            RouteUtil.pushDialogRoute(
+              context,
+              const BackupLogScreen(),
+              overrideDialogNavigatorKey: GlobalKey(),
+            );
+          },
+        ),
+      ),
+      if (canImmediateBackup) const SizedBox(height: 10),
+      Visibility(
+        visible: canImmediateBackup,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          topRadius: true,
           bottomRadius: true,
           title: S.current.maxBackupCount,
           description: S.current.maxBackupCountTip,
@@ -418,7 +436,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           setState(() {
             _enableCloudBackup = !_enableCloudBackup;
             HiveUtil.put(HiveUtil.enableCloudBackupKey, _enableCloudBackup);
-            appProvider.showCloudEntry = _enableCloudBackup;
+            appProvider.canShowCloudBackupButton = _enableCloudBackup;
           });
         },
       ),

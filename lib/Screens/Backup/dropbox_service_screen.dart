@@ -3,10 +3,9 @@ import 'dart:typed_data';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dropbox/dropbox_response.dart';
+import 'package:flutter_cloud/dropbox_response.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
@@ -52,7 +51,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   @override
   void initState() {
     super.initState();
-    if (!ResponsiveUtil.isDesktop()) loadConfig();
+    loadConfig();
   }
 
   loadConfig() async {
@@ -92,10 +91,11 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   }
 
   updateConfig(CloudServiceConfig config) {
-    if (mounted)
+    if (mounted) {
       setState(() {
         _dropboxCloudServiceConfig = config;
       });
+    }
     _sizeController.text = _dropboxCloudServiceConfig!.size;
     _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
     _emailController.text = _dropboxCloudServiceConfig!.email ?? "";
@@ -105,30 +105,15 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return ResponsiveUtil.isDesktop()
-        ? _buildUnsupportBody()
-        : inited
-            ? _buildBody()
-            : ItemBuilder.buildLoadingDialog(
-                context,
-                background: Colors.transparent,
-                text: S.current.cloudConnecting,
-                mainAxisAlignment: MainAxisAlignment.start,
-                topPadding: 100,
-              );
-  }
-
-  _buildUnsupportBody() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          const SizedBox(height: 100),
-          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeDropbox)),
-          const SizedBox(height: 10),
-        ],
-      ),
-    );
+    return inited
+        ? _buildBody()
+        : ItemBuilder.buildLoadingDialog(
+            context,
+            background: Colors.transparent,
+            text: S.current.cloudConnecting,
+            mainAxisAlignment: MainAxisAlignment.start,
+            topPadding: 100,
+          );
   }
 
   ping({

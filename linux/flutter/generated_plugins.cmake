@@ -3,9 +3,9 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_webview_auth
   desktop_webview_window
   flutter_secure_storage_linux
-  gtk
   hotkey_manager_linux
   isar_flutter_libs
   screen_capturer_linux

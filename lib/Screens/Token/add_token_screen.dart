@@ -48,6 +48,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   final GroupButtonController _algorithmController = GroupButtonController();
   late OtpToken _otpToken;
   bool _isEditing = false;
+  bool _showAdvancedInfo = false;
   bool customedImage = false;
 
   bool get isSteam =>
@@ -119,6 +120,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   }
 
   getCategories() async {
+    categories = await CategoryDao.listCategories();
     if (!_isEditing) {
       selectedCategoryIds = [];
       oldSelectedCategoryIds = [];
@@ -127,7 +129,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           await CategoryDao.getCategoryIdsByTokenId(widget.token!.id);
       oldSelectedCategoryIds = List.from(selectedCategoryIds);
     }
-    categories = await CategoryDao.listCategories();
     setState(() {});
   }
 
@@ -254,18 +255,23 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           key: formKey,
           child: Column(
             children: [
-              _iconInfo(),
               const SizedBox(height: 20),
+              _iconInfo(),
+              const SizedBox(height: 40),
               _typeInfo(),
               const SizedBox(height: 10),
               _basicInfo(),
               const SizedBox(height: 10),
-              if (!isSteam && !isYandex) _advancedInfo(),
-              if (!isSteam && !isYandex) const SizedBox(height: 10),
               ..._categoryInfo(),
               const SizedBox(height: 10),
               if (_isEditing) ..._copyTimesInfo(),
+              if (_isEditing && !isSteam && !isYandex)
+                const SizedBox(height: 10),
+              if (!_showAdvancedInfo && !isSteam && !isYandex)
+                _showAdvancedInfoButton(),
+              if (_showAdvancedInfo && !isSteam && !isYandex) _advancedInfo(),
               if (_isEditing) ..._deleteButton(),
+              SizedBox(height: _isEditing ? 0 : 30),
             ],
           ),
         ),
@@ -301,7 +307,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       context: context,
       topRadius: true,
       bottomRadius: true,
-      padding: const EdgeInsets.only(right: 10),
       child: ItemBuilder.buildGroupTile(
         context: context,
         // title: S.current.tokenType,
@@ -328,7 +333,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       context: context,
       topRadius: true,
       bottomRadius: true,
-      padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
+      padding: const EdgeInsets.only(top: 15, bottom: 5),
       child: Column(
         children: [
           InputItem(
@@ -477,13 +482,39 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     ];
   }
 
+  _showAdvancedInfoButton() {
+    return Row(
+      children: [
+        Expanded(
+          child: ItemBuilder.buildRoundButton(
+            context,
+            background: Theme.of(context).canvasColor,
+            radius: 12,
+            text: S.current.showAdvancedInfo,
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
+            reversePosition: true,
+            textStyle: Theme.of(context).textTheme.titleMedium,
+            fontSizeDelta: 2,
+            onTap: () {
+              setState(() {
+                _showAdvancedInfo = true;
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   _advancedInfo() {
     return ItemBuilder.buildContainerItem(
       context: context,
       topRadius: true,
       bottomRadius: true,
-      padding: EdgeInsets.only(
-          top: 5, bottom: 5, right: !isSteam && !isYandex ? 10 : 0),
+      padding: const EdgeInsets.only(top: 5, bottom: 5),
       child: Column(
         children: [
           Visibility(
@@ -561,6 +592,28 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                   return null;
                 },
               ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            width: double.infinity,
+            child: ItemBuilder.buildRoundButton(
+              context,
+              background: Theme.of(context).canvasColor,
+              radius: 12,
+              text: S.current.hideAdvancedInfo,
+              icon: Icon(
+                Icons.keyboard_arrow_up_rounded,
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+              reversePosition: true,
+              textStyle: Theme.of(context).textTheme.titleMedium,
+              fontSizeDelta: 2,
+              onTap: () {
+                setState(() {
+                  _showAdvancedInfo = false;
+                });
+              },
             ),
           ),
         ],

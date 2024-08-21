@@ -250,6 +250,7 @@ class ReorderableGridView extends StatefulWidget {
     this.padding,
     required this.gridDelegate,
     required this.onReorder,
+    this.onReorderEnd,
     this.itemDragEnable = _defaultItemDragEnable,
     this.cacheExtent,
     List<Widget> children = const <Widget>[],
@@ -262,10 +263,11 @@ class ReorderableGridView extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll,
     this.onReorderStart,
-  })  : assert(
-          children.every((Widget w) => w.key != null),
-          'All children of this widget must have a key.',
-        ),
+  })
+      : assert(
+  children.every((Widget w) => w.key != null),
+  'All children of this widget must have a key.',
+  ),
         itemBuilder = ((BuildContext context, int index) => children[index]),
         itemCount = children.length,
         childrenDelegate = SliverChildListDelegate(children);
@@ -304,6 +306,7 @@ class ReorderableGridView extends StatefulWidget {
     required this.itemBuilder,
     required this.itemCount,
     required this.onReorder,
+    this.onReorderEnd,
     this.itemDragEnable = _defaultItemDragEnable,
     this.cacheExtent,
     this.semanticChildCount,
@@ -315,10 +318,11 @@ class ReorderableGridView extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll,
     this.onReorderStart,
-  })  : childrenDelegate = SliverChildBuilderDelegate(
-          itemBuilder,
-          childCount: itemCount,
-        ),
+  })
+      : childrenDelegate = SliverChildBuilderDelegate(
+    itemBuilder,
+    childCount: itemCount,
+  ),
         assert(itemCount >= 0);
 
   /// Creates a scrollable, 2D array of widgets with a fixed number of tiles in
@@ -348,6 +352,7 @@ class ReorderableGridView extends StatefulWidget {
     this.padding,
     required int crossAxisCount,
     required this.onReorder,
+    this.onReorderEnd,
     this.itemDragEnable = _defaultItemDragEnable,
     double mainAxisSpacing = 0.0,
     double crossAxisSpacing = 0.0,
@@ -363,15 +368,16 @@ class ReorderableGridView extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll,
     this.onReorderStart,
-  })  : gridDelegate = SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          mainAxisSpacing: mainAxisSpacing,
-          crossAxisSpacing: crossAxisSpacing,
-        ),
+  })
+      : gridDelegate = SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+    crossAxisCount: crossAxisCount,
+    mainAxisSpacing: mainAxisSpacing,
+    crossAxisSpacing: crossAxisSpacing,
+  ),
         childrenDelegate = SliverChildListDelegate(children),
         assert(
-          children.every((Widget w) => w.key != null),
-          'All children of this widget must have a key.',
+        children.every((Widget w) => w.key != null),
+        'All children of this widget must have a key.',
         ),
         itemBuilder = ((BuildContext context, int index) => children[index]),
         itemCount = children.length;
@@ -403,6 +409,7 @@ class ReorderableGridView extends StatefulWidget {
     this.padding,
     required double maxCrossAxisExtent,
     required this.onReorder,
+    this.onReorderEnd,
     this.itemDragEnable = _defaultItemDragEnable,
     double mainAxisSpacing = 0.0,
     double crossAxisSpacing = 0.0,
@@ -418,15 +425,16 @@ class ReorderableGridView extends StatefulWidget {
     this.proxyDecorator,
     this.autoScroll,
     this.onReorderStart,
-  })  : gridDelegate = SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: maxCrossAxisExtent,
-          mainAxisSpacing: mainAxisSpacing,
-          crossAxisSpacing: crossAxisSpacing,
-        ),
+  })
+      : gridDelegate = SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: maxCrossAxisExtent,
+    mainAxisSpacing: mainAxisSpacing,
+    crossAxisSpacing: crossAxisSpacing,
+  ),
         childrenDelegate = SliverChildListDelegate(children),
         assert(
-          children.every((Widget w) => w.key != null),
-          'All children of this widget must have a key.',
+        children.every((Widget w) => w.key != null),
+        'All children of this widget must have a key.',
         ),
         itemBuilder = ((BuildContext context, int index) => children[index]),
         itemCount = children.length;
@@ -501,6 +509,8 @@ class ReorderableGridView extends StatefulWidget {
   /// {@macro flutter.widgets.reorderable_list.onReorder}
   final ReorderCallback onReorder;
 
+  final ReorderCallback? onReorderEnd;
+
   /// {@macro flutter.widgets.reorderable_list.onReorderStart}
   final void Function(int index)? onReorderStart;
 
@@ -527,7 +537,7 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
 
     // First, determine which semantics actions apply.
     final Map<CustomSemanticsAction, VoidCallback> semanticsActions =
-        <CustomSemanticsAction, VoidCallback>{};
+    <CustomSemanticsAction, VoidCallback>{};
 
     // Create the appropriate semantics actions.
     void moveToStart() => reorder(index, 0);
@@ -542,7 +552,7 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
     // If the item can move to before its current position in the grid.
     if (index > 0) {
       semanticsActions[
-              CustomSemanticsAction(label: localizations.reorderItemToStart)] =
+      CustomSemanticsAction(label: localizations.reorderItemToStart)] =
           moveToStart;
       String reorderItemBefore = localizations.reorderItemUp;
       if (widget.scrollDirection == Axis.horizontal) {
@@ -565,7 +575,7 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
       semanticsActions[CustomSemanticsAction(label: reorderItemAfter)] =
           moveAfter;
       semanticsActions[
-              CustomSemanticsAction(label: localizations.reorderItemToEnd)] =
+      CustomSemanticsAction(label: localizations.reorderItemToEnd)] =
           moveToEnd;
     }
 
@@ -596,10 +606,12 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
 
     final Widget itemWithSemantics = _wrapWithSemantics(item, index);
     final Key itemGlobalKey =
-        _ReorderableGridViewChildGlobalKey(item.key!, this);
+    _ReorderableGridViewChildGlobalKey(item.key!, this);
     final bool enable = widget.itemDragEnable(index);
 
-    switch (Theme.of(context).platform) {
+    switch (Theme
+        .of(context)
+        .platform) {
       case TargetPlatform.linux:
       case TargetPlatform.windows:
       case TargetPlatform.macOS:
@@ -608,17 +620,17 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
       case TargetPlatform.fuchsia:
         return widget.dragToReorder
             ? ReorderableGridDragStartListener(
-                key: itemGlobalKey,
-                index: index,
-                enabled: enable,
-                child: itemWithSemantics,
-              )
+          key: itemGlobalKey,
+          index: index,
+          enabled: enable,
+          child: itemWithSemantics,
+        )
             : ReorderableGridDelayedDragStartListener(
-                key: itemGlobalKey,
-                index: index,
-                enabled: enable,
-                child: itemWithSemantics,
-              );
+          key: itemGlobalKey,
+          index: index,
+          enabled: enable,
+          child: itemWithSemantics,
+        );
     }
   }
 
@@ -662,6 +674,7 @@ class ReorderableGridViewState extends State<ReorderableGridView> {
             itemBuilder: _itemBuilder,
             gridDelegate: widget.gridDelegate,
             itemCount: widget.itemCount,
+            onReorderEnd: widget.onReorderEnd,
             gridItemsNotifier: widget.gridItemsNotifier,
             onReorder: widget.onReorder,
             onReorderStart: widget.onReorderStart,

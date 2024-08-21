@@ -41,38 +41,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.0.2"
-  app_links:
-    dependency: "direct main"
-    description:
-      name: app_links
-      sha256: "4acba851087b25136e8f6e32a53bd4536eb3bec69947ddb66e7b9a5792ceb0c7"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "6.2.0"
-  app_links_linux:
-    dependency: transitive
-    description:
-      name: app_links_linux
-      sha256: f5f7173a78609f3dfd4c2ff2c95bd559ab43c80a87dc6a095921d96c05688c81
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.0.3"
-  app_links_platform_interface:
-    dependency: transitive
-    description:
-      name: app_links_platform_interface
-      sha256: "05f5379577c513b534a29ddea68176a4d4802c46180ee8e2e966257158772a3f"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.0.2"
-  app_links_web:
-    dependency: transitive
-    description:
-      name: app_links_web
-      sha256: af060ed76183f9e2b87510a9480e56a5352b6c249778d07bd2c95fc35632a555
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.0.4"
   archive:
     dependency: transitive
     description:
@@ -360,6 +328,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.7.10"
+  desktop_webview_auth:
+    dependency: transitive
+    description:
+      name: desktop_webview_auth
+      sha256: c4dce73346a7be7243c90ac3b1a68586d9f0e2c2710e81e07d758e80a6ebd920
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.0.15"
   desktop_webview_window:
     dependency: "direct main"
     description:
@@ -469,6 +445,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.3.1"
+  flutter_cloud:
+    dependency: "direct main"
+    description:
+      path: "third-party/flutter_cloud"
+      relative: true
+    source: path
+    version: "1.6.2"
   flutter_displaymode:
     dependency: "direct main"
     description:
@@ -477,20 +460,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.6.0"
-  flutter_dropbox:
-    dependency: "direct main"
-    description:
-      path: "third-party/flutter_dropbox"
-      relative: true
-    source: path
-    version: "1.6.2"
-  flutter_googledrive:
-    dependency: "direct main"
-    description:
-      path: "third-party/flutter_googledrive"
-      relative: true
-    source: path
-    version: "1.6.2"
   flutter_inappwebview:
     dependency: "direct main"
     description:
@@ -592,13 +561,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.4.1"
-  flutter_onedrive:
-    dependency: "direct main"
-    description:
-      path: "third-party/flutter_onedrive"
-      relative: true
-    source: path
-    version: "1.6.2"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -619,10 +581,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_secure_storage
-      sha256: "165164745e6afb5c0e3e3fcc72a012fb9e58496fb26ffb92cf22e16a821e85d0"
+      sha256: "22dbf16f23a4bcf9d35e51be1c84ad5bb6f627750565edd70dab70f3ff5fff8f"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "9.2.2"
+    version: "8.1.0"
   flutter_secure_storage_linux:
     dependency: transitive
     description:
@@ -659,10 +621,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_secure_storage_windows
-      sha256: b20b07cb5ed4ed74fc567b78a72936203f587eba460af1df11281c9326cd3709
+      sha256: "38f9501c7cb6f38961ef0e1eacacee2b2d4715c63cc83fe56449c4d3d0b47255"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "3.1.2"
+    version: "2.1.1"
   flutter_svg:
     dependency: transitive
     description:
@@ -679,18 +641,16 @@ packages:
   flutter_web_auth_2:
     dependency: transitive
     description:
-      name: flutter_web_auth_2
-      sha256: e12eb041997703ad4fa23490a9a93fd1390a9d8b2329a6f69a1f98f8ec61430d
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "third-party/flutter_web_auth_2"
+      relative: true
+    source: path
     version: "4.0.0-alpha.8"
   flutter_web_auth_2_platform_interface:
     dependency: transitive
     description:
-      name: flutter_web_auth_2_platform_interface
-      sha256: "49c6d660f632d181102d4eeca7b72ea88124d7f4526fd0117f98c4261e9e72b0"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "third-party/flutter_web_auth_2_platform_interface"
+      relative: true
+    source: path
     version: "4.0.0-alpha.1"
   flutter_web_plugins:
     dependency: transitive
@@ -824,14 +784,6 @@ packages:
       relative: true
     source: path
     version: "5.3.4"
-  gtk:
-    dependency: transitive
-    description:
-      name: gtk
-      sha256: e8ce9ca4b1df106e4d72dad201d345ea1a036cc12c360f1a7d5a758f78ffa42c
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.1.0"
   hashlib:
     dependency: "direct main"
     description:
@@ -1432,6 +1384,54 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "21.1.2"
+  protocol_handler:
+    dependency: "direct main"
+    description:
+      name: protocol_handler
+      sha256: dc2e2dcb1e0e313c3f43827ec3fa6d98adee6e17edc0c3923ac67efee87479a9
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_android:
+    dependency: transitive
+    description:
+      name: protocol_handler_android
+      sha256: "82eb860ca42149e400328f54b85140329a1766d982e94705b68271f6ca73895c"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_ios:
+    dependency: transitive
+    description:
+      name: protocol_handler_ios
+      sha256: "0d3a56b8c1926002cb1e32b46b56874759f4dcc8183d389b670864ac041b6ec2"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_macos:
+    dependency: transitive
+    description:
+      name: protocol_handler_macos
+      sha256: "6eb8687a84e7da3afbc5660ce046f29d7ecf7976db45a9dadeae6c87147dd710"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_platform_interface:
+    dependency: transitive
+    description:
+      name: protocol_handler_platform_interface
+      sha256: "53776b10526fdc25efdf1abcf68baf57fdfdb75342f4101051db521c9e3f3e5b"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
+  protocol_handler_windows:
+    dependency: transitive
+    description:
+      name: protocol_handler_windows
+      sha256: d8f3a58938386aca2c76292757392f4d059d09f11439d6d896d876ebe997f2c4
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.2.0"
   provider:
     dependency: "direct main"
     description:
@@ -2045,6 +2045,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.0.3"
+  windows_single_instance:
+    dependency: "direct main"
+    description:
+      name: windows_single_instance
+      sha256: "50d5dcd6bec90b4a5ed588b1822b1aad21b39fc96da843e61c734b3caccfd2fc"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.1"
   xdg_directories:
     dependency: transitive
     description:

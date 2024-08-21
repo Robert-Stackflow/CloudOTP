@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'sliver.dart';
 import 'sliver_waterfall_flow.dart';
@@ -331,6 +332,7 @@ class SliverReorderableGrid extends StatefulWidget {
     required this.onReorder,
     required this.gridDelegate,
     this.onReorderStart,
+    this.onReorderEnd,
     this.reverse = false,
     this.proxyDecorator,
     this.autoScroll = true,
@@ -348,6 +350,8 @@ class SliverReorderableGrid extends StatefulWidget {
 
   /// {@macro flutter.widgets.reorderable_list.onReorder}
   final ReorderCallback onReorder;
+
+  final ReorderCallback? onReorderEnd;
 
   /// {@macro flutter.widgets.reorderable_list.onReorderStart}
   final void Function(int index)? onReorderStart;
@@ -625,6 +629,7 @@ class SliverReorderableGridState extends State<SliverReorderableGrid>
   void _dropCompleted() {
     final int fromIndex = _dragIndex!;
     final int toIndex = _insertIndex!;
+    widget.onReorderEnd?.call(fromIndex, toIndex);
     if (fromIndex != toIndex) {
       widget.onReorder.call(fromIndex, toIndex);
     }
@@ -1191,6 +1196,7 @@ class _DragInfo extends Drag {
   }
 
   void startDrag() {
+    HapticFeedback.selectionClick();
     _proxyAnimation = AnimationController(
       vsync: tickerProvider,
       duration: animationDuration,

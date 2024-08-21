@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/Models/opt_token.dart';
-import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
@@ -80,29 +79,20 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
   }
 
   resetTimer() {
-    if (isHOTP) {
-      updateCode();
-      _timer?.cancel();
-      _timer = Timer(Duration(seconds: widget.token.period), () {
-        if (mounted) {
+    tokenLayoutNotifier.haveToResetHOTP = false;
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (mounted) {
+        progressNotifier.value = currentProgress;
+        if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
           tokenLayoutNotifier.codeVisiable = false;
-          updateCode();
         }
-      });
-    } else {
-      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-        if (mounted) {
-          progressNotifier.value = currentProgress;
-          if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
-            tokenLayoutNotifier.codeVisiable = false;
-          }
-          updateCode();
-          if (remainingMilliseconds <= 100) {
-            tokenLayoutNotifier.code = getNextCode();
-          }
+        updateCode();
+        if (remainingMilliseconds <= 100) {
+          tokenLayoutNotifier.haveToResetHOTP = true;
+          tokenLayoutNotifier.code = getNextCode();
         }
-      });
-    }
+      }
+    });
   }
 
   updateCode() {
@@ -121,7 +111,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: MyTheme.getCardBackground(context),
+            color: Theme.of(context).canvasColor,
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
                 bottom: ResponsiveUtil.isLandscape()
@@ -151,15 +141,11 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           ItemBuilder.buildTokenImage(widget.token, size: 36),
           const SizedBox(width: 12),
           ItemBuilder.buildClickItem(
-            clickable: !isHOTP,
             GestureDetector(
               onTap: () {
-                if (isHOTP) {
-                } else {
-                  tokenLayoutNotifier.codeVisiable =
-                      !tokenLayoutNotifier.codeVisiable;
-                  HapticFeedback.lightImpact();
-                }
+                tokenLayoutNotifier.codeVisiable =
+                    !tokenLayoutNotifier.codeVisiable;
+                HapticFeedback.lightImpact();
               },
               child: ChangeNotifierProvider.value(
                 value: tokenLayoutNotifier,
@@ -190,23 +176,32 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           ),
           const Spacer(),
           if (isHOTP)
-            ItemBuilder.buildIconButton(
-              onTap: () {
-                widget.token.counterString =
-                    (widget.token.counter + 1).toString();
-                TokenDao.updateTokenCounter(widget.token);
-                homeScreenState?.updateToken(widget.token,
-                    counterChanged: true);
-                tokenLayoutNotifier.codeVisiable = true;
-                resetTimer();
-                setState(() {});
-              },
-              icon: Icon(
-                Icons.refresh_rounded,
-                size: 20,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+            ChangeNotifierProvider.value(
+              value: tokenLayoutNotifier,
+              child: Selector<TokenLayoutNotifier, bool>(
+                selector: (context, tokenLayoutNotifier) =>
+                    tokenLayoutNotifier.haveToResetHOTP,
+                builder: (context, haveToResetHOTP, child) => haveToResetHOTP
+                    ? ItemBuilder.buildIconButton(
+                        onTap: () {
+                          widget.token.counterString =
+                              (widget.token.counter + 1).toString();
+                          TokenDao.updateTokenCounter(widget.token);
+                          homeScreenState?.updateToken(widget.token,
+                              counterChanged: true);
+                          tokenLayoutNotifier.codeVisiable = true;
+                          resetTimer();
+                          setState(() {});
+                        },
+                        icon: Icon(
+                          Icons.refresh_rounded,
+                          size: 20,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                        context: context,
+                      )
+                    : const SizedBox.shrink(),
               ),
-              context: context,
             ),
           if (!isHOTP)
             SizedBox(
@@ -446,9 +441,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
     Function()? onTap,
   }) {
     return Material(
-      color: backgroundColor ?? Utils.isDark(context)
-          ? MyTheme.getBackground(context).withOpacity(0.5)
-          : MyTheme.getBackground(context),
+      color: backgroundColor ?? Theme.of(context).cardColor,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,

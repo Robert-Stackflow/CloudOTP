@@ -1,12 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_dropbox/dropbox_response.dart';
-import 'package:flutter_dropbox/flutter_dropbox.dart';
+import 'package:flutter_cloud/dropbox_response.dart';
+import 'package:flutter_cloud/dropbox.dart';
 import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/responsive_util.dart';
 import '../../generated/l10n.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
@@ -14,7 +15,7 @@ import 'cloud_service.dart';
 class DropboxCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.Dropbox;
-  static const String _redirectUrl = 'cloudotp://auth/dropbox/callback';
+  static const String _customRedirectUrl = 'cloudotp://auth/dropbox/callback';
   static const String _clientID = 'ljyx5bk2jq92esr';
   static const String _dropboxEmptyPath = '';
   static const String _dropboxPath = '/';
@@ -22,6 +23,10 @@ class DropboxCloudService extends CloudService {
   late Dropbox dropbox;
   late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
+
+  String get _redirectUrl {
+    return ResponsiveUtil.isDesktop() ? _customRedirectUrl : _customRedirectUrl;
+  }
 
   DropboxCloudService(
     this.context,

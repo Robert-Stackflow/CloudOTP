@@ -1,0 +1,22 @@
+name: flutter_web_auth_2_platform_interface
+description: A common platform interface for the flutter_web_auth_2 plugin.
+version: 4.0.0-alpha.1
+homepage: https://github.com/ThexXTURBOXx/flutter_web_auth_2
+repository: https://github.com/ThexXTURBOXx/flutter_web_auth_2
+issue_tracker: https://github.com/ThexXTURBOXx/flutter_web_auth_2/issues
+funding:
+  - https://github.com/sponsors/ThexXTURBOXx
+
+environment:
+  sdk: ">=2.15.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.2
+
+dev_dependencies:
+  flutter_lints: ^3.0.0
+  flutter_test:
+    sdk: flutter

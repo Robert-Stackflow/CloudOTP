@@ -1,0 +1,62 @@
+name: flutter_web_auth_2
+description: Flutter plugin for authenticating a user with a web service.
+version: 4.0.0-alpha.8
+homepage: https://github.com/ThexXTURBOXx/flutter_web_auth_2
+repository: https://github.com/ThexXTURBOXx/flutter_web_auth_2
+issue_tracker: https://github.com/ThexXTURBOXx/flutter_web_auth_2/issues
+funding:
+  - https://github.com/sponsors/ThexXTURBOXx
+screenshots:
+  - description: 'flutter_web_auth_2 in action on Android'
+    path: screen-android.gif
+  - description: 'flutter_web_auth_2 in action on iOS'
+    path: screen-ios.gif
+  - description: 'flutter_web_auth_2 in action on MacOS'
+    path: screen-macos.gif
+topics:
+  - authentication
+  - network
+  - oauth
+  - web
+
+environment:
+  sdk: ">=2.15.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_auth_2_platform_interface:
+    path: ../flutter_web_auth_2_platform_interface
+  flutter_web_plugins:
+    sdk: flutter
+  path_provider: ^2.1.2
+  url_launcher: ^6.1.6
+  web: ">=0.5.0 <2.0.0"
+  window_to_front: ^0.0.3
+  protocol_handler: ^0.2.0
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.linusu.flutter_web_auth_2
+        pluginClass: FlutterWebAuth2Plugin
+      ios:
+        pluginClass: FlutterWebAuth2Plugin
+      linux:
+        dartPluginClass: FlutterWebAuth2LinowsPlugin
+        fileName: src/linows.dart
+      macos:
+        pluginClass: FlutterWebAuth2Plugin
+      web:
+        pluginClass: FlutterWebAuth2WebPlugin
+        fileName: src/web.dart
+      windows:
+        dartPluginClass: FlutterWebAuth2LinowsPlugin
+        fileName: src/linows.dart

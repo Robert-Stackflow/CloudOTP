@@ -291,6 +291,7 @@ class ItemBuilder {
             context,
             text: label,
             onTap: onTap,
+            feedback: true,
             radius: radius ?? 50,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
             background: selected
@@ -1440,6 +1441,8 @@ class ItemBuilder {
     TextStyle? textStyle,
     double? width,
     bool align = false,
+    bool feedback = false,
+    bool reversePosition = false,
   }) {
     Widget titleWidget = Text(
       text ?? "",
@@ -1459,7 +1462,13 @@ class ItemBuilder {
       color: background ?? Theme.of(context).cardColor,
       borderRadius: BorderRadius.circular(radius),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap != null
+            ? () {
+                onTap();
+                if (feedback) HapticFeedback.lightImpact();
+              }
+            : null,
+        enableFeedback: true,
         borderRadius: BorderRadius.circular(radius),
         child: ItemBuilder.buildClickItem(
           clickable: onTap != null,
@@ -1476,12 +1485,15 @@ class ItemBuilder {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (icon != null) icon,
-                if (icon != null && Utils.isNotEmpty(text))
+                if (icon != null && !reversePosition) icon,
+                if (icon != null && !reversePosition && Utils.isNotEmpty(text))
                   const SizedBox(width: 5),
                 align
                     ? Expanded(flex: 100, child: titleWidget)
                     : Flexible(child: titleWidget),
+                if (icon != null && reversePosition && Utils.isNotEmpty(text))
+                  const SizedBox(width: 5),
+                if (icon != null && reversePosition) icon,
                 if (align)
                   const Spacer(
                     flex: 1,
