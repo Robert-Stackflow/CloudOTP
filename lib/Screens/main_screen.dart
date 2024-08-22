@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:cloudotp/Database/token_dao.dart';
+import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Resources/colors.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
@@ -9,6 +11,7 @@ import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
+import 'package:cloudotp/TokenUtils/code_generator.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/constant.dart';
 import 'package:cloudotp/Utils/file_util.dart';
@@ -45,6 +48,7 @@ import '../Widgets/Window/window_button.dart';
 import '../generated/l10n.dart';
 import 'Backup/cloud_service_screen.dart';
 import 'Lock/pin_verify_screen.dart';
+import 'Setting/setting_safe_screen.dart';
 import 'Token/category_screen.dart';
 
 const borderColor = Color(0xFF805306);
@@ -136,14 +140,12 @@ class MainScreenState extends State<MainScreen>
   }
 
   Future<void> fetchReleases() async {
-    if (HiveUtil.getBool(HiveUtil.autoCheckUpdateKey)) {
-      Utils.getReleases(
-        context: context,
-        showLoading: false,
-        showUpdateDialog: true,
-        showNoUpdateToast: false,
-      );
-    }
+    Utils.getReleases(
+      context: context,
+      showLoading: false,
+      showUpdateDialog: HiveUtil.getBool(HiveUtil.autoCheckUpdateKey),
+      showNoUpdateToast: false,
+    );
   }
 
   focusSearch() {
@@ -161,12 +163,15 @@ class MainScreenState extends State<MainScreen>
     windowManager.addListener(this);
     protocolHandler.addListener(this);
     super.initState();
+    if (ResponsiveUtil.isDesktop()) {
+      Utils.initTray();
+    }
     WidgetsBinding.instance.addObserver(this);
     FontEnum.downloadFont(showToast: false);
     HiveUtil.showCloudEntry().then((value) {
       appProvider.canShowCloudBackupButton = value;
     });
-    if (HiveUtil.getBool(HiveUtil.autoCheckUpdateKey)) fetchReleases();
+    fetchReleases();
     darkModeController = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       darkModeWidget = LottieUtil.load(
@@ -192,18 +197,14 @@ class MainScreenState extends State<MainScreen>
           .then((value) => setState(() => _isMaximized = value));
     }
     ResponsiveUtil.checkSizeCondition();
-    EasyRefresh.defaultHeaderBuilder = () =>
-        LottieCupertinoHeader(
-          backgroundColor: Theme
-              .of(context)
-              .canvasColor,
+    EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
+          backgroundColor: Theme.of(context).canvasColor,
           indicator:
-          LottieUtil.load(LottieUtil.getLoadingPath(context), scale: 1.5),
+              LottieUtil.load(LottieUtil.getLoadingPath(context), scale: 1.5),
           hapticFeedback: true,
           triggerOffset: 40,
         );
-    EasyRefresh.defaultFooterBuilder = () =>
-        LottieCupertinoFooter(
+    EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
           indicator: LottieUtil.load(LottieUtil.getLoadingPath(context)),
         );
     if (ResponsiveUtil.isMobile()) {
@@ -442,9 +443,7 @@ class MainScreenState extends State<MainScreen>
     try {
       Directory directory = Directory(await FileUtil.getScreenshotDir());
       String imageName =
-          'Screenshot-${DateTime
-          .now()
-          .millisecondsSinceEpoch}.png';
+          'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
       String imagePath = '${directory.path}\\$imageName';
       CapturedData? capturedData = await screenCapturer.capture(
         mode: mode,
@@ -469,144 +468,142 @@ class MainScreenState extends State<MainScreen>
           children: [
             if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
             Consumer<AppProvider>(
-              builder: (context, provider, child) =>
-                  Column(
-                    children: [
-                      const SizedBox(height: 80),
-                      ItemBuilder.buildIconTextButton(
-                        context,
-                        text: S.current.addToken,
-                        direction: Axis.vertical,
-                        showText: false,
-                        fontSizeDelta: -2,
-                        icon: const Icon(Icons.add_rounded),
-                        onTap: () async {
-                          DialogBuilder.showPageDialog(context,
-                              child: const AddTokenScreen(), showClose: false);
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      ItemBuilder.buildIconTextButton(
-                        context,
-                        text: S.current.category,
-                        fontSizeDelta: -2,
-                        showText: false,
-                        direction: Axis.vertical,
-                        icon: const Icon(Icons.category_outlined),
-                        onTap: () async {
-                          DialogBuilder.showPageDialog(context,
-                              child: const CategoryScreen(), showClose: false);
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      ItemBuilder.buildIconTextButton(
-                        context,
-                        text: S.current.scanToken,
-                        fontSizeDelta: -2,
-                        showText: false,
-                        direction: Axis.vertical,
-                        icon: const Icon(Icons.qr_code_rounded),
-                        onTap: () async {
-                          context.contextMenuOverlay
-                              .show(_buildQrCodeContextMenuButtons());
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      ItemBuilder.buildIconTextButton(
-                        context,
-                        text: S.current.exportImport,
-                        fontSizeDelta: -2,
-                        showText: false,
-                        direction: Axis.vertical,
-                        icon: const Icon(Icons.import_export_rounded),
-                        onTap: () async {
-                          DialogBuilder.showPageDialog(
-                            context,
-                            child: const ImportExportTokenScreen(),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      if (provider.canShowCloudBackupButton &&
-                          provider.showCloudBackupButton)
-                        ItemBuilder.buildIconTextButton(
-                          context,
-                          text: S.current.cloudBackupServiceSetting,
-                          fontSizeDelta: -2,
-                          showText: false,
-                          direction: Axis.vertical,
-                          icon: const Icon(Icons.cloud_queue_rounded),
-                          onTap: () async {
-                            DialogBuilder.showPageDialog(context,
-                                child: const CloudServiceScreen(),
-                                showClose: true);
-                          },
-                        ),
-                      const Spacer(),
-                      const SizedBox(height: 8),
-                      if (provider.showSortButton)
-                        ItemBuilder.buildIconButton(
-                          context: context,
-                          icon: const Icon(Icons.sort_rounded, size: 22),
-                          onTap: () {
-                            context.contextMenuOverlay
-                                .show(buildSortContextMenuButtons());
-                          },
-                        ),
-                      if (provider.showLayoutButton)
-                        ItemBuilder.buildIconButton(
-                          context: context,
-                          icon: const Icon(Icons.dashboard_outlined, size: 22),
-                          onTap: () {
-                            context.contextMenuOverlay
-                                .show(buildLayoutContextMenuButtons());
-                          },
-                        ),
-                      ItemBuilder.buildDynamicIconButton(
-                        context: context,
-                        icon: darkModeWidget,
-                        onTap: changeMode,
-                        onChangemode: (context, themeMode, child) {
-                          if (darkModeController.duration != null) {
-                            if (themeMode == ActiveThemeMode.light) {
-                              darkModeController.forward();
-                            } else if (themeMode == ActiveThemeMode.dark) {
-                              darkModeController.reverse();
-                            } else {
-                              if (Utils.isDark(context)) {
-                                darkModeController.reverse();
-                              } else {
-                                darkModeController.forward();
-                              }
-                            }
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 6),
-                      ItemBuilder.buildDynamicIconButton(
-                        context: context,
-                        icon: AssetUtil.loadDouble(
-                          context,
-                          AssetUtil.settingLightIcon,
-                          AssetUtil.settingDarkIcon,
-                        ),
-                        onTap: () async {
-                          RouteUtil.pushDialogRoute(
-                              context, const SettingNavigationScreen());
-                        },
-                      ),
-                      const SizedBox(width: 6),
-                      ItemBuilder.buildIconButton(
-                        context: context,
-                        icon: const Icon(Icons.info_outline_rounded, size: 22),
-                        onTap: () async {
-                          RouteUtil.pushDialogRoute(
-                              context, const AboutSettingScreen());
-                        },
-                      ),
-                      const SizedBox(height: 6),
-                    ],
+              builder: (context, provider, child) => Column(
+                children: [
+                  const SizedBox(height: 80),
+                  ItemBuilder.buildIconTextButton(
+                    context,
+                    text: S.current.addToken,
+                    direction: Axis.vertical,
+                    showText: false,
+                    fontSizeDelta: -2,
+                    icon: const Icon(Icons.add_rounded),
+                    onTap: () async {
+                      DialogBuilder.showPageDialog(context,
+                          child: const AddTokenScreen(), showClose: false);
+                    },
                   ),
+                  const SizedBox(height: 4),
+                  ItemBuilder.buildIconTextButton(
+                    context,
+                    text: S.current.category,
+                    fontSizeDelta: -2,
+                    showText: false,
+                    direction: Axis.vertical,
+                    icon: const Icon(Icons.category_outlined),
+                    onTap: () async {
+                      DialogBuilder.showPageDialog(context,
+                          child: const CategoryScreen(), showClose: false);
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  ItemBuilder.buildIconTextButton(
+                    context,
+                    text: S.current.scanToken,
+                    fontSizeDelta: -2,
+                    showText: false,
+                    direction: Axis.vertical,
+                    icon: const Icon(Icons.qr_code_rounded),
+                    onTap: () async {
+                      context.contextMenuOverlay
+                          .show(_buildQrCodeContextMenuButtons());
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  ItemBuilder.buildIconTextButton(
+                    context,
+                    text: S.current.exportImport,
+                    fontSizeDelta: -2,
+                    showText: false,
+                    direction: Axis.vertical,
+                    icon: const Icon(Icons.import_export_rounded),
+                    onTap: () async {
+                      DialogBuilder.showPageDialog(
+                        context,
+                        child: const ImportExportTokenScreen(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  if (provider.canShowCloudBackupButton &&
+                      provider.showCloudBackupButton)
+                    ItemBuilder.buildIconTextButton(
+                      context,
+                      text: S.current.cloudBackupServiceSetting,
+                      fontSizeDelta: -2,
+                      showText: false,
+                      direction: Axis.vertical,
+                      icon: const Icon(Icons.cloud_queue_rounded),
+                      onTap: () async {
+                        DialogBuilder.showPageDialog(context,
+                            child: const CloudServiceScreen(), showClose: true);
+                      },
+                    ),
+                  const Spacer(),
+                  const SizedBox(height: 8),
+                  if (provider.showSortButton)
+                    ItemBuilder.buildIconButton(
+                      context: context,
+                      icon: const Icon(Icons.sort_rounded, size: 22),
+                      onTap: () {
+                        context.contextMenuOverlay
+                            .show(buildSortContextMenuButtons());
+                      },
+                    ),
+                  if (provider.showLayoutButton)
+                    ItemBuilder.buildIconButton(
+                      context: context,
+                      icon: const Icon(Icons.dashboard_outlined, size: 22),
+                      onTap: () {
+                        context.contextMenuOverlay
+                            .show(buildLayoutContextMenuButtons());
+                      },
+                    ),
+                  ItemBuilder.buildDynamicIconButton(
+                    context: context,
+                    icon: darkModeWidget,
+                    onTap: changeMode,
+                    onChangemode: (context, themeMode, child) {
+                      if (darkModeController.duration != null) {
+                        if (themeMode == ActiveThemeMode.light) {
+                          darkModeController.forward();
+                        } else if (themeMode == ActiveThemeMode.dark) {
+                          darkModeController.reverse();
+                        } else {
+                          if (Utils.isDark(context)) {
+                            darkModeController.reverse();
+                          } else {
+                            darkModeController.forward();
+                          }
+                        }
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  ItemBuilder.buildDynamicIconButton(
+                    context: context,
+                    icon: AssetUtil.loadDouble(
+                      context,
+                      AssetUtil.settingLightIcon,
+                      AssetUtil.settingDarkIcon,
+                    ),
+                    onTap: () async {
+                      RouteUtil.pushDialogRoute(
+                          context, const SettingNavigationScreen());
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  ItemBuilder.buildIconButton(
+                    context: context,
+                    icon: const Icon(Icons.info_outline_rounded, size: 22),
+                    onTap: () async {
+                      RouteUtil.pushDialogRoute(
+                          context, const AboutSettingScreen());
+                    },
+                  ),
+                  const SizedBox(height: 6),
+                ],
+              ),
             ),
           ],
         ),
@@ -627,7 +624,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(width: 12),
                 Container(
                   constraints:
-                  const BoxConstraints(maxWidth: 300, minWidth: 200),
+                      const BoxConstraints(maxWidth: 300, minWidth: 200),
                   child: ItemBuilder.buildDesktopSearchBar(
                     context: context,
                     borderRadius: 8,
@@ -648,33 +645,33 @@ class MainScreenState extends State<MainScreen>
                     children: [
                       Selector<AppProvider, bool>(
                         selector: (context, appProvider) =>
-                        appProvider.showBackupLogButton,
+                            appProvider.showBackupLogButton,
                         builder: (context, showBackupLogButton, child) =>
-                        showBackupLogButton
-                            ? WindowButton(
-                          colors:
-                          MyColors.getNormalButtonColors(context),
-                          borderRadius: BorderRadius.circular(8),
-                          padding: EdgeInsets.zero,
-                          iconBuilder: (buttonContext) =>
-                              Selector<AppProvider, LoadingStatus>(
-                                selector: (context, appProvider) =>
-                                appProvider.autoBackupLoadingStatus,
-                                builder: (context,
-                                    autoBackupLoadingStatus, child) =>
-                                    LoadingIcon(
-                                      status: autoBackupLoadingStatus,
-                                      normalIcon: const Icon(
-                                          Icons.history_rounded,
-                                          size: 25),
+                            showBackupLogButton
+                                ? WindowButton(
+                                    colors:
+                                        MyColors.getNormalButtonColors(context),
+                                    borderRadius: BorderRadius.circular(8),
+                                    padding: EdgeInsets.zero,
+                                    iconBuilder: (buttonContext) =>
+                                        Selector<AppProvider, LoadingStatus>(
+                                      selector: (context, appProvider) =>
+                                          appProvider.autoBackupLoadingStatus,
+                                      builder: (context,
+                                              autoBackupLoadingStatus, child) =>
+                                          LoadingIcon(
+                                        status: autoBackupLoadingStatus,
+                                        normalIcon: const Icon(
+                                            Icons.history_rounded,
+                                            size: 25),
+                                      ),
                                     ),
-                              ),
-                          onPressed: () {
-                            context.contextMenuOverlay
-                                .show(const BackupLogScreen());
-                          },
-                        )
-                            : const SizedBox.shrink(),
+                                    onPressed: () {
+                                      context.contextMenuOverlay
+                                          .show(const BackupLogScreen());
+                                    },
+                                  )
+                                : const SizedBox.shrink(),
                       ),
                       const SizedBox(width: 3),
                       StayOnTopWindowButton(
@@ -699,15 +696,15 @@ class MainScreenState extends State<MainScreen>
                       const SizedBox(width: 3),
                       _isMaximized
                           ? RestoreWindowButton(
-                        colors: MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                        onPressed: ResponsiveUtil.maximizeOrRestore,
-                      )
+                              colors: MyColors.getNormalButtonColors(context),
+                              borderRadius: BorderRadius.circular(8),
+                              onPressed: ResponsiveUtil.maximizeOrRestore,
+                            )
                           : MaximizeWindowButton(
-                        colors: MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                        onPressed: ResponsiveUtil.maximizeOrRestore,
-                      ),
+                              colors: MyColors.getNormalButtonColors(context),
+                              borderRadius: BorderRadius.circular(8),
+                              onPressed: ResponsiveUtil.maximizeOrRestore,
+                            ),
                       const SizedBox(width: 3),
                       CloseWindowButton(
                         colors: MyColors.getCloseButtonColors(context),
@@ -760,7 +757,7 @@ class MainScreenState extends State<MainScreen>
     if (!_hasJumpedToPinVerify) {
       _timer = Timer(
         Duration(minutes: appProvider.autoLockTime),
-            () {
+        () {
           if (HiveUtil.shouldAutoLock()) {
             jumpToPinVerify();
           }
@@ -806,7 +803,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onTrayIconRightMouseDown() {
-    trayManager.popUpContextMenu();
+    if (!_hasJumpedToPinVerify) trayManager.popUpContextMenu();
   }
 
   @override
@@ -814,24 +811,76 @@ class MainScreenState extends State<MainScreen>
 
   @override
   Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
-    if (menuItem.key == 'show_window') {
-      windowManager.show();
-      windowManager.focus();
-      windowManager.restore();
-    } else if (menuItem.key == 'lock_window') {
+    if (menuItem.key == TrayKey.displayApp.key) {
+      Utils.displayApp();
+    } else if (menuItem.key == TrayKey.lockApp.key) {
       if (HiveUtil.canLock()) {
         jumpToPinVerify();
       } else {
-        windowManager.show();
-        windowManager.focus();
-        windowManager.restore();
-        IToast.showTop(S.current.noGestureLock);
+        IToast.showDesktopNotification(
+          S.current.noGestureLock,
+          body: S.current.noGestureLockTip,
+          actions: [S.current.cancel, S.current.goToSetGestureLock],
+          onClick: () {
+            Utils.displayApp();
+            RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+          },
+          onClickAction: (index) {
+            if (index == 1) {
+              Utils.displayApp();
+              RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+            }
+          },
+        );
       }
-    } else if (menuItem.key == 'show_official_website') {
+    } else if (menuItem.key == TrayKey.setting.key) {
+      Utils.displayApp();
+      RouteUtil.pushDialogRoute(context, const SettingNavigationScreen());
+    } else if (menuItem.key == TrayKey.about.key) {
+      Utils.displayApp();
+      RouteUtil.pushDialogRoute(context, const AboutSettingScreen());
+    } else if (menuItem.key == TrayKey.officialWebsite.key) {
       UriUtil.launchUrlUri(context, officialWebsite);
-    } else if (menuItem.key == 'show_github_repo') {
+    } else if (Utils.isNotEmpty(menuItem.key) &&
+        menuItem.key!.startsWith(TrayKey.copyTokenCode.key)) {
+      int id = int.parse(menuItem.key!.split('-').last);
+      OtpToken? token = await TokenDao.getTokenById(id);
+      if (token != null) {
+        double currentProgress = token.period == 0
+            ? 0
+            : (token.period * 1000 -
+                    (DateTime.now().millisecondsSinceEpoch %
+                        (token.period * 1000))) /
+                (token.period * 1000);
+        if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
+            currentProgress < autoCopyNextCodeProgressThrehold) {
+          Utils.copy(context, CodeGenerator.getNextCode(token),
+              toastText: S.current.alreadyCopiedNextCode);
+          TokenDao.incTokenCopyTimes(token);
+          IToast.showDesktopNotification(
+            S.current.alreadyCopiedNextCode,
+            body: CodeGenerator.getNextCode(token),
+          );
+        } else {
+          Utils.copy(context, CodeGenerator.getCurrentCode(token));
+          TokenDao.incTokenCopyTimes(token);
+          IToast.showDesktopNotification(
+            S.current.copySuccess,
+            body: CodeGenerator.getCurrentCode(token),
+          );
+        }
+      }
+    } else if (menuItem.key == TrayKey.githubRepository.key) {
       UriUtil.launchUrlUri(context, repoUrl);
-    } else if (menuItem.key == 'launch_at_start') {
+    } else if (menuItem.key == TrayKey.checkUpdates.key) {
+      Utils.getReleases(
+        context: context,
+        showLoading: false,
+        showUpdateDialog: true,
+        showNoUpdateToast: false,
+        showDesktopNotification: true,
+      );
+    } else if (menuItem.key == TrayKey.launchAtStartup.key) {
       menuItem.checked = !(menuItem.checked == true);
       HiveUtil.put(HiveUtil.launchAtStartupKey, menuItem.checked);
       generalSettingScreenState?.refreshLauchAtStartup();
@@ -841,7 +890,7 @@ class MainScreenState extends State<MainScreen>
         await LaunchAtStartup.instance.disable();
       }
       Utils.initTray();
-    } else if (menuItem.key == 'exit_app') {
+    } else if (menuItem.key == TrayKey.exitApp.key) {
       windowManager.close();
     }
   }

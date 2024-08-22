@@ -43,21 +43,28 @@ class GoogleDrive with ChangeNotifier {
   static const String refreshTokenKey = "__googledrive_refreshToken";
 
   late final ITokenManager _tokenManager;
-  late final String redirectURL;
+  late final String redirectUrl;
+  late final String callbackUrl;
   final String scopes;
-  final String clientID;
+  final String clientId;
+  final String clientSecret;
+
+  late final String state;
 
   GoogleDrive({
-    required this.clientID,
-    required this.redirectURL,
+    required this.clientId,
+    required this.clientSecret,
+    required this.callbackUrl,
+    required this.redirectUrl,
     this.scopes = permission,
     ITokenManager? tokenManager,
   }) {
+    state = OAuth2Helper.generateStateParameter();
     _tokenManager = tokenManager ??
         DefaultTokenManager(
           tokenEndpoint: tokenEndpoint,
-          clientID: clientID,
-          redirectURL: redirectURL,
+          clientId: clientId,
+          redirectUrl: redirectUrl,
           scope: scopes,
           expireInKey: expireInKey,
           accessTokenKey: accessTokenKey,
@@ -109,15 +116,16 @@ class GoogleDrive with ChangeNotifier {
         'code_challenge': codeChanllenge,
         "code_challenge_method": "S256",
         'response_type': 'code',
-        'client_id': clientID,
-        'redirect_uri': redirectURL,
+        'client_id': clientId,
+        'redirect_uri': redirectUrl,
         "access_type": "offline",
         'scope': scopes,
+        'state': state,
       });
 
       String callbackUrlScheme = "";
 
-      Uri callbackUri = Uri.parse(redirectURL);
+      Uri callbackUri = Uri.parse(callbackUrl);
 
       if (callbackUri.scheme != "http" && callbackUri.scheme != "https") {
         callbackUrlScheme = callbackUri.scheme;
@@ -129,19 +137,21 @@ class GoogleDrive with ChangeNotifier {
         context: context,
         authEndpoint: authUri,
         tokenEndpoint: Uri.parse(tokenEndpoint),
-        callbackUrl: redirectURL,
+        callbackUrl: callbackUrl,
         callbackUrlScheme: callbackUrlScheme,
-        clientID: clientID,
+        state: state,
+        clientId: clientId,
+        clientSecret: clientSecret,
         codeVerifier: codeVerifier,
-        redirectURL: redirectURL,
+        redirectUrl: redirectUrl,
         scopes: scopes,
         windowName: windowName,
       );
 
       if (result != null) {
-        await _tokenManager.saveTokenResp(result);
         notifyListeners();
-        return true;
+        bool res = (await _tokenManager.saveTokenResp(result)) as bool;
+        return res;
       } else {
         return false;
       }

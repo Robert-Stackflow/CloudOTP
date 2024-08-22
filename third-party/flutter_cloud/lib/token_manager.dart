@@ -8,7 +8,7 @@ FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
 abstract class ITokenManager {
   /// save token response
-  Future<void> saveTokenResp(http.Response resp);
+  Future<bool> saveTokenResp(http.Response resp);
 
   /// clear token
   Future<void> clearStoredToken();
@@ -22,8 +22,9 @@ abstract class ITokenManager {
 class DefaultTokenManager extends ITokenManager {
   final String scope;
   final String tokenEndpoint;
-  final String clientID;
-  final String redirectURL;
+  final String clientId;
+  final String? clientSecret;
+  final String redirectUrl;
 
   final String expireInKey;
   final String accessTokenKey;
@@ -31,8 +32,9 @@ class DefaultTokenManager extends ITokenManager {
 
   DefaultTokenManager({
     required this.tokenEndpoint,
-    required this.clientID,
-    required this.redirectURL,
+    required this.clientId,
+    this.clientSecret,
+    required this.redirectUrl,
     required this.scope,
     required this.expireInKey,
     required this.accessTokenKey,
@@ -40,7 +42,7 @@ class DefaultTokenManager extends ITokenManager {
   });
 
   @override
-  Future<void> saveTokenResp(http.Response resp) async {
+  Future<bool> saveTokenResp(http.Response resp) async {
     Map body = jsonDecode(resp.body);
     try {
       String expireIn =
@@ -50,8 +52,10 @@ class DefaultTokenManager extends ITokenManager {
           key: accessTokenKey, value: body['access_token']);
       await secureStorage.write(
           key: refreshTokenKey, value: body['refresh_token']);
+      return true;
     } catch (err) {
       debugPrint("# DefaultTokenManager -> _saveTokenMap: $err");
+      return false;
     }
   }
 
@@ -125,13 +129,19 @@ class DefaultTokenManager extends ITokenManager {
         return null;
       }
 
-      final resp = await http.post(Uri.parse(tokenEndpoint), body: {
-        'client_id': clientID,
+      Map body = {
+        'client_id': clientId,
         'grant_type': 'refresh_token',
         'scope': scope,
         'refresh_token': refreshToken,
-        'redirect_uri': redirectURL,
-      });
+        'redirect_uri': redirectUrl,
+      };
+
+      if (clientSecret != null && clientSecret!.isNotEmpty) {
+        body['client_secret'] = clientSecret;
+      }
+
+      final resp = await http.post(Uri.parse(tokenEndpoint), body: body);
       if (resp.statusCode != 200) {
         // refresh failed
         debugPrint(

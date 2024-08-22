@@ -886,6 +886,7 @@ class ItemBuilder {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Theme.of(context).dividerColor, width: 0.5),
           color: Theme.of(context).canvasColor,
           boxShadow: [
             BoxShadow(

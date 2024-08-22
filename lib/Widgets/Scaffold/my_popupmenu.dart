@@ -629,6 +629,8 @@ class _PopupMenu<T> extends StatelessWidget {
                   BoxDecoration(
                     color: Theme.of(context).canvasColor,
                     borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: Theme.of(context).dividerColor, width: 0.5),
                     boxShadow: [
                       BoxShadow(
                         color: Theme.of(context).shadowColor,

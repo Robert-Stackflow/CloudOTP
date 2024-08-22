@@ -3,8 +3,9 @@ import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../Models/token_category.dart';
 import '../Models/opt_token.dart';
+import '../Models/token_category.dart';
+import '../Utils/utils.dart';
 import 'database_manager.dart';
 
 class CategoryDao {
@@ -21,11 +22,12 @@ class CategoryDao {
     );
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.categoriesInserted);
+    Utils.initTray();
     return id;
   }
 
   static Future<int> insertCategories(List<TokenCategory> categories) async {
-    if(categories.isEmpty) return 0;
+    if (categories.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (TokenCategory category in categories) {
@@ -40,6 +42,7 @@ class CategoryDao {
     List<dynamic> results = await batch.commit();
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.categoriesInserted);
+    Utils.initTray();
     return results.length;
   }
 
@@ -70,6 +73,7 @@ class CategoryDao {
     );
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.categoriesUpdated);
+    Utils.initTray();
     return id;
   }
 
@@ -77,7 +81,7 @@ class CategoryDao {
     List<TokenCategory> categories, {
     bool backup = false,
   }) async {
-    if(categories.isEmpty) return 0;
+    if (categories.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (TokenCategory category in categories) {
@@ -94,6 +98,7 @@ class CategoryDao {
       ExportTokenUtil.autoBackup(
           triggerType: AutoBackupTriggerType.categoriesUpdated);
     }
+    Utils.initTray();
     return results.length;
   }
 
@@ -106,6 +111,7 @@ class CategoryDao {
     );
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.categoryDeleted);
+    Utils.initTray();
     return id;
   }
 
@@ -196,5 +202,6 @@ class CategoryDao {
       ExportTokenUtil.autoBackup(
           triggerType: AutoBackupTriggerType.categoriesUpdatedForToken);
     }
+    Utils.initTray();
   }
 }

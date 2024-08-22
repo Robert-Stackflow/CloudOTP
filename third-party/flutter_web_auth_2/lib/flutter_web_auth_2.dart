@@ -92,7 +92,7 @@ class FlutterWebAuth2 {
   /// comes the callback will dangle around forever. This can be called to
   /// terminate all `authenticate` calls with an error.
   static Future<void> _cleanUpDanglingCalls() async {
-    // await _platform.clearAllDanglingCalls();
+    await _platform.clearAllDanglingCalls();
     WidgetsBinding.instance.removeObserver(_resumedObserver);
   }
 }

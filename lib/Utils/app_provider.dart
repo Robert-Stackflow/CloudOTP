@@ -66,6 +66,8 @@ Queue autoBackupQueue = Queue();
 AppProvider appProvider = AppProvider();
 
 class AppProvider with ChangeNotifier {
+  String latestVersion = "";
+
   final List<AutoBackupLog> _autoBackupLogs = [];
 
   List<AutoBackupLog> get autoBackupLogs => _autoBackupLogs;

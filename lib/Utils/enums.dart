@@ -53,3 +53,20 @@ extension DownloadSuccessEnumExtension on DownloadSuccessAction {
     return DownloadSuccessAction.values.map((e) => Tuple2(e.label, e)).toList();
   }
 }
+
+enum TrayKey {
+  displayApp("displayApp"),
+  lockApp("lockApp"),
+  copyTokenCode("copyTokenCode"),
+  setting("setting"),
+  officialWebsite("officialWebsite"),
+  githubRepository("githubRepository"),
+  about("about"),
+  launchAtStartup("launchAtStartup"),
+  checkUpdates("checkUpdates"),
+  exitApp("exitApp");
+
+  final String key;
+
+  const TrayKey(this.key);
+}

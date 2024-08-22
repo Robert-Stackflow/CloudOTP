@@ -29,6 +29,12 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
 
   NavigatorState? get _navigatorState => _navigatorKey.currentState;
 
+  NavigatorState? get navigatorState => _navigatorState;
+
+  pushPage(Widget page) {
+    _navigatorState?.push(RouteUtil.getFadeRoute(page));
+  }
+
   popPage() {
     if (_navigatorState!.canPop()) {
       _navigatorState?.pop();
@@ -56,6 +62,8 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
+            border:
+                Border.all(color: Theme.of(context).dividerColor, width: 0.5),
             boxShadow: [
               BoxShadow(
                 color: Utils.isDark(context)
@@ -63,11 +71,10 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
                     : Colors.transparent,
                 offset: const Offset(0, 4),
                 blurRadius: 10,
-                spreadRadius: 0,
-              ).scale(4)
+                spreadRadius: 1,
+              ).scale(2)
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Stack(

@@ -1,6 +1,8 @@
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:local_notifier/local_notifier.dart';
 
 import 'app_provider.dart';
 
@@ -52,5 +54,36 @@ class IToast {
     Icon? icon,
   }) {
     return show(text, icon: icon, gravity: ToastGravity.BOTTOM);
+  }
+
+  static LocalNotification? showDesktopNotification(
+    String title, {
+    String? subTitle,
+    String? body,
+    List<String> actions = const [],
+    Function()? onClick,
+    Function(int)? onClickAction,
+  }) {
+    if (!ResponsiveUtil.isDesktop()) return null;
+    LocalNotification notification = LocalNotification(
+      title: title,
+      subtitle: subTitle,
+      body: body,
+      actions: actions.map((e) => LocalNotificationAction(text: e)).toList(),
+    );
+    notification.onShow = () {};
+    notification.onClose = (closeReason) {
+      switch (closeReason) {
+        case LocalNotificationCloseReason.userCanceled:
+          break;
+        case LocalNotificationCloseReason.timedOut:
+          break;
+        default:
+      }
+    };
+    notification.onClick = onClick;
+    notification.onClickAction = onClickAction;
+    notification.show();
+    return notification;
   }
 }

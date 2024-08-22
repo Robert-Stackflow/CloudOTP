@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_cloud/dropbox.dart';
-import 'package:flutter_cloud/dropbox_response.dart';
-import 'package:path/path.dart';
+import 'package:flutter_cloud/huaweicloud.dart';
+import 'package:flutter_cloud/huaweicloud_response.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
@@ -11,21 +10,22 @@ import '../../generated/l10n.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
 
-class DropboxCloudService extends CloudService {
+class HuaweiCloudService extends CloudService {
   @override
-  CloudServiceType get type => CloudServiceType.Dropbox;
+  CloudServiceType get type => CloudServiceType.HuaweiCloud;
   static const String _redirectUrl =
-      'https://apps.cloudchewie.com/oauth/cloudotp/dropbox/callback';
-  static const String _callbackUrl = 'cloudotp://auth/dropbox/callback';
-  static const String _clientId = 'ljyx5bk2jq92esr';
-  static const String _dropboxEmptyPath = '';
-  static const String _dropboxPath = '/';
+      'https://apps.cloudchewie.com/oauth/cloudotp/huaweicloud/callback';
+  static const String _callbackUrl = "cloudotp://auth/huaweicloud/callback";
+  static const String _clientId = '111829035';
+  static const String _clientSecret = 'XXXXXXXXXXXXXXXXXXXXX';
+  static const String _huaweiCloudEmptyPath = '';
+  static const String _huaweiCloudPath = 'CloudOTP';
   final CloudServiceConfig _config;
-  late Dropbox dropbox;
+  late HuaweiCloud huaweiCloud;
   late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
 
-  DropboxCloudService(
+  HuaweiCloudService(
     this.context,
     this._config, {
     this.onConfigChanged,
@@ -35,24 +35,25 @@ class DropboxCloudService extends CloudService {
 
   @override
   Future<void> init() async {
-    dropbox = Dropbox(
-      redirectUrl: _callbackUrl,
+    huaweiCloud = HuaweiCloud(
+      redirectUrl: _redirectUrl,
       callbackUrl: _callbackUrl,
       clientId: _clientId,
+      clientSecret: _clientSecret,
     );
   }
 
   @override
   Future<CloudServiceStatus> authenticate() async {
-    bool isAuthorized = await dropbox.isConnected();
+    bool isAuthorized = await huaweiCloud.isConnected();
     if (!isAuthorized) {
-      isAuthorized = await dropbox.connect(
+      isAuthorized = await huaweiCloud.connect(
         context,
-        windowName: S.current.cloudTypeDropboxAuthenticateWindowName,
+        windowName: S.current.cloudTypeHuaweiCloudAuthenticateWindowName,
       );
     }
     if (isAuthorized) {
-      DropboxUserInfo? info = await fetchInfo();
+      HuaweiCloudUserInfo? info = await fetchInfo();
       return info != null
           ? CloudServiceStatus.success
           : CloudServiceStatus.connectionError;
@@ -61,8 +62,8 @@ class DropboxCloudService extends CloudService {
     }
   }
 
-  Future<DropboxUserInfo?> fetchInfo() async {
-    DropboxUserInfo? info = (await dropbox.getInfo()).userInfo;
+  Future<HuaweiCloudUserInfo?> fetchInfo() async {
+    HuaweiCloudUserInfo? info = (await huaweiCloud.getInfo()).userInfo;
     if (info != null) {
       _config.email = info.email;
       _config.account = info.displayName;
@@ -75,9 +76,9 @@ class DropboxCloudService extends CloudService {
 
   @override
   Future<bool> isConnected() async {
-    bool connected = await dropbox.isConnected();
+    bool connected = await huaweiCloud.isConnected();
     if (connected) {
-      DropboxUserInfo? info = await fetchInfo();
+      HuaweiCloudUserInfo? info = await fetchInfo();
       return info != null;
     }
     return connected;
@@ -85,25 +86,22 @@ class DropboxCloudService extends CloudService {
 
   @override
   Future<bool> deleteFile(String path) async {
-    DropboxResponse response = await dropbox.delete(join(_dropboxPath, path));
+    HuaweiCloudResponse response = await huaweiCloud.deleteById(path);
     return response.isSuccess;
   }
 
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
     maxCount ??= HiveUtil.getMaxBackupsCount();
-    List<DropboxFileInfo>? list = await listBackups();
+    List<HuaweiCloudFileInfo>? list = await listBackups();
     if (list == null) return false;
     list.sort((a, b) {
       return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
     });
-    List<String> toDeleteFileNames = [];
     while (list.length > maxCount) {
       var file = list.removeAt(0);
-      toDeleteFileNames.add(file.name);
+      await deleteFile(file.id);
     }
-    await dropbox.deleteBatch(
-        toDeleteFileNames.map((e) => join(_dropboxPath, e)).toList());
     return true;
   }
 
@@ -112,7 +110,7 @@ class DropboxCloudService extends CloudService {
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    DropboxResponse response = await dropbox.pull(path);
+    HuaweiCloudResponse response = await huaweiCloud.pullById(path);
     return response.isSuccess ? response.bodyBytes ?? Uint8List(0) : null;
   }
 
@@ -122,7 +120,7 @@ class DropboxCloudService extends CloudService {
   }
 
   @override
-  Future<List<DropboxFileInfo>?> listBackups() async {
+  Future<List<HuaweiCloudFileInfo>?> listBackups() async {
     var list = await listFiles();
     if (list == null) return null;
     list = list
@@ -132,16 +130,17 @@ class DropboxCloudService extends CloudService {
   }
 
   @override
-  Future<List<DropboxFileInfo>?> listFiles() async {
-    DropboxResponse response = await dropbox.list(_dropboxEmptyPath);
+  Future<List<HuaweiCloudFileInfo>?> listFiles() async {
+    HuaweiCloudResponse response =
+        await huaweiCloud.list(_huaweiCloudEmptyPath);
     if (!response.isSuccess) return null;
-    List<DropboxFileInfo> files = response.files;
+    List<HuaweiCloudFileInfo> files = response.files;
     return files;
   }
 
   @override
   Future<void> signOut() async {
-    await dropbox.disconnect();
+    await huaweiCloud.disconnect();
   }
 
   @override
@@ -150,9 +149,10 @@ class DropboxCloudService extends CloudService {
     Uint8List fileData, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    DropboxResponse response = await dropbox.push(
+    HuaweiCloudResponse response = await huaweiCloud.push(
       fileData,
-      join(_dropboxPath, fileName),
+      _huaweiCloudPath,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;
@@ -160,6 +160,6 @@ class DropboxCloudService extends CloudService {
 
   @override
   Future<bool> hasConfigured() async {
-    return await dropbox.hasAuthorized();
+    return await huaweiCloud.hasAuthorized();
   }
 }

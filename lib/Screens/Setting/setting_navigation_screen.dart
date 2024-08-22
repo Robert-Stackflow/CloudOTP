@@ -127,7 +127,7 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
                 bottomRadius: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(
-                      context, const PrivacySettingScreen());
+                      context, const SafeSettingScreen());
                 },
               ),
               const SizedBox(height: 30),

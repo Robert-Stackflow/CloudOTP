@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_linux
   hotkey_manager_linux
   isar_flutter_libs
+  local_notifier
   screen_capturer_linux
   screen_retriever
   tray_manager

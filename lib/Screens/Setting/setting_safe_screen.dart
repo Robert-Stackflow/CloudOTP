@@ -20,16 +20,16 @@ import '../../generated/l10n.dart';
 import '../Lock/pin_change_screen.dart';
 import '../Lock/pin_verify_screen.dart';
 
-class PrivacySettingScreen extends StatefulWidget {
-  const PrivacySettingScreen({super.key});
+class SafeSettingScreen extends StatefulWidget {
+  const SafeSettingScreen({super.key});
 
   static const String routeName = "/setting/privacy";
 
   @override
-  State<PrivacySettingScreen> createState() => _PrivacySettingScreenState();
+  State<SafeSettingScreen> createState() => _SafeSettingScreenState();
 }
 
-class _PrivacySettingScreenState extends State<PrivacySettingScreen>
+class _SafeSettingScreenState extends State<SafeSettingScreen>
     with TickerProviderStateMixin {
   bool _enableGuesturePasswd =
       HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);

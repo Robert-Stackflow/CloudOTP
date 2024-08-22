@@ -1,6 +1,7 @@
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/dropbox_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/googledrive_service_screen.dart';
+import 'package:cloudotp/Screens/Backup/huawei_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/onedrive_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/s3_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
@@ -84,6 +85,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
                 GoogleDriveServiceScreen(),
                 DropboxServiceScreen(),
                 S3CloudServiceScreen(),
+                HuaweiCloudServiceScreen(),
               ],
             ),
           ),

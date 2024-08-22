@@ -6,6 +6,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
 
 import '../TokenUtils/Cloud/dropbox_cloud_service.dart';
+import '../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../TokenUtils/Cloud/webdav_cloud_service.dart';
@@ -17,7 +18,7 @@ enum CloudServiceType {
   OneDrive,
   GoogleDrive,
   Dropbox,
-  S3Cloud;
+  S3Cloud,HuaweiCloud;
 
   String get label {
     switch (this) {
@@ -31,6 +32,8 @@ enum CloudServiceType {
         return S.current.cloudTypeDropbox;
       case CloudServiceType.S3Cloud:
         return S.current.cloudTypeS3Cloud;
+      case CloudServiceType.HuaweiCloud:
+        return S.current.cloudTypeHuaweiCloud;
     }
   }
 
@@ -52,6 +55,8 @@ extension CloudServiceTypeExtensionOnint on int {
         return CloudServiceType.Dropbox;
       case 4:
         return CloudServiceType.S3Cloud;
+      case 5:
+        return CloudServiceType.HuaweiCloud;
       default:
         throw Exception('Invalid CloudServiceType');
     }
@@ -87,6 +92,7 @@ class CloudServiceConfig {
       case CloudServiceType.GoogleDrive:
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:
+      case CloudServiceType.HuaweiCloud:
         return configured;
       case CloudServiceType.S3Cloud:
         return Utils.isNotEmpty(endpoint) &&
@@ -106,6 +112,8 @@ class CloudServiceConfig {
         return OneDriveCloudService(rootContext, this);
       case CloudServiceType.Dropbox:
         return DropboxCloudService(rootContext, this);
+      case CloudServiceType.HuaweiCloud:
+        return HuaweiCloudService(rootContext, this);
       case CloudServiceType.S3Cloud:
         return S3CloudService(this);
     }

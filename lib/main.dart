@@ -19,6 +19,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive/hive.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:local_notifier/local_notifier.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
@@ -68,9 +69,6 @@ Future<void> runMyApp(List<String> args) async {
   }
   runApp(MyApp(home: KeyboardHandler(key: keyboardHandlerKey, child: home)));
   FlutterNativeSplash.remove();
-  if (ResponsiveUtil.isDesktop() && HiveUtil.getBool(HiveUtil.showTrayKey)) {
-    Utils.initTray();
-  }
 }
 
 Future<void> initApp(WidgetsBinding widgetsBinding) async {
@@ -107,6 +105,10 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
     LaunchAtStartup.instance.setup(
       appName: packageInfo.appName,
       appPath: Platform.resolvedExecutable,
+    );
+    await LocalNotifier.instance.setup(
+      appName: packageInfo.appName,
+      shortcutPolicy: ShortcutPolicy.requireCreate,
     );
     HiveUtil.put(HiveUtil.launchAtStartupKey,
         await LaunchAtStartup.instance.isEnabled());
@@ -177,57 +179,60 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: appProvider),
       ],
       child: Consumer<AppProvider>(
-        builder: (context, appProvider, child) => MaterialApp(
-          navigatorKey: globalNavigatorKey,
-          navigatorObservers: [routeObserver],
-          title: title,
-          theme: appProvider.getBrightness() == null ||
+        builder: (context, appProvider, child) =>
+            MaterialApp(
+              navigatorKey: globalNavigatorKey,
+              navigatorObservers: [routeObserver],
+              title: title,
+              theme: appProvider.getBrightness() == null ||
                   appProvider.getBrightness() == Brightness.light
-              ? appProvider.lightTheme.toThemeData()
-              : appProvider.darkTheme.toThemeData(),
-          darkTheme: appProvider.getBrightness() == null ||
+                  ? appProvider.lightTheme.toThemeData()
+                  : appProvider.darkTheme.toThemeData(),
+              darkTheme: appProvider.getBrightness() == null ||
                   appProvider.getBrightness() == Brightness.dark
-              ? appProvider.darkTheme.toThemeData()
-              : appProvider.lightTheme.toThemeData(),
-          debugShowCheckedModeBanner: false,
-          localizationsDelegates: const [
-            S.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          locale: appProvider.locale,
-          supportedLocales: S.delegate.supportedLocales,
-          localeResolutionCallback: (locale, supportedLocales) {
-            if (appProvider.locale != null) {
-              return appProvider.locale;
-            } else if (locale != null && supportedLocales.contains(locale)) {
-              return locale;
-            } else {
-              try {
-                return Localizations.localeOf(context);
-              } catch (_) {
-                return const Locale("en", "US");
-              }
-            }
-          },
-          home: ItemBuilder.buildContextMenuOverlay(home),
-          builder: (context, widget) {
-            return Overlay(
-              initialEntries: [
-                if (widget != null) ...[
-                  OverlayEntry(
-                    builder: (context) => MediaQuery(
-                      data: MediaQuery.of(context)
-                          .copyWith(textScaler: TextScaler.noScaling),
-                      child: widget,
-                    ),
-                  ),
-                ],
+                  ? appProvider.darkTheme.toThemeData()
+                  : appProvider.lightTheme.toThemeData(),
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: const [
+                S.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
               ],
-            );
-          },
-        ),
+              locale: appProvider.locale,
+              supportedLocales: S.delegate.supportedLocales,
+              localeResolutionCallback: (locale, supportedLocales) {
+                if (appProvider.locale != null) {
+                  return appProvider.locale;
+                } else
+                if (locale != null && supportedLocales.contains(locale)) {
+                  return locale;
+                } else {
+                  try {
+                    return Localizations.localeOf(context);
+                  } catch (_) {
+                    return const Locale("en", "US");
+                  }
+                }
+              },
+              home: ItemBuilder.buildContextMenuOverlay(home),
+              builder: (context, widget) {
+                return Overlay(
+                  initialEntries: [
+                    if (widget != null) ...[
+                      OverlayEntry(
+                        builder: (context) =>
+                            MediaQuery(
+                              data: MediaQuery.of(context)
+                                  .copyWith(textScaler: TextScaler.noScaling),
+                              child: widget,
+                            ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
       ),
     );
   }

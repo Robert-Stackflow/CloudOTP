@@ -4,7 +4,12 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloudotp/Database/category_dao.dart';
+import 'package:cloudotp/Database/database_manager.dart';
+import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/github_response.dart';
+import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Screens/Setting/update_screen.dart';
 import 'package:cloudotp/Utils/enums.dart';
 import 'package:cloudotp/Utils/file_util.dart';
@@ -24,6 +29,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../Api/github_api.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
@@ -31,6 +37,7 @@ import '../Widgets/Dialog/dialog_builder.dart';
 import '../generated/l10n.dart';
 import 'app_provider.dart';
 import 'constant.dart';
+import 'hive_util.dart';
 import 'itoast.dart';
 
 class Utils {
@@ -399,6 +406,12 @@ class Utils {
     }
   }
 
+  static displayApp() {
+    windowManager.show();
+    windowManager.focus();
+    windowManager.restore();
+  }
+
   static getReleases({
     required BuildContext context,
     Function(String)? onGetCurrentVersion,
@@ -408,6 +421,7 @@ class Utils {
     bool showLoading = false,
     bool showUpdateDialog = true,
     bool showNoUpdateToast = true,
+    bool showDesktopNotification = false,
   }) async {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
@@ -435,8 +449,10 @@ class Utils {
         }
       }
       onGetLatestRelease?.call(latestVersion, latestReleaseItem!);
+      Utils.initTray();
       if (compareVersion(latestVersion, currentVersion) > 0) {
         onUpdate?.call(latestVersion, latestReleaseItem!);
+        appProvider.latestVersion = latestVersion;
         if (showUpdateDialog && latestReleaseItem != null) {
           if (ResponsiveUtil.isMobile()) {
             DialogBuilder.showConfirmDialog(
@@ -468,23 +484,52 @@ class Utils {
               onTapCancel: () {},
             );
           } else {
-            GlobalKey<DialogWrapperWidgetState> overrideDialogNavigatorKey =
-                GlobalKey();
-            DialogBuilder.showPageDialog(
-              context,
-              overrideDialogNavigatorKey: overrideDialogNavigatorKey,
-              child: UpdateScreen(
-                currentVersion: currentVersion,
-                latestReleaseItem: latestReleaseItem,
-                latestVersion: latestVersion,
+            showDialog(ReleaseItem latestReleaseItem) {
+              GlobalKey<DialogWrapperWidgetState> overrideDialogNavigatorKey =
+                  GlobalKey();
+              DialogBuilder.showPageDialog(
+                context,
                 overrideDialogNavigatorKey: overrideDialogNavigatorKey,
-              ),
-            );
+                child: UpdateScreen(
+                  currentVersion: currentVersion,
+                  latestReleaseItem: latestReleaseItem,
+                  latestVersion: latestVersion,
+                  overrideDialogNavigatorKey: overrideDialogNavigatorKey,
+                ),
+              );
+              Utils.displayApp();
+            }
+
+            if (showDesktopNotification) {
+              IToast.showDesktopNotification(
+                S.current.getNewVersion(latestVersion),
+                body: S.current
+                    .updateLogAsFollow("\n${latestReleaseItem.body ?? ""}"),
+                actions: [S.current.updateLater, S.current.goToUpdate],
+                onClick: () {
+                  showDialog(latestReleaseItem!);
+                },
+                onClickAction: (index) {
+                  if (index == 1) {
+                    showDialog(latestReleaseItem!);
+                  }
+                },
+              );
+            } else {
+              showDialog(latestReleaseItem);
+            }
           }
         }
       } else {
+        appProvider.latestVersion = "";
         if (showNoUpdateToast) {
           IToast.showTop(S.current.alreadyLatestVersion);
+        }
+        if (showDesktopNotification) {
+          IToast.showDesktopNotification(
+            S.current.alreadyLatestVersion,
+            body: S.current.alreadyLatestVersionTip(currentVersion),
+          );
         }
       }
     });
@@ -537,7 +582,66 @@ class Utils {
     trayManager.destroy();
   }
 
+  static Future<List<MenuItem>> getTokenMenuItems() async {
+    List<TokenCategory> categories =
+        DatabaseManager.initialized ? await CategoryDao.listCategories() : [];
+    List<OtpToken> tokens =
+        DatabaseManager.initialized ? await TokenDao.listTokens() : [];
+    tokens.sort((a, b) => a.issuer.compareTo(b.issuer));
+    for (TokenCategory category in categories) {
+      category.tokens =
+          tokens.where((e) => category.tokenIds.contains(e.id)).toList();
+      category.tokens.sort((a, b) => a.issuer.compareTo(b.issuer));
+    }
+    List<TokenCategory> haveTokenCategories =
+        categories.where((e) => e.tokens.isNotEmpty).toList();
+    if (DatabaseManager.initialized && tokens.isNotEmpty) {
+      return [
+        MenuItem.separator(),
+        MenuItem.submenu(
+          key: TrayKey.copyTokenCode.key,
+          label: S.current.allTokens,
+          submenu: Menu(
+            items: tokens
+                .map(
+                  (e) => MenuItem(
+                    key: "${TrayKey.copyTokenCode.key}-${e.id.toString()}",
+                    label: e.issuer,
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        ...haveTokenCategories.map(
+          (category) => MenuItem.submenu(
+            key: "${TrayKey.copyTokenCode.key}-category-${category.id}",
+            label: category.title,
+            submenu: Menu(
+              items: category.tokens
+                  .map(
+                    (e) => MenuItem(
+                      key: "${TrayKey.copyTokenCode.key}-${e.id.toString()}",
+                      label: e.issuer,
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+      ];
+    } else {
+      return [];
+    }
+  }
+
   static Future<void> initTray() async {
+    if(!ResponsiveUtil.isDesktop()) {
+      return;
+    }
+    if (!HiveUtil.getBool(HiveUtil.showTrayKey)) {
+      trayManager.destroy();
+      return;
+    }
     await trayManager.setIcon(
       ResponsiveUtil.isWindows()
           ? 'assets/logo-transparent.ico'
@@ -545,36 +649,51 @@ class Utils {
     );
     var packageInfo = await PackageInfo.fromPlatform();
     bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
-    await trayManager
-        .setToolTip("${packageInfo.appName}-${packageInfo.version}");
+    await trayManager.setToolTip(packageInfo.appName);
     Menu menu = Menu(
       items: [
         MenuItem(
-          key: 'show_window',
-          label: S.current.displayAppTray,
-        ),
-        MenuItem(
-          key: 'lock_window',
-          label: S.current.lockAppTray,
+          key: TrayKey.checkUpdates.key,
+          label: appProvider.latestVersion.isNotEmpty
+              ? S.current.getNewVersion(appProvider.latestVersion)
+              : S.current.checkUpdates,
         ),
         MenuItem.separator(),
         MenuItem(
-          key: 'show_official_website',
+          key: TrayKey.displayApp.key,
+          label: S.current.displayAppTray,
+        ),
+        MenuItem(
+          key: TrayKey.lockApp.key,
+          label: S.current.lockAppTray,
+        ),
+        ...await getTokenMenuItems(),
+        MenuItem.separator(),
+        MenuItem(
+          key: TrayKey.setting.key,
+          label: S.current.setting,
+        ),
+        MenuItem(
+          key: TrayKey.officialWebsite.key,
           label: S.current.officialWebsiteTray,
         ),
         MenuItem(
-          key: 'show_github_repo',
+          key: TrayKey.about.key,
+          label: S.current.about,
+        ),
+        MenuItem(
+          key: TrayKey.githubRepository.key,
           label: S.current.repoTray,
         ),
         MenuItem.separator(),
         MenuItem.checkbox(
           checked: lauchAtStartup,
-          key: 'launch_at_start',
+          key: TrayKey.launchAtStartup.key,
           label: S.current.launchAtStartup,
         ),
         MenuItem.separator(),
         MenuItem(
-          key: 'exit_app',
+          key: TrayKey.exitApp.key,
           label: S.current.exitAppTray,
         ),
       ],

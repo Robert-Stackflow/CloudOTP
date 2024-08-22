@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../Models/auto_backup_log.dart';
 import '../TokenUtils/export_token_util.dart';
+import '../Utils/utils.dart';
 
 class TokenDao {
   static const String tableName = "otp_token";
@@ -20,6 +21,7 @@ class TokenDao {
     );
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.tokenInserted);
+    Utils.initTray();
     return id;
   }
 
@@ -39,6 +41,7 @@ class TokenDao {
     List<dynamic> results = await batch.commit();
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.tokensInserted);
+    Utils.initTray();
     return results.length;
   }
 
@@ -74,6 +77,7 @@ class TokenDao {
       ExportTokenUtil.autoBackup(
           triggerType: AutoBackupTriggerType.tokenUpdated);
     }
+    Utils.initTray();
     return id;
   }
 
@@ -102,6 +106,7 @@ class TokenDao {
       ExportTokenUtil.autoBackup(
           triggerType: AutoBackupTriggerType.tokensUpdated);
     }
+    Utils.initTray();
     return results.length;
   }
 
@@ -171,16 +176,18 @@ class TokenDao {
       whereArgs: [token.id],
     );
     ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.tokenDeleted);
+    Utils.initTray();
     return id;
   }
 
   static Future<List<OtpToken>> listTokens({
     String searchKey = "",
+    String orderBy = "",
   }) async {
     final db = await DatabaseManager.getDataBase();
     final List<Map<String, dynamic>> maps = await db.query(
       tableName,
-      orderBy: "pinned DESC, seq DESC",
+      orderBy: "pinned DESC, seq DESC${orderBy.isEmpty ? "" : ", $orderBy"}",
       where: searchKey.isEmpty ? null : 'issuer LIKE ?',
       whereArgs: searchKey.isEmpty ? null : ["%$searchKey%"],
     );

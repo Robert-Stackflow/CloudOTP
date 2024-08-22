@@ -149,4 +149,8 @@ class CloudServiceConfigDao {
   static Future<CloudServiceConfig?> getS3CloudConfig() async {
     return getSpecifyConfig(CloudServiceType.S3Cloud);
   }
+
+  static Future<CloudServiceConfig?> getHuaweiCloudConfig() async {
+    return getSpecifyConfig(CloudServiceType.HuaweiCloud);
+  }
 }

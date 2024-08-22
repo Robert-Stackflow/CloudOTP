@@ -30,24 +30,26 @@ class OneDrive with ChangeNotifier {
   static const String refreshTokenKey = "__onedrive_refreshToken";
 
   late final ITokenManager _tokenManager;
-  late final String redirectURL;
+  late final String redirectUrl;
+  late final String callbackUrl;
   final String scopes;
-  final String clientID;
+  final String clientId;
 
-  final String state;
+  late final String state;
 
   OneDrive({
-    required this.clientID,
-    required this.redirectURL,
+    required this.clientId,
+    required this.callbackUrl,
+    required this.redirectUrl,
     this.scopes = "$permissionFilesReadWriteAll $permissionOfflineAccess",
-    this.state = "OneDriveState",
     ITokenManager? tokenManager,
   }) {
+    state = OAuth2Helper.generateStateParameter();
     _tokenManager = tokenManager ??
         DefaultTokenManager(
           tokenEndpoint: tokenEndpoint,
-          clientID: clientID,
-          redirectURL: redirectURL,
+          clientId: clientId,
+          redirectUrl: redirectUrl,
           scope: scopes,
           expireInKey: expireInKey,
           accessTokenKey: accessTokenKey,
@@ -72,15 +74,15 @@ class OneDrive with ChangeNotifier {
     try {
       final authUri = Uri.https(authHost, authEndpoint, {
         'response_type': 'code',
-        'client_id': clientID,
-        'redirect_uri': redirectURL,
+        'client_id': clientId,
+        'redirect_uri': redirectUrl,
         'scope': scopes,
         'state': state,
       });
 
       String callbackUrlScheme = "";
 
-      Uri callbackUri = Uri.parse(redirectURL);
+      Uri callbackUri = Uri.parse(callbackUrl);
 
       if (callbackUri.scheme != "http" && callbackUri.scheme != "https") {
         callbackUrlScheme = callbackUri.scheme;
@@ -92,10 +94,11 @@ class OneDrive with ChangeNotifier {
         context: context,
         authEndpoint: authUri,
         tokenEndpoint: Uri.parse(tokenEndpoint),
-        callbackUrl: redirectURL,
+        callbackUrl: callbackUrl,
         callbackUrlScheme: callbackUrlScheme,
-        clientID: clientID,
-        redirectURL: redirectURL,
+        clientId: clientId,
+        redirectUrl: redirectUrl,
+        state: state,
         scopes: scopes,
         windowName: windowName,
       );

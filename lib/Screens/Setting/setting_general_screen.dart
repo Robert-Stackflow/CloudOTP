@@ -177,6 +177,22 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           context: context, title: S.current.desktopSetting),
       ItemBuilder.buildRadioItem(
         context: context,
+        title: S.current.launchAtStartup,
+        value: launchAtStartup,
+        onTap: () async {
+          setState(() {
+            launchAtStartup = !launchAtStartup;
+            HiveUtil.put(HiveUtil.launchAtStartupKey, launchAtStartup);
+          });
+          if (launchAtStartup) {
+            await LaunchAtStartup.instance.enable();
+          } else {
+            await LaunchAtStartup.instance.disable();
+          }
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
         title: S.current.showTray,
         value: showTray,
         onTap: () async {
@@ -236,22 +252,6 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
             );
           },
         ),
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        title: S.current.launchAtStartup,
-        value: launchAtStartup,
-        onTap: () async {
-          setState(() {
-            launchAtStartup = !launchAtStartup;
-            HiveUtil.put(HiveUtil.launchAtStartupKey, launchAtStartup);
-          });
-          if (launchAtStartup) {
-            await LaunchAtStartup.instance.enable();
-          } else {
-            await LaunchAtStartup.instance.disable();
-          }
-        },
       ),
       ItemBuilder.buildRadioItem(
         context: context,

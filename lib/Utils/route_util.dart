@@ -83,16 +83,20 @@ class RouteUtil {
     GlobalKey<DialogWrapperWidgetState>? overrideDialogNavigatorKey,
   }) {
     if (ResponsiveUtil.isLandscape()) {
-      DialogBuilder.showPageDialog(
-        context,
-        child: page,
-        barrierDismissible: barrierDismissible,
-        showClose: showClose,
-        onThen: onThen,
-        preferMinWidth: preferMinWidth,
-        preferMinHeight: preferMinHeight,
-        overrideDialogNavigatorKey: overrideDialogNavigatorKey,
-      );
+      if (overrideDialogNavigatorKey == null && dialogNavigatorState != null) {
+        dialogNavigatorState!.pushPage(page);
+      } else {
+        DialogBuilder.showPageDialog(
+          context,
+          child: page,
+          barrierDismissible: barrierDismissible,
+          showClose: showClose,
+          onThen: onThen,
+          preferMinWidth: preferMinWidth,
+          preferMinHeight: preferMinHeight,
+          overrideDialogNavigatorKey: overrideDialogNavigatorKey,
+        );
+      }
     } else {
       pushCupertinoRoute(context, page, onThen: onThen);
     }

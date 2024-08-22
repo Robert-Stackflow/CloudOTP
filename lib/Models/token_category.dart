@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../Utils/utils.dart';
 import 'Proto/TokenCategory/token_category_payload.pb.dart';
+import 'opt_token.dart';
 
 class TokenCategory {
   int id;
@@ -13,6 +14,7 @@ class TokenCategory {
   bool pinned;
   Map<String, dynamic> remark;
   List<int> tokenIds;
+  List<OtpToken> tokens=[];
 
   TokenCategory({
     required this.tokenIds,

@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   hotkey_manager_windows
   isar_flutter_libs
   local_auth_windows
+  local_notifier
   permission_handler_windows
   protocol_handler_windows
   screen_capturer_windows

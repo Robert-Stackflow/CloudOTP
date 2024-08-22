@@ -86,6 +86,7 @@ dependencies:
   flutter_windowmanager: ^0.2.0
   move_to_background: ^1.0.2 # 移动到后台
   launch_at_startup: ^0.3.1 # 开机启动
+  local_notifier: ^0.1.6 # 本地通知
   window_manager:
     path: third-party/window_manager
 
