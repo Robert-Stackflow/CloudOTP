@@ -23,35 +23,38 @@ class DefaultTokenManager extends ITokenManager {
   final String scope;
   final String tokenEndpoint;
   final String clientId;
-  final String? clientSecret;
   final String redirectUrl;
+  final String revokeUrl;
 
-  final String expireInKey;
+  final String expireAtKey;
   final String accessTokenKey;
   final String refreshTokenKey;
+  final String idTokenKey;
 
   DefaultTokenManager({
     required this.tokenEndpoint,
     required this.clientId,
-    this.clientSecret,
     required this.redirectUrl,
+    required this.revokeUrl,
     required this.scope,
-    required this.expireInKey,
+    required this.expireAtKey,
     required this.accessTokenKey,
     required this.refreshTokenKey,
+    required this.idTokenKey,
   });
 
   @override
   Future<bool> saveTokenResp(http.Response resp) async {
     Map body = jsonDecode(resp.body);
     try {
-      String expireIn =
+      String expireAt =
           DateTime.now().add(Duration(seconds: body['expires_in'])).toString();
-      await secureStorage.write(key: expireInKey, value: expireIn);
+      await secureStorage.write(key: expireAtKey, value: expireAt);
       await secureStorage.write(
           key: accessTokenKey, value: body['access_token']);
       await secureStorage.write(
           key: refreshTokenKey, value: body['refresh_token']);
+      await secureStorage.write(key: idTokenKey, value: body['id_token'] ?? "");
       return true;
     } catch (err) {
       debugPrint("# DefaultTokenManager -> _saveTokenMap: $err");
@@ -63,7 +66,7 @@ class DefaultTokenManager extends ITokenManager {
   Future<bool> isAuthorized() async {
     try {
       final accessToken = await secureStorage.read(key: accessTokenKey);
-      final accessTokenExpiresAt = await secureStorage.read(key: expireInKey);
+      final accessTokenExpiresAt = await secureStorage.read(key: expireAtKey);
       if (((accessToken?.isEmpty) ?? true) &&
           ((accessTokenExpiresAt?.isEmpty) ?? true)) {
         return false;
@@ -79,7 +82,7 @@ class DefaultTokenManager extends ITokenManager {
   Future<void> clearStoredToken() async {
     try {
       await Future.wait([
-        secureStorage.delete(key: expireInKey),
+        secureStorage.delete(key: expireAtKey),
         secureStorage.delete(key: accessTokenKey),
         secureStorage.delete(key: refreshTokenKey),
       ]);
@@ -96,22 +99,16 @@ class DefaultTokenManager extends ITokenManager {
         return null;
       }
 
-      final accessTokenExpiresAt = await secureStorage.read(key: expireInKey);
-      if ((accessTokenExpiresAt?.isEmpty) ?? true) {
+      final expiresAt = await secureStorage.read(key: expireAtKey);
+      if ((expiresAt?.isEmpty) ?? true) {
         return null;
       }
 
-      final expAt = DateTime.parse(accessTokenExpiresAt!)
-          .add(const Duration(minutes: -2));
+      final expAt = DateTime.parse(expiresAt!).add(const Duration(minutes: -2));
 
       if (DateTime.now().toUtc().isAfter(expAt)) {
-        // expired, refresh
         final tokenMap = await _refreshToken();
-        if (tokenMap == null) {
-          // refresh failed
-          return null;
-        }
-        // refresh success
+        if (tokenMap == null) return null;
         return tokenMap['access_token'];
       }
 
@@ -137,13 +134,8 @@ class DefaultTokenManager extends ITokenManager {
         'redirect_uri': redirectUrl,
       };
 
-      if (clientSecret != null && clientSecret!.isNotEmpty) {
-        body['client_secret'] = clientSecret;
-      }
-
       final resp = await http.post(Uri.parse(tokenEndpoint), body: body);
       if (resp.statusCode != 200) {
-        // refresh failed
         debugPrint(
             "# DefaultTokenManager -> _refreshToken: ${resp.statusCode}\n# Body: ${resp.body}");
 
@@ -153,8 +145,7 @@ class DefaultTokenManager extends ITokenManager {
 
       debugPrint("# Refresh token: Success");
       final Map<String, dynamic> tokenMap = jsonDecode(resp.body);
-      await _saveTokenMap(tokenMap);
-
+      await saveTokenResp(resp);
       return tokenMap;
     } catch (err) {
       debugPrint("# DefaultTokenManager -> _refreshToken: $err");
@@ -164,20 +155,5 @@ class DefaultTokenManager extends ITokenManager {
     }
 
     return null;
-  }
-
-  Future<void> _saveTokenMap(Map<String, dynamic> tokenObj) async {
-    try {
-      final expAt =
-          DateTime.now().toUtc().add(Duration(seconds: tokenObj['expires_in']));
-      debugPrint("# Expres at: $expAt");
-
-      secureStorage.write(key: expireInKey, value: expAt.toString());
-      secureStorage.write(key: accessTokenKey, value: tokenObj['access_token']);
-      secureStorage.write(
-          key: refreshTokenKey, value: tokenObj['refresh_token']);
-    } catch (err) {
-      debugPrint("# DefaultTokenManager -> _saveTokenMap: $err");
-    }
   }
 }

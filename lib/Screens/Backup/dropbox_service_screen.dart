@@ -61,7 +61,6 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
       _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
       _emailController.text = _dropboxCloudServiceConfig!.email ?? "";
       _dropboxCloudService = DropboxCloudService(
-        context,
         _dropboxCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
@@ -70,7 +69,6 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
           CloudServiceConfig.init(type: CloudServiceType.Dropbox);
       await CloudServiceConfigDao.insertConfig(_dropboxCloudServiceConfig!);
       _dropboxCloudService = DropboxCloudService(
-        context,
         _dropboxCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
@@ -87,7 +85,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
       updateConfig(_dropboxCloudServiceConfig!);
     }
     inited = true;
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   updateConfig(CloudServiceConfig config) {
@@ -322,6 +320,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             text: S.current.webDavLogout,
             fontSizeDelta: 2,
             onTap: () async {
+              CustomLoadingDialog.showLoading(
+                  title: S.current.webDavLoggingOut);
               await _dropboxCloudService!.signOut();
               setState(() {
                 _dropboxCloudServiceConfig!.connected = false;
@@ -332,6 +332,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                         _dropboxCloudServiceConfig!.usedSize = -1;
                 updateConfig(_dropboxCloudServiceConfig!);
               });
+              CustomLoadingDialog.dismissLoading();
+              IToast.show(S.current.webDavLogoutSuccess);
             },
           ),
         ),

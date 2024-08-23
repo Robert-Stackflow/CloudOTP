@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/Cloud/googledrive_cloud_service.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
 
 import '../TokenUtils/Cloud/dropbox_cloud_service.dart';
@@ -18,7 +17,8 @@ enum CloudServiceType {
   OneDrive,
   GoogleDrive,
   Dropbox,
-  S3Cloud,HuaweiCloud;
+  S3Cloud,
+  HuaweiCloud;
 
   String get label {
     switch (this) {
@@ -39,6 +39,15 @@ enum CloudServiceType {
 
   static List<String> toStrings() {
     return CloudServiceType.values.map((e) => e.label).toList();
+  }
+
+  static List<String> toEnableStrings() {
+    return [
+      CloudServiceType.OneDrive.label,
+      CloudServiceType.Dropbox.label,
+      CloudServiceType.Webdav.label,
+      CloudServiceType.S3Cloud.label,
+    ];
   }
 }
 
@@ -107,13 +116,13 @@ class CloudServiceConfig {
       case CloudServiceType.Webdav:
         return WebDavCloudService(this);
       case CloudServiceType.GoogleDrive:
-        return GoogleDriveCloudService(rootContext, this);
+        return GoogleDriveCloudService(this);
       case CloudServiceType.OneDrive:
-        return OneDriveCloudService(rootContext, this);
+        return OneDriveCloudService(this);
       case CloudServiceType.Dropbox:
-        return DropboxCloudService(rootContext, this);
+        return DropboxCloudService(this);
       case CloudServiceType.HuaweiCloud:
-        return HuaweiCloudService(rootContext, this);
+        return HuaweiCloudService(this);
       case CloudServiceType.S3Cloud:
         return S3CloudService(this);
     }

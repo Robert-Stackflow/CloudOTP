@@ -1,12 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_cloud/googledrive.dart';
 import 'package:flutter_cloud/googledrive_response.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
 
@@ -17,19 +15,17 @@ class GoogleDriveCloudService extends CloudService {
       'https://apps.cloudchewie.com/oauth/cloudotp/googledrive/callback';
   static const String _callbackUrl = 'cloudotp://auth/googledrive/callback';
   static const String _clientId =
-      '631913875304-g9qfaoauakvbsuhqiqu85thlbg1ddep5.apps.googleusercontent.com';
-  static const String _clientSecret = "XXXXXXXXXXXXXXXXXXXX";
+      '547353482361-fi716v2qnfvh3aj515ok1r4cdqqhdqbh.apps.googleusercontent.com';
   static const String _googledrivePath = '/CloudOTP';
   static const String _googledrivePathName = 'CloudOTP';
   final CloudServiceConfig _config;
   late GoogleDrive googledrive;
-  late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
 
-  GoogleDriveCloudService(this.context,
-      this._config, {
-        this.onConfigChanged,
-      }) {
+  GoogleDriveCloudService(
+    this._config, {
+    this.onConfigChanged,
+  }) {
     init();
   }
 
@@ -38,7 +34,6 @@ class GoogleDriveCloudService extends CloudService {
     googledrive = GoogleDrive(
       redirectUrl: _callbackUrl,
       callbackUrl: _callbackUrl,
-      clientSecret:_clientSecret,
       clientId: _clientId,
     );
   }
@@ -47,10 +42,7 @@ class GoogleDriveCloudService extends CloudService {
   Future<CloudServiceStatus> authenticate() async {
     bool isAuthorized = await googledrive.isConnected();
     if (!isAuthorized) {
-      isAuthorized = await googledrive.connect(
-        context,
-        windowName: S.current.cloudTypeGoogleDriveAuthenticateWindowName,
-      );
+      isAuthorized = await googledrive.connect();
     }
     if (isAuthorized) {
       await fetchInfo();
@@ -104,7 +96,8 @@ class GoogleDriveCloudService extends CloudService {
   }
 
   @override
-  Future<Uint8List?> downloadFile(String path, {
+  Future<Uint8List?> downloadFile(
+    String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
     GoogleDriveResponse response = await googledrive.pullById(path);
@@ -140,10 +133,11 @@ class GoogleDriveCloudService extends CloudService {
   }
 
   @override
-  Future<bool> uploadFile(String fileName,
-      Uint8List fileData, {
-        Function(int p1, int p2)? onProgress,
-      }) async {
+  Future<bool> uploadFile(
+    String fileName,
+    Uint8List fileData, {
+    Function(int p1, int p2)? onProgress,
+  }) async {
     GoogleDriveResponse response = await googledrive.push(
       fileData,
       fileName,

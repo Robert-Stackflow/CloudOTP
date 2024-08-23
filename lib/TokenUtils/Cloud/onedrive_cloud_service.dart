@@ -1,13 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_cloud/onedrive.dart';
 import 'package:flutter_cloud/onedrive_response.dart';
 import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
 
@@ -21,11 +19,9 @@ class OneDriveCloudService extends CloudService {
   static const String _onedrivePath = '/CloudOTP';
   final CloudServiceConfig _config;
   late OneDrive onedrive;
-  late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
 
   OneDriveCloudService(
-    this.context,
     this._config, {
     this.onConfigChanged,
   }) {
@@ -45,10 +41,7 @@ class OneDriveCloudService extends CloudService {
   Future<CloudServiceStatus> authenticate() async {
     bool isAuthorized = await onedrive.isConnected();
     if (!isAuthorized) {
-      isAuthorized = await onedrive.connect(
-        context,
-        windowName: S.current.cloudTypeOneDriveAuthenticateWindowName,
-      );
+      isAuthorized = await onedrive.connect();
     }
     if (isAuthorized) {
       await fetchInfo();

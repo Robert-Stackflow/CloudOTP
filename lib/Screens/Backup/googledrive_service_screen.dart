@@ -63,7 +63,6 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
       _accountController.text = _googledriveCloudServiceConfig!.account ?? "";
       _emailController.text = _googledriveCloudServiceConfig!.email ?? "";
       _googledriveCloudService = GoogleDriveCloudService(
-        context,
         _googledriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
@@ -72,7 +71,6 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
           CloudServiceConfig.init(type: CloudServiceType.GoogleDrive);
       await CloudServiceConfigDao.insertConfig(_googledriveCloudServiceConfig!);
       _googledriveCloudService = GoogleDriveCloudService(
-        context,
         _googledriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );

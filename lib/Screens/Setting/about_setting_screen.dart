@@ -203,8 +203,30 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                         UriUtil.launchUrlUri(context, repoUrl);
                       },
                       showLeading: true,
-                      bottomRadius: true,
                       leading: Icons.commit_outlined,
+                    ),
+                    ItemBuilder.buildEntryItem(
+                      context: context,
+                      title: S.current.privacyPolicy,
+                      onTap: () {
+                        Locale locale = Localizations.localeOf(context);
+                        UriUtil.launchUrlUri(
+                            context, privacyPolicyUrl + locale.languageCode);
+                      },
+                      showLeading: true,
+                      leading: Icons.privacy_tip_outlined,
+                    ),
+                    ItemBuilder.buildEntryItem(
+                      context: context,
+                      title: S.current.serviceTerm,
+                      onTap: () {
+                        Locale locale = Localizations.localeOf(context);
+                        UriUtil.launchUrlUri(
+                            context, serviceTermUrl + locale.languageCode);
+                      },
+                      showLeading: true,
+                      bottomRadius: true,
+                      leading: Icons.topic_outlined,
                     ),
                     const SizedBox(height: 10),
                     ItemBuilder.buildEntryItem(

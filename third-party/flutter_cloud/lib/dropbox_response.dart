@@ -1,23 +1,46 @@
 import 'dart:typed_data';
 
+import 'package:flutter_cloud/status.dart';
+import 'package:http/http.dart' as http;
+
 class DropboxResponse {
+  final ResponseStatus status;
   final int? statusCode;
   final String? body;
   final String? message;
+  final String? accessToken;
   final bool isSuccess;
   final Uint8List? bodyBytes;
   final DropboxUserInfo? userInfo;
   final List<DropboxFileInfo> files;
 
   DropboxResponse({
+    this.status = ResponseStatus.success,
     this.statusCode,
     this.body,
-    this.message,
     this.bodyBytes,
+    this.accessToken,
     this.userInfo,
+    this.message,
     this.files = const [],
     this.isSuccess = false,
   });
+
+  DropboxResponse.fromResponse({
+    required http.Response response,
+    this.userInfo,
+    this.message,
+    this.files = const [],
+  })  : body = response.body,
+        accessToken = "",
+        statusCode = response.statusCode,
+        bodyBytes = response.bodyBytes,
+        isSuccess = response.statusCode == 200 ||
+            response.statusCode == 201 ||
+            response.statusCode == 204,
+        status = ResponseStatus.values.firstWhere(
+            (element) => element.code == response.statusCode,
+            orElse: () => ResponseStatus.success);
 
   @override
   String toString() {

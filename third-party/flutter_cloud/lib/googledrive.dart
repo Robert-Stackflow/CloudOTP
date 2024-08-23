@@ -7,8 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cloud/token_manager.dart';
+// import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'package:hashlib/hashlib.dart';
 import 'package:http/http.dart' as http;
 
 import 'googledrive_response.dart';
@@ -28,32 +28,32 @@ class GoogleAuthClient extends http.BaseClient {
 }
 
 class GoogleDrive with ChangeNotifier {
-  static const String authHost = "accounts.google.com";
-  static const String authEndpoint = "/o/oauth2/v2/auth";
+  static const String authEndpoint =
+      "https://accounts.google.com/o/oauth2/v2/auth";
   static const String tokenEndpoint =
       "https://www.googleapis.com/oauth2/v4/token";
+  static const String revokeEndpoint =
+      "https://www.googleapis.com/oauth2/v4/revoke";
   static const String apiEndpoint = "https://content.googleapis.com/drive/v3";
-  static const String apiUpload =
+  static const String apiUploadEndpoint =
       "https://www.googleapis.com/upload/drive/v3/files";
-  static const String errCANCELED = "CANCELED";
   static const permission = "https://www.googleapis.com/auth/drive.file";
 
   static const String expireInKey = "__googledrive_tokenExpire";
   static const String accessTokenKey = "__googledrive_accessToken";
   static const String refreshTokenKey = "__googledrive_refreshToken";
+  static const String idTokenKey = "__googledrive_idToken";
 
   late final ITokenManager _tokenManager;
   late final String redirectUrl;
   late final String callbackUrl;
   final String scopes;
   final String clientId;
-  final String clientSecret;
 
   late final String state;
 
   GoogleDrive({
     required this.clientId,
-    required this.clientSecret,
     required this.callbackUrl,
     required this.redirectUrl,
     this.scopes = permission,
@@ -65,10 +65,12 @@ class GoogleDrive with ChangeNotifier {
           tokenEndpoint: tokenEndpoint,
           clientId: clientId,
           redirectUrl: redirectUrl,
+          revokeUrl: revokeEndpoint,
           scope: scopes,
-          expireInKey: expireInKey,
+          expireAtKey: expireInKey,
           accessTokenKey: accessTokenKey,
           refreshTokenKey: refreshTokenKey,
+          idTokenKey: idTokenKey,
         );
   }
 
@@ -92,32 +94,38 @@ class GoogleDrive with ChangeNotifier {
     return (accessToken?.isNotEmpty) ?? false;
   }
 
-  String generateCodeVerifier() {
-    return myBase64Encode(randomBytes(32));
+  Future<bool> connect() async {
+    // GoogleSignIn googleSignIn = GoogleSignIn(
+    //   clientId: clientId,
+    //   scopes: [permission],
+    //   forceCodeForRefreshToken: true,
+    //   signInOption: SignInOption.standard,
+    // );
+    // try {
+    //   GoogleSignInAccount? currentUser = await googleSignIn.signIn();
+    //   GoogleSignInAuthentication? authentication =
+    //       await currentUser?.authentication;
+    //   print(authentication?.accessToken);
+    //   return true;
+    // } catch (e, t) {
+    //   print("$e\n$t");
+      return false;
+    // }
   }
 
-  String myBase64Encode(List<int> input) {
-    return base64Encode(input)
-        .replaceAll("+", '-')
-        .replaceAll("/", '_')
-        .replaceAll("=", '');
-  }
-
-  Future<bool> connect(
-    BuildContext context, {
-    String? windowName,
-  }) async {
+  Future<bool> connects() async {
     try {
-      String codeVerifier = generateCodeVerifier();
+      String codeVerifier = OAuth2Helper.generateCodeVerifier();
 
-      String codeChanllenge = myBase64Encode(sha256.string(codeVerifier).bytes);
+      String codeChanllenge = OAuth2Helper.generateCodeChanllenge(codeVerifier);
 
-      final authUri = Uri.https(authHost, authEndpoint, {
+      Uri uri = Uri.parse(authEndpoint);
+      final authUri = Uri.https(uri.authority, uri.path, {
         'code_challenge': codeChanllenge,
         "code_challenge_method": "S256",
-        'response_type': 'code',
         'client_id': clientId,
         'redirect_uri': redirectUrl,
+        'response_type': 'code',
         "access_type": "offline",
         'scope': scopes,
         'state': state,
@@ -134,31 +142,25 @@ class GoogleDrive with ChangeNotifier {
       }
 
       http.Response? result = await OAuth2Helper.browserAuthWithVerifier(
-        context: context,
         authEndpoint: authUri,
         tokenEndpoint: Uri.parse(tokenEndpoint),
         callbackUrl: callbackUrl,
         callbackUrlScheme: callbackUrlScheme,
         state: state,
         clientId: clientId,
-        clientSecret: clientSecret,
         codeVerifier: codeVerifier,
         redirectUrl: redirectUrl,
         scopes: scopes,
-        windowName: windowName,
       );
 
       if (result != null) {
         notifyListeners();
-        bool res = (await _tokenManager.saveTokenResp(result)) as bool;
+        bool res = (await _tokenManager.saveTokenResp(result));
         return res;
       } else {
         return false;
       }
-    } on PlatformException catch (err) {
-      if (err.code != errCANCELED) {
-        debugPrint("# GoogleDrive -> connect: $err");
-      }
+    } on PlatformException {
       return false;
     } catch (err) {
       debugPrint("# GoogleDrive -> connect: $err");

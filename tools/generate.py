@@ -9,7 +9,7 @@ windows_release_path = (
     "D:\\Repositories\\CloudOTP\\build\\windows\\x64\\runner\\Release"
 )
 downloads_path = "D:\\Ruida\\Downloads"
-dll_path = "D:\\Repositories\\CloudOTP\\dll\\sqlite3.dll"
+dll_path = "D:\\Repositories\\CloudOTP\\tools\\dll\\sqlite3.dll"
 iss_path = "D:\\Repositories\\CloudOTP\\tools\\CloudOTP.iss"
 iscc_path = "D:\\Program Files\\Inno Setup 6\\ISCC.exe"
 
@@ -64,7 +64,6 @@ def zip_windows(version):
 # generate the installer
 def generate_installer(version):
     print("start generate installer...")
-    # 打开iss文件，修改版本号，即替换#define MyAppVersion "2.1.0"中的2.1.0为指定的版本号
     with open(iss_path, "r") as f:
         lines = f.readlines()
     with open(iss_path, "w") as f:
@@ -98,11 +97,6 @@ def release_windows(version):
     print("release windows runner done.")
 
 
-# 使用argparse处理命令行参数，
-# -v或--version参数指定版本号，
-# -a或--android参数指定是否生成apk，
-# -w或--windows参数指定是否生成windows，
-# -s或--split参数指定是否生成abi分包apk
 if __name__ == "__main__":
     import argparse
 

@@ -34,6 +34,9 @@ const String repoUrl = "https://github.com/Robert-Stackflow/CloudOTP";
 const String releaseUrl =
     "https://github.com/Robert-Stackflow/CloudOTP/releases";
 const String issueUrl = "https://github.com/Robert-Stackflow/CloudOTP/issues";
+const String privacyPolicyUrl =
+    "https://apps.cloudchewie.com/cloudotp/privacy/";
+const String serviceTermUrl = "https://apps.cloudchewie.com/cloudotp/service/";
 
 AndroidAuthMessages androidAuthMessages = AndroidAuthMessages(
   cancelButton: S.current.biometricCancelButton,

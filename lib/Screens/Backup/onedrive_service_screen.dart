@@ -62,7 +62,6 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
       _emailController.text = _oneDriveCloudServiceConfig!.email ?? "";
       _oneDriveCloudService = OneDriveCloudService(
-        context,
         _oneDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
@@ -71,7 +70,6 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           CloudServiceConfig.init(type: CloudServiceType.OneDrive);
       await CloudServiceConfigDao.insertConfig(_oneDriveCloudServiceConfig!);
       _oneDriveCloudService = OneDriveCloudService(
-        context,
         _oneDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
@@ -335,6 +333,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             text: S.current.webDavLogout,
             fontSizeDelta: 2,
             onTap: () async {
+              CustomLoadingDialog.showLoading(title: S.current.webDavLoggingOut);
               await _oneDriveCloudService!.signOut();
               setState(() {
                 _oneDriveCloudServiceConfig!.connected = false;
@@ -345,6 +344,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                         _oneDriveCloudServiceConfig!.usedSize = -1;
                 updateConfig(_oneDriveCloudServiceConfig!);
               });
+              CustomLoadingDialog.dismissLoading();
+              IToast.show(S.current.webDavLogoutSuccess);
             },
           ),
         ),

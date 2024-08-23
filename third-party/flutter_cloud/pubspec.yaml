@@ -17,6 +17,7 @@ dependencies:
     path: ../flutter_web_auth_2
   googleapis: ^13.2.0
   hashlib: ^1.19.2
+#  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

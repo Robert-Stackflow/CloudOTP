@@ -90,8 +90,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    initAppName();
     initTab(true);
+    initAppName();
     refresh(true);
     _searchController.addListener(() {
       performSearch(_searchController.text);
@@ -741,6 +741,19 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   _buildTab(TokenCategory? category) {
+    // {
+    // bool normalUserBold = false,
+    // bool sameFontSize = false,
+    // double fontSizeDelta = 0,
+    // }) {
+    // TextStyle normalStyle = Theme.of(context).textTheme.titleLarge!.apply(
+    //       color: Colors.grey,
+    //       fontSizeDelta: fontSizeDelta - (sameFontSize ? 0 : 1),
+    //       fontWeightDelta: normalUserBold ? 0 : -2,
+    //     );
+    // TextStyle selectedStyle = Theme.of(context).textTheme.titleLarge!.apply(
+    //       fontSizeDelta: fontSizeDelta + (sameFontSize ? 0 : 1),
+    //     );
     return Tab(
       child: ContextMenuRegion(
         behavior: ResponsiveUtil.isDesktop()
@@ -757,8 +770,19 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               );
             }
           },
+          // child: AnimatedDefaultTextStyle(
+          //   style: (category == null
+          //           ? _currentTabIndex == 0
+          //           : currentCategoryId == category.id)
+          //       ? selectedStyle
+          //       : normalStyle,
+          //   duration: const Duration(milliseconds: 100),
+          //   child: Container(
+          //     alignment: Alignment.center,
           child: Text(category?.title ?? S.current.allTokens),
         ),
+        // ),
+        // ),
       ),
     );
   }

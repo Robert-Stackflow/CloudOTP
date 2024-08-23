@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cloud/status.dart';
 import 'package:flutter_cloud/token_manager.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,20 +15,21 @@ import 'oauth2_helper.dart';
 import 'onedrive_response.dart';
 
 class OneDrive with ChangeNotifier {
-  static const String authHost = "login.microsoftonline.com";
-  static const String authEndpoint = "/consumers/oauth2/v2.0/authorize";
+  static const String authEndpoint =
+      "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
   static const String tokenEndpoint =
-      "https://$authHost/consumers/oauth2/v2.0/token";
-  static const String apiEndpoint = "https://graph.microsoft.com/v1.0/";
-  static const String errCANCELED = "CANCELED";
+      "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
+  static const String revokeEndpoint =
+      "https://login.microsoftonline.com/consumers/oauth2/v2.0/revoke";
+  static const String apiEndpoint = "https://graph.microsoft.com/v1.0";
   static const _appRootFolder = "special/approot";
   static const _defaultRootFolder = "root";
-  static const permissionFilesReadWriteAll = "Files.ReadWrite.All";
-  static const permissionOfflineAccess = "offline_access";
+  static const permission = "Files.ReadWrite.All offline_access";
 
   static const String expireInKey = "__onedrive_tokenExpire";
   static const String accessTokenKey = "__onedrive_accessToken";
   static const String refreshTokenKey = "__onedrive_refreshToken";
+  static const String idTokenKey = "__onedrive_idToken";
 
   late final ITokenManager _tokenManager;
   late final String redirectUrl;
@@ -41,7 +43,7 @@ class OneDrive with ChangeNotifier {
     required this.clientId,
     required this.callbackUrl,
     required this.redirectUrl,
-    this.scopes = "$permissionFilesReadWriteAll $permissionOfflineAccess",
+    this.scopes = permission,
     ITokenManager? tokenManager,
   }) {
     state = OAuth2Helper.generateStateParameter();
@@ -50,10 +52,12 @@ class OneDrive with ChangeNotifier {
           tokenEndpoint: tokenEndpoint,
           clientId: clientId,
           redirectUrl: redirectUrl,
+          revokeUrl: revokeEndpoint,
           scope: scopes,
-          expireInKey: expireInKey,
+          expireAtKey: expireInKey,
           accessTokenKey: accessTokenKey,
           refreshTokenKey: refreshTokenKey,
+          idTokenKey: idTokenKey,
         );
   }
 
@@ -67,12 +71,16 @@ class OneDrive with ChangeNotifier {
     return (accessToken?.isNotEmpty) ?? false;
   }
 
-  Future<bool> connect(
-    BuildContext context, {
-    String? windowName,
-  }) async {
+  Future<bool> connect() async {
     try {
-      final authUri = Uri.https(authHost, authEndpoint, {
+      String codeVerifier = OAuth2Helper.generateCodeVerifier();
+
+      String codeChanllenge = OAuth2Helper.generateCodeChanllenge(codeVerifier);
+
+      Uri uri = Uri.parse(authEndpoint);
+      final authUri = Uri.https(uri.authority, uri.path, {
+        'code_challenge': codeChanllenge,
+        "code_challenge_method": "S256",
         'response_type': 'code',
         'client_id': clientId,
         'redirect_uri': redirectUrl,
@@ -90,8 +98,7 @@ class OneDrive with ChangeNotifier {
         callbackUrlScheme = callbackUri.toString();
       }
 
-      http.Response? result = await OAuth2Helper.browserAuth(
-        context: context,
+      http.Response? result = await OAuth2Helper.browserAuthWithVerifier(
         authEndpoint: authUri,
         tokenEndpoint: Uri.parse(tokenEndpoint),
         callbackUrl: callbackUrl,
@@ -100,7 +107,7 @@ class OneDrive with ChangeNotifier {
         redirectUrl: redirectUrl,
         state: state,
         scopes: scopes,
-        windowName: windowName,
+        codeVerifier: codeVerifier,
       );
       if (result != null) {
         await _tokenManager.saveTokenResp(result);
@@ -109,13 +116,10 @@ class OneDrive with ChangeNotifier {
       } else {
         return false;
       }
-    } on PlatformException catch (err) {
-      if (err.code != errCANCELED) {
-        debugPrint("# OneDrive -> connect: $err");
-      }
+    } on PlatformException {
       return false;
     } catch (err) {
-      debugPrint("# OneDrive -> connect: $err");
+      debugPrint("# OneDrive -> connect error: $err");
       return false;
     }
   }
@@ -125,47 +129,94 @@ class OneDrive with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<OneDriveResponse> getInfo() async {
+  Future<String> checkToken() async {
     final accessToken = await _tokenManager.getAccessToken();
     if (accessToken == null) {
-      debugPrint("# OneDrive -> getInfo: Null access token");
-      return OneDriveResponse(
-          message: "Null access token", bodyBytes: Uint8List(0));
+      throw NullAccessTokenException();
+    } else {
+      return accessToken;
     }
-    final url = Uri.parse("$apiEndpoint/drive?select=owner,quota");
+  }
 
+  http.Response processResponse(http.Response response) {
+    if (response.statusCode == 401) {
+      disconnect();
+    }
+    return response;
+  }
+
+  Future<http.Response> post(
+    Uri url, {
+    dynamic headers,
+    dynamic body,
+  }) async {
+    final accessToken = await checkToken();
+    var tmpHeaders = {"Authorization": "Bearer $accessToken"};
+    if (headers != null) {
+      tmpHeaders.addAll(headers);
+    }
+    return processResponse(await http.post(
+      url,
+      headers: tmpHeaders,
+      body: body,
+    ));
+  }
+
+  Future<http.Response> get(
+    Uri url, {
+    dynamic headers,
+  }) async {
+    final accessToken = await checkToken();
+    var tmpHeaders = {"Authorization": "Bearer $accessToken"};
+    if (headers != null) {
+      tmpHeaders.addAll(headers);
+    }
+    return processResponse(await http.get(
+      url,
+      headers: tmpHeaders,
+    ));
+  }
+
+  Future<http.Response> delete(
+    Uri url, {
+    dynamic headers,
+  }) async {
+    final accessToken = await checkToken();
+    var tmpHeaders = {"Authorization": "Bearer $accessToken"};
+    if (headers != null) {
+      tmpHeaders.addAll(headers);
+    }
+    return processResponse(await http.delete(
+      url,
+      headers: tmpHeaders,
+    ));
+  }
+
+  Future<OneDriveResponse> getInfo() async {
     try {
-      final resp = await http.get(
-        url,
-        headers: {"Authorization": "Bearer $accessToken"},
-      );
+      final url = Uri.parse("$apiEndpoint/drive?select=owner,quota");
 
-      debugPrint(
-          "# OneDrive -> getInfo: ${resp.statusCode}\n# Body: ${resp.body}");
+      final resp = await get(url);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            userInfo: OneDriveUserInfo.fromJson(jsonDecode(resp.body)),
-            message: "Get Info successfully.",
-            bodyBytes: resp.bodyBytes,
-            isSuccess: true);
-      } else if (resp.statusCode == 404) {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "${url.toString()} not found.",
-            bodyBytes: Uint8List(0));
+        OneDriveUserInfo userInfo =
+            OneDriveUserInfo.fromJson(jsonDecode(resp.body));
+        debugPrint("# OneDrive -> get info successfully: $userInfo");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          userInfo: userInfo,
+          message: "Get Info successfully.",
+        );
       } else {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "Error while get info.",
-            bodyBytes: Uint8List(0));
+        debugPrint(
+            "# OneDrive -> get info failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          message: "Error while get info.",
+        );
       }
     } catch (err) {
-      debugPrint("# OneDrive -> getInfo: $err");
+      debugPrint("# OneDrive -> getInfo error: $err");
       return OneDriveResponse(message: "Unexpected exception: $err");
     }
   }
@@ -174,24 +225,15 @@ class OneDrive with ChangeNotifier {
     String remotePath, {
     bool isAppFolder = false,
   }) async {
-    final accessToken = await _tokenManager.getAccessToken();
-    if (accessToken == null) {
-      return OneDriveResponse(
-          message: "Null access token", bodyBytes: Uint8List(0));
-    }
-
-    if (isAppFolder) {
-      await getMetadata(remotePath, isAppFolder: isAppFolder);
-    }
-
-    final url = Uri.parse(
-        "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/children?select=id,name,size,createdDateTime,lastModifiedDateTime,file,description");
-
     try {
-      final resp = await http.get(
-        url,
-        headers: {"Authorization": "Bearer $accessToken"},
-      );
+      if (isAppFolder) {
+        await getMetadata(remotePath, isAppFolder: isAppFolder);
+      }
+
+      final url = Uri.parse(
+          "$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/children?select=id,name,size,createdDateTime,lastModifiedDateTime,file,description");
+
+      final resp = await get(url);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         Map body = jsonDecode(resp.body);
@@ -199,25 +241,19 @@ class OneDrive with ChangeNotifier {
         for (var item in body['value']) {
           files.add(OneDriveFileInfo.fromJson(item));
         }
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            files: files,
-            message: "List files successfully.",
-            bodyBytes: resp.bodyBytes,
-            isSuccess: true);
-      } else if (resp.statusCode == 404) {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "Url not found.",
-            bodyBytes: Uint8List(0));
+        debugPrint("# OneDrive -> list successfully");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          files: files,
+          message: "List files successfully.",
+        );
       } else {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "Error while listing files.",
-            bodyBytes: Uint8List(0));
+        debugPrint(
+            "# OneDrive -> list failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          message: "Error while listing files.",
+        );
       }
     } catch (err) {
       debugPrint("# OneDrive -> list: $err");
@@ -229,42 +265,24 @@ class OneDrive with ChangeNotifier {
     String id, {
     bool isAppFolder = false,
   }) async {
-    final accessToken = await _tokenManager.getAccessToken();
-    if (accessToken == null) {
-      return OneDriveResponse(
-          message: "Null access token", bodyBytes: Uint8List(0));
-    }
-
-    final url = Uri.parse("${apiEndpoint}me/drive/items/$id/content");
-
     try {
-      final resp = await http.get(
-        url,
-        headers: {"Authorization": "Bearer $accessToken"},
-      );
+      final url = Uri.parse("$apiEndpoint/me/drive/items/$id/content");
 
-      debugPrint(
-          "# OneDrive -> pull: ${resp.statusCode}\n# Body: ${resp.body}");
+      final resp = await get(url);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "Download successfully.",
-            bodyBytes: resp.bodyBytes,
-            isSuccess: true);
-      } else if (resp.statusCode == 404) {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "File not found.",
-            bodyBytes: Uint8List(0));
+        debugPrint("# OneDrive -> pull successfully");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          message: "Download successfully.",
+        );
       } else {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "Error while downloading file.",
-            bodyBytes: Uint8List(0));
+        debugPrint(
+            "# OneDrive -> pull failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          message: "Error while downloading file.",
+        );
       }
     } catch (err) {
       debugPrint("# OneDrive -> pull: $err");
@@ -276,42 +294,26 @@ class OneDrive with ChangeNotifier {
     String id, {
     bool isAppFolder = false,
   }) async {
-    final accessToken = await _tokenManager.getAccessToken();
-    if (accessToken == null) {
-      return OneDriveResponse(
-          message: "Null access token", bodyBytes: Uint8List(0));
-    }
-
-    final url = Uri.parse("${apiEndpoint}me/drive/items/$id");
-
     try {
-      final resp = await http.delete(
-        url,
-        headers: {"Authorization": "Bearer $accessToken"},
-      );
+      final url = Uri.parse("$apiEndpoint/me/drive/items/$id");
 
-      debugPrint(
-          "# OneDrive -> delete: ${resp.statusCode}\n# Body: ${resp.body}");
+      final resp = await delete(url);
 
-      if (resp.statusCode == 200 || resp.statusCode == 201) {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "Delete successfully.",
-            bodyBytes: resp.bodyBytes,
-            isSuccess: true);
-      } else if (resp.statusCode == 404) {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "File not found.",
-            bodyBytes: Uint8List(0));
+      if (resp.statusCode == 200 ||
+          resp.statusCode == 201 ||
+          resp.statusCode == 204) {
+        debugPrint("# OneDrive -> delete successfully");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          message: "Delete successfully.",
+        );
       } else {
-        return OneDriveResponse(
-            statusCode: resp.statusCode,
-            body: resp.body,
-            message: "Error while deleting file.",
-            bodyBytes: Uint8List(0));
+        debugPrint(
+            "# OneDrive -> delete failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        return OneDriveResponse.fromResponse(
+          response: resp,
+          message: "Error while deleting file.",
+        );
       }
     } catch (err) {
       debugPrint("# OneDrive -> delete: $err");
@@ -325,38 +327,27 @@ class OneDrive with ChangeNotifier {
     bool isAppFolder = false,
     Function(int p1, int p2)? onProgress,
   }) async {
-    final accessToken = await _tokenManager.getAccessToken();
-    if (accessToken == null) {
-      return OneDriveResponse(message: "Null access token.");
-    }
-
     try {
       if (isAppFolder) {
         await getMetadata(remotePath, isAppFolder: isAppFolder);
       }
 
-      const int pageSize = 1024 * 1024; // page size
-      final int maxPage =
-          (bytes.length / pageSize.toDouble()).ceil(); // total pages
+      const int pageSize = 1024 * 1024;
+      final int maxPage = (bytes.length / pageSize.toDouble()).ceil();
 
       var now = DateTime.now();
       var url = Uri.parse(
           "$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
 
-      var resp = await http.post(
-        url,
-        headers: {"Authorization": "Bearer $accessToken"},
-      );
+      var resp = await post(url);
+
       debugPrint(
-          "# Create Session: ${DateTime.now().difference(now).inMilliseconds} ms");
+          "# OneDrive -> Upload Create Session: ${DateTime.now().difference(now).inMilliseconds} ms");
 
       if (resp.statusCode == 200) {
         final Map<String, dynamic> respJson = jsonDecode(resp.body);
         final String uploadUrl = respJson["uploadUrl"];
         url = Uri.parse(uploadUrl);
-
-        debugPrint(
-            "# Upload to: $url\n# Total pages: $maxPage\n# Page size: $pageSize");
 
         for (var pageIndex = 0; pageIndex < maxPage; pageIndex++) {
           now = DateTime.now();
@@ -369,42 +360,40 @@ class OneDrive with ChangeNotifier {
           final pageData = bytes.getRange(start, end).toList();
           final contentLength = pageData.length.toString();
 
-          final headers = {
-            "Content-Length": contentLength,
-            "Content-Range": range,
-          };
-
           resp = await http.put(
             url,
-            headers: headers,
+            headers: {
+              "Content-Length": contentLength,
+              "Content-Range": range,
+            },
             body: pageData,
           );
 
           debugPrint(
-              "# Upload [${pageIndex + 1}/$maxPage]: ${DateTime.now().difference(now).inMilliseconds} ms, start: $start, end: $end, contentLength: $contentLength, range: $range");
+              "# OneDrive -> Upload [${pageIndex + 1}/$maxPage]: ${DateTime.now().difference(now).inMilliseconds} ms, start: $start, end: $end, contentLength: $contentLength, range: $range");
 
           if (resp.statusCode == 202) {
             onProgress?.call(pageIndex + 1, maxPage);
             continue;
           } else if (resp.statusCode == 200 || resp.statusCode == 201) {
             onProgress?.call(pageIndex + 1, maxPage);
-            return OneDriveResponse(
-                statusCode: resp.statusCode,
-                body: resp.body,
-                message: "Upload finished.",
-                isSuccess: true);
+            debugPrint("# OneDrive -> Upload finished");
+            return OneDriveResponse.fromResponse(
+              response: resp,
+              message: "Upload finished.",
+            );
           } else {
-            return OneDriveResponse(
-                statusCode: resp.statusCode,
-                body: resp.body,
-                message: "Upload failed.");
+            debugPrint(
+                "# OneDrive -> Upload failed: ${resp.statusCode}\n# Body: ${resp.body}");
+            return OneDriveResponse.fromResponse(
+              response: resp,
+              message: "Upload failed.",
+            );
           }
         }
       }
-
-      debugPrint("# Upload response: ${resp.statusCode}\n# Body: ${resp.body}");
     } catch (err) {
-      debugPrint("# Upload error: $err");
+      debugPrint("# OneDrive -> Upload error: $err");
       return OneDriveResponse(message: "Unexpected exception: $err");
     }
 
@@ -419,28 +408,21 @@ class OneDrive with ChangeNotifier {
     String remotePath, {
     bool isAppFolder = false,
   }) async {
-    final accessToken = await _tokenManager.getAccessToken();
-    if (accessToken == null) {
-      return Uint8List(0);
-    }
-
-    final url =
-        Uri.parse("${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}");
-
     try {
-      final resp = await http.get(
-        url,
-        headers: {"Authorization": "Bearer $accessToken"},
-      );
+      final url =
+          Uri.parse("$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}");
+
+      final resp = await get(url);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
+        debugPrint("# OneDrive -> metadata success: ${resp.body}");
         return resp.bodyBytes;
       } else if (resp.statusCode == 404) {
         return Uint8List(0);
+      } else {
+        debugPrint(
+            "# OneDrive -> metadata failed: ${resp.statusCode}\n# Body: ${resp.body}");
       }
-
-      debugPrint(
-          "# OneDrive -> metadata: ${resp.statusCode}\n# Body: ${resp.body}");
     } catch (err) {
       debugPrint("# OneDrive -> metadata: $err");
     }

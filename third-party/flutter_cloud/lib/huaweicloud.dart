@@ -28,19 +28,18 @@ class HuaweiCloud with ChangeNotifier {
   static const String expireInKey = "__huaweicloud_tokenExpire";
   static const String accessTokenKey = "__huaweicloud_accessToken";
   static const String refreshTokenKey = "__huaweicloud_refreshToken";
+  static const String idTokenKey = "__huaweicloud_idToken";
 
   late final ITokenManager _tokenManager;
   late final String redirectUrl;
   late final String callbackUrl;
   final String scopes;
   final String clientId;
-  final String clientSecret;
 
   late final String state;
 
   HuaweiCloud({
     required this.clientId,
-    required this.clientSecret,
     required this.redirectUrl,
     required this.callbackUrl,
     this.scopes = permission,
@@ -49,14 +48,15 @@ class HuaweiCloud with ChangeNotifier {
     state = OAuth2Helper.generateStateParameter();
     _tokenManager = tokenManager ??
         DefaultTokenManager(
-          tokenEndpoint: tokenEndpoint,
           clientId: clientId,
-          clientSecret: clientSecret,
           redirectUrl: redirectUrl,
+          revokeUrl: revokeEndpoint,
+          tokenEndpoint: tokenEndpoint,
           scope: scopes,
-          expireInKey: expireInKey,
+          expireAtKey: expireInKey,
           accessTokenKey: accessTokenKey,
           refreshTokenKey: refreshTokenKey,
+          idTokenKey: idTokenKey,
         );
   }
 
@@ -70,18 +70,21 @@ class HuaweiCloud with ChangeNotifier {
     return (accessToken?.isNotEmpty) ?? false;
   }
 
-  Future<bool> connect(
-    BuildContext context, {
-    String? windowName,
-  }) async {
+  Future<bool> connect() async {
     try {
+      String codeVerifier = OAuth2Helper.generateCodeVerifier();
+
+      String codeChanllenge = OAuth2Helper.generateCodeChanllenge(codeVerifier);
+
       final authUri = Uri.https(authHost, authEndpoint, {
-        'response_type': 'code',
+        'code_challenge': codeChanllenge,
+        "code_challenge_method": "S256",
         'client_id': clientId,
         'redirect_uri': redirectUrl,
+        'response_type': 'code',
+        "access_type": "offline",
         'scope': scopes,
         'state': state,
-        "access_type": "offline",
       });
 
       String callbackUrlScheme = "";
@@ -94,18 +97,16 @@ class HuaweiCloud with ChangeNotifier {
         callbackUrlScheme = callbackUri.toString();
       }
 
-      http.Response? result = await OAuth2Helper.browserAuth(
-        context: context,
+      http.Response? result = await OAuth2Helper.browserAuthWithVerifier(
         authEndpoint: authUri,
         tokenEndpoint: Uri.parse(tokenEndpoint),
-        callbackUrl: callbackUrl,
-        callbackUrlScheme: callbackUrlScheme,
         state: state,
         clientId: clientId,
-        clientSecret: clientSecret,
-        redirectUrl: redirectUrl,
         scopes: scopes,
-        windowName: windowName,
+        redirectUrl: redirectUrl,
+        callbackUrl: callbackUrl,
+        callbackUrlScheme: callbackUrlScheme,
+        codeVerifier: codeVerifier,
       );
       if (result != null) {
         await _tokenManager.saveTokenResp(result);

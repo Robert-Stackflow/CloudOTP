@@ -1,6 +1,5 @@
 name: cloudotp
-version: 2.2.0
-description: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
+dddddescription: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
 publish_to: none
 
 environment:

@@ -1,23 +1,45 @@
 import 'dart:typed_data';
+import 'package:flutter_cloud/status.dart';
+import 'package:http/http.dart' as http;
 
 class OneDriveResponse {
+  final ResponseStatus status;
   final int? statusCode;
   final String? body;
   final String? message;
   final bool isSuccess;
   final Uint8List? bodyBytes;
+  final String? accessToken;
   final OneDriveUserInfo? userInfo;
   final List<OneDriveFileInfo> files;
 
   OneDriveResponse({
+    this.status = ResponseStatus.success,
     this.statusCode,
     this.body,
     this.message,
+    this.accessToken,
     this.bodyBytes,
     this.userInfo,
     this.files = const [],
     this.isSuccess = false,
   });
+
+  OneDriveResponse.fromResponse({
+    required http.Response response,
+    this.userInfo,
+    this.message,
+    this.files = const [],
+  })  : body = response.body,
+        accessToken = "",
+        statusCode = response.statusCode,
+        bodyBytes = response.bodyBytes,
+        isSuccess = response.statusCode == 200 ||
+            response.statusCode == 201 ||
+            response.statusCode == 204,
+        status = ResponseStatus.values.firstWhere(
+                (element) => element.code == response.statusCode,
+            orElse: () => ResponseStatus.success);
 
   @override
   String toString() {

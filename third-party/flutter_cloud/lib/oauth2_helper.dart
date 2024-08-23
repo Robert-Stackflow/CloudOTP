@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:hashlib/hashlib.dart';
 import 'package:http/http.dart' as http;
 
 class OAuth2Helper {
@@ -13,8 +14,22 @@ class OAuth2Helper {
     return base64Url.encode(values);
   }
 
+  static String generateCodeVerifier() {
+    return myBase64Encode(randomBytes(32));
+  }
+
+  static String myBase64Encode(List<int> input) {
+    return base64Encode(input)
+        .replaceAll("+", '-')
+        .replaceAll("/", '_')
+        .replaceAll("=", '');
+  }
+
+  static String generateCodeChanllenge(String codeVerifier){
+    return myBase64Encode(sha256.string(codeVerifier).bytes);
+  }
+
   static Future<http.Response?> browserAuth({
-    required BuildContext? context,
     required Uri authEndpoint,
     required Uri tokenEndpoint,
     required String callbackUrl,
@@ -22,8 +37,6 @@ class OAuth2Helper {
     required String clientId,
     required String redirectUrl,
     required String state,
-    String? clientSecret,
-    String? windowName,
     String? scopes,
   }) async {
     try {
@@ -31,9 +44,8 @@ class OAuth2Helper {
         url: authEndpoint.toString(),
         callbackUrl: callbackUrl,
         callbackUrlScheme: callbackUrlScheme,
-        options: FlutterWebAuth2Options(
+        options: const FlutterWebAuth2Options(
           timeout: 60,
-          windowName: windowName,
           useWebview: false,
         ),
       );
@@ -49,9 +61,6 @@ class OAuth2Helper {
         'grant_type': 'authorization_code',
         'code': code,
       };
-      if (clientSecret != null && clientSecret.isNotEmpty) {
-        body['client_secret'] = clientSecret;
-      }
       http.Response resp = await http.post(tokenEndpoint, body: body);
       return resp;
     } catch (e, t) {
@@ -61,7 +70,6 @@ class OAuth2Helper {
   }
 
   static Future<http.Response?> browserAuthWithVerifier({
-    required BuildContext? context,
     required Uri authEndpoint,
     required Uri tokenEndpoint,
     required String callbackUrl,
@@ -70,8 +78,6 @@ class OAuth2Helper {
     required String redirectUrl,
     required String codeVerifier,
     required String state,
-    String? clientSecret,
-    String? windowName,
     String? scopes,
   }) async {
     try {
@@ -79,9 +85,8 @@ class OAuth2Helper {
         url: authEndpoint.toString(),
         callbackUrl: callbackUrl,
         callbackUrlScheme: callbackUrlScheme,
-        options: FlutterWebAuth2Options(
+        options: const FlutterWebAuth2Options(
           timeout: 60,
-          windowName: windowName,
           useWebview: false,
         ),
       );
@@ -98,9 +103,6 @@ class OAuth2Helper {
         'grant_type': 'authorization_code',
         'code': code,
       };
-      if (clientSecret != null && clientSecret.isNotEmpty) {
-        body['client_secret'] = clientSecret;
-      }
       http.Response resp = await http.post(tokenEndpoint, body: body);
       return resp;
     } catch (e, t) {

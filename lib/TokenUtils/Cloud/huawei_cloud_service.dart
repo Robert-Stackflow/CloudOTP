@@ -1,12 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_cloud/huaweicloud.dart';
 import 'package:flutter_cloud/huaweicloud_response.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
 
@@ -17,16 +15,13 @@ class HuaweiCloudService extends CloudService {
       'https://apps.cloudchewie.com/oauth/cloudotp/huaweicloud/callback';
   static const String _callbackUrl = "cloudotp://auth/huaweicloud/callback";
   static const String _clientId = '111829035';
-  static const String _clientSecret = 'XXXXXXXXXXXXXXXXXXXXX';
   static const String _huaweiCloudEmptyPath = '';
   static const String _huaweiCloudPath = 'CloudOTP';
   final CloudServiceConfig _config;
   late HuaweiCloud huaweiCloud;
-  late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
 
   HuaweiCloudService(
-    this.context,
     this._config, {
     this.onConfigChanged,
   }) {
@@ -39,7 +34,6 @@ class HuaweiCloudService extends CloudService {
       redirectUrl: _redirectUrl,
       callbackUrl: _callbackUrl,
       clientId: _clientId,
-      clientSecret: _clientSecret,
     );
   }
 
@@ -47,10 +41,7 @@ class HuaweiCloudService extends CloudService {
   Future<CloudServiceStatus> authenticate() async {
     bool isAuthorized = await huaweiCloud.isConnected();
     if (!isAuthorized) {
-      isAuthorized = await huaweiCloud.connect(
-        context,
-        windowName: S.current.cloudTypeHuaweiCloudAuthenticateWindowName,
-      );
+      isAuthorized = await huaweiCloud.connect();
     }
     if (isAuthorized) {
       HuaweiCloudUserInfo? info = await fetchInfo();

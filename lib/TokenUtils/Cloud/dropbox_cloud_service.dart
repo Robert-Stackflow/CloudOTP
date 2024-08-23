@@ -1,13 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_cloud/dropbox.dart';
 import 'package:flutter_cloud/dropbox_response.dart';
 import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
 
@@ -22,11 +20,9 @@ class DropboxCloudService extends CloudService {
   static const String _dropboxPath = '/';
   final CloudServiceConfig _config;
   late Dropbox dropbox;
-  late BuildContext context;
   Function(CloudServiceConfig)? onConfigChanged;
 
   DropboxCloudService(
-    this.context,
     this._config, {
     this.onConfigChanged,
   }) {
@@ -46,10 +42,7 @@ class DropboxCloudService extends CloudService {
   Future<CloudServiceStatus> authenticate() async {
     bool isAuthorized = await dropbox.isConnected();
     if (!isAuthorized) {
-      isAuthorized = await dropbox.connect(
-        context,
-        windowName: S.current.cloudTypeDropboxAuthenticateWindowName,
-      );
+      isAuthorized = await dropbox.connect();
     }
     if (isAuthorized) {
       DropboxUserInfo? info = await fetchInfo();

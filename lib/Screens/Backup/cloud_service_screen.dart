@@ -80,12 +80,10 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
               physics: const NeverScrollableScrollPhysics(),
               controller: pageController,
               children: const [
-                WebDavServiceScreen(),
                 OneDriveServiceScreen(),
-                GoogleDriveServiceScreen(),
                 DropboxServiceScreen(),
+                WebDavServiceScreen(),
                 S3CloudServiceScreen(),
-                HuaweiCloudServiceScreen(),
               ],
             ),
           ),
@@ -101,14 +99,13 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
         context: context,
         topRadius: true,
         bottomRadius: true,
-        padding: const EdgeInsets.only(right: 10),
         child: Column(
           children: [
             ItemBuilder.buildGroupTile(
               context: context,
               controller: _typeController,
               constraintWidth: false,
-              buttons: CloudServiceType.toStrings(),
+              buttons: CloudServiceType.toEnableStrings(),
               onSelected: (value, index, isSelected) {
                 setState(() {
                   _currentType = index.toCloudServiceType;

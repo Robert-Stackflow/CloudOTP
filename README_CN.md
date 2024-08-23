@@ -15,8 +15,8 @@
 
 ## Screenshots
 
-<img src="art/lightmode.jpg" alt="Light Mode" style="zoom: 25%;" /><img src="art/darkmode.jpg" alt="Dark Mode" style="zoom: 25%;" /><img src="art/addtoken.jpg" alt="Add Token" style="zoom: 25%;" />
+<img src="tools/art/lightmode.jpg" alt="Light Mode" style="zoom: 25%;" /><img src="tools/art/darkmode.jpg" alt="Dark Mode" style="zoom: 25%;" /><img src="tools/art/addtoken.jpg" alt="Add Token" style="zoom: 25%;" />
 
-<img src="art/setting.jpg" alt="Setting" style="zoom: 25%;" /><img src="art/theme.jpg" alt="Theme" style="zoom: 25%;" /><img src="art/lock.jpg" alt="Lock" style="zoom: 25%;" />
+<img src="tools/art/setting.jpg" alt="Setting" style="zoom: 25%;" /><img src="tools/art/theme.jpg" alt="Theme" style="zoom: 25%;" /><img src="tools/art/lock.jpg" alt="Lock" style="zoom: 25%;" />
 
-<img src="art/export_import.jpg" alt="Export and  Import" style="zoom: 25%;" /><img src="art/dropbox.jpg" alt="Dropbox" style="zoom: 25%;" />
+<img src="tools/art/export_import.jpg" alt="Export and  Import" style="zoom: 25%;" /><img src="tools/art/dropbox.jpg" alt="Dropbox" style="zoom: 25%;" />

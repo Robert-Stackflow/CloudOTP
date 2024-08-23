@@ -59,7 +59,6 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
       _sizeController.text = _huaweiCloudCloudServiceConfig!.size;
       _accountController.text = _huaweiCloudCloudServiceConfig!.account ?? "";
       _huaweiCloudCloudService = HuaweiCloudService(
-        context,
         _huaweiCloudCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
@@ -68,7 +67,6 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
           CloudServiceConfig.init(type: CloudServiceType.HuaweiCloud);
       await CloudServiceConfigDao.insertConfig(_huaweiCloudCloudServiceConfig!);
       _huaweiCloudCloudService = HuaweiCloudService(
-        context,
         _huaweiCloudCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );

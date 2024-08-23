@@ -49,3 +49,5 @@ app.*.map.json
 cloudotp.db
 
 /assets/fonts/**
+
+/releases/**
