@@ -100,15 +100,10 @@ class ExportTokenUtil {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
       List<OtpToken> tokens = await TokenDao.listTokens();
       List<TokenCategory> categories = await CategoryDao.listCategories();
-      Config config = await ConfigDao.getConfig();
-      List<CloudServiceConfig> cloudServiceConfigs =
-          await CloudServiceConfigDao.getConfigs();
       return await compute((_) async {
         Backup backup = Backup(
           tokens: tokens,
           categories: categories,
-          config: config,
-          cloudServiceConfigs: cloudServiceConfigs,
         );
         BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
         Uint8List encryptedData =
