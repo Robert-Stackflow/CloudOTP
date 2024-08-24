@@ -24,3 +24,23 @@
 <img src="tools/art/mobile_3.png" alt="Mobile_3" style="zoom: 25%;" />
 
 <img src="tools/art/desktop_2.png" alt="Desktop_2" style="zoom: 25%;" />
+
+## TODOs
+
+- 桌面端支持
+
+  - 多窗口支持
+  - 快捷键功能优化
+
+- 小功能/小Bug
+
+  - 开机自启动后最小化到托盘
+
+  - 托盘锁定功能——未设置/已禁用
+  - 修改语言时Tabbar全部未随之更改
+
+- 次优先级
+
+  - 自定义主题
+  - 导入字体文件
+  - icon逻辑修改——同一个icon多种匹配规则
