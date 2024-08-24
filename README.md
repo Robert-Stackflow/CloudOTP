@@ -9,14 +9,18 @@ This is an awesome two-factor authenticator based on Flutter for Android and Win
 - Supports scanning QR code to add, identify pictures, and manually enter keys
 - Supports custom icons and categories, supports sorting and multiple token layouts
 - Supports dark mode, multiple languages, and multiple themes
-- Supports local backup and automatic backup, supports WebDav, Onedrive, GoogleDrive, Dropbox, S3 storage and other cloud backup methods
+- Supports local backup and automatic backup, supports WebDav, Onedrive, Dropbox, S3 storage and other cloud backup methods
 - Supports import/export of encrypted files and URI lists
 - Supports database encryption and gesture password
 
 ## Screenshots
 
-<img src="tools/art/lightmode.jpg" alt="Light Mode" style="zoom: 25%;" /><img src="tools/art/darkmode.jpg" alt="Dark Mode" style="zoom: 25%;" /><img src="tools/art/addtoken.jpg" alt="Add Token" style="zoom: 25%;" />
+<img src="tools/art/mobile_1.png" alt="Mobile_1" style="zoom: 25%;" />
 
-<img src="tools/art/setting.jpg" alt="Setting" style="zoom: 25%;" /><img src="tools/art/theme.jpg" alt="Theme" style="zoom: 25%;" /><img src="tools/art/lock.jpg" alt="Lock" style="zoom: 25%;" />
+<img src="tools/art/desktop_1.png" alt="Desktop_1" style="zoom: 25%;" />
 
-<img src="tools/art/export_import.jpg" alt="Export and  Import" style="zoom: 25%;" /><img src="tools/art/dropbox.jpg" alt="Dropbox" style="zoom: 25%;" />
+<img src="tools/art/mobile_2.png" alt="Mobile_2" style="zoom: 25%;" />
+
+<img src="tools/art/mobile_3.png" alt="Mobile_3" style="zoom: 25%;" />
+
+<img src="tools/art/desktop_2.png" alt="Desktop_2" style="zoom: 25%;" />
