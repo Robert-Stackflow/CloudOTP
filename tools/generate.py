@@ -118,6 +118,7 @@ if __name__ == "__main__":
         version = args.version
         print(f"version: {version}")
         if args.default:
+            os.system("flutter clean")
             release_apk(version)
             release_apk_abi(version)
             release_windows(version)

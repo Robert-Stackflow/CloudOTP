@@ -1,3 +1,4 @@
+import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
@@ -5,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
 import '../../Database/category_dao.dart';
-import '../../Models/token_category.dart';
 import '../../Models/opt_token.dart';
+import '../../Models/token_category.dart';
 import '../../Utils/app_provider.dart';
 import '../../generated/l10n.dart';
 
@@ -118,7 +119,21 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
             radius: 8,
           )
         : ItemBuilder.buildEmptyPlaceholder(
-            context: context, text: S.current.noCategory);
+            context: context,
+            text: S.current.noCategory,
+            showButton: true,
+            buttonText: S.current.addCategory,
+            onTap: () {
+              HomeScreenState.addCategory(
+                context,
+                onAdded: (category) {
+                  setState(() {
+                    categories.add(category);
+                  });
+                },
+              );
+            },
+          );
   }
 
   _buildFooter() {
@@ -130,43 +145,46 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Expanded(flex: 2, child: SizedBox(height: 50)),
-          Expanded(
-            flex: 1,
-            child: ItemBuilder.buildRoundButton(
-              context,
-              background: Theme.of(context).primaryColor,
-              text: widget.isEditingToken ? S.current.confirm : S.current.save,
-              onTap: () async {
-                List<int> selectedIndexes = controller.selectedIndexes.toList();
-                List<int> allSelectedCategoryIds =
-                    selectedIndexes.map((e) => categories[e].id).toList();
-                List<int> unselectedCategoryIds = oldCategoryIds
-                    .where(
-                        (element) => !allSelectedCategoryIds.contains(element))
-                    .toList();
-                List<int> newSelectedCategoryIds = allSelectedCategoryIds
-                    .where((element) => !oldCategoryIds.contains(element))
-                    .toList();
-                Navigator.of(context).pop();
-                widget.onCategoryChanged?.call(allSelectedCategoryIds);
-                if (!widget.isEditingToken) {
-                  await CategoryDao.updateCategoriesForToken(
-                    widget.token.id,
-                    unselectedCategoryIds,
-                    newSelectedCategoryIds,
-                    // backup: true,
-                  );
-                  homeScreenState?.changeCategoriesForToken(
-                    widget.token,
-                    unselectedCategoryIds,
-                    newSelectedCategoryIds,
-                  );
-                  IToast.showTop(S.current.saveSuccess);
-                }
-              },
-              fontSizeDelta: 2,
+          if (categories.isNotEmpty)
+            Expanded(
+              flex: 1,
+              child: ItemBuilder.buildRoundButton(
+                context,
+                background: Theme.of(context).primaryColor,
+                text:
+                    widget.isEditingToken ? S.current.confirm : S.current.save,
+                onTap: () async {
+                  List<int> selectedIndexes =
+                      controller.selectedIndexes.toList();
+                  List<int> allSelectedCategoryIds =
+                      selectedIndexes.map((e) => categories[e].id).toList();
+                  List<int> unselectedCategoryIds = oldCategoryIds
+                      .where((element) =>
+                          !allSelectedCategoryIds.contains(element))
+                      .toList();
+                  List<int> newSelectedCategoryIds = allSelectedCategoryIds
+                      .where((element) => !oldCategoryIds.contains(element))
+                      .toList();
+                  Navigator.of(context).pop();
+                  widget.onCategoryChanged?.call(allSelectedCategoryIds);
+                  if (!widget.isEditingToken) {
+                    await CategoryDao.updateCategoriesForToken(
+                      widget.token.id,
+                      unselectedCategoryIds,
+                      newSelectedCategoryIds,
+                      // backup: true,
+                    );
+                    homeScreenState?.changeCategoriesForToken(
+                      widget.token,
+                      unselectedCategoryIds,
+                      newSelectedCategoryIds,
+                    );
+                    IToast.showTop(S.current.saveSuccess);
+                  }
+                },
+                fontSizeDelta: 2,
+              ),
             ),
-          ),
         ],
       ),
     );

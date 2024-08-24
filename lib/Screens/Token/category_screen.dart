@@ -7,6 +7,7 @@ import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
+import 'package:cloudotp/Widgets/WaterfallFlow/reorderable_grid_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/category_dao.dart';
@@ -89,26 +90,23 @@ class _CategoryScreenState extends State<CategoryScreen>
                 controller: TextEditingController(),
               );
               GlobalKey<InputBottomSheetState> key = GlobalKey();
-              BottomSheetBuilder.showBottomSheet(
-                context,
-                responsive: true,
-                (context) {
-                  return InputBottomSheet(
-                    key: key,
-                    title: S.current.addCategory,
-                    hint: S.current.inputCategory,
-                    validateAsyncController: validateAsyncController,
-                    maxLength: 32,
-                    onValidConfirm: (text) async {
-                      TokenCategory category = TokenCategory.title(title: text);
-                      await CategoryDao.insertCategory(category);
-                      categories.add(category);
-                      setState(() {});
-                      homeScreenState?.refreshCategories();
-                    },
-                  );
-                }
-              );
+              BottomSheetBuilder.showBottomSheet(context, responsive: true,
+                  (context) {
+                return InputBottomSheet(
+                  key: key,
+                  title: S.current.addCategory,
+                  hint: S.current.inputCategory,
+                  validateAsyncController: validateAsyncController,
+                  maxLength: 32,
+                  onValidConfirm: (text) async {
+                    TokenCategory category = TokenCategory.title(title: text);
+                    await CategoryDao.insertCategory(category);
+                    categories.add(category);
+                    setState(() {});
+                    homeScreenState?.refreshCategories();
+                  },
+                );
+              });
             },
           ),
           const SizedBox(width: 5),
@@ -137,6 +135,9 @@ class _CategoryScreenState extends State<CategoryScreen>
               itemBuilder: (context, index) {
                 return _buildCategoryItem(categories[index]);
               },
+              cacheExtent: 9999,
+              padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtil.isLandscape() ? 20 : 10),
               buildDefaultDragHandles: false,
               itemCount: categories.length,
               onReorder: (oldIndex, newIndex) {
@@ -161,7 +162,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                         offset: const Offset(0, 4),
                         blurRadius: 10,
                         spreadRadius: 1,
-                      ).scale(2),
+                      ).scale(2)
                     ],
                   ),
                   child: child,
@@ -174,11 +175,12 @@ class _CategoryScreenState extends State<CategoryScreen>
   _buildCategoryItem(TokenCategory category) {
     return Container(
       key: ValueKey("${category.id}${category.title}"),
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).canvasColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
+        // border: Border.all(color: Theme.of(context).dividerColor, width: 0.5),
       ),
       child: Row(
         children: [

@@ -384,6 +384,13 @@ class MainScreenState extends State<MainScreen>
             homeScreenState?.changeLayoutType(LayoutType.List);
           },
         ),
+        ContextMenuButtonConfig.checkbox(
+          S.current.spotlightLayoutType,
+          checked: homeScreenState?.layoutType == LayoutType.Spotlight,
+          onPressed: () {
+            homeScreenState?.changeLayoutType(LayoutType.Spotlight);
+          },
+        ),
       ],
     );
   }

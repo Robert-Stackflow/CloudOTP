@@ -52,7 +52,7 @@ class ItemBuilder {
     );
   }
 
-  static PreferredSizeWidget buildSimpleAppBar({
+  static buildSimpleAppBar({
     String title = "",
     Key? key,
     IconData leading = Icons.arrow_back_rounded,
@@ -61,43 +61,56 @@ class ItemBuilder {
     bool transparent = false,
   }) {
     bool showLeading = !ResponsiveUtil.isLandscape();
-    return MyAppBar(
-      key: key,
-      backgroundColor: transparent
-          ? Theme.of(context).scaffoldBackgroundColor
-          : Theme.of(context).appBarTheme.backgroundColor,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      leadingWidth: showLeading ? 56.0 : 0.0,
-      automaticallyImplyLeading: false,
-      leading: showLeading
-          ? Container(
-              margin: const EdgeInsets.only(left: 5),
-              child: buildIconButton(
-                context: context,
-                icon: Icon(leading, color: Theme.of(context).iconTheme.color),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            )
-          : null,
-      title: title.isNotEmpty
-          ? Container(
-              margin: EdgeInsets.only(left: showLeading ? 5 : 20),
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.apply(
-                      fontWeightDelta: 2,
-                    ),
-              ),
-            )
-          : emptyWidget,
-      actions: actions,
+    return PreferredSize(
+      preferredSize: const Size(0, kToolbarHeight),
+      child: Selector<AppProvider, bool>(
+        selector: (context, provider) => provider.enableFrostedGlassEffect,
+        builder: (context, enableFrostedGlassEffect, child) => MyAppBar(
+          key: key,
+          backgroundColor: transparent
+              ? Theme.of(context)
+                  .scaffoldBackgroundColor
+                  .withOpacity(enableFrostedGlassEffect ? 0.2 : 1)
+              : Theme.of(context)
+                  .appBarTheme
+                  .backgroundColor!
+                  .withOpacity(enableFrostedGlassEffect ? 0.2 : 1),
+          useBackdropFilter: enableFrostedGlassEffect,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leadingWidth: showLeading ? 56.0 : 0.0,
+          automaticallyImplyLeading: false,
+          leading: showLeading
+              ? Container(
+                  margin: const EdgeInsets.only(left: 5),
+                  child: buildIconButton(
+                    context: context,
+                    icon:
+                        Icon(leading, color: Theme.of(context).iconTheme.color),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                )
+              : null,
+          title: title.isNotEmpty
+              ? Container(
+                  margin: EdgeInsets.only(left: showLeading ? 5 : 20),
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.apply(
+                          fontWeightDelta: 2,
+                        ),
+                  ),
+                )
+              : emptyWidget,
+          actions: actions,
+        ),
+      ),
     );
   }
 
-  static PreferredSizeWidget buildAppBar({
+  static buildAppBar({
     Widget? title,
     Key? key,
     bool center = false,
@@ -113,38 +126,51 @@ class ItemBuilder {
     bool showLeading =
         leading != null && (!ResponsiveUtil.isLandscape() || forceShowClose);
     // center = ResponsiveUtil.isDesktop() ? false : center;
-    return MyAppBar(
-      key: key,
-      backgroundColor: transparent
-          ? Colors.transparent
-          : backgroundColor ?? Theme.of(context).appBarTheme.backgroundColor,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      automaticallyImplyLeading: false,
-      leadingWidth: showLeading ? 56.0 : 0.0,
-      leading: showLeading
-          ? Container(
-              margin: const EdgeInsets.only(left: 5),
-              child: buildIconButton(
-                context: context,
-                icon: Icon(leading,
-                    color: leadingColor ?? Theme.of(context).iconTheme.color),
-                onTap: onLeadingTap,
-              ),
-            )
-          : null,
-      title: center
-          ? Center(
-              child: Container(
+    return PreferredSize(
+      preferredSize: const Size(0, kToolbarHeight),
+      child: Selector<AppProvider, bool>(
+        selector: (context, provider) => provider.enableFrostedGlassEffect,
+        builder: (context, enableFrostedGlassEffect, child) => MyAppBar(
+          key: key,
+          backgroundColor: transparent
+              ? Colors.transparent
+              : backgroundColor
+                      ?.withOpacity(enableFrostedGlassEffect ? 0.2 : 1) ??
+                  Theme.of(context)
+                      .appBarTheme
+                      .backgroundColor!
+                      .withOpacity(enableFrostedGlassEffect ? 0.2 : 1),
+          useBackdropFilter: enableFrostedGlassEffect,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          automaticallyImplyLeading: false,
+          leadingWidth: showLeading ? 56.0 : 0.0,
+          leading: showLeading
+              ? Container(
+                  margin: const EdgeInsets.only(left: 5),
+                  child: buildIconButton(
+                    context: context,
+                    icon: Icon(leading,
+                        color:
+                            leadingColor ?? Theme.of(context).iconTheme.color),
+                    onTap: onLeadingTap,
+                  ),
+                )
+              : null,
+          title: center
+              ? Center(
+                  child: Container(
+                      margin: EdgeInsets.only(
+                          left: center ? 0 : (showLeading ? 4 : 20)),
+                      child: title))
+              : Container(
                   margin: EdgeInsets.only(
                       left: center ? 0 : (showLeading ? 4 : 20)),
-                  child: title))
-          : Container(
-              margin:
-                  EdgeInsets.only(left: center ? 0 : (showLeading ? 4 : 20)),
-              child: title,
-            ),
-      actions: actions,
+                  child: title,
+                ),
+          actions: actions,
+        ),
+      ),
     );
   }
 
@@ -165,10 +191,12 @@ class ItemBuilder {
     double expandedHeight = 320,
     double? collapsedHeight,
     SystemUiOverlayStyle? systemOverlayStyle,
+    bool useBackdropFilter = false,
   }) {
     bool showLeading = !ResponsiveUtil.isLandscape();
     center = ResponsiveUtil.isLandscape() ? false : center;
     return MySliverAppBar(
+      useBackdropFilter: useBackdropFilter,
       systemOverlayStyle: systemOverlayStyle,
       expandedHeight: expandedHeight,
       collapsedHeight: collapsedHeight ??
@@ -1264,12 +1292,16 @@ class ItemBuilder {
     required BuildContext context,
     required String text,
     double size = 50,
+    bool showButton = false,
+    String? buttonText,
+    Function()? onTap,
   }) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        const SizedBox(height: 10),
         AssetUtil.load(
           AssetUtil.emptyIcon,
           size: size,
@@ -1279,6 +1311,14 @@ class ItemBuilder {
           text,
           style: Theme.of(context).textTheme.labelLarge,
         ),
+        if (showButton) const SizedBox(height: 10),
+        if (showButton)
+          ItemBuilder.buildRoundButton(
+            context,
+            text: buttonText,
+            background: Theme.of(context).primaryColor,
+            onTap: onTap,
+          ),
       ],
     );
   }

@@ -25,13 +25,13 @@ NavigatorState? get desktopNavigatorState => desktopNavigatorKey.currentState;
 NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
 
 GlobalKey<GeneralSettingScreenState> generalSettingScreenKey =
-GlobalKey<GeneralSettingScreenState>();
+    GlobalKey<GeneralSettingScreenState>();
 
 GeneralSettingScreenState? get generalSettingScreenState =>
     generalSettingScreenKey.currentState;
 
 GlobalKey<DialogWrapperWidgetState> dialogNavigatorKey =
-GlobalKey<DialogWrapperWidgetState>();
+    GlobalKey<DialogWrapperWidgetState>();
 
 DialogWrapperWidgetState? get dialogNavigatorState =>
     dialogNavigatorKey.currentState;
@@ -45,7 +45,7 @@ GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
 GlobalKey<KeyboardHandlerState> keyboardHandlerKey =
-GlobalKey<KeyboardHandlerState>();
+    GlobalKey<KeyboardHandlerState>();
 
 HomeScreenState? get homeScreenState => homeScreenKey.currentState;
 
@@ -131,7 +131,7 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _enableLandscapeInTablet =
-  HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
+      HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
 
   bool get enableLandscapeInTablet => _enableLandscapeInTablet;
 
@@ -152,8 +152,8 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _showCloudBackupButton =
-  HiveUtil.getBool(HiveUtil.showCloudBackupButtonKey,
+  bool _showCloudBackupButton = HiveUtil.getBool(
+      HiveUtil.showCloudBackupButtonKey,
       defaultValue: ResponsiveUtil.isLandscape(false));
 
   bool get showCloudBackupButton => _showCloudBackupButton;
@@ -184,8 +184,7 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _showBackupLogButton =
-  HiveUtil.getBool(HiveUtil.showBackupLogButtonKey,
+  bool _showBackupLogButton = HiveUtil.getBool(HiveUtil.showBackupLogButtonKey,
       defaultValue: ResponsiveUtil.isLandscape(false));
 
   bool get showBackupLogButton => _showBackupLogButton;
@@ -207,8 +206,20 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _enableFrostedGlassEffect = HiveUtil.getBool(
+      HiveUtil.enableFrostedGlassEffectKey,
+      defaultValue: false);
+
+  bool get enableFrostedGlassEffect => _enableFrostedGlassEffect;
+
+  set enableFrostedGlassEffect(bool value) {
+    _enableFrostedGlassEffect = value;
+    HiveUtil.put(HiveUtil.enableFrostedGlassEffectKey, value);
+    notifyListeners();
+  }
+
   bool _hideAppbarWhenScrolling =
-  HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
+      HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
 
   bool get hideAppbarWhenScrolling => _hideAppbarWhenScrolling;
 
@@ -219,7 +230,7 @@ class AppProvider with ChangeNotifier {
   }
 
   bool _hideBottombarWhenScrolling =
-  HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
+      HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
 
   bool get hideBottombarWhenScrolling => _hideBottombarWhenScrolling;
 

@@ -215,6 +215,8 @@ class TokenLayoutState extends State<TokenLayout>
         return _buildTileLayout();
       case LayoutType.List:
         return _buildListLayout();
+      case LayoutType.Spotlight:
+        return _buildSpotlightLayout();
     }
   }
 
@@ -348,9 +350,9 @@ class TokenLayoutState extends State<TokenLayout>
             tokenLayoutNotifier.haveToResetHOTP,
         builder: (context, haveToResetHOTP, child) => haveToResetHOTP
             ? Container(
-                margin: const EdgeInsets.only(left: 8),
                 child: ItemBuilder.buildIconButton(
                   onTap: () {
+                    HapticFeedback.lightImpact();
                     widget.token.counterString =
                         (widget.token.counter + 1).toString();
                     TokenDao.updateTokenCounter(widget.token);
@@ -375,38 +377,33 @@ class TokenLayoutState extends State<TokenLayout>
 
   _buildCodeLayout({
     double letterSpacing = 5,
+    double fontSize = 24,
     AlignmentGeometry alignment = Alignment.centerLeft,
+    bool forceNoType = false,
   }) {
-    return Selector<AppProvider, bool>(
-      selector: (context, provider) => provider.hideProgressBar,
-      builder: (context, hideProgressBar, child) =>
-          ChangeNotifierProvider.value(
-        value: tokenLayoutNotifier,
-        child: Selector<TokenLayoutNotifier, bool>(
-          selector: (context, tokenLayoutNotifier) =>
-              tokenLayoutNotifier.codeVisiable,
-          builder: (context, codeVisiable, child) =>
-              Selector<TokenLayoutNotifier, String>(
-            selector: (context, tokenLayoutNotifier) =>
-                tokenLayoutNotifier.code,
-            builder: (context, code, child) => Container(
-              constraints: BoxConstraints(
-                  minHeight: isHOTP && !hideProgressBar ? 47 : 36),
-              alignment: alignment,
-              child: AutoSizeText(
-                codeVisiable
-                    ? code
-                    : (isHOTP ? hotpPlaceholderText : placeholderText) *
-                        widget.token.digits.digit,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 24,
-                      letterSpacing: letterSpacing,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                maxLines: 1,
-              ),
+    return ChangeNotifierProvider.value(
+      value: tokenLayoutNotifier,
+      child: Selector<TokenLayoutNotifier, bool>(
+        selector: (context, tokenLayoutNotifier) =>
+            tokenLayoutNotifier.codeVisiable,
+        builder: (context, codeVisiable, child) =>
+            Selector<TokenLayoutNotifier, String>(
+          selector: (context, tokenLayoutNotifier) => tokenLayoutNotifier.code,
+          builder: (context, code, child) => Container(
+            alignment: alignment,
+            child: AutoSizeText(
+              codeVisiable
+                  ? code
+                  : (isHOTP ? hotpPlaceholderText : placeholderText) *
+                      widget.token.digits.digit,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: fontSize,
+                    letterSpacing: letterSpacing,
+                    color: Theme.of(context).primaryColor,
+                  ),
+              maxLines: 1,
             ),
           ),
         ),
@@ -415,69 +412,71 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _buildLinearProgress() {
-    return Selector<AppProvider, bool>(
-      selector: (context, provider) => provider.hideProgressBar,
-      builder: (context, hideProgressBar, child) => hideProgressBar
-          ? const SizedBox(height: 3)
-          : isHOTP
-              ? const SizedBox(height: 6)
-              : ValueListenableBuilder(
-                  valueListenable: progressNotifier,
-                  builder: (context, progress, child) {
-                    return Container(
-                      margin: const EdgeInsets.only(top: 3, bottom: 13),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 1,
-                        color: progress > autoCopyNextCodeProgressThrehold
-                            ? Theme.of(context).primaryColor
-                            : Colors.red,
-                        borderRadius: BorderRadius.circular(5),
-                        backgroundColor: Colors.grey.withOpacity(0.3),
-                      ),
-                    );
-                  },
+    return isHOTP
+        ? const SizedBox.shrink()
+        : ValueListenableBuilder(
+            valueListenable: progressNotifier,
+            builder: (context, progress, child) {
+              return Container(
+                margin: const EdgeInsets.only(top: 3, bottom: 13),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 1,
+                  color: progress > autoCopyNextCodeProgressThrehold
+                      ? Theme.of(context).primaryColor
+                      : Colors.red,
+                  borderRadius: BorderRadius.circular(5),
+                  backgroundColor: Colors.grey.withOpacity(0.3),
                 ),
-    );
+              );
+            },
+          );
   }
 
   _buildCircleProgress() {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: Stack(
-        children: [
-          ValueListenableBuilder(
-            valueListenable: progressNotifier,
-            builder: (context, value, child) {
-              return CircularProgressIndicator(
-                value: progressNotifier.value,
-                color: progressNotifier.value > autoCopyNextCodeProgressThrehold
-                    ? Theme.of(context).primaryColor
-                    : Colors.red,
-                backgroundColor: Colors.grey.withOpacity(0.3),
-              );
-            },
-          ),
-          Center(
-            child: ValueListenableBuilder(
-              valueListenable: progressNotifier,
-              builder: (context, value, child) {
-                return Text(
-                  (remainingMilliseconds / 1000).toStringAsFixed(0),
-                  style: Theme.of(context).textTheme.bodyMedium?.apply(
-                        color:
-                            currentProgress > autoCopyNextCodeProgressThrehold
-                                ? Theme.of(context).primaryColor
-                                : Colors.red,
-                        fontSizeDelta: -2,
-                      ),
-                );
-              },
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.hideProgressBar,
+      builder: (context, hideProgressBar, child) => hideProgressBar
+          ? const SizedBox.shrink()
+          : Container(
+              width: 24,
+              height: 24,
+              margin: const EdgeInsets.only(left: 8),
+              child: Stack(
+                children: [
+                  ValueListenableBuilder(
+                    valueListenable: progressNotifier,
+                    builder: (context, value, child) {
+                      return CircularProgressIndicator(
+                        value: progressNotifier.value,
+                        color: progressNotifier.value >
+                                autoCopyNextCodeProgressThrehold
+                            ? Theme.of(context).primaryColor
+                            : Colors.red,
+                        backgroundColor: Colors.grey.withOpacity(0.3),
+                      );
+                    },
+                  ),
+                  Center(
+                    child: ValueListenableBuilder(
+                      valueListenable: progressNotifier,
+                      builder: (context, value, child) {
+                        return Text(
+                          (remainingMilliseconds / 1000).toStringAsFixed(0),
+                          style: Theme.of(context).textTheme.bodyMedium?.apply(
+                                color: currentProgress >
+                                        autoCopyNextCodeProgressThrehold
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.red,
+                                fontSizeDelta: -2,
+                              ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -549,10 +548,24 @@ class TokenLayoutState extends State<TokenLayout>
                   ],
                 ),
                 const SizedBox(height: 8),
-                _buildCodeLayout(
-                    letterSpacing: 10, alignment: Alignment.center),
-                const SizedBox(height: 5),
-                _buildLinearProgress(),
+                Selector<AppProvider, bool>(
+                  selector: (context, provider) => provider.hideProgressBar,
+                  builder: (context, hideProgressBar, child) => Container(
+                    constraints: BoxConstraints(
+                      minHeight: hideProgressBar ? 42 : 58,
+                      maxHeight: hideProgressBar ? 42 : 58,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildCodeLayout(
+                            letterSpacing: 10, alignment: Alignment.center),
+                        const SizedBox(height: 5),
+                        if (!hideProgressBar) _buildLinearProgress(),
+                      ],
+                    ),
+                  ),
+                )
               ],
             ),
           ),
@@ -562,6 +575,7 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _buildCompactLayout() {
+    TextTheme textTheme = Theme.of(context).textTheme;
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
@@ -609,28 +623,46 @@ class TokenLayoutState extends State<TokenLayout>
                   ],
                 ),
                 const SizedBox(height: 6),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(child: _buildCodeLayout()),
-                    if (isHOTP)
-                      _buildHOTPRefreshButton(
-                        padding: 4,
-                        color: Theme.of(context).textTheme.labelSmall?.color,
-                      ),
-                    ItemBuilder.buildIconButton(
-                      context: context,
-                      padding: const EdgeInsets.all(4),
-                      icon: Icon(
-                        Icons.more_vert_rounded,
-                        color: Theme.of(context).textTheme.labelSmall?.color,
-                        size: 20,
-                      ),
-                      onTap: showContextMenu,
+                Selector<AppProvider, bool>(
+                  selector: (context, provider) => provider.hideProgressBar,
+                  builder: (context, hideProgressBar, child) => Container(
+                    constraints: BoxConstraints(
+                      minHeight: hideProgressBar ? 39 : 53,
+                      maxHeight: hideProgressBar ? 39 : 53,
                     ),
-                  ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(child: _buildCodeLayout()),
+                            if (isHOTP)
+                              _buildHOTPRefreshButton(
+                                padding: 4,
+                                color: textTheme.labelSmall?.color,
+                              ),
+                            ItemBuilder.buildIconButton(
+                              context: context,
+                              padding: const EdgeInsets.all(4),
+                              icon: Icon(
+                                Icons.more_vert_rounded,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.color,
+                                size: 20,
+                              ),
+                              onTap: showContextMenu,
+                            ),
+                          ],
+                        ),
+                        if (!hideProgressBar) _buildLinearProgress(),
+                        if (hideProgressBar) const SizedBox(height: 2),
+                      ],
+                    ),
+                  ),
                 ),
-                _buildLinearProgress(),
               ],
             ),
           ),
@@ -705,13 +737,95 @@ class TokenLayoutState extends State<TokenLayout>
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [_buildCodeLayout()],
+                const SizedBox(height: 4),
+                Selector<AppProvider, bool>(
+                  selector: (context, provider) => provider.hideProgressBar,
+                  builder: (context, hideProgressBar, child) => Container(
+                    constraints: BoxConstraints(
+                      minHeight: hideProgressBar ? 49 : 62,
+                      maxHeight: hideProgressBar ? 49 : 62,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [_buildCodeLayout(fontSize: 30)],
+                        ),
+                        if (!hideProgressBar) _buildLinearProgress(),
+                        if (hideProgressBar) const SizedBox(height: 4),
+                      ],
+                    ),
+                  ),
                 ),
-                _buildLinearProgress(),
-                const SizedBox(height: 2),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  _buildSpotlightLayout() {
+    return ItemBuilder.buildClickItem(
+      Material(
+        color: widget.token.pinned
+            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            : Theme.of(context).canvasColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.hardEdge,
+        child: InkWell(
+          onTap: _processTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+            padding:
+                const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 3),
+            child: Row(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(bottom: 3),
+                  child: ItemBuilder.buildTokenImage(widget.token, size: 36),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    constraints:
+                        const BoxConstraints(maxHeight: 85, minHeight: 85),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.token.issuer,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.apply(fontWeightDelta: 2),
+                        ),
+                        if (widget.token.account.isNotEmpty)
+                          Text(
+                            widget.token.account,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        Container(
+                          constraints: const BoxConstraints(
+                              maxHeight: 45, minHeight: 45),
+                          child: _buildCodeLayout(
+                              fontSize: 30, forceNoType: false),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                isHOTP ? _buildHOTPRefreshButton() : _buildCircleProgress(),
+                const SizedBox(width: 2),
               ],
             ),
           ),
@@ -726,13 +840,13 @@ class TokenLayoutState extends State<TokenLayout>
         color: widget.token.pinned
             ? Theme.of(context).primaryColor.withOpacity(0.2)
             : Theme.of(context).canvasColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: _processTap,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Row(
               children: [
@@ -750,7 +864,6 @@ class TokenLayoutState extends State<TokenLayout>
                   ),
                 ),
                 _buildCodeLayout(),
-                if (!isHOTP) const SizedBox(width: 8),
                 if (!isHOTP) _buildCircleProgress(),
                 if (isHOTP)
                   _buildHOTPRefreshButton(

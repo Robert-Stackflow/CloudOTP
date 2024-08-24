@@ -56,6 +56,7 @@ class HiveUtil {
   static const String showSortButtonKey = "showSortButton";
   static const String showLayoutButtonKey = "showLayoutButton";
   static const String showBackupLogButtonKey = "showBackupLogButton";
+  static const String enableFrostedGlassEffectKey = "enableFrostedGlassEffect";
   static const String hideAppbarWhenScrollingKey = "hideAppbarWhenScrolling";
   static const String hideBottombarWhenScrollingKey =
       "hideBottombarWhenScrolling";

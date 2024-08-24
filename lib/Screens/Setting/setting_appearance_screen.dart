@@ -38,6 +38,9 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       HiveUtil.showCloudBackupButtonKey,
       defaultValue: ResponsiveUtil.isLandscape());
 
+  bool enableFrostedGlassEffect = HiveUtil.getBool(
+      HiveUtil.enableFrostedGlassEffectKey,
+      defaultValue: false);
   bool hideAppbarWhenScrolling =
       HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
   bool hideBottombarWhenScrolling =
@@ -66,7 +69,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       child: Scaffold(
         appBar: ResponsiveUtil.isLandscape()
             ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.generalSetting,
+                title: S.current.appearanceSetting,
                 context: context,
                 transparent: true,
               )
@@ -78,7 +81,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
                   Navigator.pop(context);
                 },
                 title: Text(
-                  S.current.generalSetting,
+                  S.current.appearanceSetting,
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -248,6 +251,17 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
             });
           },
         ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: enableFrostedGlassEffect,
+        title: S.current.enableFrostedGlassEffect,
+        onTap: () {
+          setState(() {
+            enableFrostedGlassEffect = !enableFrostedGlassEffect;
+            appProvider.enableFrostedGlassEffect = enableFrostedGlassEffect;
+          });
+        },
+      ),
       ItemBuilder.buildRadioItem(
         context: context,
         value: hideAppbarWhenScrolling,

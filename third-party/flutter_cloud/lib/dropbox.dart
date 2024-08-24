@@ -15,7 +15,7 @@ import 'oauth2_helper.dart';
 
 class Dropbox with ChangeNotifier {
   static const String authEndpoint = "https://www.dropbox.com/oauth2/authorize";
-  static const String tokenEndpoint = "https://www.dropbox.com/oauth2/token";
+  static const String tokenEndpoint = "https://api.dropbox.com/oauth2/token";
   static const String revokeEndpoint =
       "https://api.dropboxapi.com/2/auth/token/revoke";
   static const String apiContentEndpoint = "https://content.dropboxapi.com/2";

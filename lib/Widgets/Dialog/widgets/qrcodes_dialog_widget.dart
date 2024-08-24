@@ -135,7 +135,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                     currentPage == widget.qrcodes.length - 1
                         ? ItemBuilder.buildRoundButton(
                             context,
-                            text: S.current.confirm,
+                            text: S.current.complete,
                             background: Theme.of(context).primaryColor,
                             onTap: () {
                               Navigator.of(context).pop();

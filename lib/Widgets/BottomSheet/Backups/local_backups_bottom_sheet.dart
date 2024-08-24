@@ -32,6 +32,8 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
     ExportTokenUtil.getLocalBackups().then((value) {
       setState(() {
         files = value;
+        files.sort(
+            (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       });
     });
     super.initState();

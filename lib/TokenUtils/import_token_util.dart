@@ -140,12 +140,26 @@ class ImportTokenUtil {
             .delete(recursive: true);
         await file.delete(recursive: true);
       }
-      res = await ImportTokenUtil.analyzeImage(imageBytes,
-          context: context, showLoading: false);
+      res = await ImportTokenUtil.analyzeImage(
+        imageBytes,
+        context: context,
+        showLoading: false,
+        showSingleTokenDialog: false,
+      );
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
       }
+    }
+    if (res[0].length == 1) {
+      BottomSheetBuilder.showBottomSheet(
+        context,
+        responsive: true,
+        (context) => TokenOptionBottomSheet(
+          token: res[0].first,
+          forceShowCode: true,
+        ),
+      );
     }
     return res;
   }
@@ -154,6 +168,7 @@ class ImportTokenUtil {
     Uint8List? imageBytes, {
     required BuildContext context,
     bool showLoading = true,
+    bool showSingleTokenDialog = true,
   }) async {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.analyzing);
@@ -200,7 +215,7 @@ class ImportTokenUtil {
         CustomLoadingDialog.dismissLoading();
       }
     }
-    if (tokens.length == 1) {
+    if (tokens.length == 1 && showSingleTokenDialog) {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,

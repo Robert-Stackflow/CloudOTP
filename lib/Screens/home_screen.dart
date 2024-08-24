@@ -66,7 +66,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   ScrollController _scrollController = ScrollController();
   final ScrollController _nestScrollController = ScrollController();
-  final ScrollToHideController _scrollToHideController =
+  final ScrollToHideController _fabScrollToHideController =
+      ScrollToHideController();
+  final ScrollToHideController _bottombarScrollToHideController =
       ScrollToHideController();
   final TextEditingController _searchController = TextEditingController();
   final PageController _marqueeController = PageController();
@@ -296,12 +298,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               },
               child: _buildMobileBody(),
             ),
-      bottomNavigationBar: ResponsiveUtil.isLandscape() || categories.isEmpty
-          ? null
-          : _buildMobileBottombar(),
-      floatingActionButton: !ResponsiveUtil.isLandscape() && categories.isEmpty
-          ? _buildFloatingActionButton()
-          : null,
+      bottomNavigationBar:
+          ResponsiveUtil.isLandscape() ? null : _buildMobileBottombar(),
+      floatingActionButton:
+          ResponsiveUtil.isLandscape() ? null : _buildFloatingActionButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
+      extendBody: true,
     );
   }
 
@@ -338,7 +340,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  _buildFloatingActionButton([bool scrollTohide = true]) {
+  _buildFloatingActionButton() {
     var button = FloatingActionButton(
       heroTag: "Hero-${categories.length}",
       onPressed: () {
@@ -353,16 +355,18 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       backgroundColor: Theme.of(context).primaryColor,
       child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 28),
     );
-    return scrollTohide
-        ? ScrollToHide(
-            scrollController: _scrollController,
-            controller: _scrollToHideController,
-            height: kToolbarHeight,
-            duration: const Duration(milliseconds: 300),
-            hideDirection: Axis.vertical,
-            child: button,
-          )
-        : button;
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.hideBottombarWhenScrolling,
+      builder: (context, hideBottombarWhenScrolling, child) => ScrollToHide(
+        enabled: hideBottombarWhenScrolling || categories.isEmpty,
+        scrollController: _scrollController,
+        controller: _fabScrollToHideController,
+        height: kToolbarHeight,
+        duration: const Duration(milliseconds: 300),
+        hideDirection: Axis.vertical,
+        child: button,
+      ),
+    );
   }
 
   getActions(AppProvider provider) {
@@ -507,9 +511,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         builder: (context, shownSearchbar, child) =>
             ItemBuilder.buildSliverAppBar(
           context: context,
+          useBackdropFilter: provider.enableFrostedGlassEffect,
           floating: provider.hideAppbarWhenScrolling,
           pinned: !provider.hideAppbarWhenScrolling,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: Theme.of(context)
+              .scaffoldBackgroundColor
+              .withOpacity(provider.enableFrostedGlassEffect ? 0.2 : 1),
           title: SizedBox(
             height: kToolbarHeight,
             child: MarqueeWidget(
@@ -585,45 +592,53 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     double height = kToolbarHeight + verticalPadding * 2;
     return Selector<AppProvider, bool>(
       selector: (context, provider) => provider.hideBottombarWhenScrolling,
-      builder: (context, hideBottombarWhenScrolling, child) => ScrollToHide(
-        enabled: hideBottombarWhenScrolling,
-        scrollController: _scrollController,
-        controller: _scrollToHideController,
-        height: height,
-        duration: const Duration(milliseconds: 300),
-        hideDirection: Axis.vertical,
-        child: Stack(
-          children: [
-            ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  alignment: Alignment.centerLeft,
-                  height: height,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor.withOpacity(0.9),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).shadowColor.withAlpha(127),
-                        blurRadius: Utils.isDark(context) ? 50 : 10,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding)
-                      .copyWith(right: 70),
-                  child:
-                      _buildTabBar(const EdgeInsets.only(left: 10, right: 10)),
+      builder: (context, hideBottombarWhenScrolling, child) =>
+          Selector<AppProvider, bool>(
+        selector: (context, provider) => provider.enableFrostedGlassEffect,
+        builder: (context, enableFrostedGlassEffect, child) {
+          var container = Container(
+            alignment: Alignment.centerLeft,
+            height: height,
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .canvasColor
+                  .withOpacity(enableFrostedGlassEffect ? 0.2 : 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor.withAlpha(127),
+                  blurRadius: Utils.isDark(context) ? 50 : 10,
+                  spreadRadius: 1,
                 ),
-              ),
+              ],
             ),
-            Positioned(
-              top: verticalPadding,
-              right: 15,
-              child: _buildFloatingActionButton(false),
-            ),
-          ],
-        ),
+            padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding)
+                .copyWith(right: 70),
+            child: _buildTabBar(const EdgeInsets.only(left: 10, right: 10)),
+          );
+          return ScrollToHide(
+            enabled: hideBottombarWhenScrolling,
+            scrollController: _scrollController,
+            controller: _bottombarScrollToHideController,
+            height: height,
+            duration: const Duration(milliseconds: 300),
+            hideDirection: Axis.vertical,
+            child: categories.isEmpty
+                ? IgnorePointer(
+                    child: Container(
+                      height: height,
+                      decoration: const BoxDecoration(color: Color(0x00ffffff)),
+                    ),
+                  )
+                : enableFrostedGlassEffect
+                    ? ClipRRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: container,
+                        ),
+                      )
+                    : container,
+          );
+        },
       ),
     );
   }
@@ -656,10 +671,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             return true;
           },
           onReorderStart: (_) {
-            _scrollToHideController.hide();
+            _fabScrollToHideController.hide();
+            _bottombarScrollToHideController.hide();
           },
           onReorderEnd: (_, __) {
-            _scrollToHideController.show();
+            _fabScrollToHideController.show();
+            _bottombarScrollToHideController.show();
           },
           onReorder: (int oldIndex, int newIndex) async {
             final item = tokens.removeAt(oldIndex);
@@ -668,19 +685,20 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               tokens[i].seq = tokens.length - i;
             }
             await TokenDao.updateTokens(tokens, autoBackup: false);
-            changeOrderType(type: OrderType.Default, doPerformSort: true);
+            changeOrderType(type: OrderType.Default, doPerformSort: false);
           },
           proxyDecorator:
               (Widget child, int index, Animation<double> animation) {
             return Container(
               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).shadowColor,
+                    color: Theme.of(rootContext).shadowColor,
                     offset: const Offset(0, 4),
                     blurRadius: 10,
                     spreadRadius: 1,
-                  ).scale(2),
+                  ).scale(2)
                 ],
               ),
               child: child,
@@ -825,49 +843,55 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  _buildTabContextMenuButtons(TokenCategory? category) {
-    addCategory() async {
-      InputValidateAsyncController validateAsyncController =
-          InputValidateAsyncController(
-        validator: (text) async {
+  static addCategory(
+    BuildContext context, {
+    Function(TokenCategory)? onAdded,
+  }) async {
+    InputValidateAsyncController validateAsyncController =
+        InputValidateAsyncController(
+      validator: (text) async {
+        if (text.isEmpty) {
+          return S.current.categoryNameCannotBeEmpty;
+        }
+        if (await CategoryDao.isCategoryExist(text)) {
+          return S.current.categoryNameDuplicate;
+        }
+        return null;
+      },
+      controller: TextEditingController(),
+    );
+    BottomSheetBuilder.showBottomSheet(
+      context,
+      responsive: true,
+      (context) => InputBottomSheet(
+        title: S.current.addCategory,
+        hint: S.current.inputCategory,
+        validator: (text) {
           if (text.isEmpty) {
             return S.current.categoryNameCannotBeEmpty;
           }
-          if (await CategoryDao.isCategoryExist(text)) {
-            return S.current.categoryNameDuplicate;
-          }
           return null;
         },
-        controller: TextEditingController(),
-      );
-      BottomSheetBuilder.showBottomSheet(
-        context,
-        responsive: true,
-        (context) => InputBottomSheet(
-          title: S.current.addCategory,
-          hint: S.current.inputCategory,
-          validator: (text) {
-            if (text.isEmpty) {
-              return S.current.categoryNameCannotBeEmpty;
-            }
-            return null;
-          },
-          validateAsyncController: validateAsyncController,
-          maxLength: 32,
-          onValidConfirm: (text) async {
-            await CategoryDao.insertCategory(TokenCategory.title(title: text));
-            refreshCategories();
-            return true;
-          },
-        ),
-      );
-    }
+        checkSyncValidator: false,
+        validateAsyncController: validateAsyncController,
+        maxLength: 32,
+        onValidConfirm: (text) async {
+          TokenCategory category = TokenCategory.title(title: text);
+          await CategoryDao.insertCategory(category);
+          homeScreenState?.refreshCategories();
+          onAdded?.call(category);
+          return true;
+        },
+      ),
+    );
+  }
 
+  _buildTabContextMenuButtons(TokenCategory? category) {
     if (category == null) {
       return GenericContextMenu(
         buttonConfigs: [
           ContextMenuButtonConfig(S.current.addCategory, onPressed: () {
-            addCategory();
+            addCategory(context);
           }),
         ],
       );
@@ -886,7 +910,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }),
         ContextMenuButtonConfig.divider(),
         ContextMenuButtonConfig(S.current.addCategory, onPressed: () {
-          addCategory();
+          addCategory(context);
         }),
         ContextMenuButtonConfig.warning(
           S.current.deleteCategory,
@@ -1007,7 +1031,8 @@ enum LayoutType {
   Simple,
   Compact,
   Tile,
-  List;
+  List,
+  Spotlight;
 
   double get maxCrossAxisExtent {
     switch (this) {
@@ -1019,19 +1044,23 @@ enum LayoutType {
         return 420;
       case LayoutType.List:
         return 480;
+      case LayoutType.Spotlight:
+        return 480;
     }
   }
 
   double getHeight([bool hideProgressBar = false]) {
     switch (this) {
       case LayoutType.Simple:
-        return hideProgressBar ? 96 : 110;
+        return hideProgressBar ? 94 : 110;
       case LayoutType.Compact:
         return hideProgressBar ? 97 : 111;
       case LayoutType.Tile:
-        return hideProgressBar ? 101 : 115;
+        return hideProgressBar ? 105 : 118;
       case LayoutType.List:
         return 60;
+      case LayoutType.Spotlight:
+        return 98;
     }
   }
 }
