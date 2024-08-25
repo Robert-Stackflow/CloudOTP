@@ -411,7 +411,8 @@ class ImportTokenUtil {
     try {
       await importUint8List(content, password: password);
       return true;
-    } catch (e) {
+    } catch (e, t) {
+      print("$e\n$t");
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
         if (e is InvalidPasswordOrDataCorruptedException) {
@@ -509,6 +510,10 @@ class ImportTokenUtil {
     List<TokenCategory> categoryList,
   ) {
     for (TokenCategory tokenCategory in categoryList) {
+      if (tokenCategory.uid == category.uid &&
+          tokenCategory.title != category.title) {
+        category.uid = Utils.generateUid();
+      }
       if (tokenCategory.title == category.title) {
         return true;
       }

@@ -120,6 +120,8 @@ class TokenCategoryParameters extends $pb.GeneratedMessage {
     $core.String? description,
     $core.String? tokenIds,
     $core.String? remark,
+    $core.String? uid,
+    $core.String? bindings,
   }) {
     final $result = create();
     if (secret != null) {
@@ -137,6 +139,12 @@ class TokenCategoryParameters extends $pb.GeneratedMessage {
     if (remark != null) {
       $result.remark = remark;
     }
+    if (uid != null) {
+      $result.uid = uid;
+    }
+    if (bindings != null) {
+      $result.bindings = bindings;
+    }
     return $result;
   }
   TokenCategoryParameters._() : super();
@@ -149,6 +157,8 @@ class TokenCategoryParameters extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'description')
     ..aOS(4, _omitFieldNames ? '' : 'tokenIds', protoName: 'tokenIds')
     ..aOS(5, _omitFieldNames ? '' : 'remark')
+    ..aOS(6, _omitFieldNames ? '' : 'uid')
+    ..aOS(7, _omitFieldNames ? '' : 'bindings')
     ..hasRequiredFields = false
   ;
 
@@ -217,6 +227,24 @@ class TokenCategoryParameters extends $pb.GeneratedMessage {
   $core.bool hasRemark() => $_has(4);
   @$pb.TagNumber(5)
   void clearRemark() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get uid => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set uid($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasUid() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearUid() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get bindings => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set bindings($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasBindings() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearBindings() => clearField(7);
 }
 
 

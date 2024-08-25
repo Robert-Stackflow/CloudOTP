@@ -7,7 +7,6 @@ import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
-import 'package:cloudotp/Models/config.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_v1.dart';
@@ -510,6 +509,7 @@ class ExportTokenUtil {
     }
     List<String> tokenQrcodes = [];
     List<String> categoryQrcodes = [];
+    List<String> bindingQrcodes = [];
     try {
       List<OtpToken> tokens = await TokenDao.listTokens();
       CloudOtpTokenPayload payload = CloudOtpTokenPayload.create();
@@ -534,7 +534,9 @@ class ExportTokenUtil {
       TokenCategoryPayload categoryPayload = TokenCategoryPayload.create();
       preRes = "";
       for (TokenCategory category in categories) {
-        categoryPayload.categoryParameters.add(category.toCategoryParameters());
+        TokenCategoryParameters parameters =
+            await category.toCategoryParameters();
+        categoryPayload.categoryParameters.add(parameters);
         String currentRes = base64Encode(categoryPayload.writeToBuffer());
         if (currentRes.bytesLength > maxBytesLength) {
           categoryQrcodes.add(preRes);
@@ -551,7 +553,8 @@ class ExportTokenUtil {
           .toList();
       tokenQrcodes.addAll(categoryQrcodes);
       return tokenQrcodes;
-    } catch (e) {
+    } catch (e, t) {
+      print("$e\n$t");
       return null;
     } finally {
       if (showLoading) {

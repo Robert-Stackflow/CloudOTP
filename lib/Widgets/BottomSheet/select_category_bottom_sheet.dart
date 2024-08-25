@@ -1,3 +1,4 @@
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -17,14 +18,14 @@ class SelectCategoryBottomSheet extends StatefulWidget {
     required this.token,
     this.isEditingToken = false,
     this.onCategoryChanged,
-    this.initialCategoryIds,
+    this.initialCategorUids,
   });
 
   final OtpToken token;
   final bool isEditingToken;
-  final List<int>? initialCategoryIds;
+  final List<String>? initialCategorUids;
 
-  final Function(List<int>)? onCategoryChanged;
+  final Function(List<String>)? onCategoryChanged;
 
   @override
   SelectCategoryBottomSheetState createState() =>
@@ -34,7 +35,7 @@ class SelectCategoryBottomSheet extends StatefulWidget {
 class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
   List<TokenCategory> categories = [];
   GroupButtonController controller = GroupButtonController();
-  List<int> oldCategoryIds = [];
+  List<String> oldCategoryUids = [];
 
   @override
   void initState() {
@@ -44,17 +45,17 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
 
   getCategories() async {
     if (widget.isEditingToken) {
-      oldCategoryIds = widget.initialCategoryIds ?? [];
+      oldCategoryUids = widget.initialCategorUids ?? [];
     } else {
-      oldCategoryIds =
-          await CategoryDao.getCategoryIdsByTokenId(widget.token.id);
+      oldCategoryUids = await BindingDao.getCategoryUids(widget.token.uid);
     }
+    setState(() {});
     await CategoryDao.listCategories().then((value) async {
       setState(() {
         categories = value;
         List<int> initSelectedIndexes = [];
         for (int i = 0; i < categories.length; i++) {
-          if (oldCategoryIds.contains(categories[i].id)) {
+          if (oldCategoryUids.contains(categories[i].uid)) {
             initSelectedIndexes.add(i);
           }
         }
@@ -156,28 +157,26 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
                 onTap: () async {
                   List<int> selectedIndexes =
                       controller.selectedIndexes.toList();
-                  List<int> allSelectedCategoryIds =
-                      selectedIndexes.map((e) => categories[e].id).toList();
-                  List<int> unselectedCategoryIds = oldCategoryIds
+                  List<String> allSelectedCategoryUids =
+                      selectedIndexes.map((e) => categories[e].uid).toList();
+                  List<String> unselectedCategoryUids = oldCategoryUids
                       .where((element) =>
-                          !allSelectedCategoryIds.contains(element))
+                          !allSelectedCategoryUids.contains(element))
                       .toList();
-                  List<int> newSelectedCategoryIds = allSelectedCategoryIds
-                      .where((element) => !oldCategoryIds.contains(element))
+                  List<String> newSelectedCategoryUids = allSelectedCategoryUids
+                      .where((element) => !oldCategoryUids.contains(element))
                       .toList();
                   Navigator.of(context).pop();
-                  widget.onCategoryChanged?.call(allSelectedCategoryIds);
+                  widget.onCategoryChanged?.call(allSelectedCategoryUids);
                   if (!widget.isEditingToken) {
-                    await CategoryDao.updateCategoriesForToken(
-                      widget.token.id,
-                      unselectedCategoryIds,
-                      newSelectedCategoryIds,
-                      // backup: true,
-                    );
+                    await BindingDao.bingdingsForToken(
+                        widget.token.uid, newSelectedCategoryUids);
+                    await BindingDao.unBingdingsForToken(
+                        widget.token.uid, unselectedCategoryUids);
                     homeScreenState?.changeCategoriesForToken(
                       widget.token,
-                      unselectedCategoryIds,
-                      newSelectedCategoryIds,
+                      unselectedCategoryUids,
+                      newSelectedCategoryUids,
                     );
                     IToast.showTop(S.current.saveSuccess);
                   }

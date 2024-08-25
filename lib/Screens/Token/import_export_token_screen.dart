@@ -1,4 +1,5 @@
 import 'package:cloudotp/Database/config_dao.dart';
+import 'package:cloudotp/TokenUtils/ThirdParty/2fas_importer.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
@@ -321,8 +322,8 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             context: context, title: S.current.importFromThirdParty),
         ItemBuilder.buildEntryItem(
           context: context,
-          title: S.current.importFromGoogleAuthenticator,
           bottomRadius: true,
+          title: S.current.importFromGoogleAuthenticator,
           description: S.current.importFromGoogleAuthenticatorTip,
           onTap: () async {
             if (ResponsiveUtil.isMobile()) {
@@ -334,6 +335,23 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             }
           },
         ),
+        // ItemBuilder.buildEntryItem(
+        //   context: context,
+        //   bottomRadius: true,
+        //   title: S.current.importFrom2FAS,
+        //   description: S.current.importFrom2FASTip,
+        //   onTap: () async {
+        //     FilePickerResult? result = await FilePicker.platform.pickFiles(
+        //       dialogTitle: S.current.importFrom2FASTitle,
+        //       type: FileType.custom,
+        //       allowedExtensions: ['2fas'],
+        //       lockParentWindow: true,
+        //     );
+        //     if (result != null) {
+        //       TwoFASTokenImporter().importerFromPath(result.files.single.path!);
+        //     }
+        //   },
+        // ),
         const SizedBox(height: 10),
         ItemBuilder.buildCaptionItem(
             context: context, title: S.current.exportToThirdParty),

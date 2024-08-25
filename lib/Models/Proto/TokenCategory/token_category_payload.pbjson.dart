@@ -41,6 +41,8 @@ const TokenCategoryParameters$json = {
     {'1': 'description', '3': 3, '4': 1, '5': 9, '10': 'description'},
     {'1': 'tokenIds', '3': 4, '4': 1, '5': 9, '10': 'tokenIds'},
     {'1': 'remark', '3': 5, '4': 1, '5': 9, '10': 'remark'},
+    {'1': 'uid', '3': 6, '4': 1, '5': 9, '10': 'uid'},
+    {'1': 'bindings', '3': 7, '4': 1, '5': 9, '10': 'bindings'},
   ],
 };
 
@@ -48,5 +50,6 @@ const TokenCategoryParameters$json = {
 final $typed_data.Uint8List tokenCategoryParametersDescriptor = $convert.base64Decode(
     'ChdUb2tlbkNhdGVnb3J5UGFyYW1ldGVycxIWCgZzZWNyZXQYASABKAxSBnNlY3JldBIUCgV0aX'
     'RsZRgCIAEoCVIFdGl0bGUSIAoLZGVzY3JpcHRpb24YAyABKAlSC2Rlc2NyaXB0aW9uEhoKCHRv'
-    'a2VuSWRzGAQgASgJUgh0b2tlbklkcxIWCgZyZW1hcmsYBSABKAlSBnJlbWFyaw==');
+    'a2VuSWRzGAQgASgJUgh0b2tlbklkcxIWCgZyZW1hcmsYBSABKAlSBnJlbWFyaxIQCgN1aWQYBi'
+    'ABKAlSA3VpZBIaCghiaW5kaW5ncxgHIAEoCVIIYmluZGluZ3M=');
 

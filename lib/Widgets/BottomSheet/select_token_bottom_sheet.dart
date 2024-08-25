@@ -1,3 +1,4 @@
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class SelectTokenBottomSheet extends StatefulWidget {
 
 class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   List<OtpToken> tokens = [];
+  List<String> oldSelectedUids = [];
   GroupButtonController controller = GroupButtonController();
 
   @override
@@ -34,18 +36,16 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   }
 
   getTokens() async {
-    await TokenDao.listTokens().then((value) {
-      setState(() {
-        tokens = value;
-        List<int> initSelectedIndexes = [];
-        for (int i = 0; i < tokens.length; i++) {
-          if (widget.category.tokenIds.contains(tokens[i].id)) {
-            initSelectedIndexes.add(i);
-          }
-        }
-        controller.selectIndexes(initSelectedIndexes);
-      });
-    });
+    tokens = await TokenDao.listTokens();
+    oldSelectedUids = await BindingDao.getTokenUids(widget.category.uid);
+    setState(() {});
+    List<int> initSelectedIndexes = [];
+    for (int i = 0; i < tokens.length; i++) {
+      if (oldSelectedUids.contains(tokens[i].uid)) {
+        initSelectedIndexes.add(i);
+      }
+    }
+    controller.selectIndexes(initSelectedIndexes);
   }
 
   @override
@@ -123,9 +123,18 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
               text: S.current.save,
               onTap: () async {
                 List<int> selectedIndexes = controller.selectedIndexes.toList();
-                List<int> tokenIds =
-                    selectedIndexes.map((e) => tokens[e].id).toList();
-                widget.category.tokenIds = tokenIds;
+                List<String> tokenUids =
+                    selectedIndexes.map((e) => tokens[e].uid).toList();
+                List<String> unSelectedUids = oldSelectedUids
+                    .where((element) => !tokenUids.contains(element))
+                    .toList();
+                List<String> newSelectedUids = tokenUids
+                    .where((element) => !oldSelectedUids.contains(element))
+                    .toList();
+                await BindingDao.bingdingsForCategory(
+                    widget.category.uid, newSelectedUids);
+                await BindingDao.unBingdingsForCategory(
+                    widget.category.uid, unSelectedUids);
                 await CategoryDao.updateCategory(widget.category);
                 homeScreenState?.changeTokensForCategory(widget.category);
                 IToast.showTop(S.current.saveSuccess);

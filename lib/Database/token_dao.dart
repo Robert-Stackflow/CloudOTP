@@ -1,5 +1,5 @@
-import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/database_manager.dart';
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -88,9 +88,10 @@ class TokenDao {
   static Future<int> updateTokens(
     List<OtpToken> tokens, {
     bool autoBackup = true,
+    Database? overrideDb,
   }) async {
     if (tokens.isEmpty) return 0;
-    final db = await DatabaseManager.getDataBase();
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (OtpToken token in tokens) {
       token.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
@@ -169,7 +170,7 @@ class TokenDao {
 
   static Future<int> deleteToken(OtpToken token) async {
     final db = await DatabaseManager.getDataBase();
-    await CategoryDao.deleteToken(token.id);
+    await BindingDao.removeTokenBindings(token.uid);
     int id = await db.delete(
       tableName,
       where: 'id = ?',
@@ -183,8 +184,9 @@ class TokenDao {
   static Future<List<OtpToken>> listTokens({
     String searchKey = "",
     String orderBy = "",
+    Database? overrideDb,
   }) async {
-    final db = await DatabaseManager.getDataBase();
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     final List<Map<String, dynamic>> maps = await db.query(
       tableName,
       orderBy: "pinned DESC, seq DESC${orderBy.isEmpty ? "" : ", $orderBy"}",
@@ -206,6 +208,23 @@ class TokenDao {
         tableName,
         where: searchKey.isEmpty ? 'id = ?' : 'id = ? AND issuer LIKE ?',
         whereArgs: searchKey.isEmpty ? [id] : [id, "%$searchKey%"],
+      );
+      return OtpToken.fromMap(maps[0]);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<OtpToken?> getTokenByUid(
+    String uid, {
+    String searchKey = "",
+  }) async {
+    try {
+      final db = await DatabaseManager.getDataBase();
+      List<Map<String, dynamic>> maps = await db.query(
+        tableName,
+        where: searchKey.isEmpty ? 'uid = ?' : 'uid = ? AND issuer LIKE ?',
+        whereArgs: searchKey.isEmpty ? [uid] : [uid, "%$searchKey%"],
       );
       return OtpToken.fromMap(maps[0]);
     } catch (_) {

@@ -4,9 +4,7 @@ import 'dart:math';
 
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
-import 'package:cloudotp/Resources/colors.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
-import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
@@ -17,7 +15,6 @@ import 'package:cloudotp/Utils/constant.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
-import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Window/window_caption.dart';
@@ -32,6 +29,7 @@ import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../Resources/colors.dart';
 import '../Resources/fonts.dart';
 import '../TokenUtils/import_token_util.dart';
 import '../Utils/app_provider.dart';
@@ -41,6 +39,7 @@ import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
 import '../Utils/utils.dart';
+import '../Widgets/Custom/loading_icon.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
 import '../Widgets/Scaffold/my_scaffold.dart';
@@ -48,6 +47,7 @@ import '../Widgets/Window/window_button.dart';
 import '../generated/l10n.dart';
 import 'Backup/cloud_service_screen.dart';
 import 'Lock/pin_verify_screen.dart';
+import 'Setting/backup_log_screen.dart';
 import 'Setting/setting_safe_screen.dart';
 import 'Token/category_screen.dart';
 
@@ -267,8 +267,21 @@ class MainScreenState extends State<MainScreen>
   _buildDesktopBody() {
     return MyScaffold(
       resizeToAvoidBottomInset: false,
-      body: Row(
-        children: [_sideBar(), _desktopMainContent()],
+      body: Column(
+        children: [
+          Container(
+            color: Theme.of(context).canvasColor.withOpacity(0),
+            child: _titleBar(),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                _sideBar(),
+                _desktopMainContent(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -466,290 +479,299 @@ class MainScreenState extends State<MainScreen>
   }
 
   _sideBar() {
-    return SizedBox(
+    return Container(
       width: 56,
-      child: Container(
-        color: Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Stack(
-          children: [
-            if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
-            Consumer<AppProvider>(
-              builder: (context, provider, child) => Column(
-                children: [
-                  const SizedBox(height: 80),
+      alignment: Alignment.center,
+      color: Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Stack(
+        children: [
+          if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
+          Consumer<AppProvider>(
+            builder: (context, provider, child) => Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 9),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  text: S.current.addToken,
+                  direction: Axis.vertical,
+                  showText: false,
+                  fontSizeDelta: -2,
+                  icon: const Icon(Icons.add_rounded),
+                  onTap: () async {
+                    DialogBuilder.showPageDialog(context,
+                        child: const AddTokenScreen(), showClose: false);
+                  },
+                ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  text: S.current.category,
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.category_outlined),
+                  onTap: () async {
+                    DialogBuilder.showPageDialog(context,
+                        child: const CategoryScreen(), showClose: false);
+                  },
+                ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  text: S.current.scanToken,
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.qr_code_rounded),
+                  onTap: () async {
+                    context.contextMenuOverlay
+                        .show(_buildQrCodeContextMenuButtons());
+                  },
+                ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  text: S.current.exportImport,
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.import_export_rounded),
+                  onTap: () async {
+                    DialogBuilder.showPageDialog(
+                      context,
+                      child: const ImportExportTokenScreen(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 4),
+                if (provider.canShowCloudBackupButton &&
+                    provider.showCloudBackupButton)
                   ItemBuilder.buildIconTextButton(
                     context,
-                    text: S.current.addToken,
-                    direction: Axis.vertical,
-                    showText: false,
+                    text: S.current.cloudBackupServiceSetting,
                     fontSizeDelta: -2,
-                    icon: const Icon(Icons.add_rounded),
+                    showText: false,
+                    direction: Axis.vertical,
+                    icon: const Icon(Icons.cloud_queue_rounded),
                     onTap: () async {
                       DialogBuilder.showPageDialog(context,
-                          child: const AddTokenScreen(), showClose: false);
+                          child: const CloudServiceScreen(), showClose: true);
                     },
                   ),
-                  const SizedBox(height: 4),
-                  ItemBuilder.buildIconTextButton(
-                    context,
-                    text: S.current.category,
-                    fontSizeDelta: -2,
-                    showText: false,
-                    direction: Axis.vertical,
-                    icon: const Icon(Icons.category_outlined),
-                    onTap: () async {
-                      DialogBuilder.showPageDialog(context,
-                          child: const CategoryScreen(), showClose: false);
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  ItemBuilder.buildIconTextButton(
-                    context,
-                    text: S.current.scanToken,
-                    fontSizeDelta: -2,
-                    showText: false,
-                    direction: Axis.vertical,
-                    icon: const Icon(Icons.qr_code_rounded),
-                    onTap: () async {
-                      context.contextMenuOverlay
-                          .show(_buildQrCodeContextMenuButtons());
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  ItemBuilder.buildIconTextButton(
-                    context,
-                    text: S.current.exportImport,
-                    fontSizeDelta: -2,
-                    showText: false,
-                    direction: Axis.vertical,
-                    icon: const Icon(Icons.import_export_rounded),
-                    onTap: () async {
-                      DialogBuilder.showPageDialog(
-                        context,
-                        child: const ImportExportTokenScreen(),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  if (provider.canShowCloudBackupButton &&
-                      provider.showCloudBackupButton)
-                    ItemBuilder.buildIconTextButton(
-                      context,
-                      text: S.current.cloudBackupServiceSetting,
-                      fontSizeDelta: -2,
-                      showText: false,
-                      direction: Axis.vertical,
-                      icon: const Icon(Icons.cloud_queue_rounded),
-                      onTap: () async {
-                        DialogBuilder.showPageDialog(context,
-                            child: const CloudServiceScreen(), showClose: true);
-                      },
-                    ),
-                  const Spacer(),
-                  const SizedBox(height: 8),
-                  if (provider.showSortButton)
-                    ItemBuilder.buildIconButton(
-                      context: context,
-                      icon: const Icon(Icons.sort_rounded, size: 22),
-                      onTap: () {
-                        context.contextMenuOverlay
-                            .show(buildSortContextMenuButtons());
-                      },
-                    ),
-                  if (provider.showLayoutButton)
-                    ItemBuilder.buildIconButton(
-                      context: context,
-                      icon: const Icon(Icons.dashboard_outlined, size: 22),
-                      onTap: () {
-                        context.contextMenuOverlay
-                            .show(buildLayoutContextMenuButtons());
-                      },
-                    ),
-                  ItemBuilder.buildDynamicIconButton(
-                    context: context,
-                    icon: darkModeWidget,
-                    onTap: changeMode,
-                    onChangemode: (context, themeMode, child) {
-                      if (darkModeController.duration != null) {
-                        if (themeMode == ActiveThemeMode.light) {
-                          darkModeController.forward();
-                        } else if (themeMode == ActiveThemeMode.dark) {
-                          darkModeController.reverse();
-                        } else {
-                          if (Utils.isDark(context)) {
-                            darkModeController.reverse();
-                          } else {
-                            darkModeController.forward();
-                          }
-                        }
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 6),
-                  ItemBuilder.buildDynamicIconButton(
-                    context: context,
-                    icon: AssetUtil.loadDouble(
-                      context,
-                      AssetUtil.settingLightIcon,
-                      AssetUtil.settingDarkIcon,
-                    ),
-                    onTap: () async {
-                      RouteUtil.pushDialogRoute(
-                          context, const SettingNavigationScreen());
-                    },
-                  ),
-                  const SizedBox(width: 6),
+                const Spacer(),
+                const SizedBox(height: 8),
+                if (provider.showSortButton)
                   ItemBuilder.buildIconButton(
                     context: context,
-                    icon: const Icon(Icons.info_outline_rounded, size: 22),
-                    onTap: () async {
-                      RouteUtil.pushDialogRoute(
-                          context, const AboutSettingScreen());
+                    icon: const Icon(Icons.sort_rounded, size: 22),
+                    onTap: () {
+                      context.contextMenuOverlay
+                          .show(buildSortContextMenuButtons());
                     },
                   ),
-                  const SizedBox(height: 6),
-                ],
+                if (provider.showLayoutButton)
+                  ItemBuilder.buildIconButton(
+                    context: context,
+                    icon: const Icon(Icons.dashboard_outlined, size: 22),
+                    onTap: () {
+                      context.contextMenuOverlay
+                          .show(buildLayoutContextMenuButtons());
+                    },
+                  ),
+                ItemBuilder.buildDynamicIconButton(
+                  context: context,
+                  icon: darkModeWidget,
+                  onTap: changeMode,
+                  onChangemode: (context, themeMode, child) {
+                    if (darkModeController.duration != null) {
+                      if (themeMode == ActiveThemeMode.light) {
+                        darkModeController.forward();
+                      } else if (themeMode == ActiveThemeMode.dark) {
+                        darkModeController.reverse();
+                      } else {
+                        if (Utils.isDark(context)) {
+                          darkModeController.reverse();
+                        } else {
+                          darkModeController.forward();
+                        }
+                      }
+                    }
+                  },
+                ),
+                const SizedBox(width: 6),
+                ItemBuilder.buildDynamicIconButton(
+                  context: context,
+                  icon: AssetUtil.loadDouble(
+                    context,
+                    AssetUtil.settingLightIcon,
+                    AssetUtil.settingDarkIcon,
+                  ),
+                  onTap: () async {
+                    RouteUtil.pushDialogRoute(
+                        context, const SettingNavigationScreen());
+                  },
+                ),
+                const SizedBox(width: 6),
+                ItemBuilder.buildIconButton(
+                  context: context,
+                  icon: const Icon(Icons.info_outline_rounded, size: 22),
+                  onTap: () async {
+                    RouteUtil.pushDialogRoute(
+                        context, const AboutSettingScreen());
+                  },
+                ),
+                const SizedBox(height: 6),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _titleBar() {
+    return WindowTitleBar(
+      useMoveHandle: ResponsiveUtil.isDesktop(),
+      titleBarHeightDelta: 34,
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          const SizedBox(width: 3),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/logo-transparent.png'),
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 300, minWidth: 200),
+            child: ItemBuilder.buildDesktopSearchBar(
+              context: context,
+              borderRadius: 8,
+              bottomMargin: 18,
+              hintFontSizeDelta: 1,
+              focusNode: searchFocusNode,
+              controller: searchController,
+              background: Colors.grey.withAlpha(40),
+              hintText: S.current.searchToken,
+              onSubmitted: (text) {
+                homeScreenState?.performSearch(text);
+              },
+            ),
+          ),
+          const Spacer(),
+          if (ResponsiveUtil.isDesktop())
+            Row(
+              children: [
+                Selector<AppProvider, bool>(
+                  selector: (context, appProvider) =>
+                      appProvider.showBackupLogButton,
+                  builder: (context, showBackupLogButton, child) =>
+                      showBackupLogButton
+                          ? WindowButton(
+                              colors: MyColors.getNormalButtonColors(context),
+                              borderRadius: BorderRadius.circular(8),
+                              padding: EdgeInsets.zero,
+                              iconBuilder: (buttonContext) =>
+                                  Selector<AppProvider, LoadingStatus>(
+                                selector: (context, appProvider) =>
+                                    appProvider.autoBackupLoadingStatus,
+                                builder:
+                                    (context, autoBackupLoadingStatus, child) =>
+                                        LoadingIcon(
+                                  status: autoBackupLoadingStatus,
+                                  normalIcon: const Icon(Icons.history_rounded,
+                                      size: 25),
+                                ),
+                              ),
+                              onPressed: () {
+                                context.contextMenuOverlay
+                                    .show(const BackupLogScreen());
+                              },
+                            )
+                          : const SizedBox.shrink(),
+                ),
+                const SizedBox(width: 3),
+                StayOnTopWindowButton(
+                  context: context,
+                  rotateAngle: _isStayOnTop ? 0 : -pi / 4,
+                  colors: _isStayOnTop
+                      ? MyColors.getStayOnTopButtonColors(context)
+                      : MyColors.getNormalButtonColors(context),
+                  borderRadius: BorderRadius.circular(8),
+                  onPressed: () {
+                    setState(() {
+                      _isStayOnTop = !_isStayOnTop;
+                      windowManager.setAlwaysOnTop(_isStayOnTop);
+                    });
+                  },
+                ),
+                const SizedBox(width: 3),
+                MinimizeWindowButton(
+                  colors: MyColors.getNormalButtonColors(context),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                const SizedBox(width: 3),
+                _isMaximized
+                    ? RestoreWindowButton(
+                        colors: MyColors.getNormalButtonColors(context),
+                        borderRadius: BorderRadius.circular(8),
+                        onPressed: ResponsiveUtil.maximizeOrRestore,
+                      )
+                    : MaximizeWindowButton(
+                        colors: MyColors.getNormalButtonColors(context),
+                        borderRadius: BorderRadius.circular(8),
+                        onPressed: ResponsiveUtil.maximizeOrRestore,
+                      ),
+                const SizedBox(width: 3),
+                CloseWindowButton(
+                  colors: MyColors.getCloseButtonColors(context),
+                  borderRadius: BorderRadius.circular(8),
+                  onPressed: () {
+                    if (HiveUtil.getBool(HiveUtil.showTrayKey) &&
+                        HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {
+                      windowManager.hide();
+                    } else {
+                      windowManager.close();
+                    }
+                  },
+                ),
+              ],
+            ),
+          const SizedBox(width: 10),
+        ],
       ),
     );
   }
 
   _desktopMainContent() {
     return Expanded(
-      child: Column(
-        children: [
-          WindowTitleBar(
-            useMoveHandle: ResponsiveUtil.isDesktop(),
-            titleBarHeightDelta: 34,
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              children: [
-                const SizedBox(width: 12),
-                Container(
-                  constraints:
-                      const BoxConstraints(maxWidth: 300, minWidth: 200),
-                  child: ItemBuilder.buildDesktopSearchBar(
-                    context: context,
-                    borderRadius: 8,
-                    bottomMargin: 18,
-                    hintFontSizeDelta: 1,
-                    focusNode: searchFocusNode,
-                    controller: searchController,
-                    background: Colors.grey.withAlpha(40),
-                    hintText: S.current.searchToken,
-                    onSubmitted: (text) {
-                      homeScreenState?.performSearch(text);
-                    },
-                  ),
-                ),
-                const Spacer(),
-                if (ResponsiveUtil.isDesktop())
-                  Row(
-                    children: [
-                      Selector<AppProvider, bool>(
-                        selector: (context, appProvider) =>
-                            appProvider.showBackupLogButton,
-                        builder: (context, showBackupLogButton, child) =>
-                            showBackupLogButton
-                                ? WindowButton(
-                                    colors:
-                                        MyColors.getNormalButtonColors(context),
-                                    borderRadius: BorderRadius.circular(8),
-                                    padding: EdgeInsets.zero,
-                                    iconBuilder: (buttonContext) =>
-                                        Selector<AppProvider, LoadingStatus>(
-                                      selector: (context, appProvider) =>
-                                          appProvider.autoBackupLoadingStatus,
-                                      builder: (context,
-                                              autoBackupLoadingStatus, child) =>
-                                          LoadingIcon(
-                                        status: autoBackupLoadingStatus,
-                                        normalIcon: const Icon(
-                                            Icons.history_rounded,
-                                            size: 25),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      context.contextMenuOverlay
-                                          .show(const BackupLogScreen());
-                                    },
-                                  )
-                                : const SizedBox.shrink(),
-                      ),
-                      const SizedBox(width: 3),
-                      StayOnTopWindowButton(
-                        context: context,
-                        rotateAngle: _isStayOnTop ? 0 : -pi / 4,
-                        colors: _isStayOnTop
-                            ? MyColors.getStayOnTopButtonColors(context)
-                            : MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                        onPressed: () {
-                          setState(() {
-                            _isStayOnTop = !_isStayOnTop;
-                            windowManager.setAlwaysOnTop(_isStayOnTop);
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 3),
-                      MinimizeWindowButton(
-                        colors: MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      const SizedBox(width: 3),
-                      _isMaximized
-                          ? RestoreWindowButton(
-                              colors: MyColors.getNormalButtonColors(context),
-                              borderRadius: BorderRadius.circular(8),
-                              onPressed: ResponsiveUtil.maximizeOrRestore,
-                            )
-                          : MaximizeWindowButton(
-                              colors: MyColors.getNormalButtonColors(context),
-                              borderRadius: BorderRadius.circular(8),
-                              onPressed: ResponsiveUtil.maximizeOrRestore,
-                            ),
-                      const SizedBox(width: 3),
-                      CloseWindowButton(
-                        colors: MyColors.getCloseButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                        onPressed: () {
-                          if (HiveUtil.getBool(HiveUtil.showTrayKey) &&
-                              HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {
-                            windowManager.hide();
-                          } else {
-                            windowManager.close();
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                const SizedBox(width: 10),
-              ],
-            ),
+      child: Container(
+        margin: const EdgeInsets.only(right: 10),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(right: 10),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-                child: Navigator(
-                  key: desktopNavigatorKey,
-                  onGenerateRoute: (settings) {
-                    return RouteUtil.getFadeRoute(
-                        HomeScreen(key: homeScreenKey));
-                  },
-                ),
-              ),
-            ),
+          child: Navigator(
+            key: desktopNavigatorKey,
+            onGenerateRoute: (settings) {
+              return RouteUtil.getFadeRoute(HomeScreen(key: homeScreenKey));
+            },
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1848,7 +1848,7 @@ packages:
     source: hosted
     version: "3.1.2"
   uuid:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: uuid
       sha256: "83d37c7ad7aaf9aa8e275490669535c8080377cfa7a7004c24dfac53afffaa90"

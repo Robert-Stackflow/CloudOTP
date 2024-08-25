@@ -1,3 +1,4 @@
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
@@ -68,8 +69,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       _otpToken != null && _otpToken.tokenType == OtpTokenType.Yandex;
 
   List<TokenCategory> categories = [];
-  List<int> selectedCategoryIds = [];
-  List<int> oldSelectedCategoryIds = [];
+  List<String> selectedCategoryUids = [];
+  List<String> oldSelectedCategoryUids = [];
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -122,12 +123,12 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   getCategories() async {
     categories = await CategoryDao.listCategories();
     if (!_isEditing) {
-      selectedCategoryIds = [];
-      oldSelectedCategoryIds = [];
+      selectedCategoryUids = [];
+      oldSelectedCategoryUids = [];
     } else {
-      selectedCategoryIds =
-          await CategoryDao.getCategoryIdsByTokenId(widget.token!.id);
-      oldSelectedCategoryIds = List.from(selectedCategoryIds);
+      selectedCategoryUids =
+          await BindingDao.getCategoryUids(widget.token!.uid);
+      oldSelectedCategoryUids = List.from(selectedCategoryUids);
     }
     setState(() {});
   }
@@ -201,11 +202,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   processDone() async {
     if (await isValid()) {
       bool success = false;
-      List<int> unselectedCategoryIds = oldSelectedCategoryIds
-          .where((element) => !selectedCategoryIds.contains(element))
+      List<String> unselectedCategoryUids = oldSelectedCategoryUids
+          .where((element) => !selectedCategoryUids.contains(element))
           .toList();
-      List<int> newSelectedCategoryIds = selectedCategoryIds
-          .where((element) => !oldSelectedCategoryIds.contains(element))
+      List<String> newSelectedCategoryUids = selectedCategoryUids
+          .where((element) => !oldSelectedCategoryUids.contains(element))
           .toList();
       bool counterChanged = widget.token?.counter != _otpToken.counter;
       try {
@@ -215,11 +216,10 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         } else {
           await TokenDao.insertToken(_otpToken);
         }
-        await CategoryDao.updateCategoriesForToken(
-          _otpToken.id,
-          unselectedCategoryIds,
-          newSelectedCategoryIds,
-        );
+        await BindingDao.bingdingsForToken(
+            _otpToken.uid, newSelectedCategoryUids);
+        await BindingDao.unBingdingsForToken(
+            _otpToken.uid, unselectedCategoryUids);
         success = true;
       } catch (e) {
         IToast.showTop(S.current.saveFailed);
@@ -232,8 +232,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         }
         homeScreenState?.changeCategoriesForToken(
           _otpToken,
-          unselectedCategoryIds,
-          newSelectedCategoryIds,
+          unselectedCategoryUids,
+          newSelectedCategoryUids,
         );
         if (success) {
           if (ResponsiveUtil.isLandscape()) {
@@ -443,11 +443,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         tipWidth: 300,
         bottomRadius: true,
         title: S.current.editTokenCategory,
-        tipWidget: selectedCategoryIds.isNotEmpty
+        tipWidget: selectedCategoryUids.isNotEmpty
             ? Wrap(
                 spacing: 5,
                 runSpacing: 5,
-                children: selectedCategoryIds
+                children: selectedCategoryUids
                     .map(
                       (e) => ItemBuilder.buildRoundButton(
                         context,
@@ -456,7 +456,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                             horizontal: 8, vertical: 4),
                         background: Theme.of(context).primaryColor,
                         text: categories
-                            .firstWhere((element) => element.id == e)
+                            .firstWhere((element) => element.uid == e)
                             .title,
                       ),
                     )
@@ -470,9 +470,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             (context) => SelectCategoryBottomSheet(
               token: _otpToken,
               isEditingToken: true,
-              initialCategoryIds: selectedCategoryIds,
+              initialCategorUids: selectedCategoryUids,
               onCategoryChanged: (selected) {
-                selectedCategoryIds = selected;
+                selectedCategoryUids = selected;
                 setState(() {});
               },
             ),

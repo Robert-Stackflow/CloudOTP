@@ -22,4 +22,8 @@ message TokenCategoryParameters {
 	optional string tokenIds = 4;
 
 	optional string remark = 5;
+
+	optional string uid = 6;
+
+	optional string bindings = 7;
 }

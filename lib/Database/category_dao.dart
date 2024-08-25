@@ -1,3 +1,4 @@
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
@@ -38,6 +39,9 @@ class CategoryDao {
         category.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      if (category.bindings.isNotEmpty) {
+        BindingDao.bingdingsForCategory(category.uid, category.bindings);
+      }
     }
     List<dynamic> results = await batch.commit();
     ExportTokenUtil.autoBackup(
@@ -80,9 +84,10 @@ class CategoryDao {
   static Future<int> updateCategories(
     List<TokenCategory> categories, {
     bool backup = false,
+    Database? overrideDb,
   }) async {
     if (categories.isEmpty) return 0;
-    final db = await DatabaseManager.getDataBase();
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (TokenCategory category in categories) {
       category.editTimeStamp = DateTime.now().millisecondsSinceEpoch;
@@ -104,6 +109,7 @@ class CategoryDao {
 
   static Future<int> deleteCategory(TokenCategory category) async {
     final db = await DatabaseManager.getDataBase();
+    await BindingDao.removeCategoryBindings(category.uid);
     int id = await db.delete(
       tableName,
       where: 'id = ?',
@@ -115,8 +121,11 @@ class CategoryDao {
     return id;
   }
 
-  static Future<List<TokenCategory>> listCategories({bool desc = false}) async {
-    final db = await DatabaseManager.getDataBase();
+  static Future<List<TokenCategory>> listCategories({
+    bool desc = false,
+    Database? overrideDb,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     final List<Map<String, dynamic>> maps =
         await db.query(tableName, orderBy: "seq ${desc ? "DESC" : "ASC"}");
     return List.generate(maps.length, (i) {
@@ -144,64 +153,24 @@ class CategoryDao {
     return TokenCategory.fromMap(maps[0]);
   }
 
-  static Future<List<OtpToken>> getTokensByCategoryId(
-    int id, {
+  static Future<TokenCategory> getCategoryByUid(String uid) async {
+    final db = await DatabaseManager.getDataBase();
+    List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'uid = ?',
+      whereArgs: [uid],
+    );
+    return TokenCategory.fromMap(maps[0]);
+  }
+
+  static Future<List<OtpToken>> getTokensByCategoryUid(
+    String uid, {
     String searchKey = "",
   }) async {
-    if (id == -1) return await TokenDao.listTokens(searchKey: searchKey);
-    TokenCategory category = await getCategoryById(id);
-    List<OtpToken> tokens = [];
-    for (int tokenId in category.tokenIds) {
-      OtpToken? tmp =
-          await TokenDao.getTokenById(tokenId, searchKey: searchKey);
-      if (tmp != null) tokens.add(tmp);
-    }
+    if (uid.isEmpty) return await TokenDao.listTokens(searchKey: searchKey);
+    TokenCategory category = await getCategoryByUid(uid);
+    List<OtpToken> tokens = await BindingDao.getTokens(category.uid);
     tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
     return tokens;
-  }
-
-  static Future<List<int>> getCategoryIdsByTokenId(int id) async {
-    List<TokenCategory> categories = await listCategories();
-    List<int> categoryIds = [];
-    for (TokenCategory category in categories) {
-      if (category.tokenIds.contains(id)) {
-        categoryIds.add(category.id);
-      }
-    }
-    return categoryIds;
-  }
-
-  static Future<void> deleteToken(int tokenId) async {
-    List<int> categoryIds = await getCategoryIdsByTokenId(tokenId);
-    updateCategoriesForToken(tokenId, categoryIds, []);
-  }
-
-  static Future<void> updateCategoriesForToken(
-    int tokenId,
-    List<int> unseletedIds,
-    List<int> newSeletedIds, {
-    bool backup = false,
-  }) async {
-    List<TokenCategory> unselectedCategories = [];
-    List<TokenCategory> newSeletedCategories = [];
-    for (int id in unseletedIds) {
-      unselectedCategories.add(await getCategoryById(id));
-    }
-    for (int id in newSeletedIds) {
-      newSeletedCategories.add(await getCategoryById(id));
-    }
-    for (TokenCategory category in unselectedCategories) {
-      category.tokenIds.remove(tokenId);
-    }
-    for (TokenCategory category in newSeletedCategories) {
-      category.tokenIds.add(tokenId);
-    }
-    await updateCategories(unselectedCategories);
-    await updateCategories(newSeletedCategories);
-    if (backup) {
-      ExportTokenUtil.autoBackup(
-          triggerType: AutoBackupTriggerType.categoriesUpdatedForToken);
-    }
-    Utils.initTray();
   }
 }

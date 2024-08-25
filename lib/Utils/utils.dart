@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/database_manager.dart';
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/github_response.dart';
 import 'package:cloudotp/Models/opt_token.dart';
@@ -29,6 +30,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:uuid/uuid.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../Api/github_api.dart';
@@ -41,6 +43,10 @@ import 'hive_util.dart';
 import 'itoast.dart';
 
 class Utils {
+  static String generateUid() {
+    return const Uuid().v4();
+  }
+
   static Brightness currentBrightness(BuildContext context) {
     return appProvider.getBrightness() ??
         MediaQuery.of(context).platformBrightness;
@@ -589,8 +595,7 @@ class Utils {
         DatabaseManager.initialized ? await TokenDao.listTokens() : [];
     tokens.sort((a, b) => a.issuer.compareTo(b.issuer));
     for (TokenCategory category in categories) {
-      category.tokens =
-          tokens.where((e) => category.tokenIds.contains(e.id)).toList();
+      category.tokens = await BindingDao.getTokens(category.uid);
       category.tokens.sort((a, b) => a.issuer.compareTo(b.issuer));
     }
     List<TokenCategory> haveTokenCategories =
@@ -635,7 +640,7 @@ class Utils {
   }
 
   static Future<void> initTray() async {
-    if(!ResponsiveUtil.isDesktop()) {
+    if (!ResponsiveUtil.isDesktop()) {
       return;
     }
     if (!HiveUtil.getBool(HiveUtil.showTrayKey)) {

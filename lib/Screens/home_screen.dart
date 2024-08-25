@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cloudotp/Database/category_dao.dart';
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
@@ -77,15 +78,15 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
 
-  int get currentCategoryId {
+  String get currentCategoryUid {
     if (_currentTabIndex == 0) {
-      return -1;
+      return "";
     } else {
       if (_currentTabIndex - 1 < 0 ||
           _currentTabIndex - 1 >= categories.length) {
-        return -1;
+        return "";
       }
-      return categories[_currentTabIndex - 1].id;
+      return categories[_currentTabIndex - 1].uid;
     }
   }
 
@@ -117,13 +118,13 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     OtpToken token, {
     bool forceAll = false,
   }) async {
-    if (currentCategoryId == -1) {
+    if (currentCategoryUid.isEmpty) {
       if (!forceAll) {
         return;
       }
     } else {
-      if (!(await CategoryDao.getCategoryIdsByTokenId(token.id))
-          .contains(currentCategoryId)) {
+      if (!(await BindingDao.getCategoryUids(token.uid))
+          .contains(currentCategoryUid)) {
         return;
       }
     }
@@ -193,28 +194,18 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  changeCategoriesForToken(OtpToken token, List<int> unselectedCategoryIds,
-      List<int> selectedCategoryIds) {
-    if (unselectedCategoryIds.contains(currentCategoryId)) {
+  changeCategoriesForToken(OtpToken token, List<String> unselectedCategoryUids,
+      List<String> selectedCategorUids) {
+    if (unselectedCategoryUids.contains(currentCategoryUid)) {
       removeToken(token);
     }
-    for (var id in unselectedCategoryIds) {
-      TokenCategory category =
-          categories.firstWhere((element) => element.id == id);
-      category.tokenIds.remove(token.id);
-    }
-    if (selectedCategoryIds.contains(currentCategoryId)) {
+    if (selectedCategorUids.contains(currentCategoryUid)) {
       insertToken(token);
-    }
-    for (var id in selectedCategoryIds) {
-      TokenCategory category =
-          categories.firstWhere((element) => element.id == id);
-      category.tokenIds.add(token.id);
     }
   }
 
   changeTokensForCategory(TokenCategory category) {
-    if (category.id == currentCategoryId && currentCategoryId != -1) {
+    if (category.uid == currentCategoryUid && currentCategoryUid.isNotEmpty) {
       getTokens();
     }
   }
@@ -230,8 +221,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   getTokens() async {
-    await CategoryDao.getTokensByCategoryId(
-      currentCategoryId,
+    await CategoryDao.getTokensByCategoryUid(
+      currentCategoryUid,
       searchKey: _searchKey,
     ).then((value) {
       tokens = value;
@@ -240,15 +231,15 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   getCategories([bool isInit = false]) async {
-    int oldId = currentCategoryId;
+    String oldUid = currentCategoryUid;
     await CategoryDao.listCategories().then((value) async {
       categories = value;
-      List<int> ids = categories.map((e) => e.id).toList();
-      if (!ids.contains(oldId)) {
+      List<String> uids = categories.map((e) => e.uid).toList();
+      if (!uids.contains(oldUid)) {
         _currentTabIndex = 0;
         await getTokens();
       } else {
-        _currentTabIndex = ids.indexOf(oldId) + 1;
+        _currentTabIndex = uids.indexOf(oldUid) + 1;
       }
       initTab(isInit);
       setState(() {});
@@ -258,10 +249,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   initTab([bool isInit = false]) {
     tabList.clear();
     tabList.add(_buildTab(null));
-    int categoryId = HiveUtil.getSelectedCategoryId();
+    String categoryUid = HiveUtil.getSelectedCategoryId();
     for (var category in categories) {
       tabList.add(_buildTab(category));
-      if (category.id == categoryId && isInit) {
+      if (category.uid == categoryUid && isInit) {
         _currentTabIndex = categories.indexOf(category) + 1;
       }
     }
@@ -753,7 +744,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
         _currentTabIndex = index;
         getTokens();
-        HiveUtil.setSelectedCategoryId(currentCategoryId);
+        HiveUtil.setSelectedCategoryUid(currentCategoryUid);
       },
     );
   }

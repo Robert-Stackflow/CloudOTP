@@ -3,6 +3,7 @@ enum Sql {
     '''
       CREATE TABLE otp_token (
         id INTEGER PRIMARY KEY,
+        uid TEXT NOT NULL DEFAULT '',
         seq INTEGER NOT NULL,
         issuer TEXT NOT NULL,
         secret TEXT NOT NULL,
@@ -27,13 +28,13 @@ enum Sql {
   createCategoryTable('''
       CREATE TABLE token_category (
         id INTEGER PRIMARY KEY,
+        uid TEXT NOT NULL DEFAULT '',
         seq INTEGER NOT NULL,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
         create_timestamp INTEGER NOT NULL,
         edit_timestamp INTEGER NOT NULL,
         pinned INTEGER NOT NULL,
-        token_ids TEXT NOT NULL,
         remark TEXT NOT NULL
       );
     '''),
@@ -75,6 +76,12 @@ enum Sql {
         trigger_type INTEGER NOT NULL,
         cloud_service_type INTEGER,
         backup_path TEXT NOT NULL
+      );
+    '''),
+  createTokenCategoryBindingTable('''
+      CREATE TABLE token_category_binding (
+        token_uid INTEGER NOT NULL,
+        category_uid INTEGER NOT NULL
       );
     ''');
 

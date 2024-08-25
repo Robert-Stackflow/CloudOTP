@@ -28,7 +28,7 @@ class HiveUtil {
   //General
   static const String layoutTypeKey = "layoutType";
   static const String orderTypeKey = "orderType";
-  static const String selectedCategoryIdKey = "selectedCategoryId";
+  static const String selectedCategoryUidKey = "selectedCategoryUid";
   static const String autoCompleteParameterKey = "autoCompleteParameter";
   static const String localeKey = "locale";
   static const String launchAtStartupKey = "launchAtStartup";
@@ -103,6 +103,7 @@ class HiveUtil {
 
   static initConfig() async {
     await HiveUtil.put(HiveUtil.inappWebviewKey, true);
+    await HiveUtil.put(HiveUtil.layoutTypeKey, LayoutType.Compact.index);
     await HiveUtil.put(HiveUtil.enableSafeModeKey, true);
     await HiveUtil.put(HiveUtil.maxBackupsCountKey, defaultMaxBackupCount);
     await HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getBackupDir());
@@ -157,12 +158,12 @@ class HiveUtil {
         defaultValue: LayoutType.Compact.index)];
   }
 
-  static setSelectedCategoryId(int id) {
-    HiveUtil.put(HiveUtil.selectedCategoryIdKey, id);
+  static setSelectedCategoryUid(String uid) {
+    HiveUtil.put(HiveUtil.selectedCategoryUidKey, uid);
   }
 
-  static int getSelectedCategoryId() {
-    return HiveUtil.getInt(HiveUtil.selectedCategoryIdKey);
+  static String getSelectedCategoryId() {
+    return HiveUtil.getString(HiveUtil.selectedCategoryUidKey) ?? "";
   }
 
   static EncryptDatabaseStatus getEncryptDatabaseStatus() {

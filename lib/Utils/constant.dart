@@ -28,6 +28,7 @@ String shareAppText = S.current.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";
 String feedbackSubject = S.current.feedbackSubject;
 const String feedbackBody = "";
+const String uidNamspace = "com.cloudchewie.cloudotp";
 const String officialWebsite = "https://apps.cloudchewie.com/cloudotp";
 const String telegramLink = "https://t.me/CloudOTP";
 const String repoUrl = "https://github.com/Robert-Stackflow/CloudOTP";

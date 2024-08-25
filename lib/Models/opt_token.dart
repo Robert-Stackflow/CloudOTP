@@ -411,6 +411,7 @@ extension IntToOtpEnumExtension on int {
 class OtpToken {
   int id;
   int seq;
+  String uid;
   String issuer;
   String secret;
   String account;
@@ -444,6 +445,7 @@ class OtpToken {
   }
 
   OtpToken({
+    required this.uid,
     required this.id,
     required this.seq,
     required this.issuer,
@@ -469,6 +471,7 @@ class OtpToken {
     String? secret,
     String? issuer,
   })  : id = 0,
+        uid = Utils.generateUid(),
         seq = 0,
         issuer = issuer ?? "",
         secret = secret ?? "",
@@ -491,6 +494,7 @@ class OtpToken {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'uid': uid,
       'seq': seq,
       'issuer': issuer,
       'secret': secret,
@@ -515,6 +519,7 @@ class OtpToken {
   factory OtpToken.fromMap(Map<String, dynamic> map) {
     return OtpToken(
       id: map['id'],
+      uid: map['uid'] ?? Utils.generateUid(),
       seq: map['seq'],
       issuer: map['issuer'],
       secret: map['secret'],
@@ -550,6 +555,7 @@ class OtpToken {
       issuer: issuer,
       account: account,
       pin: pin,
+      uid: uid,
       algorithm: algorithm.cloudOtpTokenAlgorithm,
       digits: digits.cloudOtpTokenDigitCount,
       type: tokenType.cloudOtpTokenType,
@@ -569,6 +575,7 @@ class OtpToken {
     return OtpToken(
       id: 0,
       seq: 0,
+      uid: cloudOtpParameters.uid,
       issuer: cloudOtpParameters.issuer,
       secret: utf8.decode(cloudOtpParameters.secret),
       account: cloudOtpParameters.account,
@@ -624,6 +631,7 @@ class OtpToken {
   clone() {
     return OtpToken(
       id: id,
+      uid: uid,
       seq: seq,
       issuer: issuer,
       secret: secret,
@@ -646,6 +654,7 @@ class OtpToken {
 
   copyFrom(OtpToken token) {
     id = token.id;
+    uid = token.uid;
     seq = token.seq;
     issuer = token.issuer;
     secret = token.secret;

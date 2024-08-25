@@ -42,6 +42,8 @@ message CloudOtpTokenParameters {
 	optional string description = 14;
 
 	optional string remark = 15;
+
+	optional string uid = 16;
 }
 
 enum CloudOtpTokenAlgorithm {
