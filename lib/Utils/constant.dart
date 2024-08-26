@@ -7,9 +7,9 @@ const defaultPhone = "";
 const defaultPassword = "";
 const defaultLofterID = "";
 
-const defaultMaxBackupCount = 50;
+const defaultMaxBackupCount = 100;
 
-const maxBackupCountThrehold = 200;
+const maxBackupCountThrehold = 500;
 
 const double kLoadExtentOffset = 1000;
 

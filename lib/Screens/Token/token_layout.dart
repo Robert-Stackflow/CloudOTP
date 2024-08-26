@@ -17,7 +17,6 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:move_to_background/move_to_background.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -193,7 +192,7 @@ class TokenLayoutState extends State<TokenLayout>
       child: Selector<AppProvider, bool>(
         selector: (context, provider) => provider.dragToReorder,
         builder: (context, dragToReorder, child) => GestureDetector(
-          onLongPress: dragToReorder && !ResponsiveUtil.isLandscape()
+          onLongPress: dragToReorder && !ResponsiveUtil.isDesktop()
               ? () {
                   showContextMenu();
                   HapticFeedback.lightImpact();
@@ -255,8 +254,8 @@ class TokenLayoutState extends State<TokenLayout>
     await TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
     IToast.showTop(
       widget.token.pinned
-          ? S.current.alreadyUnPinnedToken(widget.token.title)
-          : S.current.alreadyPinnedToken(widget.token.title),
+          ? S.current.alreadyPinnedToken(widget.token.title)
+          : S.current.alreadyUnPinnedToken(widget.token.title),
     );
     homeScreenState?.updateToken(widget.token, pinnedStateChanged: true);
   }
@@ -282,20 +281,10 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _processViewQrCode() {
-    DialogBuilder.showInfoDialog(
+    DialogBuilder.showQrcodesDialog(
       context,
       title: widget.token.title,
-      onTapDismiss: () {},
-      messageChild: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: PrettyQrView.data(
-          data: OtpTokenParser.toUri(widget.token).toString(),
-        ),
-      ),
+      qrcodes: [OtpTokenParser.toUri(widget.token).toString()],
     );
   }
 

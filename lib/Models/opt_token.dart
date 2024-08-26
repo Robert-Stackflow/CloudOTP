@@ -444,6 +444,11 @@ class OtpToken {
     return "$issuer - $account - $secret - $tokenType - $algorithm - $digits - $counterString - $periodString - $pinned - $pin";
   }
 
+  @override
+  String toString() {
+    return "OtpToken($id, $uid, $seq, $issuer, $secret, $account, $imagePath, $tokenType, $algorithm, $digits, $counterString, $periodString, $pinned, $createTimeStamp, $editTimeStamp, $remark, $copyTimes, $lastCopyTimeStamp, $pin, $description)";
+  }
+
   OtpToken({
     required this.uid,
     required this.id,
@@ -572,6 +577,12 @@ class OtpToken {
 
   factory OtpToken.fromCloudOtpParameters(
       CloudOtpTokenParameters cloudOtpParameters) {
+    Map<String, dynamic> remark = {};
+    try {
+      remark = jsonDecode(cloudOtpParameters.remark);
+    } catch (e) {
+      remark = {};
+    }
     return OtpToken(
       id: 0,
       seq: 0,
@@ -589,7 +600,7 @@ class OtpToken {
       pinned: cloudOtpParameters.pinned.toInt() == 1,
       createTimeStamp: DateTime.now().millisecondsSinceEpoch,
       editTimeStamp: DateTime.now().millisecondsSinceEpoch,
-      remark: jsonDecode(cloudOtpParameters.remark),
+      remark: remark,
       copyTimes: cloudOtpParameters.copyTimes.toInt(),
       lastCopyTimeStamp: cloudOtpParameters.lastCopyTimeStamp.toInt(),
       pin: cloudOtpParameters.pin,

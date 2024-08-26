@@ -63,7 +63,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Tab> tabList = [];
   int _currentTabIndex = 0;
   String _searchKey = "";
-  Map<int, GlobalKey<TokenLayoutState>> tokenKeyMap = {};
+  Map<String, GlobalKey<TokenLayoutState>> tokenKeyMap = {};
   late TabController _tabController;
   ScrollController _scrollController = ScrollController();
   final ScrollController _nestScrollController = ScrollController();
@@ -177,17 +177,17 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     bool pinnedStateChanged = false,
     bool counterChanged = false,
   }) {
-    int updateIndex = tokens.indexWhere((element) => element.id == token.id);
+    int updateIndex = tokens.indexWhere((element) => element.uid == token.uid);
     tokens[updateIndex] = token;
     tokenKeyMap
-        .putIfAbsent(token.id, () => GlobalKey())
+        .putIfAbsent(token.uid, () => GlobalKey())
         .currentState
         ?.updateInfo(counterChanged: counterChanged);
     if (pinnedStateChanged) performSort();
   }
 
   removeToken(OtpToken token) {
-    int removeIndex = tokens.indexWhere((element) => element.id == token.id);
+    int removeIndex = tokens.indexWhere((element) => element.uid == token.uid);
     if (removeIndex != -1) tokens.removeAt(removeIndex);
     gridItemsNotifier.notifyItemRemoved?.call(removeIndex, () {
       setState(() {});
@@ -272,7 +272,30 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 color: Theme.of(context).scaffoldBackgroundColor,
-                child: _buildTabBar(),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildTabBar()),
+                    if (ResponsiveUtil.isLandscapeTablet())
+                      Container(
+                        constraints:
+                            const BoxConstraints(maxWidth: 300, minWidth: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        child: ItemBuilder.buildDesktopSearchBar(
+                          context: context,
+                          borderRadius: 8,
+                          bottomMargin: 18,
+                          hintFontSizeDelta: 1,
+                          focusNode: _searchFocusNode,
+                          controller: _searchController,
+                          background: Colors.grey.withAlpha(40),
+                          hintText: S.current.searchToken,
+                          onSubmitted: (text) {
+                            performSearch(text);
+                          },
+                        ),
+                      ),
+                  ],
+                ),
               ),
             )
           : null,
@@ -290,9 +313,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: _buildMobileBody(),
             ),
       bottomNavigationBar:
-          ResponsiveUtil.isLandscape() ? null : _buildMobileBottombar(),
+          ResponsiveUtil.isDesktop() ? null : _buildMobileBottombar(),
       floatingActionButton:
-          ResponsiveUtil.isLandscape() ? null : _buildFloatingActionButton(),
+          ResponsiveUtil.isDesktop() ? null : _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
       extendBody: true,
     );
@@ -336,9 +359,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       heroTag: "Hero-${categories.length}",
       onPressed: () {
         BottomSheetBuilder.showBottomSheet(
-          context,
+          rootContext,
           enableDrag: false,
-          (context) => const AddBottomSheet(),
+          responsive: true,
+          (context) => AddBottomSheet(
+            onlyShowScanner: ResponsiveUtil.isLandscapeTablet(),
+          ),
         );
       },
       elevation: 2,
@@ -580,7 +606,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   _buildMobileBottombar({double verticalPadding = 10}) {
-    double height = kToolbarHeight + verticalPadding * 2;
+    double height = kToolbarHeight +
+        verticalPadding * 2 +
+        (ResponsiveUtil.isLandscapeTablet() ? 24 : 0);
     return Selector<AppProvider, bool>(
       selector: (context, provider) => provider.hideBottombarWhenScrolling,
       builder: (context, hideBottombarWhenScrolling, child) =>
@@ -613,7 +641,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             height: height,
             duration: const Duration(milliseconds: 300),
             hideDirection: Axis.vertical,
-            child: categories.isEmpty
+            child: ResponsiveUtil.isLandscapeTablet() || categories.isEmpty
                 ? IgnorePointer(
                     child: Container(
                       height: height,
@@ -655,12 +683,12 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           dragToReorder: dragToReorder,
           cacheExtent: 9999,
-          itemDragEnable: (index) {
-            if (tokens[index].pinnedInt == 1) {
-              return false;
-            }
-            return true;
-          },
+          // itemDragEnable: (index) {
+          //   if (tokens[index].pinnedInt == 1) {
+          //     return false;
+          //   }
+          //   return true;
+          // },
           onReorderStart: (_) {
             _fabScrollToHideController.hide();
             _bottombarScrollToHideController.hide();
@@ -670,6 +698,13 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _bottombarScrollToHideController.show();
           },
           onReorder: (int oldIndex, int newIndex) async {
+            final selectedToken = tokens[oldIndex];
+            int pinnedCount = tokens.where((e) => e.pinned).length;
+            if (selectedToken.pinned) {
+              if (newIndex >= pinnedCount) newIndex = pinnedCount - 1;
+            } else {
+              if (newIndex < pinnedCount) newIndex = pinnedCount;
+            }
             final item = tokens.removeAt(oldIndex);
             tokens.insert(newIndex, item);
             for (int i = 0; i < tokens.length; i++) {
@@ -698,7 +733,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           itemCount: tokens.length,
           itemBuilder: (context, index) {
             return TokenLayout(
-              key: tokenKeyMap.putIfAbsent(tokens[index].id, () => GlobalKey()),
+              key: tokenKeyMap.putIfAbsent(tokens[index].uid, () => GlobalKey()),
               token: tokens[index],
               layoutType: layoutType,
             );
@@ -711,7 +746,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             controller: _scrollController,
             children: [
               ItemBuilder.buildEmptyPlaceholder(
-                  context: context, text: S.current.noToken),
+                  context: context,
+                  text: _searchKey.isEmpty
+                      ? S.current.noToken
+                      : S.current.noTokenContainingSearchKey(_searchKey)),
             ],
           )
         : gridView;
@@ -775,6 +813,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               HapticFeedback.lightImpact();
               BottomSheetBuilder.showBottomSheet(
                 context,
+                responsive: true,
                 (context) => SelectTokenBottomSheet(category: category),
               );
             }
@@ -926,6 +965,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  unfocusSearch() {
+    _searchFocusNode.unfocus();
+  }
+
   performSearch(String searchKey) {
     _searchKey = searchKey;
     getTokens();
@@ -962,7 +1005,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   resetCopyTimesSingle(OtpToken token) {
-    int updateIndex = tokens.indexWhere((element) => element.id == token.id);
+    int updateIndex = tokens.indexWhere((element) => element.uid == token.uid);
     tokens[updateIndex].copyTimes = 0;
     tokens[updateIndex].lastCopyTimeStamp = 0;
     if (orderType == OrderType.CopyTimesDESC ||

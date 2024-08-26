@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         applicationId "com.cloudchewie.cloudotp"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -61,6 +61,9 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
+        }
+        debug {
+            applicationIdSuffix = '.debug'
         }
     }
 }

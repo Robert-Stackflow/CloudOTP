@@ -21,6 +21,8 @@ class CustomInfoDialogWidget extends StatelessWidget {
   final EdgeInsets? padding;
   final EdgeInsets? margin;
   final TextAlign? messageTextAlign;
+  final bool bottomRadius;
+  final bool topRadius;
 
   /// If you don't want any icon or image, you toggle it to true.
   final bool renderHtml;
@@ -45,6 +47,8 @@ class CustomInfoDialogWidget extends StatelessWidget {
     required this.renderHtml,
     this.align = Alignment.bottomCenter,
     this.messageTextAlign = TextAlign.center,
+    this.topRadius = true,
+    this.bottomRadius = true,
   });
 
   @override
@@ -55,14 +59,15 @@ class CustomInfoDialogWidget extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          constraints: const BoxConstraints(
-            maxWidth: 340,
-          ),
+          // constraints: const BoxConstraints(maxWidth: 400),
           margin: margin ?? const EdgeInsets.all(24),
           padding: padding ?? const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: backgroundColor ?? MyTheme.getCardBackground(context),
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(bottomRadius ? 10 : 0),
+              top: Radius.circular(topRadius ? 10 : 0),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

@@ -8,7 +8,6 @@ import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
 
 import '../../Database/token_dao.dart';
@@ -31,11 +30,11 @@ class TokenOptionBottomSheet extends StatefulWidget {
   const TokenOptionBottomSheet({
     super.key,
     required this.token,
-    this.forceShowCode,
+    this.isNewToken,
   });
 
   final OtpToken token;
-  final bool? forceShowCode;
+  final bool? isNewToken;
 
   @override
   TokenOptionBottomSheetState createState() => TokenOptionBottomSheetState();
@@ -70,8 +69,8 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
   @override
   void initState() {
     updateCode();
-    if (widget.forceShowCode != null) {
-      tokenLayoutNotifier.codeVisiable = widget.forceShowCode!;
+    if (widget.isNewToken != null) {
+      tokenLayoutNotifier.codeVisiable = widget.isNewToken!;
     }
     super.initState();
     resetTimer();
@@ -114,7 +113,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
             color: Theme.of(context).canvasColor,
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isLandscape()
+                bottom: ResponsiveUtil.isWideLandscape()
                     ? const Radius.circular(20)
                     : Radius.zero),
           ),
@@ -301,8 +300,8 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                 widget.token, !widget.token.pinned);
             IToast.showTop(
               widget.token.pinned
-                  ? S.current.alreadyUnPinnedToken(widget.token.title)
-                  : S.current.alreadyPinnedToken(widget.token.title),
+                  ? S.current.alreadyPinnedToken(widget.token.title)
+                  : S.current.alreadyUnPinnedToken(widget.token.title),
             );
             homeScreenState?.updateToken(widget.token,
                 pinnedStateChanged: true);
@@ -313,20 +312,10 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           title: S.current.viewTokenQrCode,
           onTap: () {
             Navigator.pop(context);
-            DialogBuilder.showInfoDialog(
+            DialogBuilder.showQrcodesDialog(
               context,
               title: widget.token.title,
-              onTapDismiss: () {},
-              messageChild: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: PrettyQrView.data(
-                  data: OtpTokenParser.toUri(widget.token).toString(),
-                ),
-              ),
+              qrcodes: [OtpTokenParser.toUri(widget.token).toString()],
             );
           },
         ),
@@ -334,13 +323,13 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           leading: Icons.text_fields_rounded,
           title: S.current.copyTokenUri,
           onTap: () {
-            Navigator.pop(context);
             DialogBuilder.showConfirmDialog(
               context,
               title: S.current.copyUriClearWarningTitle,
               message: S.current.copyUriClearWarningTip,
               onTapConfirm: () {
                 Utils.copy(rootContext, OtpTokenParser.toUri(widget.token));
+                Navigator.pop(context);
               },
               onTapCancel: () {},
             );

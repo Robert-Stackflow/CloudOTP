@@ -73,7 +73,9 @@ dependencies:
   share_plus: ^9.0.0 # 分享
   protocol_handler: ^0.2.0 # 协议处理
   url_launcher: ^6.3.0 # URL跳转
+  biometric_storage: ^5.0.1
   # 平台适配
+  native_device_orientation: ^2.0.3 # 设备方向
   process_run: ^1.0.0+1 # 运行
   restart_app: ^1.2.1 # 重启APP
   tray_manager: ^0.2.3 # 托盘图标

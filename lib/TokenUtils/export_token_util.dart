@@ -23,6 +23,7 @@ import '../Database/config_dao.dart';
 import '../Models/Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/token_category.dart';
+import '../Utils/file_util.dart';
 import '../Utils/itoast.dart';
 import '../Utils/utils.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
@@ -76,7 +77,7 @@ class ExportTokenUtil {
       String content = uris.join("\n");
       return utf8.encode(content);
     }, null);
-    String? filePath = await FilePicker.platform.saveFile(
+    String? filePath = await FileUtil.saveFile(
       dialogTitle: S.current.exportUriFileTitle,
       fileName: ExportTokenUtil.getExportFileName("txt"),
       type: FileType.custom,
@@ -166,7 +167,7 @@ class ExportTokenUtil {
       dialog.dismiss();
       return;
     } else {
-      String? filePath = await FilePicker.platform.saveFile(
+      String? filePath = await FileUtil.saveFile(
         dialogTitle: S.current.exportEncryptFileTitle,
         fileName: ExportTokenUtil.getExportFileName("bin"),
         type: FileType.custom,

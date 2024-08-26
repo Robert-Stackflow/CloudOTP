@@ -6,9 +6,9 @@ import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/constant.dart';
+import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
@@ -389,8 +389,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           title: S.current.autoBackupPath,
           description: _autoBackupPath,
           onTap: () async {
-            String? selectedDirectory =
-                await FilePicker.platform.getDirectoryPath(
+            String? selectedDirectory = await FileUtil.getDirectoryPath(
               dialogTitle: S.current.autoBackupPath,
               lockParentWindow: true,
             );

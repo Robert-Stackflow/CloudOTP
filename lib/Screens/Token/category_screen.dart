@@ -56,8 +56,8 @@ class _CategoryScreenState extends State<CategoryScreen>
             ? Icons.close_rounded
             : Icons.arrow_back_rounded,
         onLeadingTap: () {
-          if (ResponsiveUtil.isLandscape()) {
-            dialogNavigatorState?.popPage();
+          if (ResponsiveUtil.isWideLandscape()) {
+            globalNavigatorState?.pop();
           } else {
             Navigator.pop(context);
           }

@@ -1,5 +1,4 @@
 import 'package:cloudotp/Database/config_dao.dart';
-import 'package:cloudotp/TokenUtils/ThirdParty/2fas_importer.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
@@ -16,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/file_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/add_bottom_sheet.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
@@ -94,7 +94,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           title: S.current.importEncryptFile,
           description: S.current.importEncryptFileHint(appName),
           onTap: () async {
-            FilePickerResult? result = await FilePicker.platform.pickFiles(
+            FilePickerResult? result = await FileUtil.pickFiles(
               dialogTitle: S.current.importEncryptFileTitle,
               type: FileType.custom,
               allowedExtensions: ['bin'],
@@ -128,7 +128,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         //   title: S.current.importOldEncryptFile,
         //   description: S.current.importOldEncryptFileHint(appName),
         //   onTap: () async {
-        //     FilePickerResult? result = await FilePicker.platform.pickFiles(
+        //     FilePickerResult? result = await FileUtil.pickFiles(
         //       dialogTitle: S.current.importOldEncryptFileTitle,
         //       type: FileType.any,
         //       lockParentWindow: true,
@@ -164,7 +164,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           title: S.current.importUriFile,
           description: S.current.importUriFileHint,
           onTap: () async {
-            FilePickerResult? result = await FilePicker.platform.pickFiles(
+            FilePickerResult? result = await FileUtil.pickFiles(
               dialogTitle: S.current.importUriFileTitle,
               type: FileType.custom,
               allowedExtensions: ['txt'],
@@ -197,7 +197,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           description: S.current.exportEncryptFileHint(appName),
           onTap: () async {
             if (ResponsiveUtil.isDesktop()) {
-              String? result = await FilePicker.platform.saveFile(
+              String? result = await FileUtil.saveFile(
                 dialogTitle: S.current.exportEncryptFileTitle,
                 fileName: ExportTokenUtil.getExportFileName("bin"),
                 type: FileType.custom,
@@ -299,7 +299,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               message: S.current.exportUriClearWarningTip,
               onTapConfirm: () async {
                 if (ResponsiveUtil.isDesktop()) {
-                  String? result = await FilePicker.platform.saveFile(
+                  String? result = await FileUtil.saveFile(
                     dialogTitle: S.current.exportUriFileTitle,
                     fileName: ExportTokenUtil.getExportFileName("txt"),
                     type: FileType.custom,
@@ -328,8 +328,9 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
           onTap: () async {
             if (ResponsiveUtil.isMobile()) {
               BottomSheetBuilder.showBottomSheet(
-                context,
+                rootContext,
                 enableDrag: false,
+                responsive: true,
                 (context) => const AddBottomSheet(onlyShowScanner: true),
               );
             }
@@ -341,7 +342,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         //   title: S.current.importFrom2FAS,
         //   description: S.current.importFrom2FASTip,
         //   onTap: () async {
-        //     FilePickerResult? result = await FilePicker.platform.pickFiles(
+        //     FilePickerResult? result = await FileUtil.pickFiles(
         //       dialogTitle: S.current.importFrom2FASTitle,
         //       type: FileType.custom,
         //       allowedExtensions: ['2fas'],

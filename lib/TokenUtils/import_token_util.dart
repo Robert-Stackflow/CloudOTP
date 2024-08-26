@@ -102,7 +102,7 @@ class ImportTokenUtil {
     if (validTokenUris.isNotEmpty) {
       tokens = await ImportTokenUtil.importText(
         validTokenUris.join("\n"),
-        noTokenToast: S.current.imageDoesNotContainToken,
+        // noTokenToast: S.current.imageDoesNotContainToken,
       );
       if (autoPopup && context != null && context.mounted) {
         Navigator.pop(context);
@@ -131,11 +131,13 @@ class ImportTokenUtil {
     }
     try {
       File file = File(filepath);
+      print("===============$filepath");
       Uint8List? imageBytes = await compute<String, Uint8List?>((path) {
         return File(path).readAsBytesSync();
       }, filepath);
       String fileName = FileUtil.extractFileNameFromUrl(file.path);
       if (ResponsiveUtil.isAndroid()) {
+        print("=================$fileName");
         await File("/storage/emulated/0/Pictures/$fileName")
             .delete(recursive: true);
         await file.delete(recursive: true);
@@ -157,7 +159,7 @@ class ImportTokenUtil {
         responsive: true,
         (context) => TokenOptionBottomSheet(
           token: res[0].first,
-          forceShowCode: true,
+          isNewToken: true,
         ),
       );
     }
@@ -168,6 +170,7 @@ class ImportTokenUtil {
     Uint8List? imageBytes, {
     required BuildContext context,
     bool showLoading = true,
+    bool doDismissLoading = false,
     bool showSingleTokenDialog = true,
   }) async {
     if (showLoading) {
@@ -176,7 +179,7 @@ class ImportTokenUtil {
     List<OtpToken> tokens = [];
     List<TokenCategory> categories = [];
     if (imageBytes == null || imageBytes.isEmpty) {
-      if (showLoading) {
+      if (showLoading || doDismissLoading) {
         CustomLoadingDialog.dismissLoading();
       }
       IToast.showTop(S.current.noQrCode);
@@ -211,7 +214,7 @@ class ImportTokenUtil {
         IToast.showTop(S.current.parseQrCodeWrong);
       }
     } finally {
-      if (showLoading) {
+      if (showLoading || doDismissLoading) {
         CustomLoadingDialog.dismissLoading();
       }
     }
@@ -221,7 +224,7 @@ class ImportTokenUtil {
         responsive: true,
         (context) => TokenOptionBottomSheet(
           token: tokens.first,
-          forceShowCode: true,
+          isNewToken: true,
         ),
       );
     }
@@ -495,14 +498,15 @@ class ImportTokenUtil {
     return categories;
   }
 
-  static bool contain(OtpToken token, List<OtpToken> tokenList) {
+  static OtpToken? contain(OtpToken token, List<OtpToken> tokenList) {
     for (OtpToken otpToken in tokenList) {
       if (otpToken.issuer == token.issuer &&
-          otpToken.account == token.account) {
-        return true;
+          otpToken.account == token.account &&
+          otpToken.secret == token.secret) {
+        return otpToken;
       }
     }
-    return false;
+    return null;
   }
 
   static bool containCategory(
@@ -521,6 +525,18 @@ class ImportTokenUtil {
     return false;
   }
 
+  static Future<List<OtpToken>> getAlreadyExistUid(
+      List<OtpToken> tokenList) async {
+    List<OtpToken> already = await TokenDao.listTokens();
+    for (OtpToken token in tokenList) {
+      OtpToken? alreadyToken = contain(token, already);
+      if (alreadyToken != null) {
+        token.uid = alreadyToken.uid;
+      }
+    }
+    return tokenList;
+  }
+
   static Future<int> mergeTokens(
     List<OtpToken> tokenList, {
     bool performInsert = true,
@@ -528,14 +544,18 @@ class ImportTokenUtil {
     List<OtpToken> already = await TokenDao.listTokens();
     List<OtpToken> newTokenList = [];
     for (OtpToken otpToken in tokenList) {
-      if (!contain(otpToken, already) && !contain(otpToken, newTokenList)) {
+      OtpToken? alreadyToken = contain(otpToken, already);
+      if (alreadyToken == null && contain(otpToken, newTokenList) == null) {
         newTokenList.add(otpToken);
       }
     }
-    if (performInsert) {
-      await TokenDao.insertTokens(newTokenList);
-      homeScreenState?.refresh();
-    }
+    IToast.showTop(newTokenList.toString());
+    print(newTokenList.toString());
+    // if (performInsert) {
+    //   await TokenDao.insertTokens(newTokenList);
+    //   homeScreenState?.refresh();
+    // }
+    await getAlreadyExistUid(tokenList);
     return newTokenList.length;
   }
 

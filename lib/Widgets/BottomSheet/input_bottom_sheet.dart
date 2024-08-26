@@ -117,7 +117,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(
                   top: const Radius.circular(20),
-                  bottom: ResponsiveUtil.isLandscape()
+                  bottom: ResponsiveUtil.isWideLandscape()
                       ? const Radius.circular(20)
                       : Radius.zero),
               color: Theme.of(context).canvasColor,

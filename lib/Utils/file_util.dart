@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/github_response.dart';
@@ -6,6 +7,7 @@ import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -21,6 +23,86 @@ import 'itoast.dart';
 import 'notification_util.dart';
 
 class FileUtil {
+  static Future<FilePickerResult?> pickFiles({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Function(FilePickerStatus)? onFileLoading,
+    bool allowCompression = true,
+    int compressionQuality = 30,
+    bool allowMultiple = false,
+    bool withData = false,
+    bool withReadStream = false,
+    bool lockParentWindow = false,
+    bool readSequential = false,
+  }) async {
+    FilePickerResult? result;
+    try {
+      result = await FilePicker.platform.pickFiles(
+        dialogTitle: dialogTitle,
+        initialDirectory: initialDirectory,
+        type: type,
+        allowedExtensions: allowedExtensions,
+        lockParentWindow: lockParentWindow,
+        onFileLoading: onFileLoading,
+        allowCompression: allowCompression,
+        compressionQuality: compressionQuality,
+        allowMultiple: allowMultiple,
+        withData: withData,
+        withReadStream: withReadStream,
+        readSequential: readSequential,
+      );
+    } catch (e) {
+      IToast.showTop(S.current.pleaseGrantFilePermission);
+    }
+    return result;
+  }
+
+  static Future<String?> saveFile({
+    String? dialogTitle,
+    String? fileName,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Uint8List? bytes,
+    bool lockParentWindow = false,
+  }) async {
+    String? result;
+    try {
+      result = await FilePicker.platform.saveFile(
+        dialogTitle: dialogTitle,
+        initialDirectory: initialDirectory,
+        type: type,
+        allowedExtensions: allowedExtensions,
+        lockParentWindow: lockParentWindow,
+        bytes: bytes,
+        fileName: fileName,
+      );
+    } catch (e) {
+      IToast.showTop(S.current.pleaseGrantFilePermission);
+    }
+    return result;
+  }
+
+  static Future<String?> getDirectoryPath({
+    String? dialogTitle,
+    String? initialDirectory,
+    bool lockParentWindow = false,
+  }) async {
+    String? result;
+    try {
+      result = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: dialogTitle,
+        initialDirectory: initialDirectory,
+        lockParentWindow: lockParentWindow,
+      );
+    } catch (e) {
+      IToast.showTop(S.current.pleaseGrantFilePermission);
+    }
+    return result;
+  }
+
   static Future<String> getApplicationDir() async {
     final dir = await getApplicationDocumentsDirectory();
     final appName = (await PackageInfo.fromPlatform()).appName;

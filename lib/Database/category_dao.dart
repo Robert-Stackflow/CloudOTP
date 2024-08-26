@@ -169,7 +169,8 @@ class CategoryDao {
   }) async {
     if (uid.isEmpty) return await TokenDao.listTokens(searchKey: searchKey);
     TokenCategory category = await getCategoryByUid(uid);
-    List<OtpToken> tokens = await BindingDao.getTokens(category.uid);
+    List<OtpToken> tokens =
+        await BindingDao.getTokens(category.uid, searchKey: searchKey);
     tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
     return tokens;
   }

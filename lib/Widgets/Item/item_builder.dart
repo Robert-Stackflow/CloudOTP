@@ -419,6 +419,7 @@ class ItemBuilder {
     Function()? onLongPress,
     Color? background,
     EdgeInsets? padding,
+    int quarterTurns = 0,
   }) {
     return Material(
       color: background ?? Colors.transparent,
@@ -429,7 +430,8 @@ class ItemBuilder {
         onLongPress: onLongPress,
         child: Container(
           padding: padding ?? const EdgeInsets.all(8),
-          child: icon ?? emptyWidget,
+          child: RotatedBox(
+              quarterTurns: quarterTurns, child: icon ?? emptyWidget),
         ),
       ),
     );
@@ -468,6 +470,7 @@ class ItemBuilder {
     required dynamic icon,
     required Function()? onTap,
     Function(BuildContext context, dynamic value, Widget? child)? onChangemode,
+    int quarterTurns = 0,
   }) {
     return Material(
       color: Colors.transparent,
@@ -477,7 +480,12 @@ class ItemBuilder {
         selector: (context, appProvider) => appProvider.themeMode,
         builder: (context, themeMode, child) {
           onChangemode?.call(context, themeMode, child);
-          return buildIconButton(context: context, icon: icon, onTap: onTap);
+          return buildIconButton(
+            context: context,
+            icon: icon,
+            onTap: onTap,
+            quarterTurns: quarterTurns,
+          );
         },
       ),
     );
@@ -1298,7 +1306,7 @@ class ItemBuilder {
   }) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.max,
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 10),
@@ -1309,6 +1317,7 @@ class ItemBuilder {
         const SizedBox(height: 10),
         Text(
           text,
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.labelLarge,
         ),
         if (showButton) const SizedBox(height: 10),

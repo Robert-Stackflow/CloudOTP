@@ -58,7 +58,8 @@ class OtpTokenParser {
         OtpToken? token = parseOtpauthUri(uri);
         return token == null ? [] : [token];
       }
-    } catch (e) {
+    } catch (e, t) {
+      print("$e\n$t");
       return [];
     }
   }

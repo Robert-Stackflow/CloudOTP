@@ -54,7 +54,6 @@ class ScreenCapturer {
       }
     }
     if (copyToClipboard) {
-      // 如果是复制到剪切板，先清空剪切板，避免结果不正确
       Clipboard.setData(const ClipboardData(text: ''));
     }
     await _platform.systemScreenCapturer.capture(

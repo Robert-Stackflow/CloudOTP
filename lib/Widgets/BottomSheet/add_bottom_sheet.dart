@@ -8,12 +8,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/file_util.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
@@ -40,6 +42,8 @@ class AddBottomSheetState extends State<AddBottomSheet>
   double _zoomFactor = _defaultZoomFactor;
   final double _scaleSensitivity = 0.005;
   List<String> alreadyScanned = [];
+  int quatertTurns = 0;
+  GlobalKey scannerKey = GlobalKey();
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -93,7 +97,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
         })
         .request()
         .then((value) {
-          print("value:${value}");
+          print("value:$value");
           if (value.isGranted) {
             print("Camera permission granted");
             unawaited(scannerController.start());
@@ -127,7 +131,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
           responsive: true,
           (context) => TokenOptionBottomSheet(
             token: tokens.first,
-            forceShowCode: true,
+            isNewToken: true,
           ),
         );
       }
@@ -159,18 +163,21 @@ class AddBottomSheetState extends State<AddBottomSheet>
                     ? const Radius.circular(20)
                     : Radius.zero),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildHeader(),
-              _buildScanner(),
-              if (!widget.onlyShowScanner)
-                ItemBuilder.buildDivider(context, horizontal: 10, vertical: 0),
-              if (!widget.onlyShowScanner) _buildOptions(),
-              if (!widget.onlyShowScanner) const SizedBox(height: 20),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildHeader(),
+                _buildScanner(),
+                if (!widget.onlyShowScanner)
+                  ItemBuilder.buildDivider(context,
+                      horizontal: 10, vertical: 0),
+                if (!widget.onlyShowScanner) _buildOptions(),
+                if (!widget.onlyShowScanner) const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ],
@@ -220,7 +227,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
       margin: const EdgeInsets.symmetric(horizontal: 10),
       alignment: Alignment.center,
       height: 400,
-      width: 400,
+      width: MediaQuery.sizeOf(context).width,
       child: Stack(
         children: [
           GestureDetector(
@@ -237,24 +244,60 @@ class AddBottomSheetState extends State<AddBottomSheet>
             },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: MobileScanner(
-                controller: scannerController,
-                placeholderBuilder: (context, child) {
-                  return ColoredBox(
-                    color: Colors.black,
-                    child: Center(
-                      child: Text(
-                        S.current.scanPlaceholder,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.apply(color: Colors.white),
-                      ),
+              child: NativeDeviceOrientationReader(
+                useSensor: true,
+                builder: (ctx) {
+                  final orientation =
+                      NativeDeviceOrientationReader.orientation(ctx);
+                  int turns = 0;
+                  switch (orientation) {
+                    case NativeDeviceOrientation.portraitUp:
+                      turns = 0;
+                      break;
+                    case NativeDeviceOrientation.portraitDown:
+                      turns = 2;
+                      break;
+                    case NativeDeviceOrientation.landscapeLeft:
+                      turns = 3;
+                      break;
+                    case NativeDeviceOrientation.landscapeRight:
+                      turns = 1;
+                      break;
+                    case NativeDeviceOrientation.unknown:
+                      turns = 0;
+                      break;
+                  }
+                  turns = !ResponsiveUtil.isLandscapeTablet() ? 0 : turns;
+                  return RotatedBox(
+                    quarterTurns: turns,
+                    child: MobileScanner(
+                      key: scannerKey,
+                      controller: scannerController,
+                      placeholderBuilder: (context, child) {
+                        return RotatedBox(
+                          quarterTurns: turns,
+                          child: ColoredBox(
+                            color: Colors.black,
+                            child: Center(
+                              child: Text(
+                                S.current.scanPlaceholder,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.apply(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, child) {
+                        return RotatedBox(
+                          quarterTurns: turns,
+                          child: ScannerErrorWidget(error: error),
+                        );
+                      },
                     ),
                   );
-                },
-                errorBuilder: (context, error, child) {
-                  return ScannerErrorWidget(error: error);
                 },
               ),
             ),
@@ -280,7 +323,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
           showTrailing: false,
           onTap: () {
             Navigator.pop(context);
-            RouteUtil.pushCupertinoRoute(context, const AddTokenScreen());
+            RouteUtil.pushDialogRoute(context, const AddTokenScreen());
           },
           leading: Icons.add_rounded,
         ),
@@ -292,8 +335,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
           showTrailing: false,
           onTap: () {
             Navigator.pop(context);
-            RouteUtil.pushCupertinoRoute(
-                context, const ImportExportTokenScreen());
+            RouteUtil.pushDialogRoute(context, const ImportExportTokenScreen());
           },
           leading: Icons.import_export_rounded,
         ),
@@ -318,7 +360,7 @@ class AnalyzeImageFromGalleryButton extends StatelessWidget {
       background: Colors.black.withOpacity(0.2),
       icon: const Icon(Icons.photo_rounded, color: Colors.white, size: 32),
       onTap: () async {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
+        FilePickerResult? result = await FileUtil.pickFiles(
           type: FileType.image,
           lockParentWindow: true,
         );

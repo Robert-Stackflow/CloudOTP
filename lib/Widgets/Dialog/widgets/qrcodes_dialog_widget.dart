@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cloudotp/Resources/theme.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -47,8 +48,12 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 430),
-          margin: const EdgeInsets.all(24),
+          constraints: ResponsiveUtil.isLandscape()
+              ? const BoxConstraints(maxWidth: 430)
+              : null,
+          margin: ResponsiveUtil.isLandscape()
+              ? const EdgeInsets.all(24)
+              : EdgeInsets.zero,
           decoration: BoxDecoration(
             color: MyTheme.getCardBackground(context),
             borderRadius: BorderRadius.circular(15),
@@ -86,8 +91,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
               ),
               Container(
                 constraints: BoxConstraints(
-                    maxHeight:
-                        min(400, MediaQuery.sizeOf(context).width - 90)),
+                    maxHeight: min(360, MediaQuery.sizeOf(context).width - 90)),
                 child: PageView.builder(
                   controller: controller,
                   itemCount: widget.qrcodes.length,
@@ -110,51 +114,59 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    ItemBuilder.buildRoundButton(
-                      context,
-                      icon: const Icon(Icons.arrow_back_rounded),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 31, vertical: 8),
-                      onTap: currentPage <= 0
-                          ? null
-                          : () {
-                              controller.previousPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            },
-                    ),
-                    Expanded(
-                      child: Text(
-                        "${currentPage + 1}/${widget.qrcodes.length}",
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    currentPage == widget.qrcodes.length - 1
-                        ? ItemBuilder.buildRoundButton(
+                child: widget.qrcodes.length == 1
+                    ? ItemBuilder.buildRoundButton(context,
+                        text: S.current.confirm,
+                        background: Theme.of(context).primaryColor, onTap: () {
+                        Navigator.of(context).pop();
+                      })
+                    : Row(
+                        children: [
+                          ItemBuilder.buildRoundButton(
                             context,
-                            text: S.current.complete,
-                            background: Theme.of(context).primaryColor,
-                            onTap: () {
-                              Navigator.of(context).pop();
-                            },
-                          )
-                        : ItemBuilder.buildRoundButton(
-                            context,
-                            icon: const Icon(Icons.arrow_forward_rounded),
+                            icon: const Icon(Icons.arrow_back_rounded),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 31, vertical: 8),
-                            onTap: () {
-                              controller.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            },
+                            onTap: currentPage <= 0
+                                ? null
+                                : () {
+                                    controller.previousPage(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  },
                           ),
-                  ],
-                ),
+                          Expanded(
+                            child: Text(
+                              "${currentPage + 1}/${widget.qrcodes.length}",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          currentPage == widget.qrcodes.length - 1
+                              ? ItemBuilder.buildRoundButton(
+                                  context,
+                                  text: S.current.complete,
+                                  background: Theme.of(context).primaryColor,
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              : ItemBuilder.buildRoundButton(
+                                  context,
+                                  icon: const Icon(Icons.arrow_forward_rounded),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 31, vertical: 8),
+                                  onTap: () {
+                                    controller.nextPage(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  },
+                                ),
+                        ],
+                      ),
               ),
             ],
           ),

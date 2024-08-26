@@ -165,8 +165,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         forceShowClose: true,
         leading: Icons.close_rounded,
         onLeadingTap: () {
-          if (ResponsiveUtil.isLandscape()) {
-            dialogNavigatorState?.popPage();
+          if (ResponsiveUtil.isWideLandscape()) {
+            globalNavigatorState?.pop();
           } else {
             Navigator.pop(context);
           }

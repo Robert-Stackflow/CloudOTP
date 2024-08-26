@@ -29,7 +29,7 @@ class DialogBuilder {
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
-    if (responsive && ResponsiveUtil.isLandscape()) {
+    if (responsive && ResponsiveUtil.isWideLandscape()) {
       CustomConfirmDialog.show(
         context,
         message: message ?? "",
@@ -92,19 +92,24 @@ class DialogBuilder {
     bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
+    bool topRadius = true,
+    bool bottomRadius = true,
+    bool forceNoMarginAtMobile = false,
   }) {
-    if (responsive && ResponsiveUtil.isLandscape()) {
+    if (responsive && ResponsiveUtil.isWideLandscape()) {
       CustomInfoDialog.show(
         context,
         buttonText: buttonText ?? S.current.confirm,
         message: message,
         messageChild: messageChild,
         imagePath: imagePath,
+        bottomRadius: bottomRadius,
+        margin: margin,
+        topRadius: topRadius,
         title: title,
         color: color,
         textColor: textColor,
         buttonTextColor: buttonTextColor,
-        margin: margin,
         padding: padding,
         barrierDismissible: barrierDismissible,
         renderHtml: renderHtml,
@@ -121,9 +126,11 @@ class DialogBuilder {
         imagePath: imagePath,
         title: title,
         color: color,
+        bottomRadius: forceNoMarginAtMobile ? false : bottomRadius,
+        margin: forceNoMarginAtMobile ? EdgeInsets.zero : margin,
+        topRadius: topRadius,
         textColor: textColor,
         buttonTextColor: buttonTextColor,
-        margin: margin,
         padding: padding,
         barrierDismissible: barrierDismissible,
         renderHtml: renderHtml,
@@ -177,7 +184,7 @@ class DialogBuilder {
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
-    if (responsive && ResponsiveUtil.isLandscape()) {
+    if (responsive && ResponsiveUtil.isWideLandscape()) {
       QrcodeDialog.show(
         context,
         title: title,

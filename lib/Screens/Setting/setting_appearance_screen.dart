@@ -238,7 +238,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       const SizedBox(height: 10),
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.mobileSetting),
-      if (ResponsiveUtil.isTablet())
+      if (ResponsiveUtil.isLandscapeTablet())
         ItemBuilder.buildRadioItem(
           value: _enableLandscapeInTablet,
           context: context,

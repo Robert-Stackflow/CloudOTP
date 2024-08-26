@@ -5,10 +5,10 @@ import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/Tuple/tuple.dart';
+import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:local_auth/local_auth.dart';
@@ -533,6 +533,7 @@ class _SettingScreenState extends State<SettingScreen>
                     deleteOldBackups(count);
                     return true;
                   }
+
                   if (count > 0 && (counts[0] > count || counts[1] > count)) {
                     DialogBuilder.showConfirmDialog(
                       context,
@@ -574,8 +575,7 @@ class _SettingScreenState extends State<SettingScreen>
           title: S.current.autoBackupPath,
           description: _autoBackupPath,
           onTap: () async {
-            String? selectedDirectory =
-                await FilePicker.platform.getDirectoryPath(
+            String? selectedDirectory = await FileUtil.getDirectoryPath(
               dialogTitle: S.current.autoBackupPath,
               lockParentWindow: true,
             );
@@ -904,7 +904,7 @@ class _SettingScreenState extends State<SettingScreen>
       const SizedBox(height: 10),
       ItemBuilder.buildCaptionItem(
           context: context, title: S.current.mobileSetting),
-      if (ResponsiveUtil.isTablet())
+      if (ResponsiveUtil.isLandscapeTablet())
         ItemBuilder.buildRadioItem(
           value: _enableLandscapeInTablet,
           context: context,

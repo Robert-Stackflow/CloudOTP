@@ -1,8 +1,10 @@
-import 'package:cloudotp/Widgets/Dialog/widgets/qrcodes_dialog_widget.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/loading_dialog_widget.dart';
+import 'package:cloudotp/Widgets/Dialog/widgets/qrcodes_dialog_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../Utils/app_provider.dart';
+import '../Custom/floating_modal.dart';
 import './animations.dart';
 import './widgets/custom_confirm_dialog_widget.dart';
 import './widgets/custom_info_dialog_widget.dart';
@@ -27,6 +29,8 @@ class CustomInfoDialog {
     bool barrierDismissible = true,
     bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
+    bool topRadius = true,
+    bool bottomRadius = true,
   }) =>
       showDialog<T>(
         barrierDismissible: barrierDismissible,
@@ -46,6 +50,8 @@ class CustomInfoDialog {
           padding: padding,
           renderHtml: renderHtml,
           align: align,
+          bottomRadius: bottomRadius,
+          topRadius: topRadius,
         ),
       );
 
@@ -216,6 +222,8 @@ class CustomInfoDialog {
     bool barrierDismissible = true,
     bool renderHtml = true,
     Alignment align = Alignment.bottomCenter,
+    bool topRadius = true,
+    bool bottomRadius = true,
   }) =>
       showGeneralDialog<T>(
         barrierDismissible: barrierDismissible,
@@ -246,6 +254,8 @@ class CustomInfoDialog {
           padding: padding,
           renderHtml: renderHtml,
           align: align,
+          bottomRadius: bottomRadius,
+          topRadius: topRadius,
         ),
       );
 
@@ -771,25 +781,19 @@ class QrcodeDialog {
     required List<String> qrcodes,
     Alignment align = Alignment.bottomCenter,
   }) =>
-      showGeneralDialog<T>(
-        barrierDismissible: true,
+      showCustomModalBottomSheet(
         context: context,
-        barrierLabel: '',
-        barrierColor: Colors.black.withOpacity(0.35),
-        transitionDuration: const Duration(milliseconds: 400),
-        transitionBuilder: (context, animation, secondaryAnimation, child) {
-          return CustomDialogAnimations.fromBottom(
-            animation,
-            secondaryAnimation,
-            child,
-          );
-        },
-        pageBuilder: (animation, secondaryAnimation, child) =>
-            QrcodesDialogWidget(
+        elevation: 0,
+        enableDrag: true,
+        backgroundColor: Theme.of(context).canvasColor,
+        builder: (context) => QrcodesDialogWidget(
           title: title,
           message: message,
           qrcodes: qrcodes,
           align: align,
+        ),
+        containerWidget: (_, animation, child) => FloatingModal(
+          child: child,
         ),
       );
 }

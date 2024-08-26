@@ -38,6 +38,9 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
   popPage() {
     if (_navigatorState!.canPop()) {
       _navigatorState?.pop();
+      if (!_navigatorState!.canPop()) {
+        Navigator.pop(context);
+      }
     } else {
       Navigator.pop(context);
     }
