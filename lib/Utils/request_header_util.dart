@@ -1,12 +1,8 @@
-import 'dart:math';
-
+import 'package:cloudotp/Utils/utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
-import 'package:cloudotp/Utils/enums.dart';
-import 'package:cloudotp/Utils/utils.dart';
 
-import 'app_provider.dart';
-import 'hive_util.dart';
+import './ilogger.dart';
 
 class RequestHeaderUtil {
   static const String defaultMarket = "xiaomi";
@@ -22,7 +18,8 @@ class RequestHeaderUtil {
     try {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       await deviceInfo.androidInfo.then((value) => androidInfo = value);
-    } on PlatformException {
+    } catch (e, t) {
+      ILogger.error("Failed to get android info", e, t);
       androidInfo = null;
     }
   }

@@ -7,7 +7,6 @@ import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:cloudotp/Widgets/Item/input_item.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
-import 'package:cloudotp/Widgets/WaterfallFlow/reorderable_grid_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/category_dao.dart';
@@ -90,8 +89,8 @@ class _CategoryScreenState extends State<CategoryScreen>
                 controller: TextEditingController(),
               );
               GlobalKey<InputBottomSheetState> key = GlobalKey();
-              BottomSheetBuilder.showBottomSheet(context, responsive: true,
-                  (context) {
+              BottomSheetBuilder.showBottomSheet(context,
+                  responsive: true, useWideLandscape: true, (context) {
                 return InputBottomSheet(
                   key: key,
                   title: S.current.addCategory,
@@ -118,9 +117,6 @@ class _CategoryScreenState extends State<CategoryScreen>
 
   _buildBody() {
     return EasyRefresh(
-      onRefresh: () async {
-        await getCategories();
-      },
       child: categories.isEmpty
           ? ListView(
               padding: EdgeInsets.symmetric(
@@ -220,6 +216,7 @@ class _CategoryScreenState extends State<CategoryScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
+                useWideLandscape: true,
                 (context) => InputBottomSheet(
                   title: S.current.editCategoryName,
                   hint: S.current.inputCategory,

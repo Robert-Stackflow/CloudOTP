@@ -151,10 +151,10 @@ class _ClassicIndicator extends StatefulWidget {
     this.progressIndicatorSize,
     this.progressIndicatorStrokeWidth,
   }) : assert(
-            mainAxisAlignment == MainAxisAlignment.start ||
-                mainAxisAlignment == MainAxisAlignment.center ||
-                mainAxisAlignment == MainAxisAlignment.end,
-            'Only supports [MainAxisAlignment.center], [MainAxisAlignment.start] and [MainAxisAlignment.end].');
+  mainAxisAlignment == MainAxisAlignment.start ||
+      mainAxisAlignment == MainAxisAlignment.center ||
+      mainAxisAlignment == MainAxisAlignment.end,
+  'Only supports [MainAxisAlignment.center], [MainAxisAlignment.start] and [MainAxisAlignment.end].');
 
   @override
   State<_ClassicIndicator> createState() => _ClassicIndicatorState();
@@ -274,7 +274,9 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
           .call(context, widget.state, _iconAnimationController.value);
     }
     Widget icon;
-    final iconTheme = widget.iconTheme ?? Theme.of(context).iconTheme;
+    final iconTheme = widget.iconTheme ?? Theme
+        .of(context)
+        .iconTheme;
     ValueKey iconKey;
     if (_result == IndicatorResult.noMore) {
       iconKey = const ValueKey(IndicatorResult.noMore);
@@ -328,8 +330,8 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
           child: Icon(widget.reverse
               ? (_axis == Axis.vertical ? Icons.arrow_upward : Icons.arrow_back)
               : (_axis == Axis.vertical
-                  ? Icons.arrow_downward
-                  : Icons.arrow_forward)),
+              ? Icons.arrow_downward
+              : Icons.arrow_forward)),
         ),
       );
     }
@@ -359,19 +361,25 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
     return widget.textBuilder?.call(context, widget.state, _currentText) ??
         Text(
           _currentText,
-          style: widget.textStyle ?? Theme.of(context).textTheme.titleMedium,
+          style: widget.textStyle ?? Theme
+              .of(context)
+              .textTheme
+              .titleMedium,
         );
   }
 
   /// Build text.
   Widget _buildMessage() {
     return widget.messageBuilder
-            ?.call(context, widget.state, widget.messageText, _updateTime) ??
+        ?.call(context, widget.state, widget.messageText, _updateTime) ??
         Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             _messageText,
-            style: widget.messageStyle ?? Theme.of(context).textTheme.bodySmall,
+            style: widget.messageStyle ?? Theme
+                .of(context)
+                .textTheme
+                .bodySmall,
           ),
         );
   }
@@ -387,15 +395,15 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
             right: 0,
             top: _offset < _actualTriggerOffset
                 ? -(_actualTriggerOffset -
-                        _offset +
-                        (widget.reverse ? _safeOffset : -_safeOffset)) /
-                    2
+                _offset +
+                (widget.reverse ? _safeOffset : -_safeOffset)) /
+                2
                 : (!widget.reverse ? _safeOffset : 0),
             bottom: _offset < _actualTriggerOffset
                 ? null
                 : (widget.reverse ? _safeOffset : 0),
             height:
-                _offset < _actualTriggerOffset ? _actualTriggerOffset : null,
+            _offset < _actualTriggerOffset ? _actualTriggerOffset : null,
             child: Center(
               child: _buildVerticalBody(),
             ),
@@ -456,9 +464,9 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
           Positioned(
             left: _offset < _actualTriggerOffset
                 ? -(_actualTriggerOffset -
-                        _offset +
-                        (widget.reverse ? _safeOffset : -_safeOffset)) /
-                    2
+                _offset +
+                (widget.reverse ? _safeOffset : -_safeOffset)) /
+                2
                 : (!widget.reverse ? _safeOffset : 0),
             right: _offset < _actualTriggerOffset
                 ? null

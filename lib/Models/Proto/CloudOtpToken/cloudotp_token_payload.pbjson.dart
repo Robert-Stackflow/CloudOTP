@@ -25,9 +25,10 @@ const CloudOtpTokenAlgorithm$json = {
 };
 
 /// Descriptor for `CloudOtpTokenAlgorithm`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List cloudOtpTokenAlgorithmDescriptor = $convert.base64Decode(
-    'ChZDbG91ZE90cFRva2VuQWxnb3JpdGhtEh4KGkFMR09SSVRITV9UWVBFX1VOU1BFQ0lGSUVEEA'
-    'ASCAoEU0hBMRABEgoKBlNIQTI1NhACEgoKBlNIQTUxMhAD');
+final $typed_data.Uint8List cloudOtpTokenAlgorithmDescriptor =
+    $convert.base64Decode(
+        'ChZDbG91ZE90cFRva2VuQWxnb3JpdGhtEh4KGkFMR09SSVRITV9UWVBFX1VOU1BFQ0lGSUVEEA'
+        'ASCAoEU0hBMRABEgoKBlNIQTI1NhACEgoKBlNIQTUxMhAD');
 
 @$core.Deprecated('Use cloudOtpTokenDigitCountDescriptor instead')
 const CloudOtpTokenDigitCount$json = {
@@ -42,9 +43,10 @@ const CloudOtpTokenDigitCount$json = {
 };
 
 /// Descriptor for `CloudOtpTokenDigitCount`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List cloudOtpTokenDigitCountDescriptor = $convert.base64Decode(
-    'ChdDbG91ZE90cFRva2VuRGlnaXRDb3VudBIbChdESUdJVF9DT1VOVF9VTlNQRUNJRklFRBAAEg'
-    'gKBEZJVkUQARIHCgNTSVgQAhIJCgVTRVZFThADEgkKBUVJR0hUEAQ=');
+final $typed_data.Uint8List cloudOtpTokenDigitCountDescriptor =
+    $convert.base64Decode(
+        'ChdDbG91ZE90cFRva2VuRGlnaXRDb3VudBIbChdESUdJVF9DT1VOVF9VTlNQRUNJRklFRBAAEg'
+        'gKBEZJVkUQARIHCgNTSVgQAhIJCgVTRVZFThADEgkKBUVJR0hUEAQ=');
 
 @$core.Deprecated('Use cloudOtpTokenTypeDescriptor instead')
 const CloudOtpTokenType$json = {
@@ -68,7 +70,14 @@ final $typed_data.Uint8List cloudOtpTokenTypeDescriptor = $convert.base64Decode(
 const CloudOtpTokenPayload$json = {
   '1': 'CloudOtpTokenPayload',
   '2': [
-    {'1': 'token_parameters', '3': 1, '4': 3, '5': 11, '6': '.CloudOtpTokenParameters', '10': 'tokenParameters'},
+    {
+      '1': 'token_parameters',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.CloudOtpTokenParameters',
+      '10': 'tokenParameters'
+    },
     {'1': 'version', '3': 2, '4': 1, '5': 5, '10': 'version'},
     {'1': 'batch_size', '3': 3, '4': 1, '5': 5, '10': 'batchSize'},
     {'1': 'batch_index', '3': 4, '4': 1, '5': 5, '10': 'batchIndex'},
@@ -91,18 +100,45 @@ const CloudOtpTokenParameters$json = {
     {'1': 'issuer', '3': 2, '4': 1, '5': 9, '10': 'issuer'},
     {'1': 'account', '3': 3, '4': 1, '5': 9, '10': 'account'},
     {'1': 'pin', '3': 4, '4': 1, '5': 9, '10': 'pin'},
-    {'1': 'algorithm', '3': 5, '4': 1, '5': 14, '6': '.CloudOtpTokenAlgorithm', '10': 'algorithm'},
-    {'1': 'digits', '3': 6, '4': 1, '5': 14, '6': '.CloudOtpTokenDigitCount', '10': 'digits'},
-    {'1': 'type', '3': 7, '4': 1, '5': 14, '6': '.CloudOtpTokenType', '10': 'type'},
+    {
+      '1': 'algorithm',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.CloudOtpTokenAlgorithm',
+      '10': 'algorithm'
+    },
+    {
+      '1': 'digits',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.CloudOtpTokenDigitCount',
+      '10': 'digits'
+    },
+    {
+      '1': 'type',
+      '3': 7,
+      '4': 1,
+      '5': 14,
+      '6': '.CloudOtpTokenType',
+      '10': 'type'
+    },
     {'1': 'period', '3': 8, '4': 1, '5': 3, '10': 'period'},
     {'1': 'counter', '3': 9, '4': 1, '5': 3, '10': 'counter'},
     {'1': 'pinned', '3': 10, '4': 1, '5': 3, '10': 'pinned'},
     {'1': 'copyTimes', '3': 11, '4': 1, '5': 3, '10': 'copyTimes'},
-    {'1': 'lastCopyTimeStamp', '3': 12, '4': 1, '5': 3, '10': 'lastCopyTimeStamp'},
+    {
+      '1': 'lastCopyTimeStamp',
+      '3': 12,
+      '4': 1,
+      '5': 3,
+      '10': 'lastCopyTimeStamp'
+    },
     {'1': 'imagePath', '3': 13, '4': 1, '5': 9, '10': 'imagePath'},
     {'1': 'description', '3': 14, '4': 1, '5': 9, '10': 'description'},
-    {'1': 'uid', '3': 15, '4': 1, '5': 9, '10': 'uid'},
-    {'1': 'remark', '3': 16, '4': 1, '5': 9, '10': 'remark'},
+    {'1': 'remark', '3': 15, '4': 1, '5': 9, '10': 'remark'},
+    {'1': 'uid', '3': 16, '4': 1, '5': 9, '10': 'uid'},
   ],
 };
 
@@ -116,6 +152,5 @@ final $typed_data.Uint8List cloudOtpTokenParametersDescriptor = $convert.base64D
     'NSBnBlcmlvZBIYCgdjb3VudGVyGAkgASgDUgdjb3VudGVyEhYKBnBpbm5lZBgKIAEoA1IGcGlu'
     'bmVkEhwKCWNvcHlUaW1lcxgLIAEoA1IJY29weVRpbWVzEiwKEWxhc3RDb3B5VGltZVN0YW1wGA'
     'wgASgDUhFsYXN0Q29weVRpbWVTdGFtcBIcCglpbWFnZVBhdGgYDSABKAlSCWltYWdlUGF0aBIg'
-    'CgtkZXNjcmlwdGlvbhgOIAEoCVILZGVzY3JpcHRpb24SEAoDdWlkGA8gASgJUgN1aWQSFgoGcm'
-    'VtYXJrGBAgASgJUgZyZW1hcms=');
-
+    'CgtkZXNjcmlwdGlvbhgOIAEoCVILZGVzY3JpcHRpb24SFgoGcmVtYXJrGA8gASgJUgZyZW1hcm'
+    'sSEAoDdWlkGBAgASgJUgN1aWQ=');

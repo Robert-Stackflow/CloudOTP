@@ -10,6 +10,7 @@ import '../TokenUtils/Otp/otp.dart';
 import '../TokenUtils/check_token_util.dart';
 import '../Utils/Base32/base32.dart';
 import '../Utils/constant.dart';
+import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
 import 'Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 
@@ -580,13 +581,16 @@ class OtpToken {
     Map<String, dynamic> remark = {};
     try {
       remark = jsonDecode(cloudOtpParameters.remark);
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to decode remark from ${cloudOtpParameters.remark}", e, t);
       remark = {};
     }
     return OtpToken(
       id: 0,
       seq: 0,
-      uid: cloudOtpParameters.uid,
+      uid: Utils.isEmpty(cloudOtpParameters.uid)
+          ? Utils.generateUid()
+          : cloudOtpParameters.uid,
       issuer: cloudOtpParameters.issuer,
       secret: utf8.decode(cloudOtpParameters.secret),
       account: cloudOtpParameters.account,

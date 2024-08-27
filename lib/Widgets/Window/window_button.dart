@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:cloudotp/Utils/asset_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';

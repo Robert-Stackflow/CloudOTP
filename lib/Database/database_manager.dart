@@ -8,17 +8,19 @@ import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Database/create_table_sql.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
-import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
-import 'package:cloudotp/Screens/Setting/setting_screen.dart';
+import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3/open.dart';
 
 import '../Utils/hive_util.dart';
+import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
+
+enum EncryptDatabaseStatus { defaultPassword, customPassword }
 
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
@@ -37,11 +39,10 @@ class DatabaseManager {
 
   static Future<void> initDataBase(String password) async {
     if (_database == null) {
-      print('Password is $password');
       String path = join(await FileUtil.getDatabaseDir(), _dbName);
       if (!await dbFactory.databaseExists(path)) {
         password = await HiveUtil.regeneratePassword();
-        print("Database not exist and new password is $password");
+        ILogger.info("Database not exist and new password is $password");
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }
@@ -121,6 +122,10 @@ class DatabaseManager {
         await db.execute(
             "alter table token_category add column uid TEXT NOT NULL DEFAULT ''");
       }
+      if ((await isColumnExist("token_category", "token_ids",
+          overrideDb: db))) {
+        await db.execute("alter table token_category delete column token_ids");
+      }
       await updateToV6(db);
     }
   }
@@ -175,7 +180,6 @@ class DatabaseManager {
   }) async {
     var result = await (overrideDb ?? await getDataBase())
         .rawQuery("PRAGMA table_info($tableName)");
-    print(result);
     return result.any((element) => element['name'] == columnName);
   }
 
@@ -184,7 +188,11 @@ class DatabaseManager {
       try {
         DynamicLibrary lib = DynamicLibrary.open('libsqlcipher.so');
         return lib;
-      } catch (e) {
+      } catch (e, t) {
+        ILogger.error(
+            "Failed to load libsqlcipher.so in ${Platform.operatingSystem}",
+            e,
+            t);
         if (Platform.isAndroid) {
           final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
 

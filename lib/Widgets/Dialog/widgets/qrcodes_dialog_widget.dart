@@ -48,10 +48,10 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          constraints: ResponsiveUtil.isLandscape()
+          constraints: ResponsiveUtil.isWideLandscape()
               ? const BoxConstraints(maxWidth: 430)
               : null,
-          margin: ResponsiveUtil.isLandscape()
+          margin: ResponsiveUtil.isWideLandscape()
               ? const EdgeInsets.all(24)
               : EdgeInsets.zero,
           decoration: BoxDecoration(

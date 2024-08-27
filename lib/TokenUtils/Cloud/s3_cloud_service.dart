@@ -8,6 +8,7 @@ import 'package:s3_storage/s3_storage.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/ilogger.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
 
@@ -57,7 +58,8 @@ class S3CloudService extends CloudService {
       } else {
         return CloudServiceStatus.success;
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to authenticate s3", e, t);
       return CloudServiceStatus.unknownError;
     }
   }
@@ -68,7 +70,7 @@ class S3CloudService extends CloudService {
       bool connected = await s3Storage.bucketExists(bucket);
       return connected;
     } catch (e, t) {
-      print("$e $t");
+      ILogger.error("Failed to connect to s3 cloud", e, t);
       return false;
     }
   }
@@ -82,7 +84,7 @@ class S3CloudService extends CloudService {
       );
       return true;
     } catch (e, t) {
-      print("$e $t");
+      ILogger.error("Failed to delete backup file $path from s3 cloud", e, t);
       return false;
     }
   }
@@ -102,7 +104,7 @@ class S3CloudService extends CloudService {
       }
       return true;
     } catch (e, t) {
-      print("$e $t");
+      ILogger.error("Failed to delete old backups from s3 cloud", e, t);
       return false;
     }
   }
@@ -118,7 +120,8 @@ class S3CloudService extends CloudService {
         path,
       );
       return await response.toBytes();
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to download from s3 cloud", e, t);
       return null;
     }
   }
@@ -158,7 +161,7 @@ class S3CloudService extends CloudService {
           .toList();
       return files;
     } catch (e, t) {
-      print("$e\n$t");
+      ILogger.error("Failed to list file from s3 cloud", e, t);
       return null;
     }
   }
@@ -180,7 +183,8 @@ class S3CloudService extends CloudService {
       });
       deleteOldBackup();
       return response.isNotEmpty;
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to upload file to s3 cloud", e, t);
       return false;
     }
   }

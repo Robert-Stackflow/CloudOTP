@@ -752,7 +752,8 @@ abstract class IndicatorNotifier extends ChangeNotifier {
         } else {
           _result = IndicatorResult.success;
         }
-      } catch (_) {
+      } catch (e, t) {
+        debugPrint("$e\n$t");
         _result = IndicatorResult.fail;
         rethrow;
       } finally {
@@ -1034,7 +1035,8 @@ class HeaderNotifier extends IndicatorNotifier {
       if (scrollController == null && _position is! ScrollPosition) {
         return;
       }
-    } catch (_) {
+    } catch (e, t) {
+      debugPrint("$e\n$t");
       return;
     }
     final scrollTo = -offset;
@@ -1197,7 +1199,8 @@ class FooterNotifier extends IndicatorNotifier {
       if (scrollController == null && _position is! ScrollPosition) {
         return;
       }
-    } catch (_) {
+    } catch (e, t) {
+      debugPrint("$e\n$t");
       return;
     }
     final scrollTo = position.maxScrollExtent + offset;

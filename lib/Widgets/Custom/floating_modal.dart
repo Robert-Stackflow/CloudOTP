@@ -33,20 +33,18 @@ class FloatingModal extends StatelessWidget {
         : 0;
     double preferVerticalMargin =
         height > preferHeight ? (height - preferHeight) / 2 : 0;
-    return SafeArea(
-      child: Container(
-        margin: EdgeInsets.only(
-          left: preferHorizontalMargin,
-          right: preferHorizontalMargin,
-          top: useVerticalMargin
-              ? preferVerticalMargin
-              : ResponsiveUtil.isLandscape()
-                  ? 0
-                  : 100,
-          bottom: useVerticalMargin ? preferVerticalMargin : 0,
-        ),
-        child: child,
+    return Container(
+      margin: EdgeInsets.only(
+        left: preferHorizontalMargin,
+        right: preferHorizontalMargin,
+        top: useVerticalMargin
+            ? preferVerticalMargin
+            : ResponsiveUtil.isLandscape()
+                ? 0
+                : 100,
+        bottom: useVerticalMargin ? preferVerticalMargin : 0,
       ),
+      child: child,
     );
   }
 }

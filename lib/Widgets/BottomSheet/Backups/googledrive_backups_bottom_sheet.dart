@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cloud/googledrive_response.dart';
 
 import '../../../TokenUtils/Cloud/googledrive_cloud_service.dart';
+import '../../../Utils/ilogger.dart';
 import '../../../Utils/utils.dart';
 import '../../../generated/l10n.dart';
 
@@ -48,7 +49,7 @@ class GoogleDriveBackupsBottomSheetState
         color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.vertical(
             top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isLandscape()
+            bottom: ResponsiveUtil.isWideLandscape()
                 ? const Radius.circular(20)
                 : Radius.zero),
       ),
@@ -64,7 +65,9 @@ class GoogleDriveBackupsBottomSheetState
         ],
       ),
     );
-    return ResponsiveUtil.isLandscape() ? Center(child: mainBody) : mainBody;
+    return ResponsiveUtil.isWideLandscape()
+        ? Center(child: mainBody)
+        : mainBody;
   }
 
   _buildHeader() {
@@ -82,6 +85,7 @@ class GoogleDriveBackupsBottomSheetState
   _buildButtons() {
     return ListView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       itemBuilder: (context, index) => _buildItem(files[index]),
       itemCount: files.length,
     );
@@ -143,7 +147,8 @@ class GoogleDriveBackupsBottomSheetState
                       files.remove(file);
                     });
                     IToast.showTop(S.current.deleteSuccess);
-                  } catch (_) {
+                  } catch (e, t) {
+                    ILogger.error("Failed to delete file from google drive", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

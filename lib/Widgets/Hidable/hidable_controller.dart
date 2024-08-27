@@ -4,9 +4,9 @@
 // that can be found in the LICENSE file.
 //
 
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart';
 
 /// Simple extension to generate [HidableController] from scroll controller instance directly.
 extension HidableControllerExt on ScrollController {

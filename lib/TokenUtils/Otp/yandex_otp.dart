@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-
 import 'package:hashlib/hashlib.dart';
 
 import '../../Utils/Base32/base32.dart';

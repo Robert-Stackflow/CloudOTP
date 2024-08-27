@@ -1,3 +1,4 @@
+import '../../../Utils/ilogger.dart';
 import 'package:cloudotp/Utils/cache_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -27,8 +28,7 @@ class DropboxBackupsBottomSheet extends StatefulWidget {
       DropboxBackupsBottomSheetState();
 }
 
-class DropboxBackupsBottomSheetState
-    extends State<DropboxBackupsBottomSheet> {
+class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
   late List<DropboxFileInfo> files;
 
   @override
@@ -48,7 +48,7 @@ class DropboxBackupsBottomSheetState
         color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.vertical(
             top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isLandscape()
+            bottom: ResponsiveUtil.isWideLandscape()
                 ? const Radius.circular(20)
                 : Radius.zero),
       ),
@@ -64,7 +64,9 @@ class DropboxBackupsBottomSheetState
         ],
       ),
     );
-    return ResponsiveUtil.isLandscape() ? Center(child: mainBody) : mainBody;
+    return ResponsiveUtil.isWideLandscape()
+        ? Center(child: mainBody)
+        : mainBody;
   }
 
   _buildHeader() {
@@ -74,7 +76,7 @@ class DropboxBackupsBottomSheetState
       child: Text(
         S.current.webDavBackupFiles(widget.files.length),
         style:
-        Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -82,6 +84,7 @@ class DropboxBackupsBottomSheetState
   _buildButtons() {
     return ListView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       itemBuilder: (context, index) => _buildItem(files[index]),
       itemCount: files.length,
     );
@@ -134,7 +137,7 @@ class DropboxBackupsBottomSheetState
               ItemBuilder.buildIconButton(
                 context: context,
                 icon:
-                const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {
@@ -143,7 +146,8 @@ class DropboxBackupsBottomSheetState
                       files.remove(file);
                     });
                     IToast.showTop(S.current.deleteSuccess);
-                  } catch (_) {
+                  } catch (e, t) {
+                    ILogger.error("Failed to delete backup file from dropbox", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

@@ -751,7 +751,9 @@ class DragAndDropListsState extends State<DragAndDropLists> {
                 _scrollListHorizontalRtl(topLeftOffset, bottomRightOffset);
           }
         }
-      } catch (_) {}
+      } catch (e, t) {
+        debugPrint("$e\n$t");
+      }
 
       if (newOffset != null) {
         _scrolling = true;

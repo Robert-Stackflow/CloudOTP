@@ -33,7 +33,7 @@ class PinVerifyScreen extends StatefulWidget {
   PinVerifyScreenState createState() => PinVerifyScreenState();
 }
 
-class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener{
+class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
   final String? _password = HiveUtil.getString(HiveUtil.guesturePasswdKey);
   late final bool _isUseBiometric =
       HiveUtil.getBool(HiveUtil.enableBiometricKey);

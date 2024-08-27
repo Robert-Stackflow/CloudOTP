@@ -7,6 +7,7 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 
+import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
 
@@ -167,7 +168,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
         tokens = twoFASTokens.map((e) => e.toOtpToken()).toList();
       }
     } catch (e, t) {
-      print("$e\n$t");
+      ILogger.error("Failed to import from 2FAS", e, t);
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();

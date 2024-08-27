@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
 
 class LottieUtil {

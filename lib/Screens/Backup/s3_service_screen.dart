@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
+import '../../Utils/ilogger.dart';
 import '../../Widgets/BottomSheet/Backups/s3_backups_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -297,7 +298,8 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                   await CloudServiceConfigDao.updateConfig(currentConfig);
                   _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
                   ping();
-                } catch (e) {
+                } catch (e, t) {
+                  ILogger.error("Failed to connect to S3 cloud", e, t);
                   IToast.show(S.current.cloudConnectionError);
                 }
               }
@@ -361,7 +363,8 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                 } else {
                   IToast.show(S.current.webDavNoBackupFile);
                 }
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to pull from S3 cloud", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.webDavPullFailed);
               }

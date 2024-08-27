@@ -21,6 +21,7 @@ import '../Models/token_category.dart';
 import '../Utils/constant.dart';
 import '../Utils/file_util.dart';
 import '../Utils/hive_util.dart';
+import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/input_bottom_sheet.dart';
@@ -131,13 +132,11 @@ class ImportTokenUtil {
     }
     try {
       File file = File(filepath);
-      print("===============$filepath");
       Uint8List? imageBytes = await compute<String, Uint8List?>((path) {
         return File(path).readAsBytesSync();
       }, filepath);
       String fileName = FileUtil.extractFileNameFromUrl(file.path);
       if (ResponsiveUtil.isAndroid()) {
-        print("=================$fileName");
         await File("/storage/emulated/0/Pictures/$fileName")
             .delete(recursive: true);
         await file.delete(recursive: true);
@@ -207,7 +206,8 @@ class ImportTokenUtil {
       } else {
         IToast.showTop(S.current.noQrCode);
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to analyze image", e, t);
       if (e.runtimeType == NotFoundException) {
         IToast.showTop(S.current.noQrCode);
       } else {
@@ -252,7 +252,8 @@ class ImportTokenUtil {
           noTokenToast: S.current.fileDoesNotContainToken,
         );
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to import uri file from $filePath", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {
@@ -294,7 +295,8 @@ class ImportTokenUtil {
         analysis.showToast(S.current.fileDoesNotContainToken);
         return true;
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to import old encrypt file from $filePath", e, t);
       IToast.showTop(S.current.importFailed);
       return false;
     } finally {
@@ -324,6 +326,7 @@ class ImportTokenUtil {
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
+      useWideLandscape: true,
       (context) => InputBottomSheet(
         validator: (value) {
           if (value.isEmpty) {
@@ -383,7 +386,8 @@ class ImportTokenUtil {
         await importUint8List(content, password: password);
         return true;
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to import encrypt file from $filePath", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
         if (e is InvalidPasswordOrDataCorruptedException) {
@@ -415,7 +419,7 @@ class ImportTokenUtil {
       await importUint8List(content, password: password);
       return true;
     } catch (e, t) {
-      print("$e\n$t");
+      ILogger.error("Failed to import backup file", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
         if (e is InvalidPasswordOrDataCorruptedException) {
@@ -493,7 +497,6 @@ class ImportTokenUtil {
     }
     analysis.parseCategorySuccess = categories.length;
     analysis.importCategorySuccess = await mergeCategories(categories);
-    print(analysis);
     analysis.showToast();
     return categories;
   }
@@ -549,12 +552,10 @@ class ImportTokenUtil {
         newTokenList.add(otpToken);
       }
     }
-    IToast.showTop(newTokenList.toString());
-    print(newTokenList.toString());
-    // if (performInsert) {
-    //   await TokenDao.insertTokens(newTokenList);
-    //   homeScreenState?.refresh();
-    // }
+    if (performInsert) {
+      await TokenDao.insertTokens(newTokenList);
+      homeScreenState?.refresh();
+    }
     await getAlreadyExistUid(tokenList);
     return newTokenList.length;
   }
@@ -626,6 +627,7 @@ class ImportTokenUtil {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,
+        useWideLandscape: true,
         (context) => InputBottomSheet(
           validator: (value) {
             if (value.isEmpty) {

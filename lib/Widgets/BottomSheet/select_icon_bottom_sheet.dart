@@ -66,7 +66,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
         color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.vertical(
             top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isLandscape()
+            bottom: ResponsiveUtil.isWideLandscape()
                 ? const Radius.circular(20)
                 : Radius.zero),
       ),
@@ -102,7 +102,8 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
     return AnimatedPadding(
       padding: MediaQuery.of(context).viewInsets,
       duration: const Duration(milliseconds: 100),
-      child: ResponsiveUtil.isLandscape() ? Center(child: mainBody) : mainBody,
+      child:
+          ResponsiveUtil.isWideLandscape() ? Center(child: mainBody) : mainBody,
     );
   }
 

@@ -212,6 +212,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                   BottomSheetBuilder.showBottomSheet(
                     context,
                     responsive: true,
+                    useWideLandscape: true,
                     (context) => InputBottomSheet(
                       title: S.current.setExportPasswordTitle,
                       message: S.current.setExportPasswordTip,
@@ -242,6 +243,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                 BottomSheetBuilder.showBottomSheet(
                   context,
                   responsive: true,
+                  useWideLandscape: true,
                   (context) => InputBottomSheet(
                     title: S.current.setExportPasswordTitle,
                     message: S.current.setExportPasswordTip,

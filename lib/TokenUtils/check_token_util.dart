@@ -1,5 +1,6 @@
 import 'package:cloudotp/generated/l10n.dart';
 
+import '../../Utils/ilogger.dart';
 import '../Models/opt_token.dart';
 import '../Utils/Base32/base32.dart';
 
@@ -67,7 +68,8 @@ class CheckTokenUtil {
   static bool isSecretBase32(String str) {
     try {
       base32.decode(str.toUpperCase());
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to decode base32 from $str", e, t);
       return false;
     }
     return true;
@@ -76,7 +78,8 @@ class CheckTokenUtil {
   static bool isIntervalValid(String str) {
     try {
       int.parse(str);
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to parse int from interval $str", e, t);
       return false;
     }
     return true;

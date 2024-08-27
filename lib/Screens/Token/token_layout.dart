@@ -503,7 +503,7 @@ class TokenLayoutState extends State<TokenLayout>
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
@@ -568,7 +568,7 @@ class TokenLayoutState extends State<TokenLayout>
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.1)
+            ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
@@ -664,7 +664,7 @@ class TokenLayoutState extends State<TokenLayout>
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
@@ -759,7 +759,7 @@ class TokenLayoutState extends State<TokenLayout>
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,
@@ -827,7 +827,7 @@ class TokenLayoutState extends State<TokenLayout>
     return ItemBuilder.buildClickItem(
       Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.2)
+            ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.hardEdge,

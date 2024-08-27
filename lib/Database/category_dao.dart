@@ -16,6 +16,7 @@ class CategoryDao {
     final db = await DatabaseManager.getDataBase();
     category.seq = await getMaxSeq() + 1;
     category.id = await getMaxId() + 1;
+    if (category.uid.isEmpty) category.uid = Utils.generateUid();
     int id = await db.insert(
       tableName,
       category.toMap(),
@@ -34,6 +35,7 @@ class CategoryDao {
     for (TokenCategory category in categories) {
       category.seq = await getMaxSeq() + 1 + categories.indexOf(category);
       category.id = await getMaxId() + 1 + categories.indexOf(category);
+      if (category.uid.isEmpty) category.uid = Utils.generateUid();
       batch.insert(
         tableName,
         category.toMap(),

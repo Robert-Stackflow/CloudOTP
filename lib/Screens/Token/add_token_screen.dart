@@ -15,6 +15,7 @@ import 'package:group_button/group_button.dart';
 import '../../Database/category_dao.dart';
 import '../../TokenUtils/check_token_util.dart';
 import '../../TokenUtils/token_image_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
@@ -221,7 +222,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         await BindingDao.unBingdingsForToken(
             _otpToken.uid, unselectedCategoryUids);
         success = true;
-      } catch (e) {
+      } catch (e, t) {
+        ILogger.error("Failed to save token", e, t);
         IToast.showTop(S.current.saveFailed);
       } finally {
         if (!_isEditing) {

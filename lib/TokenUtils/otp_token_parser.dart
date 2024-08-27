@@ -9,6 +9,7 @@ import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/opt_token.dart';
 import '../Models/token_category.dart';
 import '../Utils/constant.dart';
+import '../Utils/ilogger.dart';
 import 'check_token_util.dart';
 import 'token_image_util.dart';
 
@@ -59,7 +60,7 @@ class OtpTokenParser {
         return token == null ? [] : [token];
       }
     } catch (e, t) {
-      print("$e\n$t");
+      ILogger.error("Failed to parse uri $line", e, t);
       return [];
     }
   }

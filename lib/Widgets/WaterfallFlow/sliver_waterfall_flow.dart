@@ -1,11 +1,10 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:collection/collection.dart';
 
 import 'extended_list_library.dart';
-import 'typedef.dart';
 
 ///
 ///  create by zmtzawqlp on 2019/11/9

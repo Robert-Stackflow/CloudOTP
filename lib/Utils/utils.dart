@@ -37,6 +37,7 @@ import '../Api/github_api.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
 import '../generated/l10n.dart';
+import './ilogger.dart';
 import 'app_provider.dart';
 import 'constant.dart';
 import 'hive_util.dart';
@@ -45,6 +46,12 @@ import 'itoast.dart';
 class Utils {
   static String generateUid() {
     return const Uuid().v4();
+  }
+
+  static bool isUid(String uid) {
+    return RegExp(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+        .hasMatch(uid);
   }
 
   static Brightness currentBrightness(BuildContext context) {
@@ -222,7 +229,8 @@ class Utils {
     } else if (value is String) {
       try {
         return int.parse(value);
-      } catch (e) {
+      } catch (e, t) {
+        ILogger.error("Failed to parse int from $value", e, t);
         return 0;
       }
     } else {
@@ -397,6 +405,9 @@ class Utils {
 
   static compareVersion(String a, String b) {
     try {
+      if (a.isEmpty || b.isEmpty) {
+        return a.compareTo(b);
+      }
       List<String> aList = a.split(".");
       List<String> bList = b.split(".");
       for (int i = 0; i < aList.length; i++) {
@@ -407,7 +418,8 @@ class Utils {
         }
       }
       return 0;
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to compare version between $a and $b", e, t);
       return a.compareTo(b);
     }
   }
@@ -456,6 +468,8 @@ class Utils {
       }
       onGetLatestRelease?.call(latestVersion, latestReleaseItem!);
       Utils.initTray();
+      ILogger.info(
+          "Current version: $currentVersion, Latest version: $latestVersion");
       if (compareVersion(latestVersion, currentVersion) > 0) {
         onUpdate?.call(latestVersion, latestReleaseItem!);
         appProvider.latestVersion = latestVersion;
@@ -475,7 +489,7 @@ class Utils {
                 if (ResponsiveUtil.isAndroid()) {
                   ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
                       latestVersion, latestReleaseItem!);
-                  print(androidAssset.browserDownloadUrl);
+                  ILogger.info("Get android asset: $androidAssset");
                   FileUtil.downloadAndUpdate(
                     context,
                     androidAssset.browserDownloadUrl,
@@ -565,7 +579,8 @@ class Utils {
           onAuthed?.call();
         }
       });
-    } on PlatformException catch (e) {
+    } on PlatformException catch (e, t) {
+      ILogger.error("Failed to local authenticate by PlatformException", e, t);
       if (e.code == auth_error.notAvailable) {
         IToast.showTop(S.current.biometricNotAvailable);
       } else if (e.code == auth_error.notEnrolled) {
@@ -577,6 +592,8 @@ class Utils {
       } else {
         IToast.showTop(S.current.biometricOtherReason(e));
       }
+    } catch (e, t) {
+      ILogger.error("Failed to local authenticate", e, t);
     }
   }
 

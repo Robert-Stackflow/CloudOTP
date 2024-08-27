@@ -17,7 +17,7 @@ class TokenCategory {
   Map<String, dynamic> remark;
   List<OtpToken> tokens = [];
   List<int> oldTokenIds = [];
-  List<String> bindings=[];
+  List<String> bindings = [];
 
   TokenCategory({
     required this.id,
@@ -58,6 +58,21 @@ class TokenCategory {
     };
   }
 
+  Map<String, dynamic> toMapWithBindings() {
+    return {
+      'id': id,
+      'uid': uid,
+      'seq': seq,
+      'title': title,
+      'description': description,
+      'create_timestamp': createTimeStamp,
+      'edit_timestamp': editTimeStamp,
+      'pinned': pinned ? 1 : 0,
+      'remark': jsonEncode(remark),
+      'bindings': bindings.join(","),
+    };
+  }
+
   Future<TokenCategoryParameters> toCategoryParameters() async {
     return TokenCategoryParameters(
       title: title,
@@ -93,11 +108,19 @@ class TokenCategory {
   }
 
   factory TokenCategory.fromMap(Map<String, dynamic> map) {
-    List<int> tmp = [];
+    List<int> tmpIds = [];
     if (Utils.isNotEmpty(map['token_ids'])) {
       for (String e in map['token_ids'].split(",")) {
         if (e.isNotEmpty) {
-          tmp.add(int.tryParse(e) ?? -1);
+          tmpIds.add(int.tryParse(e) ?? -1);
+        }
+      }
+    }
+    List<String> tmpBindings = [];
+    if (Utils.isNotEmpty(map['bindings'])) {
+      for (String e in map['bindings'].split(",")) {
+        if (e.isNotEmpty) {
+          tmpBindings.add(e);
         }
       }
     }
@@ -111,13 +134,15 @@ class TokenCategory {
       editTimeStamp: map['edit_timestamp'] ?? 0,
       pinned: map['pinned'] == 1,
       remark: jsonDecode(map['remark']),
-      oldTokenIds: tmp,
-      bindings: map['bindings'] ?? [],
+      oldTokenIds: tmpIds,
+      bindings: tmpBindings,
     );
   }
 
-  String toJson() {
-    return jsonEncode(toMap());
+  String toJson() => jsonEncode(toMap());
+
+  String toJsonWithBindings() {
+    return jsonEncode(toMapWithBindings());
   }
 
   factory TokenCategory.fromJson(String source) {
@@ -126,7 +151,7 @@ class TokenCategory {
 
   @override
   String toString() {
-    return 'Category{id: $id, seq: $seq, title: $title, description: $description, createTimeStamp: $createTimeStamp, editTimeStamp: $editTimeStamp, pinned: $pinned, remark: $remark}';
+    return 'TokenCategory(id: $id, uid: $uid, seq: $seq, title: $title, description: $description, createTimeStamp: $createTimeStamp, editTimeStamp: $editTimeStamp, pinned: $pinned, remark: $remark, oldTokenIds: $oldTokenIds, bindings: $bindings)';
   }
 
   copyFrom(TokenCategory category) {
@@ -139,5 +164,6 @@ class TokenCategory {
     editTimeStamp = category.editTimeStamp;
     pinned = category.pinned;
     remark = category.remark;
+    bindings = category.bindings;
   }
 }

@@ -1,6 +1,7 @@
 library base32;
 
 import 'dart:typed_data';
+
 import 'encodings.dart';
 
 // ignore: camel_case_types

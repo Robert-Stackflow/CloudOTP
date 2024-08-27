@@ -7,6 +7,7 @@ import 'package:path/path.dart';
 import 'package:webdav_client/webdav_client.dart';
 
 import '../../Models/cloud_service_config.dart';
+import '../../Utils/ilogger.dart';
 import 'cloud_service.dart';
 
 class WebDavCloudService extends CloudService {
@@ -57,7 +58,8 @@ class WebDavCloudService extends CloudService {
     try {
       await client.ping();
       return CloudServiceStatus.success;
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to authenticate webdav", e, t);
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -85,7 +87,8 @@ class WebDavCloudService extends CloudService {
     try {
       var list = await client.readDir(_webdavPath);
       return list;
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to list file from webdav", e, t);
       return null;
     }
   }
@@ -129,7 +132,8 @@ class WebDavCloudService extends CloudService {
       } else {
         return false;
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to upload file to webdav", e, t);
       return false;
     }
   }
@@ -151,7 +155,8 @@ class WebDavCloudService extends CloudService {
           },
         ),
       );
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to download file from webdav", e, t);
       return null;
     }
   }

@@ -11,4 +11,3 @@
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 export 'token_category_payload.pb.dart';
-

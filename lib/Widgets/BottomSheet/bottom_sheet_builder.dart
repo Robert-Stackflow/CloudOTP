@@ -10,7 +10,7 @@ class BottomSheetBuilder {
     WidgetBuilder builder, {
     bool enableDrag = true,
     bool responsive = false,
-    bool useWideLandscape = false,
+    bool useWideLandscape = true,
     Color? backgroundColor,
     double? preferMinWidth,
     ShapeBorder shape = const RoundedRectangleBorder(
@@ -19,7 +19,7 @@ class BottomSheetBuilder {
   }) {
     bool isLandScape = useWideLandscape
         ? ResponsiveUtil.isWideLandscape()
-        : ResponsiveUtil.isLandscape();
+        : ResponsiveUtil.isWideLandscape();
     preferMinWidth ??= responsive && isLandScape ? 450 : null;
     if (responsive && isLandScape) {
       showDialog(

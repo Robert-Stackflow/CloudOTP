@@ -1,5 +1,6 @@
 import 'package:cloudotp/Models/opt_token.dart';
 
+import '../../Utils/ilogger.dart';
 import 'Otp/mobile_otp.dart';
 import 'Otp/otp.dart';
 import 'Otp/steam_totp.dart';
@@ -47,7 +48,8 @@ class CodeGenerator {
           ).generate();
           break;
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to get current code from token $token", e, t);
       code = "ERROR";
     }
     return code;
@@ -95,7 +97,8 @@ class CodeGenerator {
           ).generate(deltaMilliseconds: token.period * 1000);
           break;
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to get next code from token $token", e, t);
       code = "ERROR";
     }
     return code;

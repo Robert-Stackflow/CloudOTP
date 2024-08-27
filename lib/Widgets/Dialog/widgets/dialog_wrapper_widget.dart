@@ -31,18 +31,21 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
 
   NavigatorState? get navigatorState => _navigatorState;
 
+  bool canNavigatorPop = true;
+
   pushPage(Widget page) {
     _navigatorState?.push(RouteUtil.getFadeRoute(page));
+  }
+
+  popAll() {
+    if (mounted) Navigator.pop(context);
   }
 
   popPage() {
     if (_navigatorState!.canPop()) {
       _navigatorState?.pop();
-      if (!_navigatorState!.canPop()) {
-        Navigator.pop(context);
-      }
     } else {
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
     }
   }
 
@@ -58,7 +61,15 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
         height > preferHeight ? (height - preferHeight) / 2 : 0;
     preferHorizontalMargin = max(preferHorizontalMargin, 20);
     preferVerticalMargin = max(preferVerticalMargin, 20);
-    return SafeArea(
+    return PopScope(
+      canPop: !canNavigatorPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        setState(() {
+          canNavigatorPop = _navigatorState?.canPop() ?? false;
+        });
+        popPage();
+      },
       child: Padding(
         padding: EdgeInsets.symmetric(
             horizontal: preferHorizontalMargin, vertical: preferVerticalMargin),
@@ -89,8 +100,8 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget> {
                 ),
                 if (widget.showClose)
                   Positioned(
-                    right: 6,
-                    top: 6,
+                    right: 8,
+                    top: 8,
                     child: ItemBuilder.buildIconButton(
                       context: context,
                       icon: const Icon(Icons.close_rounded),

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Screens/Token/add_token_screen.dart';
@@ -66,43 +64,6 @@ class AddBottomSheetState extends State<AddBottomSheet>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _subscription = scannerController.barcodes.listen(_handleBarcode);
-    // initCamera();
-  }
-
-  initCamera() async {
-    await Permission.camera
-        .onDeniedCallback(() {
-          print("onDeniedCallback");
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .onGrantedCallback(() async {
-          print("onGrantedCallback");
-          unawaited(scannerController.start());
-        })
-        .onPermanentlyDeniedCallback(() {
-          print("onPermanentlyDeniedCallback");
-          IToast.showTop(S.current.hasRejectedCameraPermission);
-        })
-        .onRestrictedCallback(() {
-          print("onRestrictedCallback");
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .onLimitedCallback(() {
-          print("onLimitedCallback");
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .onProvisionalCallback(() {
-          print("onProvisionalCallback");
-          IToast.showTop(S.current.pleaseGrantCameraPermission);
-        })
-        .request()
-        .then((value) {
-          print("value:$value");
-          if (value.isGranted) {
-            print("Camera permission granted");
-            unawaited(scannerController.start());
-          }
-        });
   }
 
   _handleBarcode(
@@ -159,7 +120,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
             color: Theme.of(context).canvasColor,
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isLandscape()
+                bottom: ResponsiveUtil.isWideLandscape()
                     ? const Radius.circular(20)
                     : Radius.zero),
           ),
@@ -267,7 +228,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
                       turns = 0;
                       break;
                   }
-                  turns = !ResponsiveUtil.isLandscapeTablet() ? 0 : turns;
+                  turns = !ResponsiveUtil.isWideLandscape() ? 0 : turns;
                   return RotatedBox(
                     quarterTurns: turns,
                     child: MobileScanner(
@@ -275,16 +236,29 @@ class AddBottomSheetState extends State<AddBottomSheet>
                       controller: scannerController,
                       placeholderBuilder: (context, child) {
                         return RotatedBox(
-                          quarterTurns: turns,
+                          quarterTurns: 4 - turns,
                           child: ColoredBox(
                             color: Colors.black,
                             child: Center(
-                              child: Text(
-                                S.current.scanPlaceholder,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.apply(color: Colors.white),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    S.current.scanPlaceholder,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.apply(color: Colors.white),
+                                  ),
+                                  Text(
+                                    "",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.apply(color: Colors.white),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -292,7 +266,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
                       },
                       errorBuilder: (context, error, child) {
                         return RotatedBox(
-                          quarterTurns: turns,
+                          quarterTurns: 4 - turns,
                           child: ScannerErrorWidget(error: error),
                         );
                       },

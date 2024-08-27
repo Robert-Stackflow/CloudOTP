@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
@@ -162,7 +163,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           WebDavCloudService(_cloudServiceConfig!);
       try {
         currentCloudBackupsCount = await webDavCloudService.getBackupsCount();
-      } catch (e) {
+      } catch (e, t) {
+        ILogger.error("Failed to get cloud backup count", e, t);
         currentCloudBackupsCount = 0;
       }
     }
@@ -193,6 +195,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           BottomSheetBuilder.showBottomSheet(
             context,
             responsive: true,
+            useWideLandscape: true,
             (context) => InputBottomSheet(
               title: Utils.isNotEmpty(_autoBackupPassword)
                   ? S.current.editAutoBackupPassword
@@ -311,6 +314,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,
+              useWideLandscape: true,
               (context) => InputBottomSheet(
                 title: S.current.maxBackupCount,
                 text: _maxBackupsCount.toString(),

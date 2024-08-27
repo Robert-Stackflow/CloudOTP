@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import './ilogger.dart';
+
 enum _FontSource { asset, file, url }
 
 class FontUtil {
@@ -43,9 +45,8 @@ class FontUtil {
           loader.addFont(fontData);
           await loader.load();
           return true;
-        } catch (e) {
-          debugPrint("Font asset error!!!");
-          debugPrint(e.toString());
+        } catch (e, t) {
+          ILogger.error("Failed to load font asset", e, t);
           return false;
         }
       case _FontSource.file:
@@ -56,9 +57,8 @@ class FontUtil {
             fontFamily: fontFamily,
           );
           return true;
-        } catch (e) {
-          debugPrint("Font file error!!!");
-          debugPrint(e.toString());
+        } catch (e, t) {
+          ILogger.error("Failed to load font file", e, t);
           return false;
         }
       case _FontSource.url:
@@ -72,10 +72,8 @@ class FontUtil {
             fontFamily: fontFamily,
           );
           return true;
-        } catch (e, s) {
-          debugPrint("Font download failed!!!");
-          debugPrint(e.toString());
-          debugPrint(s.toString());
+        } catch (e, t) {
+          ILogger.error("Failed to download font", e, t);
           return false;
         }
     }
@@ -129,12 +127,12 @@ Future<Uint8List> downloadBytes(
     bytes.addAll(chunk);
 
     if (response.contentLength == null) {
-      debugPrint('download font: ${bytes.length} bytes');
+      ILogger.info('Download font: ${bytes.length} bytes');
     } else {
       final percent = (bytes.length / response.contentLength!);
       onReceiveProgress?.call(percent);
       if (percent - prevPercent > 15 || percent > 99) {
-        debugPrint('download font: ${(percent * 100).toStringAsFixed(1)}%');
+        ILogger.info('Downloading font: ${(percent * 100).toStringAsFixed(1)}%');
         prevPercent = percent;
       }
     }

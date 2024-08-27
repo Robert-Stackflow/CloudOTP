@@ -11,6 +11,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Widgets/BottomSheet/Backups/huawei_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
@@ -26,7 +27,8 @@ class HuaweiCloudServiceScreen extends StatefulWidget {
   static const String routeName = "/service/huaweiCloud";
 
   @override
-  State<HuaweiCloudServiceScreen> createState() => _HuaweiCloudServiceScreenState();
+  State<HuaweiCloudServiceScreen> createState() =>
+      _HuaweiCloudServiceScreenState();
 }
 
 class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
@@ -54,7 +56,8 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
   }
 
   loadConfig() async {
-    _huaweiCloudCloudServiceConfig = await CloudServiceConfigDao.getHuaweiCloudConfig();
+    _huaweiCloudCloudServiceConfig =
+        await CloudServiceConfigDao.getHuaweiCloudConfig();
     if (_huaweiCloudCloudServiceConfig != null) {
       _sizeController.text = _huaweiCloudCloudServiceConfig!.size;
       _accountController.text = _huaweiCloudCloudServiceConfig!.account ?? "";
@@ -73,9 +76,9 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
     }
     if (_huaweiCloudCloudService != null) {
       _huaweiCloudCloudServiceConfig!.configured =
-      await _huaweiCloudCloudService!.hasConfigured();
+          await _huaweiCloudCloudService!.hasConfigured();
       _huaweiCloudCloudServiceConfig!.connected =
-      await _huaweiCloudCloudService!.isConnected();
+          await _huaweiCloudCloudService!.isConnected();
       if (_huaweiCloudCloudServiceConfig!.configured &&
           !_huaweiCloudCloudServiceConfig!.connected) {
         IToast.showTop(S.current.cloudConnectionError);
@@ -103,12 +106,12 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
-      context,
-      background: Colors.transparent,
-      text: S.current.cloudConnecting,
-      mainAxisAlignment: MainAxisAlignment.start,
-      topPadding: 100,
-    );
+            context,
+            background: Colors.transparent,
+            text: S.current.cloudConnecting,
+            mainAxisAlignment: MainAxisAlignment.start,
+            topPadding: 100,
+          );
   }
 
   ping({
@@ -166,9 +169,10 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
       onTap: () {
         setState(() {
           _huaweiCloudCloudServiceConfig!.enabled =
-          !_huaweiCloudCloudServiceConfig!.enabled;
+              !_huaweiCloudCloudServiceConfig!.enabled;
           CloudServiceConfigDao.updateConfigEnabled(
-              _huaweiCloudCloudServiceConfig!, _huaweiCloudCloudServiceConfig!.enabled);
+              _huaweiCloudCloudServiceConfig!,
+              _huaweiCloudCloudServiceConfig!.enabled);
         });
       },
     );
@@ -214,7 +218,8 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
             onTap: () async {
               try {
                 ping();
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to connect to huawei cloud", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -241,7 +246,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
               CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
               try {
                 List<HuaweiCloudFileInfo>? files =
-                await _huaweiCloudCloudService!.listBackups();
+                    await _huaweiCloudCloudService!.listBackups();
                 if (files == null) {
                   CustomLoadingDialog.dismissLoading();
                   IToast.show(S.current.webDavPullFailed);
@@ -256,7 +261,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
                   BottomSheetBuilder.showBottomSheet(
                     context,
                     responsive: true,
-                        (dialogContext) => HuaweiCloudBackupsBottomSheet(
+                    (dialogContext) => HuaweiCloudBackupsBottomSheet(
                       files: files,
                       cloudService: _huaweiCloudCloudService!,
                       onSelected: (selectedFile) async {
@@ -265,7 +270,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
                           showProgress: true,
                         );
                         Uint8List? res =
-                        await _huaweiCloudCloudService!.downloadFile(
+                            await _huaweiCloudCloudService!.downloadFile(
                           selectedFile.id,
                           onProgress: (c, t) {
                             dialog.updateProgress(progress: c / t);
@@ -278,7 +283,8 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
                 } else {
                   IToast.show(S.current.webDavNoBackupFile);
                 }
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to pull from huawei cloud", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.webDavPullFailed);
               }
@@ -316,7 +322,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
                 _huaweiCloudCloudServiceConfig!.account = "";
                 _huaweiCloudCloudServiceConfig!.totalSize =
                     _huaweiCloudCloudServiceConfig!.remainingSize =
-                    _huaweiCloudCloudServiceConfig!.usedSize = -1;
+                        _huaweiCloudCloudServiceConfig!.usedSize = -1;
                 updateConfig(_huaweiCloudCloudServiceConfig!);
               });
             },

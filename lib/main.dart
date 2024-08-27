@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Lock/pin_verify_screen.dart';
-import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
@@ -21,10 +20,12 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import './Utils/ilogger.dart';
 import 'Screens/main_screen.dart';
 import 'TokenUtils/token_image_util.dart';
 import 'Utils/constant.dart';
@@ -84,7 +85,8 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   try {
     await DatabaseManager.initDataBase(
         HiveUtil.getString(HiveUtil.defaultDatabasePasswordKey) ?? "");
-  } catch (e) {
+  } catch (e, t) {
+    ILogger.error("Failed to init databse by default password", e, t);
     HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.customPassword);
   }
   NotificationUtil.init();
@@ -143,7 +145,7 @@ Future<void> initDisplayMode() async {
 }
 
 Future<void> onError(FlutterErrorDetails details) async {
-  File errorFile = File("${await FileUtil.getLogDir()}\\error.log");
+  File errorFile = File(join(await FileUtil.getLogDir(), "error.log"));
   if (!errorFile.existsSync()) errorFile.createSync();
   errorFile
       .writeAsStringSync(errorFile.readAsStringSync() + details.toString());
@@ -179,60 +181,65 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: appProvider),
       ],
       child: Consumer<AppProvider>(
-        builder: (context, appProvider, child) =>
-            MaterialApp(
-              navigatorKey: globalNavigatorKey,
-              navigatorObservers: [routeObserver],
-              title: title,
-              theme: appProvider.getBrightness() == null ||
+        builder: (context, appProvider, child) => MaterialApp(
+          navigatorKey: globalNavigatorKey,
+          navigatorObservers: [routeObserver],
+          title: title,
+          theme: appProvider.getBrightness() == null ||
                   appProvider.getBrightness() == Brightness.light
-                  ? appProvider.lightTheme.toThemeData()
-                  : appProvider.darkTheme.toThemeData(),
-              darkTheme: appProvider.getBrightness() == null ||
+              ? appProvider.lightTheme.toThemeData()
+              : appProvider.darkTheme.toThemeData(),
+          darkTheme: appProvider.getBrightness() == null ||
                   appProvider.getBrightness() == Brightness.dark
-                  ? appProvider.darkTheme.toThemeData()
-                  : appProvider.lightTheme.toThemeData(),
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: const [
-                S.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              locale: appProvider.locale,
-              supportedLocales: S.delegate.supportedLocales,
-              localeResolutionCallback: (locale, supportedLocales) {
-                if (appProvider.locale != null) {
-                  return appProvider.locale;
-                } else
-                if (locale != null && supportedLocales.contains(locale)) {
-                  return locale;
-                } else {
-                  try {
-                    return Localizations.localeOf(context);
-                  } catch (_) {
-                    return const Locale("en", "US");
-                  }
-                }
-              },
-              home: ItemBuilder.buildContextMenuOverlay(home),
-              builder: (context, widget) {
-                return Overlay(
-                  initialEntries: [
-                    if (widget != null) ...[
-                      OverlayEntry(
-                        builder: (context) =>
-                            MediaQuery(
-                              data: MediaQuery.of(context)
-                                  .copyWith(textScaler: TextScaler.noScaling),
-                              child: widget,
-                            ),
+              ? appProvider.darkTheme.toThemeData()
+              : appProvider.lightTheme.toThemeData(),
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          locale: appProvider.locale,
+          supportedLocales: S.delegate.supportedLocales,
+          localeResolutionCallback: (locale, supportedLocales) {
+            if (appProvider.locale != null) {
+              return appProvider.locale;
+            } else if (locale != null && supportedLocales.contains(locale)) {
+              return locale;
+            } else {
+              try {
+                return Localizations.localeOf(context);
+              } catch (e, t) {
+                ILogger.error(
+                    "Failed to get locale by Localizations.localeOf(context)",
+                    e,
+                    t);
+                return const Locale("en", "US");
+              }
+            }
+          },
+          home: ItemBuilder.buildContextMenuOverlay(home),
+          builder: (context, widget) {
+            return Overlay(
+              initialEntries: [
+                if (widget != null) ...[
+                  OverlayEntry(
+                    builder: (context) => MediaQuery(
+                      data: MediaQuery.of(context)
+                          .copyWith(textScaler: TextScaler.noScaling),
+                      child: Listener(
+                        onPointerDown: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                        child: widget,
                       ),
-                    ],
-                  ],
-                );
-              },
-            ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
       ),
     );
   }

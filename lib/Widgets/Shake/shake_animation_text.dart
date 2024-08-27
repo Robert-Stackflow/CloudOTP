@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Widgets/Shake/shake_animation_type.dart';
 import 'package:cloudotp/Widgets/Shake/shake_animation_widget.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// 抖动文本组件
 class ShakeTextAnimationWidget extends StatefulWidget {
@@ -20,7 +20,8 @@ class ShakeTextAnimationWidget extends StatefulWidget {
   ///抖动次数
   final int shakeCount;
 
-  const ShakeTextAnimationWidget({super.key,
+  const ShakeTextAnimationWidget({
+    super.key,
     required this.animationString,
     this.textStyle,
     this.space = 1,
@@ -74,6 +75,7 @@ class TextAnimationState extends State<ShakeTextAnimationWidget> {
 
           ///抖动动画的类型
           shakeAnimationType: shakeAnimationType,
+
           ///执行动画的子Widget
           ///这里只是一个字
           child: Text(

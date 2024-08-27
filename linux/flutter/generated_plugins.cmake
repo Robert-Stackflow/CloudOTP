@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  biometric_storage
   desktop_webview_window
   flutter_secure_storage_linux
   hotkey_manager_linux

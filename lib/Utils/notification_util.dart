@@ -1,7 +1,7 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:install_plugin/install_plugin.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:install_plugin/install_plugin.dart';
 
 class NotificationUtil {
   static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =

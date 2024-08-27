@@ -7,6 +7,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
 
+import '../../../Utils/ilogger.dart';
 import '../../../Utils/utils.dart';
 import '../../../generated/l10n.dart';
 
@@ -47,7 +48,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
         color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.vertical(
             top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isLandscape()
+            bottom: ResponsiveUtil.isWideLandscape()
                 ? const Radius.circular(20)
                 : Radius.zero),
       ),
@@ -63,7 +64,9 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
         ],
       ),
     );
-    return ResponsiveUtil.isLandscape() ? Center(child: mainBody) : mainBody;
+    return ResponsiveUtil.isWideLandscape()
+        ? Center(child: mainBody)
+        : mainBody;
   }
 
   _buildHeader() {
@@ -72,7 +75,8 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
       alignment: Alignment.center,
       child: Text(
         S.current.webDavBackupFiles(widget.files.length),
-        style: Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style:
+            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -80,6 +84,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
   _buildButtons() {
     return ListView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       itemBuilder: (context, index) => _buildItem(files[index]),
       itemCount: files.length,
     );
@@ -143,7 +148,8 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
                       files.remove(file);
                     });
                     IToast.showTop(S.current.deleteSuccess);
-                  } catch (_) {
+                  } catch (e, t) {
+                    ILogger.error("Failed to delete file from webdav", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

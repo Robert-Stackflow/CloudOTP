@@ -171,8 +171,8 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
     $fixnum.Int64? lastCopyTimeStamp,
     $core.String? imagePath,
     $core.String? description,
-    $core.String? uid,
     $core.String? remark,
+    $core.String? uid,
   }) {
     final $result = create();
     if (secret != null) {
@@ -217,11 +217,11 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
     if (description != null) {
       $result.description = description;
     }
-    if (uid != null) {
-      $result.uid = uid;
-    }
     if (remark != null) {
       $result.remark = remark;
+    }
+    if (uid != null) {
+      $result.uid = uid;
     }
     return $result;
   }
@@ -266,8 +266,8 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
         protoName: 'lastCopyTimeStamp')
     ..aOS(13, _omitFieldNames ? '' : 'imagePath', protoName: 'imagePath')
     ..aOS(14, _omitFieldNames ? '' : 'description')
-    ..aOS(15, _omitFieldNames ? '' : 'uid')
-    ..aOS(16, _omitFieldNames ? '' : 'remark')
+    ..aOS(15, _omitFieldNames ? '' : 'remark')
+    ..aOS(16, _omitFieldNames ? '' : 'uid')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -496,32 +496,32 @@ class CloudOtpTokenParameters extends $pb.GeneratedMessage {
   void clearDescription() => clearField(14);
 
   @$pb.TagNumber(15)
-  $core.String get uid => $_getSZ(14);
+  $core.String get remark => $_getSZ(14);
 
   @$pb.TagNumber(15)
-  set uid($core.String v) {
+  set remark($core.String v) {
     $_setString(14, v);
   }
 
   @$pb.TagNumber(15)
-  $core.bool hasUid() => $_has(14);
+  $core.bool hasRemark() => $_has(14);
 
   @$pb.TagNumber(15)
-  void clearUid() => clearField(15);
+  void clearRemark() => clearField(15);
 
   @$pb.TagNumber(16)
-  $core.String get remark => $_getSZ(15);
+  $core.String get uid => $_getSZ(15);
 
   @$pb.TagNumber(16)
-  set remark($core.String v) {
+  set uid($core.String v) {
     $_setString(15, v);
   }
 
   @$pb.TagNumber(16)
-  $core.bool hasRemark() => $_has(15);
+  $core.bool hasUid() => $_has(15);
 
   @$pb.TagNumber(16)
-  void clearRemark() => clearField(16);
+  void clearUid() => clearField(16);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

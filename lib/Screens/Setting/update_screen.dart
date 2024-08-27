@@ -9,6 +9,7 @@ import 'package:process_run/process_run.dart';
 
 import '../../Models/github_response.dart';
 import '../../Utils/file_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/Item/item_builder.dart';
@@ -163,10 +164,9 @@ class _UpdateScreenState extends State<UpdateScreen>
                           .runExecutableArguments(savePath, []).then((result) {
                         downloadState == DownloadState.normal;
                       });
-                    } catch (e) {
+                    } catch (e, t) {
+                      ILogger.error("Failed to install", e, t);
                       if (e is ShellException) {
-                        print(
-                            "Error is ${e.runtimeType}:${e.toString()} , and exitcode: ${e.result?.exitCode}");
                         if (e.result?.exitCode == 2) {
                           IToast.showTop(S.current.installCanceled);
                         } else if (e.result?.exitCode == null &&
@@ -225,7 +225,8 @@ class _UpdateScreenState extends State<UpdateScreen>
                       UriUtil.openExternal(latestReleaseItem.url);
                     }
                   }
-                } catch (e) {
+                } catch (e, t) {
+                  ILogger.error("Failed to download", e, t);
                   IToast.showTop(S.current.downloadFailed);
                   downloadState == DownloadState.normal;
                 }

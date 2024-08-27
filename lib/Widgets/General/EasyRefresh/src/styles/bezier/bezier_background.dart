@@ -89,7 +89,10 @@ class _BezierBackgroundState extends State<BezierBackground>
   double get _actualTriggerOffset => widget.state.actualTriggerOffset;
 
   /// Get background color.
-  Color get _color => widget.color ?? Theme.of(context).primaryColor;
+  Color get _color =>
+      widget.color ?? Theme
+          .of(context)
+          .primaryColor;
 
   /// Animation controller.
   late AnimationController _animationController;
@@ -220,7 +223,7 @@ class _BezierBackgroundState extends State<BezierBackground>
   Widget build(BuildContext context) {
     final reboundOffset = _animationController.isAnimating
         ? _notifier.calculateOffsetWithPixels(
-            _notifier.position, _animationController.value)
+        _notifier.position, _animationController.value)
         : null;
     double offset = _offset;
     if (reboundOffset != null) {
@@ -276,8 +279,8 @@ class _BezierClipper extends CustomClipper<Path> {
         // Top
         final startHeight = reboundOffset == null
             ? height > actualTriggerOffset
-                ? height - actualTriggerOffset
-                : 0.0
+            ? height - actualTriggerOffset
+            : 0.0
             : height - actualTriggerOffset;
         path.moveTo(width, startHeight);
         path.lineTo(width, height);
@@ -331,7 +334,7 @@ class _BezierClipper extends CustomClipper<Path> {
       if (reverse) {
         // Left
         final startWidth =
-            width > actualTriggerOffset ? width - actualTriggerOffset : 0.0;
+        width > actualTriggerOffset ? width - actualTriggerOffset : 0.0;
         path.moveTo(startWidth, 0);
         path.lineTo(width, 0);
         path.lineTo(width, height);
@@ -391,13 +394,13 @@ class _BezierClipper extends CustomClipper<Path> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _BezierClipper &&
-          runtimeType == other.runtimeType &&
-          axis == other.axis &&
-          reverse == other.reverse &&
-          offset == other.offset &&
-          actualTriggerOffset == other.actualTriggerOffset &&
-          reboundOffset == other.reboundOffset;
+          other is _BezierClipper &&
+              runtimeType == other.runtimeType &&
+              axis == other.axis &&
+              reverse == other.reverse &&
+              offset == other.offset &&
+              actualTriggerOffset == other.actualTriggerOffset &&
+              reboundOffset == other.reboundOffset;
 
   @override
   int get hashCode =>
@@ -451,12 +454,12 @@ class _BezierDisappearClipper extends CustomClipper<Path> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _BezierDisappearClipper &&
-          runtimeType == other.runtimeType &&
-          axis == other.axis &&
-          reverse == other.reverse &&
-          offset == other.offset &&
-          scale == other.scale;
+          other is _BezierDisappearClipper &&
+              runtimeType == other.runtimeType &&
+              axis == other.axis &&
+              reverse == other.reverse &&
+              offset == other.offset &&
+              scale == other.scale;
 
   @override
   int get hashCode =>

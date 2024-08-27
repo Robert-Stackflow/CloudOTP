@@ -91,9 +91,9 @@ class Tuple3<T1, T2, T3> {
   @override
   bool operator ==(Object other) =>
       other is Tuple3 &&
-          other.item1 == item1 &&
-          other.item2 == item2 &&
-          other.item3 == item3;
+      other.item1 == item1 &&
+      other.item2 == item2 &&
+      other.item3 == item3;
 
   @override
   int get hashCode =>
@@ -156,10 +156,10 @@ class Tuple4<T1, T2, T3, T4> {
   @override
   bool operator ==(Object other) =>
       other is Tuple4 &&
-          other.item1 == item1 &&
-          other.item2 == item2 &&
-          other.item3 == item3 &&
-          other.item4 == item4;
+      other.item1 == item1 &&
+      other.item2 == item2 &&
+      other.item3 == item3 &&
+      other.item4 == item4;
 
   @override
   int get hashCode => Object.hash(
@@ -229,20 +229,20 @@ class Tuple5<T1, T2, T3, T4, T5> {
   @override
   bool operator ==(Object other) =>
       other is Tuple5 &&
-          other.item1 == item1 &&
-          other.item2 == item2 &&
-          other.item3 == item3 &&
-          other.item4 == item4 &&
-          other.item5 == item5;
+      other.item1 == item1 &&
+      other.item2 == item2 &&
+      other.item3 == item3 &&
+      other.item4 == item4 &&
+      other.item5 == item5;
 
   @override
   int get hashCode => Object.hashAll([
-    item1.hashCode,
-    item2.hashCode,
-    item3.hashCode,
-    item4.hashCode,
-    item5.hashCode
-  ]);
+        item1.hashCode,
+        item2.hashCode,
+        item3.hashCode,
+        item4.hashCode,
+        item5.hashCode
+      ]);
 }
 
 /// Represents a 6-tuple, or sextuple.
@@ -316,22 +316,22 @@ class Tuple6<T1, T2, T3, T4, T5, T6> {
   @override
   bool operator ==(Object other) =>
       other is Tuple6 &&
-          other.item1 == item1 &&
-          other.item2 == item2 &&
-          other.item3 == item3 &&
-          other.item4 == item4 &&
-          other.item5 == item5 &&
-          other.item6 == item6;
+      other.item1 == item1 &&
+      other.item2 == item2 &&
+      other.item3 == item3 &&
+      other.item4 == item4 &&
+      other.item5 == item5 &&
+      other.item6 == item6;
 
   @override
   int get hashCode => Object.hashAll([
-    item1.hashCode,
-    item2.hashCode,
-    item3.hashCode,
-    item4.hashCode,
-    item5.hashCode,
-    item6.hashCode
-  ]);
+        item1.hashCode,
+        item2.hashCode,
+        item3.hashCode,
+        item4.hashCode,
+        item5.hashCode,
+        item6.hashCode
+      ]);
 }
 
 /// Represents a 7-tuple, or septuple.
@@ -427,22 +427,22 @@ class Tuple7<T1, T2, T3, T4, T5, T6, T7> {
   @override
   bool operator ==(Object other) =>
       other is Tuple7 &&
-          other.item1 == item1 &&
-          other.item2 == item2 &&
-          other.item3 == item3 &&
-          other.item4 == item4 &&
-          other.item5 == item5 &&
-          other.item6 == item6 &&
-          other.item7 == item7;
+      other.item1 == item1 &&
+      other.item2 == item2 &&
+      other.item3 == item3 &&
+      other.item4 == item4 &&
+      other.item5 == item5 &&
+      other.item6 == item6 &&
+      other.item7 == item7;
 
   @override
   int get hashCode => Object.hashAll([
-    item1.hashCode,
-    item2.hashCode,
-    item3.hashCode,
-    item4.hashCode,
-    item5.hashCode,
-    item6.hashCode,
-    item7.hashCode
-  ]);
+        item1.hashCode,
+        item2.hashCode,
+        item3.hashCode,
+        item4.hashCode,
+        item5.hashCode,
+        item6.hashCode,
+        item7.hashCode
+      ]);
 }

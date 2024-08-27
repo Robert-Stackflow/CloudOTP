@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:move_to_background/move_to_background.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
@@ -36,6 +37,7 @@ import '../TokenUtils/import_token_util.dart';
 import '../Utils/app_provider.dart';
 import '../Utils/enums.dart';
 import '../Utils/hive_util.dart';
+import '../Utils/ilogger.dart';
 import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
@@ -80,6 +82,7 @@ class MainScreenState extends State<MainScreen>
   bool _isMaximized = false;
   bool _isStayOnTop = false;
   bool _hasJumpedToPinVerify = false;
+  Orientation _oldOrientation = Orientation.portrait;
   TextEditingController searchController = TextEditingController();
   FocusNode searchFocusNode = FocusNode();
 
@@ -137,8 +140,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onProtocolUrlReceived(String url) {
-    String log = 'Url received: $url';
-    print(log);
+    ILogger.info("Protocol url received", log);
   }
 
   Future<void> fetchReleases() async {
@@ -161,6 +163,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void initState() {
+    _oldOrientation = MediaQuery.of(rootContext).orientation;
     trayManager.addListener(this);
     windowManager.addListener(this);
     if (ResponsiveUtil.isDesktop()) protocolHandler.addListener(this);
@@ -236,12 +239,13 @@ class MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Listener(
-      onPointerDown: (_) {
-        homeScreenState?.unfocusSearch();
-      },
-      child: OrientationBuilder(builder: (ctx, ori) => _buildBodyByPlatform()),
-    );
+    return OrientationBuilder(builder: (ctx, ori) {
+      if (ori != _oldOrientation) {
+        // globalNavigatorState?.popUntil((route) => route.isFirst);
+      }
+      _oldOrientation = ori;
+      return _buildBodyByPlatform();
+    });
   }
 
   goHome() {
@@ -258,9 +262,15 @@ class MainScreenState extends State<MainScreen>
     if (!ResponsiveUtil.isLandscape()) {
       return _buildMobileBody();
     } else if (ResponsiveUtil.isMobile()) {
-      return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SafeArea(child: _buildDesktopBody()),
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (_, __) {
+          MoveToBackground.moveTaskToBack();
+        },
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: SafeArea(child: _buildDesktopBody()),
+        ),
       );
     } else {
       return _buildDesktopBody();
@@ -278,7 +288,7 @@ class MainScreenState extends State<MainScreen>
         Expanded(
           child: Row(
             children: [
-              _sideBar(leftPadding: 8, topPadding: 8),
+              _sideBar(leftPadding: 4, rightPadding: 4, topPadding: 8),
               Expanded(
                 child: _desktopMainContent(rightMargin: 5),
               ),
@@ -296,7 +306,7 @@ class MainScreenState extends State<MainScreen>
               Expanded(
                 child: _desktopMainContent(leftMargin: 5),
               ),
-              _sideBar(rightPadding: 8, topPadding: 8),
+              _sideBar(leftPadding: 8, rightPadding: 8, topPadding: 8),
             ],
           ),
         ),
@@ -545,7 +555,8 @@ class MainScreenState extends State<MainScreen>
         showLoading: false,
         doDismissLoading: true,
       );
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to capture and analyze image", e, t);
       if (e is PlatformException) {
         if (reCaptureWhenFailed) capture(mode, reCaptureWhenFailed: false);
       }

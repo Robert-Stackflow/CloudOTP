@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloudotp/Database/auto_backup_log_dao.dart';
 import 'package:cloudotp/Database/category_dao.dart';
+import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
@@ -25,6 +26,7 @@ import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/token_category.dart';
 import '../Utils/file_util.dart';
 import '../Utils/itoast.dart';
+import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/Dialog/progress_dialog.dart';
@@ -100,6 +102,9 @@ class ExportTokenUtil {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
       List<OtpToken> tokens = await TokenDao.listTokens();
       List<TokenCategory> categories = await CategoryDao.listCategories();
+      for (TokenCategory category in categories) {
+        category.bindings = await BindingDao.getTokenUids(category.uid);
+      }
       return await compute((_) async {
         Backup backup = Backup(
           tokens: tokens,
@@ -110,8 +115,8 @@ class ExportTokenUtil {
             await backupEncryption.encrypt(backup, tmpPassword);
         return encryptedData;
       }, null);
-    } catch (e) {
-      IPrint.debug(e);
+    } catch (e, t) {
+      ILogger.error("Failed to export data to Uint8List", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       }
@@ -140,7 +145,8 @@ class ExportTokenUtil {
         }, null);
         IToast.showTop(S.current.exportSuccess);
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to export data to encrypt file", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       } else {
@@ -263,7 +269,8 @@ class ExportTokenUtil {
             await file.writeAsBytes(encryptedData);
             await ExportTokenUtil.deleteOldBackup();
             log.addStatus(AutoBackupStatus.saveSuccess);
-          } catch (e) {
+          } catch (e, t) {
+            ILogger.error("Failed to local backup", e, t);
             log.addStatus(AutoBackupStatus.saveFailed);
           }
         }
@@ -297,7 +304,8 @@ class ExportTokenUtil {
                   log.addStatus(AutoBackupStatus.uploadFailed,
                       type: cloudService.type);
                 }
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to cloud backup to $cloudService}", e, t);
                 log.addStatus(AutoBackupStatus.uploadFailed,
                     type: cloudService.type);
               }
@@ -317,7 +325,8 @@ class ExportTokenUtil {
           if (showToast) IToast.showTop(S.current.backupFailed);
         }
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to auto backup", e, t);
       if (e is BackupBaseException) {
         log.addStatus(AutoBackupStatus.encryptFailed);
         if (showToast) IToast.showTop(e.intlMessage);
@@ -358,7 +367,8 @@ class ExportTokenUtil {
         ExportTokenUtil.deleteOldBackup();
         if (showToast) IToast.showTop(S.current.backupSuccess);
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to backup encrypt file to local", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
@@ -414,7 +424,8 @@ class ExportTokenUtil {
           }
         }
       }
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to backup encrypt file to cloud $config", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
@@ -492,7 +503,8 @@ class ExportTokenUtil {
               "otpauth-migration://offline?data=${Uri.encodeComponent(e)}")
           .toList();
       return [tokenQrcodes, passCount];
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to export data to google authenticator qrcodes", e, t);
       return null;
     } finally {
       if (showLoading) {
@@ -510,7 +522,6 @@ class ExportTokenUtil {
     }
     List<String> tokenQrcodes = [];
     List<String> categoryQrcodes = [];
-    List<String> bindingQrcodes = [];
     try {
       List<OtpToken> tokens = await TokenDao.listTokens();
       CloudOtpTokenPayload payload = CloudOtpTokenPayload.create();
@@ -555,7 +566,7 @@ class ExportTokenUtil {
       tokenQrcodes.addAll(categoryQrcodes);
       return tokenQrcodes;
     } catch (e, t) {
-      print("$e\n$t");
+      ILogger.error("Failed to export data to qrcodes", e, t);
       return null;
     } finally {
       if (showLoading) {

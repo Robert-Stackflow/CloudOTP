@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Utils/lottie_util.dart';
+import 'package:flutter/material.dart';
 
 class LoadingDialogWidget extends StatefulWidget {
   final bool dismissible;

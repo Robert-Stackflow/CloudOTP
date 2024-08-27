@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../Models/auto_backup_log.dart';
 import '../TokenUtils/export_token_util.dart';
+import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
 
 class TokenDao {
@@ -210,7 +211,9 @@ class TokenDao {
         whereArgs: searchKey.isEmpty ? [id] : [id, "%$searchKey%"],
       );
       return OtpToken.fromMap(maps[0]);
-    } catch (_) {
+    } catch (e, t) {
+      ILogger.error(
+          "Failed to get token by id $id and serachKey $searchKey", e, t);
       return null;
     }
   }
@@ -227,7 +230,9 @@ class TokenDao {
         whereArgs: searchKey.isEmpty ? [uid] : [uid, "%$searchKey%"],
       );
       return OtpToken.fromMap(maps[0]);
-    } catch (_) {
+    } catch (e, t) {
+      ILogger.error(
+          "Failed to get token by uid $uid and searchKey $searchKey", e, t);
       return null;
     }
   }

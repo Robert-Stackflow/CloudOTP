@@ -18,7 +18,7 @@ class BackupBaseException implements Exception {
   String get intlMessage {
     if (this is EncryptEmptyPasswordException) {
       return S.current.cannotEncryptWithoutPassword;
-    }else if (this is DecryptEmptyPasswordException) {
+    } else if (this is DecryptEmptyPasswordException) {
       return S.current.cannotDecryptWithoutPassword;
     } else if (this is BackupVersionUnsupportException) {
       return S.current.backupVersionUnsupport;

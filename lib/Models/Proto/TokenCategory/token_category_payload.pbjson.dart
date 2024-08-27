@@ -17,7 +17,14 @@ import 'dart:typed_data' as $typed_data;
 const TokenCategoryPayload$json = {
   '1': 'TokenCategoryPayload',
   '2': [
-    {'1': 'category_parameters', '3': 1, '4': 3, '5': 11, '6': '.TokenCategoryParameters', '10': 'categoryParameters'},
+    {
+      '1': 'category_parameters',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.TokenCategoryParameters',
+      '10': 'categoryParameters'
+    },
     {'1': 'version', '3': 2, '4': 1, '5': 5, '10': 'version'},
     {'1': 'batch_size', '3': 3, '4': 1, '5': 5, '10': 'batchSize'},
     {'1': 'batch_index', '3': 4, '4': 1, '5': 5, '10': 'batchIndex'},
@@ -52,4 +59,3 @@ final $typed_data.Uint8List tokenCategoryParametersDescriptor = $convert.base64D
     'RsZRgCIAEoCVIFdGl0bGUSIAoLZGVzY3JpcHRpb24YAyABKAlSC2Rlc2NyaXB0aW9uEhoKCHRv'
     'a2VuSWRzGAQgASgJUgh0b2tlbklkcxIWCgZyZW1hcmsYBSABKAlSBnJlbWFyaxIQCgN1aWQYBi'
     'ABKAlSA3VpZBIaCghiaW5kaW5ncxgHIAEoCVIIYmluZGluZ3M=');
-

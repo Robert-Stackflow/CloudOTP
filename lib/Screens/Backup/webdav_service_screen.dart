@@ -5,8 +5,8 @@ import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/webdav_backups_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +14,7 @@ import 'package:webdav_client/webdav_client.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
+import '../../Utils/ilogger.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
@@ -260,7 +261,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                     WebDavCloudService(_webDavCloudServiceConfig!);
                 try {
                   ping();
-                } catch (e) {
+                } catch (e, t) {
+                  ILogger.error("Failed to connect to webdav", e, t);
                   IToast.show(S.current.cloudConnectionError);
                 }
               }
@@ -324,7 +326,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 } else {
                   IToast.show(S.current.webDavNoBackupFile);
                 }
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to pull from webdav", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.webDavPullFailed);
               }

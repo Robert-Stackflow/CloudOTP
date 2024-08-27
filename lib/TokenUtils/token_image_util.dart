@@ -4,6 +4,8 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/services.dart';
 
+import '../../Utils/ilogger.dart';
+
 class TokenImageUtil {
   static List<String> brandLogos = [];
   static List<String> darkBrandLogos = [];
@@ -12,7 +14,8 @@ class TokenImageUtil {
     final manifestContent = await rootBundle.loadString('AssetManifest.json');
     final Map<String, dynamic> manifestMap = json.decode(manifestContent);
     final brandFiles = manifestMap.keys
-        .where((String key) => key.startsWith('assets/brand/'))
+        .where((String key) =>
+            key.startsWith('assets/brand/') && key.endsWith('.png'))
         .toList();
     brandLogos = brandFiles.map((file) => file.split('/').last).toList();
     for (var logo in brandLogos) {
@@ -27,7 +30,8 @@ class TokenImageUtil {
     try {
       await rootBundle.loadString(path);
       return true;
-    } catch (_) {
+    } catch (e, t) {
+      ILogger.error("Failed to load asset $path", e, t);
       return false;
     }
   }

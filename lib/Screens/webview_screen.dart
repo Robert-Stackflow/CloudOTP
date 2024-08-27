@@ -10,6 +10,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../Utils/Tuple/tuple.dart';
 import '../Utils/constant.dart';
+import '../Utils/responsive_util.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/list_bottom_sheet.dart';
@@ -98,14 +99,13 @@ class _WebviewScreenState extends State<WebviewScreen>
                 : const Color(0xFFF5F5F5),
         appBar: showAppBar
             ? ItemBuilder.buildAppBar(
-                forceShowClose: true,
                 context: context,
                 leading: Icons.close_rounded,
                 backgroundColor: MyTheme.getBackground(context),
                 onLeadingTap: () {
                   Navigator.pop(context);
                 },
-                center: true,
+                center: !ResponsiveUtil.isLandscape(),
                 title: Text(
                   title,
                   style: Theme.of(context)
@@ -150,6 +150,11 @@ class _WebviewScreenState extends State<WebviewScreen>
                         );
                       }),
                   const SizedBox(width: 5),
+                  if (ResponsiveUtil.isLandscape())
+                    Container(
+                      margin: const EdgeInsets.only(right: 5),
+                      child: ItemBuilder.buildBlankIconButton(context),
+                    ),
                 ],
               )
             : null,

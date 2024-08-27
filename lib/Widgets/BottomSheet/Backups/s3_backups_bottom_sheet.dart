@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../../Models/s3_cloud_file_info.dart';
 import '../../../TokenUtils/Cloud/s3_cloud_service.dart';
+import '../../../Utils/ilogger.dart';
 import '../../../Utils/utils.dart';
 import '../../../generated/l10n.dart';
 
@@ -47,7 +48,7 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
         color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.vertical(
             top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isLandscape()
+            bottom: ResponsiveUtil.isWideLandscape()
                 ? const Radius.circular(20)
                 : Radius.zero),
       ),
@@ -63,7 +64,9 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
         ],
       ),
     );
-    return ResponsiveUtil.isLandscape() ? Center(child: mainBody) : mainBody;
+    return ResponsiveUtil.isWideLandscape()
+        ? Center(child: mainBody)
+        : mainBody;
   }
 
   _buildHeader() {
@@ -72,7 +75,8 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
       alignment: Alignment.center,
       child: Text(
         S.current.webDavBackupFiles(widget.files.length),
-        style: Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style:
+            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -80,16 +84,15 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
   _buildButtons() {
     return ListView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       itemBuilder: (context, index) => _buildItem(files[index]),
       itemCount: files.length,
     );
   }
 
   _buildItem(S3CloudFileInfo file) {
-    String size =
-    CacheUtil.renderSize(file.size.toDouble(), fractionDigits: 0);
-    String time =
-    Utils.formatTimestamp(file.modifyTimestamp);
+    String size = CacheUtil.renderSize(file.size.toDouble(), fractionDigits: 0);
+    String time = Utils.formatTimestamp(file.modifyTimestamp);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -134,7 +137,7 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
               ItemBuilder.buildIconButton(
                 context: context,
                 icon:
-                const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {
@@ -143,7 +146,8 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
                       files.remove(file);
                     });
                     IToast.showTop(S.current.deleteSuccess);
-                  } catch (_) {
+                  } catch (e, t) {
+                    ILogger.error("Failed to delete file from s3 cloud", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

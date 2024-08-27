@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
+import 'package:flutter/material.dart';
 
 class CustomDialogColors {
   /// All the Colors used in the Dialog themes

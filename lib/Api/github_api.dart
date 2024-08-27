@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:cloudotp/Utils/iprint.dart';
 
 import '../Models/github_response.dart';
+import '../Utils/ilogger.dart';
 
 class GithubApi {
   static Future<List<ReleaseItem>> getReleases(String user, String repo) async {
@@ -16,8 +16,8 @@ class GithubApi {
           return items;
         }
       }
-    } catch (e) {
-      IPrint.debug(e);
+    } catch (e, t) {
+      ILogger.error("Failed to get releases", e, t);
     }
     return [];
   }

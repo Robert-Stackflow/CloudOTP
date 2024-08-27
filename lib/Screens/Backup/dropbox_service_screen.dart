@@ -11,6 +11,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Widgets/BottomSheet/Backups/dropbox_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
@@ -224,7 +225,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             onTap: () async {
               try {
                 ping();
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to connect to dropbox", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -288,7 +290,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                 } else {
                   IToast.show(S.current.webDavNoBackupFile);
                 }
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to pull file from dropbox", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.webDavPullFailed);
               }

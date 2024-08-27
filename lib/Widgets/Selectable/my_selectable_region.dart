@@ -1756,7 +1756,7 @@ class _SelectableRegionContainerDelegate
         _hasReceivedEndEvent.add(selectable);
         ensureChildUpdated(selectable);
       case SelectionEventType.selectParagraph:
-        // TODO: Handle this case.
+      // TODO: Handle this case.
     }
     return super.dispatchSelectionEventToChild(selectable, event);
   }
@@ -2574,7 +2574,7 @@ abstract class MultiSelectableSelectionContainerDelegate
         result = handleDirectionallyExtendSelection(
             event as DirectionallyExtendSelectionEvent);
       case SelectionEventType.selectParagraph:
-        // TODO: Handle this case.
+      // TODO: Handle this case.
     }
     _isHandlingSelectionEvent = false;
     _updateSelectionGeometry();

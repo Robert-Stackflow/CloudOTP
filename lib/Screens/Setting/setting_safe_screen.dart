@@ -1,4 +1,3 @@
-import 'package:cloudotp/Screens/Setting/setting_screen.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
@@ -194,6 +193,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
           BottomSheetBuilder.showBottomSheet(
             context,
             responsive: true,
+            useWideLandscape: true,
             (context) => InputPasswordBottomSheet(
               title: S.current.editEncryptDatabasePassword,
               message: S.current.editEncryptDatabasePasswordTip,

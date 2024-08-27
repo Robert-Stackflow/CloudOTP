@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../Utils/ilogger.dart';
 import '../Widgets/Item/item_builder.dart';
 import '../generated/l10n.dart';
 import 'iprint.dart';
@@ -53,7 +54,8 @@ class FileUtil {
         withReadStream: withReadStream,
         readSequential: readSequential,
       );
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to pick files", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     }
     return result;
@@ -79,7 +81,8 @@ class FileUtil {
         bytes: bytes,
         fileName: fileName,
       );
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to save file", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     }
     return result;
@@ -97,7 +100,8 @@ class FileUtil {
         initialDirectory: initialDirectory,
         lockParentWindow: lockParentWindow,
       );
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to get directory path", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     }
     return result;
@@ -213,8 +217,8 @@ class FileUtil {
               UriUtil.openExternal(htmlUrl);
             }
           });
-        } catch (e) {
-          IPrint.debug(e);
+        } catch (e, t) {
+          ILogger.error("Failed to download apk", e, t);
           NotificationUtil.closeNotification(0);
           NotificationUtil.sendInfoNotification(
             2,

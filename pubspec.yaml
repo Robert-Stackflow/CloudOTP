@@ -1,6 +1,5 @@
 name: cloudotp
-version: 2.3.1
-version_code: 203001
+version: 2.3.2+232
 description: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
 publish_to: none
 
@@ -55,9 +54,10 @@ dependencies:
   flutter_cloud:
     path: third-party/flutter_cloud
   # 工具
-  uuid: ^4.4.2 # UUID
   intl_utils: ^2.8.7
   html: ^0.15.0
+  uuid: ^4.4.2 # UUID
+  logger: ^2.4.0 # 日志
   hashlib: ^1.19.2 # Hash
   pointycastle: ^3.9.1 # 加密
   protobuf: ^3.1.0 # Protobuf
@@ -73,7 +73,7 @@ dependencies:
   share_plus: ^9.0.0 # 分享
   protocol_handler: ^0.2.0 # 协议处理
   url_launcher: ^6.3.0 # URL跳转
-  biometric_storage: ^5.0.1
+#  biometric_storage: ^5.0.1
   # 平台适配
   native_device_orientation: ^2.0.3 # 设备方向
   process_run: ^1.0.0+1 # 运行

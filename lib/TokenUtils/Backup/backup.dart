@@ -17,7 +17,7 @@ class Backup {
   Map<String, dynamic> toJson() {
     return {
       'tokens': tokens.map((e) => e.toJson()).toList(),
-      'categories': categories.map((e) => e.toJson()).toList(),
+      'categories': categories.map((e) => e.toJsonWithBindings()).toList(),
     };
   }
 
@@ -28,8 +28,8 @@ class Backup {
           : [],
       categories: json['categories'] != null
           ? (json['categories'] as List)
-          .map((e) => TokenCategory.fromJson(e))
-          .toList()
+              .map((e) => TokenCategory.fromJson(e))
+              .toList()
           : [],
     );
   }

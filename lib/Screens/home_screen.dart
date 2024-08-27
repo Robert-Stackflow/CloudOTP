@@ -669,7 +669,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         selector: (context, provider) => provider.hideProgressBar,
         builder: (context, hideProgressBar, child) =>
             ReorderableGridView.builder(
-          controller: _scrollController,
+          // controller: _scrollController,
           gridItemsNotifier: gridItemsNotifier,
           autoScroll: true,
           physics: const AlwaysScrollableScrollPhysics(),
@@ -733,7 +733,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           itemCount: tokens.length,
           itemBuilder: (context, index) {
             return TokenLayout(
-              key: tokenKeyMap.putIfAbsent(tokens[index].uid, () => GlobalKey()),
+              key:
+                  tokenKeyMap.putIfAbsent(tokens[index].uid, () => GlobalKey()),
               token: tokens[index],
               layoutType: layoutType,
             );
@@ -743,7 +744,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     Widget body = tokens.isEmpty
         ? ListView(
-            controller: _scrollController,
             children: [
               ItemBuilder.buildEmptyPlaceholder(
                   context: context,
@@ -852,6 +852,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
+      useWideLandscape: true,
       (context) => InputBottomSheet(
         title: S.current.editCategoryName,
         hint: S.current.inputCategory,
@@ -893,6 +894,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
+      useWideLandscape: true,
       (context) => InputBottomSheet(
         title: S.current.addCategory,
         hint: S.current.inputCategory,

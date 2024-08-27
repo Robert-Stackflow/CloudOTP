@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../Resources/theme.dart';
-import '../../Utils/iprint.dart';
 
 class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
@@ -86,7 +85,7 @@ class SliverHeaderDelegate extends SliverPersistentHeaderDelegate {
     Widget child = builder(context, shrinkOffset, overlapsContent);
     assert(() {
       if (child.key != null) {
-        IPrint.debug(
+        debugPrint(
             '${child.key}: shrink: $shrinkOffset，overlaps:$overlapsContent');
       }
       return true;

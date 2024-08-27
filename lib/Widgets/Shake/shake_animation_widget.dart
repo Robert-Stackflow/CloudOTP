@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Widgets/Shake/shake_animation_builder.dart';
 import 'package:cloudotp/Widgets/Shake/shake_animation_controller.dart';
 import 'package:cloudotp/Widgets/Shake/shake_animation_type.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// 抖动效果的组件
 class ShakeAnimationWidget extends StatefulWidget {

@@ -176,6 +176,11 @@ class ReleaseAsset {
         "uploader": uploader,
         "url": url,
       };
+
+  @override
+  String toString() {
+    return 'ReleaseAsset{browserDownloadUrl: $browserDownloadUrl, contentType: $contentType, createdAt: $createdAt, downloadCount: $downloadCount, id: $id, label: $label, name: $name, nodeId: $nodeId, size: $size, state: $state, updatedAt: $updatedAt, uploader: $uploader, url: $url}';
+  }
 }
 
 ///State of the release asset.

@@ -11,6 +11,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
@@ -225,7 +226,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             onTap: () async {
               try {
                 ping();
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to connect to google drive", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -289,7 +291,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                 } else {
                   IToast.show(S.current.webDavNoBackupFile);
                 }
-              } catch (e) {
+              } catch (e, t) {
+                ILogger.error("Failed to pull from google drive", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.webDavPullFailed);
               }

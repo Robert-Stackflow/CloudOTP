@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:hashlib/hashlib.dart';
 
 import '../../Utils/Base32/base32.dart';
+import '../../Utils/ilogger.dart';
 
 /// [SteamTOTP] generates 5-character alphanumeric Steam TOTP codes.
 /// Possible characters can be found in [SteamTOTP.steamChars].
@@ -21,7 +22,8 @@ class SteamTOTP {
       if (_sharedSecretArray.isEmpty) {
         throw Exception();
       }
-    } catch (_) {
+    } catch (e, t) {
+      ILogger.error("Failed to get steam TOTP", e, t);
       throw ArgumentError('secret must be valid base32.');
     }
   }

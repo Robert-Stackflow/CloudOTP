@@ -41,9 +41,10 @@ const OtpMigrationDigitCount$json = {
 };
 
 /// Descriptor for `OtpMigrationDigitCount`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List otpMigrationDigitCountDescriptor = $convert.base64Decode(
-    'ChZPdHBNaWdyYXRpb25EaWdpdENvdW50EhsKF0RJR0lUX0NPVU5UX1VOU1BFQ0lGSUVEEAASBw'
-    'oDU0lYEAESCQoFRUlHSFQQAg==');
+final $typed_data.Uint8List otpMigrationDigitCountDescriptor =
+    $convert.base64Decode(
+        'ChZPdHBNaWdyYXRpb25EaWdpdENvdW50EhsKF0RJR0lUX0NPVU5UX1VOU1BFQ0lGSUVEEAASBw'
+        'oDU0lYEAESCQoFRUlHSFQQAg==');
 
 @$core.Deprecated('Use otpMigrationTypeDescriptor instead')
 const OtpMigrationType$json = {
@@ -64,7 +65,14 @@ final $typed_data.Uint8List otpMigrationTypeDescriptor = $convert.base64Decode(
 const OtpMigrationPayload$json = {
   '1': 'OtpMigrationPayload',
   '2': [
-    {'1': 'otp_parameters', '3': 1, '4': 3, '5': 11, '6': '.OtpMigrationParameters', '10': 'otpParameters'},
+    {
+      '1': 'otp_parameters',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.OtpMigrationParameters',
+      '10': 'otpParameters'
+    },
     {'1': 'version', '3': 2, '4': 1, '5': 5, '10': 'version'},
     {'1': 'batch_size', '3': 3, '4': 1, '5': 5, '10': 'batchSize'},
     {'1': 'batch_index', '3': 4, '4': 1, '5': 5, '10': 'batchIndex'},
@@ -86,9 +94,30 @@ const OtpMigrationParameters$json = {
     {'1': 'secret', '3': 1, '4': 1, '5': 12, '10': 'secret'},
     {'1': 'account', '3': 2, '4': 1, '5': 9, '10': 'account'},
     {'1': 'issuer', '3': 3, '4': 1, '5': 9, '10': 'issuer'},
-    {'1': 'algorithm', '3': 4, '4': 1, '5': 14, '6': '.OtpMigrationAlgorithm', '10': 'algorithm'},
-    {'1': 'digits', '3': 5, '4': 1, '5': 14, '6': '.OtpMigrationDigitCount', '10': 'digits'},
-    {'1': 'type', '3': 6, '4': 1, '5': 14, '6': '.OtpMigrationType', '10': 'type'},
+    {
+      '1': 'algorithm',
+      '3': 4,
+      '4': 1,
+      '5': 14,
+      '6': '.OtpMigrationAlgorithm',
+      '10': 'algorithm'
+    },
+    {
+      '1': 'digits',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.OtpMigrationDigitCount',
+      '10': 'digits'
+    },
+    {
+      '1': 'type',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.OtpMigrationType',
+      '10': 'type'
+    },
     {'1': 'counter', '3': 7, '4': 1, '5': 3, '10': 'counter'},
   ],
 };
@@ -100,4 +129,3 @@ final $typed_data.Uint8List otpMigrationParametersDescriptor = $convert.base64De
     'GAQgASgOMhYuT3RwTWlncmF0aW9uQWxnb3JpdGhtUglhbGdvcml0aG0SLwoGZGlnaXRzGAUgAS'
     'gOMhcuT3RwTWlncmF0aW9uRGlnaXRDb3VudFIGZGlnaXRzEiUKBHR5cGUYBiABKA4yES5PdHBN'
     'aWdyYXRpb25UeXBlUgR0eXBlEhgKB2NvdW50ZXIYByABKANSB2NvdW50ZXI=');
-

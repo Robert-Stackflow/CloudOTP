@@ -39,38 +39,55 @@ class TokenCategoryPayload extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  TokenCategoryPayload._() : super();
-  factory TokenCategoryPayload.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory TokenCategoryPayload.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TokenCategoryPayload', createEmptyInstance: create)
-    ..pc<TokenCategoryParameters>(1, _omitFieldNames ? '' : 'categoryParameters', $pb.PbFieldType.PM, subBuilder: TokenCategoryParameters.create)
+  TokenCategoryPayload._() : super();
+
+  factory TokenCategoryPayload.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+
+  factory TokenCategoryPayload.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TokenCategoryPayload',
+      createEmptyInstance: create)
+    ..pc<TokenCategoryParameters>(
+        1, _omitFieldNames ? '' : 'categoryParameters', $pb.PbFieldType.PM,
+        subBuilder: TokenCategoryParameters.create)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'version', $pb.PbFieldType.O3)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'batchSize', $pb.PbFieldType.O3)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'batchIndex', $pb.PbFieldType.O3)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'batchId', $pb.PbFieldType.O3)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  TokenCategoryPayload clone() => TokenCategoryPayload()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  TokenCategoryPayload copyWith(void Function(TokenCategoryPayload) updates) => super.copyWith((message) => updates(message as TokenCategoryPayload)) as TokenCategoryPayload;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  TokenCategoryPayload clone() =>
+      TokenCategoryPayload()..mergeFromMessage(this);
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TokenCategoryPayload copyWith(void Function(TokenCategoryPayload) updates) =>
+      super.copyWith((message) => updates(message as TokenCategoryPayload))
+          as TokenCategoryPayload;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TokenCategoryPayload create() => TokenCategoryPayload._();
+
   TokenCategoryPayload createEmptyInstance() => create();
-  static $pb.PbList<TokenCategoryPayload> createRepeated() => $pb.PbList<TokenCategoryPayload>();
+
+  static $pb.PbList<TokenCategoryPayload> createRepeated() =>
+      $pb.PbList<TokenCategoryPayload>();
+
   @$core.pragma('dart2js:noInline')
-  static TokenCategoryPayload getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TokenCategoryPayload>(create);
+  static TokenCategoryPayload getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TokenCategoryPayload>(create);
   static TokenCategoryPayload? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -78,37 +95,57 @@ class TokenCategoryPayload extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $core.int get version => $_getIZ(1);
+
   @$pb.TagNumber(2)
-  set version($core.int v) { $_setSignedInt32(1, v); }
+  set version($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
+
   @$pb.TagNumber(2)
   void clearVersion() => clearField(2);
 
   @$pb.TagNumber(3)
   $core.int get batchSize => $_getIZ(2);
+
   @$pb.TagNumber(3)
-  set batchSize($core.int v) { $_setSignedInt32(2, v); }
+  set batchSize($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasBatchSize() => $_has(2);
+
   @$pb.TagNumber(3)
   void clearBatchSize() => clearField(3);
 
   @$pb.TagNumber(4)
   $core.int get batchIndex => $_getIZ(3);
+
   @$pb.TagNumber(4)
-  set batchIndex($core.int v) { $_setSignedInt32(3, v); }
+  set batchIndex($core.int v) {
+    $_setSignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasBatchIndex() => $_has(3);
+
   @$pb.TagNumber(4)
   void clearBatchIndex() => clearField(4);
 
   @$pb.TagNumber(5)
   $core.int get batchId => $_getIZ(4);
+
   @$pb.TagNumber(5)
-  set batchId($core.int v) { $_setSignedInt32(4, v); }
+  set batchId($core.int v) {
+    $_setSignedInt32(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasBatchId() => $_has(4);
+
   @$pb.TagNumber(5)
   void clearBatchId() => clearField(5);
 }
@@ -147,106 +184,158 @@ class TokenCategoryParameters extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  TokenCategoryParameters._() : super();
-  factory TokenCategoryParameters.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory TokenCategoryParameters.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TokenCategoryParameters', createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'secret', $pb.PbFieldType.OY)
+  TokenCategoryParameters._() : super();
+
+  factory TokenCategoryParameters.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+
+  factory TokenCategoryParameters.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TokenCategoryParameters',
+      createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(
+        1, _omitFieldNames ? '' : 'secret', $pb.PbFieldType.OY)
     ..aOS(2, _omitFieldNames ? '' : 'title')
     ..aOS(3, _omitFieldNames ? '' : 'description')
     ..aOS(4, _omitFieldNames ? '' : 'tokenIds', protoName: 'tokenIds')
     ..aOS(5, _omitFieldNames ? '' : 'remark')
     ..aOS(6, _omitFieldNames ? '' : 'uid')
     ..aOS(7, _omitFieldNames ? '' : 'bindings')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  TokenCategoryParameters clone() => TokenCategoryParameters()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  TokenCategoryParameters copyWith(void Function(TokenCategoryParameters) updates) => super.copyWith((message) => updates(message as TokenCategoryParameters)) as TokenCategoryParameters;
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  TokenCategoryParameters clone() =>
+      TokenCategoryParameters()..mergeFromMessage(this);
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TokenCategoryParameters copyWith(
+          void Function(TokenCategoryParameters) updates) =>
+      super.copyWith((message) => updates(message as TokenCategoryParameters))
+          as TokenCategoryParameters;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TokenCategoryParameters create() => TokenCategoryParameters._();
+
   TokenCategoryParameters createEmptyInstance() => create();
-  static $pb.PbList<TokenCategoryParameters> createRepeated() => $pb.PbList<TokenCategoryParameters>();
+
+  static $pb.PbList<TokenCategoryParameters> createRepeated() =>
+      $pb.PbList<TokenCategoryParameters>();
+
   @$core.pragma('dart2js:noInline')
-  static TokenCategoryParameters getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TokenCategoryParameters>(create);
+  static TokenCategoryParameters getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TokenCategoryParameters>(create);
   static TokenCategoryParameters? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get secret => $_getN(0);
+
   @$pb.TagNumber(1)
-  set secret($core.List<$core.int> v) { $_setBytes(0, v); }
+  set secret($core.List<$core.int> v) {
+    $_setBytes(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasSecret() => $_has(0);
+
   @$pb.TagNumber(1)
   void clearSecret() => clearField(1);
 
   @$pb.TagNumber(2)
   $core.String get title => $_getSZ(1);
+
   @$pb.TagNumber(2)
-  set title($core.String v) { $_setString(1, v); }
+  set title($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTitle() => $_has(1);
+
   @$pb.TagNumber(2)
   void clearTitle() => clearField(2);
 
   @$pb.TagNumber(3)
   $core.String get description => $_getSZ(2);
+
   @$pb.TagNumber(3)
-  set description($core.String v) { $_setString(2, v); }
+  set description($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasDescription() => $_has(2);
+
   @$pb.TagNumber(3)
   void clearDescription() => clearField(3);
 
   @$pb.TagNumber(4)
   $core.String get tokenIds => $_getSZ(3);
+
   @$pb.TagNumber(4)
-  set tokenIds($core.String v) { $_setString(3, v); }
+  set tokenIds($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasTokenIds() => $_has(3);
+
   @$pb.TagNumber(4)
   void clearTokenIds() => clearField(4);
 
   @$pb.TagNumber(5)
   $core.String get remark => $_getSZ(4);
+
   @$pb.TagNumber(5)
-  set remark($core.String v) { $_setString(4, v); }
+  set remark($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasRemark() => $_has(4);
+
   @$pb.TagNumber(5)
   void clearRemark() => clearField(5);
 
   @$pb.TagNumber(6)
   $core.String get uid => $_getSZ(5);
+
   @$pb.TagNumber(6)
-  set uid($core.String v) { $_setString(5, v); }
+  set uid($core.String v) {
+    $_setString(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasUid() => $_has(5);
+
   @$pb.TagNumber(6)
   void clearUid() => clearField(6);
 
   @$pb.TagNumber(7)
   $core.String get bindings => $_getSZ(6);
+
   @$pb.TagNumber(7)
-  set bindings($core.String v) { $_setString(6, v); }
+  set bindings($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasBindings() => $_has(6);
+
   @$pb.TagNumber(7)
   void clearBindings() => clearField(7);
 }
 
-
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cloudotp/Utils/ilogger.dart';
 import 'package:hashlib/hashlib.dart';
 
 import '../../Utils/Base32/base32.dart';
@@ -29,9 +30,9 @@ class OTP {
   /// Throws a FormatException if string is not a base32 secret.
   static int generateTOTPCode(String secret, int time,
       {int length = 6,
-        int interval = 30,
-        Algorithm algorithm = Algorithm.SHA256,
-        bool isGoogle = false}) {
+      int interval = 30,
+      Algorithm algorithm = Algorithm.SHA256,
+      bool isGoogle = false}) {
     lastUsedTime = time;
     time = (((time ~/ 1000).round()) ~/ interval).floor();
     return _generateCode(secret, time, length, getAlgorithm(algorithm),
@@ -49,9 +50,9 @@ class OTP {
   /// Throws a FormatException if string is not a base32 secret.
   static String generateTOTPCodeString(String secret, int time,
       {int length = 6,
-        int interval = 30,
-        Algorithm algorithm = Algorithm.SHA256,
-        bool isGoogle = false}) {
+      int interval = 30,
+      Algorithm algorithm = Algorithm.SHA256,
+      bool isGoogle = false}) {
     final code =
         '${generateTOTPCode(secret, time, length: length, interval: interval, algorithm: algorithm, isGoogle: isGoogle)}';
     return code.padLeft(length, '0');
@@ -65,8 +66,8 @@ class OTP {
   /// Throws a FormatException if string is not a base32 secret.
   static int generateHOTPCode(String secret, int counter,
       {int length = 6,
-        Algorithm algorithm = Algorithm.SHA1,
-        bool isGoogle = false}) {
+      Algorithm algorithm = Algorithm.SHA1,
+      bool isGoogle = false}) {
     return _generateCode(secret, counter, length, getAlgorithm(algorithm),
         _getAlgorithmByteLength(algorithm),
         isHOTP: true, isGoogle: isGoogle);
@@ -80,8 +81,8 @@ class OTP {
   /// Throws a FormatException if string is not a base32 secret.
   static String generateHOTPCodeString(String secret, int counter,
       {int length = 6,
-        Algorithm algorithm = Algorithm.SHA1,
-        bool isGoogle = false}) {
+      Algorithm algorithm = Algorithm.SHA1,
+      bool isGoogle = false}) {
     final code =
         '${generateHOTPCode(secret, counter, length: length, algorithm: algorithm, isGoogle: isGoogle)}';
     return code.padLeft(length, '0');
@@ -112,9 +113,9 @@ class OTP {
     final offset = digest[digest.length - 1] & 0x0f;
 
     final binary = ((digest[offset] & 0x7f) << 24) |
-    ((digest[offset + 1] & 0xff) << 16) |
-    ((digest[offset + 2] & 0xff) << 8) |
-    (digest[offset + 3] & 0xff);
+        ((digest[offset + 1] & 0xff) << 16) |
+        ((digest[offset + 2] & 0xff) << 8) |
+        (digest[offset + 3] & 0xff);
 
     return binary % pow(10, length) as int;
   }
@@ -174,9 +175,9 @@ class OTP {
   }
 
   static String _hexEncode(final Uint8List input) => [
-    for (int i = 0; i < input.length; i++)
-      input[i].toRadixString(16).padLeft(2, '0')
-  ].join();
+        for (int i = 0; i < input.length; i++)
+          input[i].toRadixString(16).padLeft(2, '0')
+      ].join();
 
   static Uint8List _int2bytes(int long) {
     // we want to represent the input as a 8-bytes array
@@ -207,7 +208,7 @@ class OTP {
 
   static void _showHOTPWarning(BlockHashBase mac) {
     if (mac == sha256 || mac == sha512) {
-      print(
+      ILogger.warn(
           'Using non-SHA1 hashing with HOTP is not part of the RFC for HOTP and may cause incompatibilities between different library implementatiions. This library attempts to match behavior with other libraries as best it can.');
     }
   }

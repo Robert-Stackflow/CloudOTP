@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../Screens/Setting/setting_screen.dart';
 import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/category_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/shortcuts_util.dart';
@@ -175,7 +175,7 @@ class LoggingShortcutManager extends ShortcutManager {
     LogicalKeySet? keysPressed,
   }) {
     final KeyEventResult result = super.handleKeypress(context, event);
-    // IPrint.debug('handleKeyPress($event, $keysPressed) result: $result');
+    ILogger.info('handleKeyPress($event, $keysPressed) result: $result');
     return result;
   }
 }

@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../Database/database_manager.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../Widgets/Window/window_caption.dart';
@@ -61,7 +62,8 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
             if (DatabaseManager.initialized) {
               return null;
             }
-          } catch (e) {
+          } catch (e, t) {
+            ILogger.error("Failed to decrypt database with wrong password", e, t);
             return S.current.encryptDatabasePasswordWrong;
           }
         }

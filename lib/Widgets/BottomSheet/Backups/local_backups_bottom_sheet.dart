@@ -1,3 +1,4 @@
+import '../../../Utils/ilogger.dart';
 import 'dart:io';
 
 import 'package:cloudotp/Utils/cache_util.dart';
@@ -50,7 +51,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
         color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.vertical(
             top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isLandscape()
+            bottom: ResponsiveUtil.isWideLandscape()
                 ? const Radius.circular(20)
                 : Radius.zero),
       ),
@@ -66,7 +67,9 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
         ],
       ),
     );
-    return ResponsiveUtil.isLandscape() ? Center(child: mainBody) : mainBody;
+    return ResponsiveUtil.isWideLandscape()
+        ? Center(child: mainBody)
+        : mainBody;
   }
 
   _buildHeader() {
@@ -84,6 +87,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
   _buildButtons() {
     return ListView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       itemBuilder: (context, index) => _buildItem(files[index]),
       itemCount: files.length,
     );
@@ -147,7 +151,8 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                       files.remove(file);
                     });
                     IToast.showTop(S.current.deleteSuccess);
-                  } catch (_) {
+                  } catch (e, t) {
+                    ILogger.error("Failed to delete backup file from local", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

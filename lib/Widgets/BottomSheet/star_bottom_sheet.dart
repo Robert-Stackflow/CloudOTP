@@ -34,7 +34,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
             color: Theme.of(context).canvasColor,
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isLandscape()
+                bottom: ResponsiveUtil.isWideLandscape()
                     ? const Radius.circular(20)
                     : Radius.zero),
           ),

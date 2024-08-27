@@ -1,8 +1,9 @@
 import 'package:cloudotp/Database/token_dao.dart';
-import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+import '../Utils/utils.dart';
 import 'database_manager.dart';
 
 class BindingDao {
@@ -147,7 +148,9 @@ class BindingDao {
       where: "category_uid = ?",
       whereArgs: [categoryUid],
     );
-    return List.generate(maps.length, (i) => maps[i]["token_uid"]);
+    List<String> uids = List.generate(maps.length, (i) => maps[i]["token_uid"]);
+    uids.removeWhere((e) => !Utils.isUid(e));
+    return uids;
   }
 
   static Future<List<String>> getCategoryUids(String tokenUid) async {
@@ -158,7 +161,10 @@ class BindingDao {
       where: "token_uid = ?",
       whereArgs: [tokenUid],
     );
-    return List.generate(maps.length, (i) => maps[i]["category_uid"]);
+    List<String> uids =
+        List.generate(maps.length, (i) => maps[i]["category_uid"]);
+    uids.removeWhere((e) => !Utils.isUid(e));
+    return uids;
   }
 
   static Future<List<TokenCategoryBinding>> listBindings() async {

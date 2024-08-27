@@ -10,7 +10,8 @@ import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import '../Screens/Setting/setting_screen.dart';
+import '../Database/database_manager.dart';
+import './ilogger.dart';
 import 'constant.dart';
 
 class HiveUtil {
@@ -201,7 +202,8 @@ class HiveUtil {
     try {
       List<String> list = size.split(",");
       return Size(double.parse(list[0]), double.parse(list[1]));
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to get window size", e, t);
       return defaultWindowSize;
     }
   }
@@ -219,7 +221,8 @@ class HiveUtil {
     try {
       List<String> list = position.split(",");
       return Offset(double.parse(list[0]), double.parse(list[1]));
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to get window position", e, t);
       return Offset.zero;
     }
   }

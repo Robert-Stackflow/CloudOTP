@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:flutter/material.dart';
 
 import '../../Utils/lottie_util.dart';
 import '../../generated/l10n.dart';
 
-ProgressDialog showProgressDialog(
-   {
+ProgressDialog showProgressDialog({
   String? msg,
   bool barrierDismissible = false,
   bool showProgress = true,

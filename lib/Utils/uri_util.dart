@@ -5,12 +5,12 @@ import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../generated/l10n.dart';
+import './ilogger.dart';
 
 class UriUtil {
   static String? encodeQueryParameters(Map<String, String> params) {
@@ -36,7 +36,8 @@ class UriUtil {
       )) {
         Clipboard.setData(ClipboardData(text: email));
       }
-    } on PlatformException catch (_) {
+    } catch (e, t) {
+      ILogger.error("Failed to launch email app", e, t);
       IToast.showTop(S.current.noEmailClient);
     }
     return true;
@@ -92,7 +93,8 @@ class UriUtil {
         }
       }
       return false;
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to process url", e, t);
       if (!quiet) await CustomLoadingDialog.dismissLoading();
       if (!quiet) Share.share(url);
       return false;

@@ -65,33 +65,30 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
       child: Scaffold(
         appBar: ResponsiveUtil.isLandscape()
             ? ItemBuilder.buildSimpleAppBar(
-          title: S.current.generalSetting,
-          context: context,
-          transparent: true,
-        )
+                title: S.current.generalSetting,
+                context: context,
+                transparent: true,
+              )
             : ItemBuilder.buildAppBar(
-          context: context,
-          backgroundColor: Theme
-              .of(context)
-              .scaffoldBackgroundColor,
-          leading: Icons.arrow_back_rounded,
-          onLeadingTap: () {
-            Navigator.pop(context);
-          },
-          title: Text(
-            S.current.generalSetting,
-            style: Theme
-                .of(context)
-                .textTheme
-                .titleMedium
-                ?.apply(fontWeightDelta: 2),
-          ),
-          center: true,
-          actions: [
-            ItemBuilder.buildBlankIconButton(context),
-            const SizedBox(width: 5),
-          ],
-        ),
+                context: context,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                leading: Icons.arrow_back_rounded,
+                onLeadingTap: () {
+                  Navigator.pop(context);
+                },
+                title: Text(
+                  S.current.generalSetting,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontWeightDelta: 2),
+                ),
+                center: true,
+                actions: [
+                  ItemBuilder.buildBlankIconButton(context),
+                  const SizedBox(width: 5),
+                ],
+              ),
         body: EasyRefresh(
           child: ListView(
             physics: const BouncingScrollPhysics(),
@@ -114,31 +111,29 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           context: context, title: S.current.generalSetting),
       Selector<AppProvider, Locale?>(
         selector: (context, appProvider) => appProvider.locale,
-        builder: (context, locale, child) =>
-            ItemBuilder.buildEntryItem(
-              context: context,
-              title: S.current.language,
-              tip: LocaleUtil.getLabel(locale)!,
-              onTap: () {
-                filterLocale();
-                BottomSheetBuilder.showListBottomSheet(
-                  context,
-                      (context) =>
-                      TileList.fromOptions(
-                        _supportedLocaleTuples,
-                            (item2) {
-                          appProvider.locale = item2;
-                          Utils.initTray();
-                          Navigator.pop(context);
-                        },
-                        selected: locale,
-                        context: context,
-                        title: S.current.chooseLanguage,
-                        onCloseTap: () => Navigator.pop(context),
-                      ),
-                );
-              },
-            ),
+        builder: (context, locale, child) => ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.language,
+          tip: LocaleUtil.getLabel(locale)!,
+          onTap: () {
+            filterLocale();
+            BottomSheetBuilder.showListBottomSheet(
+              context,
+              (context) => TileList.fromOptions(
+                _supportedLocaleTuples,
+                (item2) {
+                  appProvider.locale = item2;
+                  Utils.initTray();
+                  Navigator.pop(context);
+                },
+                selected: locale,
+                context: context,
+                title: S.current.chooseLanguage,
+                onCloseTap: () => Navigator.pop(context),
+              ),
+            );
+          },
+        ),
       ),
       ItemBuilder.buildRadioItem(
         value: autoCheckUpdate,
@@ -159,9 +154,9 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
             ? S.current.newVersion(latestVersion)
             : S.current.alreadyLatestVersion,
         descriptionColor:
-        Utils.compareVersion(latestVersion, currentVersion) > 0
-            ? Colors.redAccent
-            : null,
+            Utils.compareVersion(latestVersion, currentVersion) > 0
+                ? Colors.redAccent
+                : null,
         tip: currentVersion,
         onTap: () {
           fetchReleases(true);
@@ -222,33 +217,30 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
             ];
             BottomSheetBuilder.showListBottomSheet(
               context,
-                  (sheetContext) =>
-                  TileList.fromOptions(
-                    options,
-                        (idx) {
-                      Navigator.pop(sheetContext);
-                      if (idx == 0) {
-                        setState(() {
-                          enableMinimizeToTray = true;
-                          HiveUtil.put(
-                              HiveUtil.enableCloseToTrayKey,
-                              enableMinimizeToTray);
-                        });
-                      } else if (idx == 1) {
-                        setState(() {
-                          enableMinimizeToTray = false;
-                          HiveUtil.put(
-                              HiveUtil.enableCloseToTrayKey,
-                              enableMinimizeToTray);
-                        });
-                      }
-                    },
-                    selected: enableMinimizeToTray ? 0 : 1,
-                    title: S.current.chooseCloseWindowOption,
-                    context: context,
-                    onCloseTap: () => Navigator.pop(sheetContext),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                  ),
+              (sheetContext) => TileList.fromOptions(
+                options,
+                (idx) {
+                  Navigator.pop(sheetContext);
+                  if (idx == 0) {
+                    setState(() {
+                      enableMinimizeToTray = true;
+                      HiveUtil.put(
+                          HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
+                    });
+                  } else if (idx == 1) {
+                    setState(() {
+                      enableMinimizeToTray = false;
+                      HiveUtil.put(
+                          HiveUtil.enableCloseToTrayKey, enableMinimizeToTray);
+                    });
+                  }
+                },
+                selected: enableMinimizeToTray ? 0 : 1,
+                title: S.current.chooseCloseWindowOption,
+                context: context,
+                onCloseTap: () => Navigator.pop(sheetContext),
+                crossAxisAlignment: CrossAxisAlignment.start,
+              ),
             );
           },
         ),
