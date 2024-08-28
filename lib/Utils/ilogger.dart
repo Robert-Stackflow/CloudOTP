@@ -1,7 +1,8 @@
 import 'dart:io';
 
+import 'package:archive/archive_io.dart';
 import 'package:cloudotp/Utils/file_util.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 
@@ -30,8 +31,8 @@ class ILogger {
           Level.debug: true,
           Level.info: true,
           Level.warning: true,
-          Level.error: false,
-          Level.fatal: false,
+          Level.error: true,
+          Level.fatal: true,
         },
         dateTimeFormat: (time) =>
             DateFormat('yyyy-MM-dd HH:mm:ss:SSS').format(time),
@@ -122,54 +123,101 @@ class ILogger {
 
 class FileOutput extends LogOutput {
   File? file;
-  int maxLogSize = 10 * 1024 * 1024; // 10MB
-  int maxLogFileCount = 10; // 10 files
-  RegExp logFilNameRegExp =
-      RegExp(r'CloudOTP_(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.log');
+  static int maxLogSize = 10 * 1024 * 1024; // 10MB
+  static int maxLogFileCount = 10; // 10 files
+  static RegExp logFilNameRegExp =
+  RegExp(r'CloudOTP_(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.log');
+  static RegExp errorLogFilNameRegExp = RegExp(r'error\.log');
 
   @override
   Future<void> init() async {
     super.init();
-    await checkLogs();
+    file = await getLogFile();
   }
 
-  Future<void> checkLogs() async {
+  static Future<bool> haveLogs() async {
+    List<File> logs = await getLogs();
+    return logs.isNotEmpty;
+  }
+
+  static Future<List<File>> getLogs() async {
     Directory logDir = Directory(await FileUtil.getLogDir());
     if (!logDir.existsSync()) {
-      logDir.createSync(recursive: true);
+      return [];
     }
     List<FileSystemEntity> files = logDir.listSync();
     files = files.whereType<File>().toList();
     files = files
         .where((element) =>
-            logFilNameRegExp.hasMatch(element.path) &&
-            element.path.endsWith('.log'))
+    (logFilNameRegExp.hasMatch(element.path) ||
+        errorLogFilNameRegExp.hasMatch(element.path)) &&
+        element.path.endsWith('.log'))
         .toList();
-    if (files.length > maxLogFileCount) {
-      files.sort((a, b) => a.path.compareTo(b.path));
-      for (int i = 0; i < files.length - maxLogFileCount; i++) {
-        files[i].deleteSync();
+    files.sort((a, b) => a.path.compareTo(b.path));
+    return files as List<File>;
+  }
+
+  static Future<Uint8List?> getArchiveData() async {
+    if (!(await haveLogs())) return null;
+    List<File> logs = await getLogs();
+    List<int>? ints;
+    ints = await compute((_) {
+      Archive archive = Archive();
+      for (File file in logs) {
+        if (file.existsSync()) {
+          archive.addFile(ArchiveFile(
+              FileUtil.extractFileNameFromUrl(file.path),
+              file.lengthSync(),
+              file.readAsBytesSync()));
+        }
+      }
+      ZipEncoder encoder = ZipEncoder();
+      return encoder.encode(archive);
+    }, null);
+    return ints != null ? Uint8List.fromList(ints) : null;
+  }
+
+  static Future<void> clearLogs() async {
+    List<File> logs = await getLogs();
+    for (File file in logs) {
+      if (file.existsSync()) file.deleteSync();
+    }
+  }
+
+  static Future<double> getLogsSize() async {
+    List<File> logs = await getLogs();
+    double size = 0;
+    for (File file in logs) {
+      if (file.existsSync()) size += file.lengthSync();
+    }
+    return size;
+  }
+
+  static Future<File> getLogFile() async {
+    Directory logDir = Directory(await FileUtil.getLogDir());
+    List<File> logs = await getLogs();
+    if (logs.length > maxLogFileCount) {
+      for (int i = 0; i < logs.length - maxLogFileCount; i++) {
+        logs[i].deleteSync();
       }
     }
-    for (FileSystemEntity entity in files) {
-      File file = entity as File;
+    for (File file in logs) {
       if (file.lengthSync() < maxLogSize) {
-        this.file = file;
-        return;
+        return file;
       }
     }
     String formattedDate =
-        DateFormat('yyyy-MM-dd_HH-mm-ss').format(DateTime.now());
-    file = File('${logDir.path}/CloudOTP_$formattedDate.log');
+    DateFormat('yyyy-MM-dd_HH-mm-ss').format(DateTime.now());
+    return File('${logDir.path}/CloudOTP_$formattedDate.log');
   }
 
   @override
   Future<void> output(OutputEvent event) async {
-    await checkLogs();
+    file = await getLogFile();
     for (var line in event.lines) {
       file!.writeAsStringSync('$line\n', mode: FileMode.append);
     }
-    checkLogs();
+    file = await getLogFile();
   }
 }
 

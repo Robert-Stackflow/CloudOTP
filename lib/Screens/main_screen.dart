@@ -288,7 +288,10 @@ class MainScreenState extends State<MainScreen>
         Expanded(
           child: Row(
             children: [
-              _sideBar(leftPadding: 4, rightPadding: 4, topPadding: 8),
+              _sideBar(
+                  leftPadding: ResponsiveUtil.isDesktop() ? 8 : 4,
+                  rightPadding: 4,
+                  topPadding: 8),
               Expanded(
                 child: _desktopMainContent(rightMargin: 5),
               ),

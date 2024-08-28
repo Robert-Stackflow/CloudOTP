@@ -1,4 +1,6 @@
 import 'package:cloudotp/Utils/Tuple/tuple.dart';
+import 'package:cloudotp/Utils/file_util.dart';
+import 'package:cloudotp/Utils/ilogger.dart';
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +18,7 @@ import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
@@ -42,6 +45,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   ReleaseItem? latestReleaseItem;
   bool autoCheckUpdate = HiveUtil.getBool(HiveUtil.autoCheckUpdateKey);
   String _cacheSize = "";
+  String _logSize = "";
   bool inAppBrowser = HiveUtil.getBool(HiveUtil.inappWebviewKey);
 
   @override
@@ -49,6 +53,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
     super.initState();
     if (ResponsiveUtil.isMobile()) getCacheSize();
     fetchReleases(false);
+    getLogSize();
   }
 
   refreshLauchAtStartup() {
@@ -97,6 +102,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
               ..._generalSettings(),
               if (ResponsiveUtil.isDesktop()) ..._desktopSettings(),
               if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
+              ..._logSettings(),
               const SizedBox(height: 30),
             ],
           ),
@@ -160,6 +166,47 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
         tip: currentVersion,
         onTap: () {
           fetchReleases(true);
+        },
+      ),
+    ];
+  }
+
+  _logSettings() {
+    return [
+      const SizedBox(height: 10),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        title: S.current.exportLog,
+        description: S.current.exportLogHint,
+        topRadius: true,
+        onTap: () {
+          FileUtil.exportLogs();
+        },
+      ),
+      ItemBuilder.buildEntryItem(
+        context: context,
+        title: S.current.clearLog,
+        bottomRadius: true,
+        tip: _logSize,
+        onTap: () async {
+          DialogBuilder.showConfirmDialog(
+            context,
+            title: S.current.clearLogTitle,
+            message: S.current.clearLogHint,
+            onTapConfirm: () async {
+              CustomLoadingDialog.showLoading(title: S.current.clearingLog);
+              try {
+                await FileOutput.clearLogs();
+                await getLogSize();
+                IToast.showTop(S.current.clearLogSuccess);
+              } catch (e, t) {
+                ILogger.error("Failed to clear logs", e, t);
+                IToast.showTop(S.current.clearLogFailed);
+              } finally {
+                CustomLoadingDialog.dismissLoading();
+              }
+            },
+          );
         },
       ),
     ];
@@ -307,6 +354,13 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
       setState(() {
         _cacheSize = value;
       });
+    });
+  }
+
+  Future<void> getLogSize() async {
+    double size = await FileOutput.getLogsSize();
+    setState(() {
+      _logSize = CacheUtil.renderSize(size);
     });
   }
 

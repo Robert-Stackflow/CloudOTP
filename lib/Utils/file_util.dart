@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/github_response.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -17,9 +18,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../Utils/ilogger.dart';
+import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/Item/item_builder.dart';
 import '../generated/l10n.dart';
-import 'iprint.dart';
 import 'itoast.dart';
 import 'notification_util.dart';
 
@@ -105,6 +106,76 @@ class FileUtil {
       IToast.showTop(S.current.pleaseGrantFilePermission);
     }
     return result;
+  }
+
+  static exportLogs({
+    bool showLoading = true,
+  }) async {
+    if (!(await FileOutput.haveLogs())) {
+      IToast.showTop(S.current.noLog);
+      return;
+    }
+    if (ResponsiveUtil.isDesktop()) {
+      String? filePath = await FileUtil.saveFile(
+        dialogTitle: S.current.exportLog,
+        fileName: "CloudOTP-Logs-${Utils.getFormattedDate(DateTime.now())}.zip",
+        type: FileType.custom,
+        allowedExtensions: ['zip'],
+        lockParentWindow: true,
+      );
+      if (filePath != null) {
+        if (showLoading) {
+          CustomLoadingDialog.showLoading(title: S.current.exporting);
+        }
+        try {
+          Uint8List? data = await FileOutput.getArchiveData();
+          if (data != null) {
+            File file = File(filePath);
+            await file.writeAsBytes(data);
+            IToast.showTop(S.current.exportSuccess);
+          } else {
+            IToast.showTop(S.current.exportFailed);
+          }
+        } catch (e, t) {
+          ILogger.error("Failed to zip logs", e, t);
+          IToast.showTop(S.current.exportFailed);
+        } finally {
+          if (showLoading) {
+            CustomLoadingDialog.dismissLoading();
+          }
+        }
+      }
+    } else {
+      if (showLoading) {
+        CustomLoadingDialog.showLoading(title: S.current.exporting);
+      }
+      try {
+        Uint8List? data = await FileOutput.getArchiveData();
+        if (data == null) {
+          IToast.showTop(S.current.exportFailed);
+          return;
+        }
+        String? filePath = await FileUtil.saveFile(
+          dialogTitle: S.current.exportLog,
+          fileName:
+              "CloudOTP-Logs-${Utils.getFormattedDate(DateTime.now())}.zip",
+          type: FileType.custom,
+          allowedExtensions: ['zip'],
+          lockParentWindow: true,
+          bytes: data,
+        );
+        if (filePath != null) {
+          IToast.showTop(S.current.exportSuccess);
+        }
+      } catch (e, t) {
+        ILogger.error("Failed to zip logs", e, t);
+        IToast.showTop(S.current.exportFailed);
+      } finally {
+        if (showLoading) {
+          CustomLoadingDialog.dismissLoading();
+        }
+      }
+    }
   }
 
   static Future<String> getApplicationDir() async {

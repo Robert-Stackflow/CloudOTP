@@ -38,6 +38,7 @@ dependencies:
   path_provider: ^2.0.12
   file_picker: ^8.0.6 # 文件选择
   hive: ^4.0.0-dev.2 # 轻量存储
+  flutter_archive: ^6.0.3 # 压缩
   isar_flutter_libs: ^4.0.0-dev.13
   sqflite_sqlcipher: ^3.1.0+1 # SQLite加密
   # 网络
