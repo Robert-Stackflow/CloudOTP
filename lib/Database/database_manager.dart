@@ -24,9 +24,16 @@ enum EncryptDatabaseStatus { defaultPassword, customPassword }
 
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
+  static const _unencrypedFileHeader = "SQLite format 3";
   static const _dbVersion = 6;
   static Database? _database;
-  static final dbFactory = createDatabaseFactoryFfi(ffiInit: ffiInit);
+  static final dbFactory = createDatabaseFactoryFfi();
+  static DynamicLibrary? lib = loadSqlcipher();
+  static final cipherDbFactory = createDatabaseFactoryFfi(ffiInit: () {
+    if (lib != null) open.overrideForAll(() => lib!);
+  });
+  static DatabaseFactory _currentDbFactory = cipherDbFactory;
+  static bool _isSqlcipherLoaded = false;
 
   static bool get initialized => _database != null;
 
@@ -39,20 +46,39 @@ class DatabaseManager {
 
   static Future<void> initDataBase(String password) async {
     if (_database == null) {
+      _currentDbFactory = cipherDbFactory;
       String path = join(await FileUtil.getDatabaseDir(), _dbName);
-      if (!await dbFactory.databaseExists(path)) {
+      File file = File(path);
+      bool isEncrypted = false;
+      if (file.existsSync()) {
+        final stream = file.openRead(0, _unencrypedFileHeader.length);
+        String content = String.fromCharCodes(await stream.fold<List<int>>(
+            [], (previous, element) => previous..addAll(element)));
+        if (content == _unencrypedFileHeader) {
+          isEncrypted = false;
+          _currentDbFactory = dbFactory;
+          ILogger.info(
+              "Database is an unencrypted SQLite database. File header is $content");
+        } else {
+          isEncrypted = true;
+          _currentDbFactory = cipherDbFactory;
+          ILogger.info("Database is an encrypted SQLite database.");
+        }
+      } else {
+        isEncrypted = true;
+        _currentDbFactory = cipherDbFactory;
         password = await HiveUtil.regeneratePassword();
         ILogger.info("Database not exist and new password is $password");
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }
-      _database = await dbFactory.openDatabase(
+      _database = await _currentDbFactory.openDatabase(
         path,
         options: OpenDatabaseOptions(
           version: _dbVersion,
           singleInstance: true,
           onConfigure: (db) async {
-            await db.rawQuery("PRAGMA KEY='$password'");
+            _onConfigure(db, password, isEncrypted);
           },
           onUpgrade: _onUpgrade,
           onCreate: _onCreate,
@@ -73,8 +99,21 @@ class DatabaseManager {
     return false;
   }
 
-  static void ffiInit() {
-    open.overrideForAll(sqlcipherOpen);
+  static Future<void> _onConfigure(
+      Database db, String password, bool isEncrypted) async {
+    if (isEncrypted) {
+      List<Map<String, Object?>> res =
+          await db.rawQuery("PRAGMA KEY='$password'");
+      if (res.isNotEmpty) {
+        ILogger.info(
+            "Configure database with cipher successfully. Result is $res");
+      } else {
+        ILogger.error(
+          "Failed to configure database with cipher, perhaps the sqlcipher dynamic library was not loaded.",
+          res,
+        );
+      }
+    }
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -183,38 +222,39 @@ class DatabaseManager {
     return result.any((element) => element['name'] == columnName);
   }
 
-  static DynamicLibrary sqlcipherOpen() {
-    if (Platform.isLinux || Platform.isAndroid) {
-      try {
-        DynamicLibrary lib = DynamicLibrary.open('libsqlcipher.so');
-        return lib;
-      } catch (e, t) {
-        ILogger.error(
-            "Failed to load libsqlcipher.so in ${Platform.operatingSystem}",
-            e,
-            t);
-        if (Platform.isAndroid) {
-          final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
+  static DynamicLibrary? loadSqlcipher() {
+    try {
+      DynamicLibrary? lib;
+      if (Platform.isLinux || Platform.isAndroid) {
+        try {
+          lib = DynamicLibrary.open('libsqlcipher.so');
+        } catch (e) {
+          if (Platform.isAndroid) {
+            final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
 
-          final endOfAppId = max(appIdAsBytes.indexOf(0), 0);
-          final appId =
-              String.fromCharCodes(appIdAsBytes.sublist(0, endOfAppId));
-          return DynamicLibrary.open('/data/data/$appId/lib/libsqlcipher.so');
+            final endOfAppId = max(appIdAsBytes.indexOf(0), 0);
+            final appId =
+                String.fromCharCodes(appIdAsBytes.sublist(0, endOfAppId));
+            lib = DynamicLibrary.open('/data/data/$appId/lib/libsqlcipher.so');
+          } else {
+            rethrow;
+          }
         }
-
-        rethrow;
       }
+      if (Platform.isIOS) {
+        lib = DynamicLibrary.process();
+      }
+      if (Platform.isMacOS) {
+        lib = DynamicLibrary.open('/usr/lib/libsqlite3.dylib');
+      }
+      if (Platform.isWindows) {
+        lib = DynamicLibrary.open('sqlcipher.dll');
+      }
+      _isSqlcipherLoaded = true;
+      return lib;
+    } catch (e) {
+      _isSqlcipherLoaded = false;
+      return null;
     }
-    if (Platform.isIOS) {
-      return DynamicLibrary.process();
-    }
-    if (Platform.isMacOS) {
-      return DynamicLibrary.open('/usr/lib/libsqlite3.dylib');
-    }
-    if (Platform.isWindows) {
-      return DynamicLibrary.open('sqlite3.dll');
-    }
-
-    throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
   }
 }

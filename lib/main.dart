@@ -85,9 +85,12 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   try {
     await DatabaseManager.initDataBase(
         HiveUtil.getString(HiveUtil.defaultDatabasePasswordKey) ?? "");
-  } catch (e, t) {
-    ILogger.error("Failed to init databse by default password", e, t);
-    HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.customPassword);
+  } catch (e) {
+    if (DatabaseManager.lib != null) {
+      HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.customPassword);
+    } else {
+      HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.defaultPassword);
+    }
   }
   NotificationUtil.init();
   await TokenImageUtil.loadBrandLogos();

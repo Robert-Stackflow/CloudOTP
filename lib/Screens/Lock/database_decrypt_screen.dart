@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
@@ -7,9 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/database_manager.dart';
+import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/ilogger.dart';
 import '../../Utils/responsive_util.dart';
+import '../../Utils/uri_util.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../Widgets/Window/window_caption.dart';
 import '../../generated/l10n.dart';
@@ -63,7 +67,8 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
               return null;
             }
           } catch (e, t) {
-            ILogger.error("Failed to decrypt database with wrong password", e, t);
+            ILogger.error(
+                "Failed to decrypt database with wrong password", e, t);
             return S.current.encryptDatabasePasswordWrong;
           }
         }
@@ -83,7 +88,9 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           children: [
             if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
             Center(
-              child: _buildBody(),
+              child: DatabaseManager.lib != null
+                  ? _buildBody()
+                  : _buildFailedBody(),
             ),
           ],
         ),
@@ -156,6 +163,34 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           background: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
           onTap: onSubmit,
+        ),
+      ],
+    );
+  }
+
+  _buildFailedBody() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(S.current.loadSqlcipherFailed,
+            style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 30),
+        SizedBox(
+          width: min(MediaQuery.sizeOf(context).width - 40, 500),
+          child: Text(S.current.loadSqlcipherFailedMessage,
+              style: Theme.of(context).textTheme.titleMedium),
+        ),
+        const SizedBox(height: 30),
+        ItemBuilder.buildRoundButton(
+          context,
+          text: S.current.loadSqlcipherFailedLearnMore,
+          fontSizeDelta: 2,
+          background: Theme.of(context).primaryColor,
+          padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
+          onTap: () {
+            UriUtil.launchUrlUri(context, sqlcipherLearnMore);
+          },
         ),
       ],
     );
