@@ -20,20 +20,14 @@ class ILogger {
       output: ConsoleOutput(),
     ),
     Logger(
+      filter: ProductionFilter(),
       printer: PrettyPrinter(
         methodCount: 0,
         errorMethodCount: null,
         lineLength: 300,
         colors: false,
         printEmojis: false,
-        excludeBox: {
-          Level.trace: true,
-          Level.debug: true,
-          Level.info: true,
-          Level.warning: true,
-          Level.error: true,
-          Level.fatal: true,
-        },
+        noBoxingByDefault: true,
         dateTimeFormat: (time) =>
             DateFormat('yyyy-MM-dd HH:mm:ss:SSS').format(time),
       ),

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/github_response.dart';
@@ -10,6 +9,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
@@ -180,13 +180,24 @@ class FileUtil {
 
   static Future<String> getApplicationDir() async {
     final dir = await getApplicationDocumentsDirectory();
-    final appName = (await PackageInfo.fromPlatform()).appName;
+    var appName = (await PackageInfo.fromPlatform()).appName;
+    if (kDebugMode) {
+      appName += "-Debug";
+    }
     String path = join(dir.path, appName);
     Directory directory = Directory(path);
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
     return path;
+  }
+
+  static Future<String> getFontDir() async {
+    Directory directory = Directory(join(await getApplicationDir(), "Fonts"));
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory.path;
   }
 
   static Future<String> getBackupDir() async {
@@ -207,7 +218,7 @@ class FileUtil {
   }
 
   static Future<String> getLogDir() async {
-    Directory directory = Directory(join(await getApplicationDir(), "Log"));
+    Directory directory = Directory(join(await getApplicationDir(), "Logs"));
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }

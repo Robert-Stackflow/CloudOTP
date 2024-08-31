@@ -168,7 +168,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
                 _currentFont = t;
                 Navigator.pop(sheetContext);
                 setState(() {});
-                FontEnum.loadFont(context, t, autoRestartApp: true);
+                FontEnum.loadFont(context, t, autoRestartApp: false);
               },
               selected: _currentFont,
               context: context,

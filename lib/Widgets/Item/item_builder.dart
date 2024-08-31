@@ -12,12 +12,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:group_button/group_button.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Resources/colors.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/enums.dart';
+import '../../Utils/hive_util.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/uri_util.dart';
@@ -29,6 +31,8 @@ import '../Selectable/my_selection_area.dart';
 import '../Selectable/my_selection_toolbar.dart';
 import '../Selectable/selection_transformer.dart';
 import '../TextDrawable/text_drawable_widget.dart';
+import '../Window/window_button.dart';
+import '../Window/window_caption.dart';
 
 enum TailingType { none, clear, password, icon, text, widget }
 
@@ -62,11 +66,12 @@ class ItemBuilder {
   }) {
     bool showLeading = !ResponsiveUtil.isLandscape();
     return PreferredSize(
-      preferredSize: const Size(0, kToolbarHeight),
+      preferredSize: const Size(0, 56),
       child: Selector<AppProvider, bool>(
         selector: (context, provider) => provider.enableFrostedGlassEffect,
         builder: (context, enableFrostedGlassEffect, child) => MyAppBar(
           key: key,
+          primary: !ResponsiveUtil.isWideLandscape(),
           backgroundColor: transparent
               ? Theme.of(context)
                   .scaffoldBackgroundColor
@@ -132,6 +137,7 @@ class ItemBuilder {
         selector: (context, provider) => provider.enableFrostedGlassEffect,
         builder: (context, enableFrostedGlassEffect, child) => MyAppBar(
           key: key,
+          primary: !ResponsiveUtil.isWideLandscape(),
           backgroundColor: transparent
               ? Colors.transparent
               : backgroundColor
@@ -2213,6 +2219,109 @@ class ItemBuilder {
     return MouseRegion(
       cursor: clickable ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: child,
+    );
+  }
+
+  static buildWindowTitle(
+    BuildContext context, {
+    Color? backgroundColor,
+    List<Widget> leftWidgets = const [],
+    List<Widget> rightButtons = const [],
+    required bool isStayOnTop,
+    required bool isMaximized,
+    required Function() onStayOnTopTap,
+    bool showAppName = false,
+    bool forceClose = false,
+  }) {
+    return Container(
+      color: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
+      child: WindowTitleBar(
+        useMoveHandle: ResponsiveUtil.isDesktop(),
+        titleBarHeightDelta: 26,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            ...leftWidgets,
+            if (showAppName) ...[
+              const SizedBox(width: 4),
+              // IgnorePointer(
+              //   child: ClipRRect(
+              //     borderRadius: BorderRadius.circular(10),
+              //     clipBehavior: Clip.antiAlias,
+              //     child: Container(
+              //       width: 24,
+              //       height: 24,
+              //       decoration: const BoxDecoration(
+              //         image: DecorationImage(
+              //           image: AssetImage('assets/logo-transparent.png'),
+              //           fit: BoxFit.contain,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              const SizedBox(width: 8),
+              Text(
+                S.current.appName,
+                style: Theme.of(context).textTheme.titleSmall?.apply(
+                      fontSizeDelta: 4,
+                      fontWeightDelta: 2,
+                    ),
+              ),
+            ],
+            const Spacer(),
+            Row(
+              children: [
+                ...rightButtons,
+                StayOnTopWindowButton(
+                  context: context,
+                  rotateAngle: isStayOnTop ? 0 : -pi / 4,
+                  colors: isStayOnTop
+                      ? MyColors.getStayOnTopButtonColors(context)
+                      : MyColors.getNormalButtonColors(context),
+                  borderRadius: BorderRadius.circular(8),
+                  onPressed: onStayOnTopTap,
+                ),
+                const SizedBox(width: 3),
+                MinimizeWindowButton(
+                  colors: MyColors.getNormalButtonColors(context),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                const SizedBox(width: 3),
+                isMaximized
+                    ? RestoreWindowButton(
+                        colors: MyColors.getNormalButtonColors(context),
+                        borderRadius: BorderRadius.circular(8),
+                        onPressed: ResponsiveUtil.maximizeOrRestore,
+                      )
+                    : MaximizeWindowButton(
+                        colors: MyColors.getNormalButtonColors(context),
+                        borderRadius: BorderRadius.circular(8),
+                        onPressed: ResponsiveUtil.maximizeOrRestore,
+                      ),
+                const SizedBox(width: 3),
+                CloseWindowButton(
+                  colors: MyColors.getCloseButtonColors(context),
+                  borderRadius: BorderRadius.circular(8),
+                  onPressed: () {
+                    if (forceClose) {
+                      windowManager.close();
+                    } else {
+                      if (HiveUtil.getBool(HiveUtil.showTrayKey) &&
+                          HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {
+                        windowManager.hide();
+                      } else {
+                        windowManager.close();
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -9,7 +9,7 @@ windows_release_path = (
     "D:\\Repositories\\CloudOTP\\build\\windows\\x64\\runner\\Release"
 )
 downloads_path = "D:\\Ruida\\Downloads"
-dll_path = "D:\\Repositories\\CloudOTP\\tools\\dll\\sqlite3.dll"
+dll_path = "D:\\Repositories\\CloudOTP\\tools\\dll"
 iss_path = "D:\\Repositories\\CloudOTP\\tools\\CloudOTP.iss"
 iscc_path = "D:\\Program Files\\Inno Setup 6\\ISCC.exe"
 
@@ -44,9 +44,14 @@ def rename_apk(version):
 # zip the windows runner
 def zip_windows(version):
     print("start zip windows runner...")
-    print("copy sqlite3.dll to windows runner...")
-    shutil.copy(dll_path, windows_release_path)
-    print("copy sqlite3.dll done.")
+    print("copy dll to windows runner...")
+    for root, dirs, files in os.walk(dll_path):
+        for file in files:
+            shutil.copy(
+                os.path.join(root, file),
+                os.path.join(windows_release_path, file),
+            )
+    print("copy dll done.")
     print("zip windows runner...")
     zip_path = os.path.join(get_downloads_path(version), "CloudOTP-" + version + ".zip")
     with zipfile.ZipFile(

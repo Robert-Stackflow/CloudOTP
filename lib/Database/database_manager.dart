@@ -33,7 +33,7 @@ class DatabaseManager {
     if (lib != null) open.overrideForAll(() => lib!);
   });
   static DatabaseFactory _currentDbFactory = cipherDbFactory;
-  static bool _isSqlcipherLoaded = false;
+  static bool isDatabaseEncrypted = false;
 
   static bool get initialized => _database != null;
 
@@ -46,26 +46,24 @@ class DatabaseManager {
 
   static Future<void> initDataBase(String password) async {
     if (_database == null) {
-      _currentDbFactory = cipherDbFactory;
       String path = join(await FileUtil.getDatabaseDir(), _dbName);
       File file = File(path);
-      bool isEncrypted = false;
       if (file.existsSync()) {
         final stream = file.openRead(0, _unencrypedFileHeader.length);
         String content = String.fromCharCodes(await stream.fold<List<int>>(
             [], (previous, element) => previous..addAll(element)));
         if (content == _unencrypedFileHeader) {
-          isEncrypted = false;
+          isDatabaseEncrypted = false;
           _currentDbFactory = dbFactory;
           ILogger.info(
               "Database is an unencrypted SQLite database. File header is $content");
         } else {
-          isEncrypted = true;
+          isDatabaseEncrypted = true;
           _currentDbFactory = cipherDbFactory;
           ILogger.info("Database is an encrypted SQLite database.");
         }
       } else {
-        isEncrypted = true;
+        isDatabaseEncrypted = true;
         _currentDbFactory = cipherDbFactory;
         password = await HiveUtil.regeneratePassword();
         ILogger.info("Database not exist and new password is $password");
@@ -78,7 +76,7 @@ class DatabaseManager {
           version: _dbVersion,
           singleInstance: true,
           onConfigure: (db) async {
-            _onConfigure(db, password, isEncrypted);
+            _onConfigure(db, password);
           },
           onUpgrade: _onUpgrade,
           onCreate: _onCreate,
@@ -90,18 +88,32 @@ class DatabaseManager {
 
   static Future<bool> changePassword(String password) async {
     if (_database != null) {
-      List<Map<String, Object?>> res =
-          await _database!.rawQuery("PRAGMA rekey='$password'");
-      if (res.isNotEmpty) {
-        return true;
+      if (isDatabaseEncrypted) {
+        List<Map<String, Object?>> res =
+            await _database!.rawQuery("PRAGMA rekey='$password'");
+        ILogger.info("Change database password result is $res");
+        if (res.isNotEmpty) {
+          return true;
+        }
+      } else {
+        try {
+          await _database!.rawQuery(
+              "ATTACH DATABASE 'encrypted.db' AS tmp KEY '$password'");
+          await _database!.rawQuery("SELECT sqlcipher_export('tmp')");
+          await _database!.rawQuery("DETACH DATABASE tmp");
+          return true;
+        } catch (e) {
+          ILogger.error("Failed to change database password", e);
+          return false;
+        }
       }
+      return false;
     }
     return false;
   }
 
-  static Future<void> _onConfigure(
-      Database db, String password, bool isEncrypted) async {
-    if (isEncrypted) {
+  static Future<void> _onConfigure(Database db, String password) async {
+    if (isDatabaseEncrypted) {
       List<Map<String, Object?>> res =
           await db.rawQuery("PRAGMA KEY='$password'");
       if (res.isNotEmpty) {
@@ -248,12 +260,10 @@ class DatabaseManager {
         lib = DynamicLibrary.open('/usr/lib/libsqlite3.dylib');
       }
       if (Platform.isWindows) {
-        lib = DynamicLibrary.open('sqlcipher.dll');
+        lib = DynamicLibrary.open('sqlite_sqlcipher.dll');
       }
-      _isSqlcipherLoaded = true;
       return lib;
     } catch (e) {
-      _isSqlcipherLoaded = false;
       return null;
     }
   }

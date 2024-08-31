@@ -231,6 +231,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           } else {
             await LaunchAtStartup.instance.disable();
           }
+          Utils.initTray();
         },
       ),
       ItemBuilder.buildRadioItem(

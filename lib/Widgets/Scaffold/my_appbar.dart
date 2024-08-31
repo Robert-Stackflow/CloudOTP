@@ -1085,12 +1085,11 @@ class _MyAppBarState extends State<MyAppBar> {
         bottom: false,
         child: appBar,
       );
+      appBar = Align(
+        alignment: Alignment.topCenter,
+        child: appBar,
+      );
     }
-
-    appBar = Align(
-      alignment: Alignment.topCenter,
-      child: appBar,
-    );
 
     if (widget.flexibleSpace != null) {
       appBar = Stack(

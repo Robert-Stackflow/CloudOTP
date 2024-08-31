@@ -15,7 +15,6 @@ import '../../Utils/ilogger.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/uri_util.dart';
 import '../../Widgets/Item/input_item.dart';
-import '../../Widgets/Window/window_caption.dart';
 import '../../generated/l10n.dart';
 import '../main_screen.dart';
 
@@ -31,6 +30,22 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   final FocusNode _focusNode = FocusNode();
   late InputValidateAsyncController validateAsyncController;
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  bool _isMaximized = false;
+  bool _isStayOnTop = false;
+
+  @override
+  void onWindowMaximize() {
+    setState(() {
+      _isMaximized = true;
+    });
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    setState(() {
+      _isMaximized = false;
+    });
+  }
 
   @override
   Future<void> onWindowResized() async {
@@ -82,17 +97,33 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   Widget build(BuildContext context) {
     return MyScaffold(
       backgroundColor: MyTheme.getBackground(context),
+      appBar: ResponsiveUtil.isDesktop()
+          ? PreferredSize(
+              preferredSize: const Size(0, 82),
+              child: ItemBuilder.buildWindowTitle(
+                context,
+                forceClose: true,
+                backgroundColor: MyTheme.getBackground(context),
+                isStayOnTop: _isStayOnTop,
+                isMaximized: _isMaximized,
+                onStayOnTopTap: () {
+                  setState(() {
+                    _isStayOnTop = !_isStayOnTop;
+                    windowManager.setAlwaysOnTop(_isStayOnTop);
+                  });
+                },
+              ),
+            )
+          : null,
+      bottomNavigationBar: Container(
+        height: 82,
+        color: MyTheme.getBackground(context),
+      ),
       body: SafeArea(
         right: false,
-        child: Stack(
-          children: [
-            if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
-            Center(
-              child: DatabaseManager.lib != null
-                  ? _buildBody()
-                  : _buildFailedBody(),
-            ),
-          ],
+        child: Center(
+          child:
+              DatabaseManager.lib != null ? _buildBody() : _buildFailedBody(),
         ),
       ),
     );
@@ -173,13 +204,23 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(S.current.loadSqlcipherFailed,
-            style: Theme.of(context).textTheme.titleLarge),
+        IgnorePointer(
+          child: Text(
+            S.current.loadSqlcipherFailed,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
         const SizedBox(height: 30),
-        SizedBox(
-          width: min(MediaQuery.sizeOf(context).width - 40, 500),
-          child: Text(S.current.loadSqlcipherFailedMessage,
-              style: Theme.of(context).textTheme.titleMedium),
+        IgnorePointer(
+          child: SizedBox(
+            width: min(MediaQuery.sizeOf(context).width - 40, 500),
+            child: Text(
+              S.current.loadSqlcipherFailedMessage,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
         ),
         const SizedBox(height: 30),
         ItemBuilder.buildRoundButton(

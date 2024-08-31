@@ -2,6 +2,7 @@ import "package:cloudotp/Utils/Tuple/tuple.dart";
 import "package:cloudotp/Utils/responsive_util.dart";
 import "package:flutter/cupertino.dart";
 
+import "../Utils/app_provider.dart";
 import "../Utils/font_util.dart";
 import "../Utils/hive_util.dart";
 import "../Utils/itoast.dart";
@@ -117,8 +118,11 @@ enum FontEnum {
     await HiveUtil.put(HiveUtil.fontFamilyKey, item.index);
     await FontEnum.downloadFont(
       context: context,
+      showToast: false,
       onFinished: (value) {
         dialog.dismiss();
+        appProvider.darkTheme = appProvider.darkTheme;
+        appProvider.lightTheme = appProvider.lightTheme;
         if (autoRestartApp) {
           ResponsiveUtil.restartApp(context);
         }

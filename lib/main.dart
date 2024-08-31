@@ -26,6 +26,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 import './Utils/ilogger.dart';
+import 'Resources/fonts.dart';
 import 'Screens/main_screen.dart';
 import 'TokenUtils/token_image_util.dart';
 import 'Utils/constant.dart';
@@ -122,6 +123,7 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
     }
     await HotKeyManager.instance.unregisterAll();
   }
+  FontEnum.downloadFont(showToast: false);
 }
 
 Future<void> initWindow() async {
@@ -231,8 +233,11 @@ class MyApp extends StatelessWidget {
                       data: MediaQuery.of(context)
                           .copyWith(textScaler: TextScaler.noScaling),
                       child: Listener(
-                        onPointerDown: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
+                        onPointerDown: (_) {
+                          if (!ResponsiveUtil.isDesktop()) {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                          }
+                        },
                         child: widget,
                       ),
                     ),

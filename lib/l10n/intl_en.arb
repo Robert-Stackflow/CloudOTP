@@ -338,6 +338,7 @@
   "decryptingDatabasePassword": "Decrypting database...",
   "defaultEncryptDatabasePassword": "The current default database password",
   "customEncryptDatabasePassword": "The current custom database password",
+  "currentDatabaseUnencrypted": "Current database is not encrypted",
   "editEncryptDatabasePassword": "Change database password",
   "editEncryptDatabasePasswordTip": "Modify the database password to unlock the encrypted database; please remember the password, otherwise you will not be able to view the token",
   "inputEncryptDatabasePassword": "Enter database password",

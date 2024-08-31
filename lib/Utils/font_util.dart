@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 
 import './ilogger.dart';
+import 'file_util.dart';
 
 enum _FontSource { asset, file, url }
 
@@ -87,7 +86,7 @@ Future<Uint8List> downloadFont(
 }) async {
   final uri = Uri.parse(url);
   final filename = uri.pathSegments.last;
-  final dir = (await getApplicationSupportDirectory()).path;
+  final dir = await FileUtil.getFontDir();
   final file = File('$dir/$filename');
 
   if (await file.exists() && !overwrite) {
@@ -132,7 +131,8 @@ Future<Uint8List> downloadBytes(
       final percent = (bytes.length / response.contentLength!);
       onReceiveProgress?.call(percent);
       if (percent - prevPercent > 15 || percent > 99) {
-        ILogger.info('Downloading font: ${(percent * 100).toStringAsFixed(1)}%');
+        ILogger.info(
+            'Downloading font: ${(percent * 100).toStringAsFixed(1)}%');
         prevPercent = percent;
       }
     }

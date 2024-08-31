@@ -175,49 +175,54 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
         context: context,
         value: _enableSafeMode,
         topRadius: true,
+        bottomRadius: !DatabaseManager.isDatabaseEncrypted,
         title: S.current.safeMode,
         disabled: ResponsiveUtil.isDesktop(),
         description: S.current.safeModeTip,
         onTap: onSafeModeTapped,
       ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        bottomRadius:
-            _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword,
-        title: S.current.editEncryptDatabasePassword,
-        description: S.current.encryptDatabaseTip,
-        tip: _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword
-            ? S.current.defaultEncryptDatabasePassword
-            : S.current.customEncryptDatabasePassword,
-        onTap: () {
-          BottomSheetBuilder.showBottomSheet(
-            context,
-            responsive: true,
-            useWideLandscape: true,
-            (context) => InputPasswordBottomSheet(
-              title: S.current.editEncryptDatabasePassword,
-              message: S.current.editEncryptDatabasePasswordTip,
-              onConfirm: (passord, confirmPassword) async {},
-              onValidConfirm: (passord, confirmPassword) async {
-                bool res = await DatabaseManager.changePassword(passord);
-                if (res) {
-                  IToast.showTop(S.current.editSuccess);
-                  HiveUtil.setEncryptDatabaseStatus(
-                      EncryptDatabaseStatus.customPassword);
-                  setState(() {
-                    _encryptDatabaseStatus =
-                        EncryptDatabaseStatus.customPassword;
-                  });
-                } else {
-                  IToast.showTop(S.current.editFailed);
-                }
-              },
-            ),
-          );
-        },
+      Visibility(
+        visible: DatabaseManager.isDatabaseEncrypted,
+        child: ItemBuilder.buildEntryItem(
+          context: context,
+          bottomRadius:
+              _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword,
+          title: S.current.editEncryptDatabasePassword,
+          description: S.current.encryptDatabaseTip,
+          tip: _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword
+              ? S.current.defaultEncryptDatabasePassword
+              : S.current.customEncryptDatabasePassword,
+          onTap: () {
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              responsive: true,
+              useWideLandscape: true,
+              (context) => InputPasswordBottomSheet(
+                title: S.current.editEncryptDatabasePassword,
+                message: S.current.editEncryptDatabasePasswordTip,
+                onConfirm: (passord, confirmPassword) async {},
+                onValidConfirm: (passord, confirmPassword) async {
+                  bool res = await DatabaseManager.changePassword(passord);
+                  if (res) {
+                    IToast.showTop(S.current.editSuccess);
+                    HiveUtil.setEncryptDatabaseStatus(
+                        EncryptDatabaseStatus.customPassword);
+                    setState(() {
+                      _encryptDatabaseStatus =
+                          EncryptDatabaseStatus.customPassword;
+                    });
+                  } else {
+                    IToast.showTop(S.current.editFailed);
+                  }
+                },
+              ),
+            );
+          },
+        ),
       ),
       Visibility(
-        visible: _encryptDatabaseStatus == EncryptDatabaseStatus.customPassword,
+        visible: DatabaseManager.isDatabaseEncrypted &&
+            _encryptDatabaseStatus == EncryptDatabaseStatus.customPassword,
         child: ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.clearEncryptDatabasePassword,

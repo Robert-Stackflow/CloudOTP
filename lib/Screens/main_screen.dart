@@ -32,7 +32,6 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../Resources/colors.dart';
-import '../Resources/fonts.dart';
 import '../TokenUtils/import_token_util.dart';
 import '../Utils/app_provider.dart';
 import '../Utils/enums.dart';
@@ -172,7 +171,6 @@ class MainScreenState extends State<MainScreen>
       Utils.initTray();
     }
     WidgetsBinding.instance.addObserver(this);
-    FontEnum.downloadFont(showToast: false);
     HiveUtil.showCloudEntry().then((value) {
       appProvider.canShowCloudBackupButton = value;
     });
@@ -761,118 +759,68 @@ class MainScreenState extends State<MainScreen>
 
   _titleBar() {
     return (ResponsiveUtil.isDesktop())
-        ? Container(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: WindowTitleBar(
-              useMoveHandle: ResponsiveUtil.isDesktop(),
-              titleBarHeightDelta: 34,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                children: [
-                  const SizedBox(width: 2.5),
-                  _buildLogo(),
-                  const SizedBox(width: 8),
-                  Container(
-                    constraints:
-                        const BoxConstraints(maxWidth: 300, minWidth: 200),
-                    child: ItemBuilder.buildDesktopSearchBar(
-                      context: context,
-                      borderRadius: 8,
-                      bottomMargin: 18,
-                      hintFontSizeDelta: 1,
-                      focusNode: searchFocusNode,
-                      controller: searchController,
-                      background: Colors.grey.withAlpha(40),
-                      hintText: S.current.searchToken,
-                      onSubmitted: (text) {
-                        homeScreenState?.performSearch(text);
-                      },
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Selector<AppProvider, bool>(
-                        selector: (context, appProvider) =>
-                            appProvider.showBackupLogButton,
-                        builder: (context, showBackupLogButton, child) =>
-                            showBackupLogButton
-                                ? WindowButton(
-                                    colors:
-                                        MyColors.getNormalButtonColors(context),
-                                    borderRadius: BorderRadius.circular(8),
-                                    padding: EdgeInsets.zero,
-                                    iconBuilder: (buttonContext) =>
-                                        Selector<AppProvider, LoadingStatus>(
-                                      selector: (context, appProvider) =>
-                                          appProvider.autoBackupLoadingStatus,
-                                      builder: (context,
-                                              autoBackupLoadingStatus, child) =>
-                                          LoadingIcon(
-                                        status: autoBackupLoadingStatus,
-                                        normalIcon: const Icon(
-                                            Icons.history_rounded,
-                                            size: 25),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      context.contextMenuOverlay
-                                          .show(const BackupLogScreen());
-                                    },
-                                  )
-                                : const SizedBox.shrink(),
-                      ),
-                      const SizedBox(width: 3),
-                      StayOnTopWindowButton(
-                        context: context,
-                        rotateAngle: _isStayOnTop ? 0 : -pi / 4,
-                        colors: _isStayOnTop
-                            ? MyColors.getStayOnTopButtonColors(context)
-                            : MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                        onPressed: () {
-                          setState(() {
-                            _isStayOnTop = !_isStayOnTop;
-                            windowManager.setAlwaysOnTop(_isStayOnTop);
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 3),
-                      MinimizeWindowButton(
-                        colors: MyColors.getNormalButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      const SizedBox(width: 3),
-                      _isMaximized
-                          ? RestoreWindowButton(
-                              colors: MyColors.getNormalButtonColors(context),
-                              borderRadius: BorderRadius.circular(8),
-                              onPressed: ResponsiveUtil.maximizeOrRestore,
-                            )
-                          : MaximizeWindowButton(
-                              colors: MyColors.getNormalButtonColors(context),
-                              borderRadius: BorderRadius.circular(8),
-                              onPressed: ResponsiveUtil.maximizeOrRestore,
-                            ),
-                      const SizedBox(width: 3),
-                      CloseWindowButton(
-                        colors: MyColors.getCloseButtonColors(context),
-                        borderRadius: BorderRadius.circular(8),
-                        onPressed: () {
-                          if (HiveUtil.getBool(HiveUtil.showTrayKey) &&
-                              HiveUtil.getBool(HiveUtil.enableCloseToTrayKey)) {
-                            windowManager.hide();
-                          } else {
-                            windowManager.close();
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 8),
-                ],
+        ? ItemBuilder.buildWindowTitle(
+            context,
+            isStayOnTop: _isStayOnTop,
+            isMaximized: _isMaximized,
+            onStayOnTopTap: () {
+              setState(() {
+                _isStayOnTop = !_isStayOnTop;
+                windowManager.setAlwaysOnTop(_isStayOnTop);
+              });
+            },
+            leftWidgets: [
+              const SizedBox(width: 2.5),
+              _buildLogo(),
+              const SizedBox(width: 8),
+              Container(
+                constraints: const BoxConstraints(maxWidth: 300, minWidth: 200),
+                child: ItemBuilder.buildDesktopSearchBar(
+                  context: context,
+                  borderRadius: 8,
+                  bottomMargin: 18,
+                  hintFontSizeDelta: 1,
+                  focusNode: searchFocusNode,
+                  controller: searchController,
+                  background: Colors.grey.withAlpha(40),
+                  hintText: S.current.searchToken,
+                  onSubmitted: (text) {
+                    homeScreenState?.performSearch(text);
+                  },
+                ),
               ),
-            ),
+            ],
+            rightButtons: [
+              Selector<AppProvider, bool>(
+                selector: (context, appProvider) =>
+                    appProvider.showBackupLogButton,
+                builder: (context, showBackupLogButton, child) =>
+                    showBackupLogButton
+                        ? WindowButton(
+                            colors: MyColors.getNormalButtonColors(context),
+                            borderRadius: BorderRadius.circular(8),
+                            padding: EdgeInsets.zero,
+                            iconBuilder: (buttonContext) =>
+                                Selector<AppProvider, LoadingStatus>(
+                              selector: (context, appProvider) =>
+                                  appProvider.autoBackupLoadingStatus,
+                              builder:
+                                  (context, autoBackupLoadingStatus, child) =>
+                                      LoadingIcon(
+                                status: autoBackupLoadingStatus,
+                                normalIcon:
+                                    const Icon(Icons.history_rounded, size: 25),
+                              ),
+                            ),
+                            onPressed: () {
+                              context.contextMenuOverlay
+                                  .show(const BackupLogScreen());
+                            },
+                          )
+                        : const SizedBox.shrink(),
+              ),
+              const SizedBox(width: 3),
+            ],
           )
         : emptyWidget;
   }

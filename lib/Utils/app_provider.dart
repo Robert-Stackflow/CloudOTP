@@ -254,6 +254,11 @@ class AppProvider with ChangeNotifier {
 
   ThemeColorData get lightTheme => _lightTheme;
 
+  set lightTheme(ThemeColorData value) {
+    _lightTheme = value;
+    notifyListeners();
+  }
+
   setLightTheme(int index) {
     HiveUtil.setLightTheme(index);
     _lightTheme = HiveUtil.getLightTheme();
@@ -263,6 +268,11 @@ class AppProvider with ChangeNotifier {
   ThemeColorData _darkTheme = HiveUtil.getDarkTheme();
 
   ThemeColorData get darkTheme => _darkTheme;
+
+  set darkTheme(ThemeColorData value) {
+    _darkTheme = value;
+    notifyListeners();
+  }
 
   setDarkTheme(int index) {
     HiveUtil.setDarkTheme(index);

@@ -335,6 +335,7 @@
   "decryptingDatabasePassword": "解密数据库中...",
   "defaultEncryptDatabasePassword": "当前为默认数据库密码",
   "customEncryptDatabasePassword": "当前为自定义数据库密码",
+  "currentDatabaseUnencrypted": "当前数据库未加密",
   "editEncryptDatabasePassword": "修改数据库密码",
   "editEncryptDatabasePasswordTip": "请牢记数据库密码，打开应用后需要输入该密码用于解锁加密数据库，如果忘记将无法解密数据库",
   "inputEncryptDatabasePassword": "输入数据库密码",

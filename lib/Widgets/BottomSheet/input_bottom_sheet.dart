@@ -113,7 +113,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
         runAlignment: WrapAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(
                   top: const Radius.circular(20),
