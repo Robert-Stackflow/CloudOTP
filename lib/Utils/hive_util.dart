@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../Database/database_manager.dart';
+import '../Resources/fonts.dart';
 import './ilogger.dart';
 import 'constant.dart';
 
@@ -63,6 +64,7 @@ class HiveUtil {
       "hideBottombarWhenScrolling";
   static const String enableLandscapeInTabletKey = "enableLandscapeInTablet";
   static const String fontFamilyKey = "fontFamily";
+  static const String customFontsKey = "customFonts";
   static const String lightThemeIndexKey = "lightThemeIndex";
   static const String darkThemeIndexKey = "darkThemeIndex";
   static const String lightThemePrimaryColorIndexKey =
@@ -260,6 +262,21 @@ class HiveUtil {
     }
   }
 
+  static void setCustomFonts(List<CustomFont> fonts) {
+    HiveUtil.put(HiveUtil.customFontsKey,
+        jsonEncode(fonts.map((e) => e.toJson()).toList()));
+  }
+
+  static List<CustomFont> getCustomFonts() {
+    String? json = HiveUtil.getString(HiveUtil.customFontsKey);
+    if (json == null || json.isEmpty) {
+      return [];
+    } else {
+      List<dynamic> list = jsonDecode(json);
+      return list.map((e) => CustomFont.fromJson(e)).toList();
+    }
+  }
+
   static ActiveThemeMode getThemeMode() {
     return ActiveThemeMode.values[HiveUtil.getInt(HiveUtil.themeModeKey)];
   }
@@ -383,6 +400,18 @@ class HiveUtil {
       }
     }
     return map;
+  }
+
+  static dynamic get(
+    String key, {
+    String boxName = HiveUtil.settingsBox,
+    int defaultValue = 0,
+  }) {
+    final Box box = Hive.box(name: boxName);
+    if (!box.containsKey(key)) {
+      put(key, defaultValue, boxName: boxName);
+    }
+    return box.get(key);
   }
 
   static int getInt(

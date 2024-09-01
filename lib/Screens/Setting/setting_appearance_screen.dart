@@ -1,3 +1,4 @@
+import 'package:cloudotp/Screens/Setting/select_font_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +30,6 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
     with TickerProviderStateMixin {
   bool _enableLandscapeInTablet =
       HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey, defaultValue: true);
-  FontEnum _currentFont = FontEnum.getCurrentFont();
   bool showLayoutButton = HiveUtil.getBool(HiveUtil.showLayoutButtonKey);
   bool showSortButton = HiveUtil.getBool(HiveUtil.showSortButtonKey);
   bool showBackupLogButton = HiveUtil.getBool(HiveUtil.showBackupLogButtonKey,
@@ -46,6 +46,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
   bool hideBottombarWhenScrolling =
       HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
   final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
+  bool hideProgressBar = HiveUtil.getBool(HiveUtil.hideProgressBarKey);
 
   @override
   void initState() {
@@ -87,7 +88,6 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
                       .titleMedium
                       ?.apply(fontWeightDelta: 2),
                 ),
-                center: true,
                 actions: [
                   ItemBuilder.buildBlankIconButton(context),
                   const SizedBox(width: 5),
@@ -112,13 +112,12 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
   _apperanceSettings() {
     return [
       const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.themeSetting),
       Selector<AppProvider, ActiveThemeMode>(
         selector: (context, appProvider) => appProvider.themeMode,
         builder: (context, themeMode, child) => ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.themeMode,
+          topRadius: true,
           tip: AppProvider.getThemeModeLabel(themeMode),
           onTap: () {
             BottomSheetBuilder.showListBottomSheet(
@@ -153,30 +152,17 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           ),
         ),
       ),
-      ItemBuilder.buildEntryItem(
-        context: context,
-        title: S.current.fontFamily,
-        tip: _currentFont.intlFontName,
-        bottomRadius: true,
-        onTap: () {
-          BottomSheetBuilder.showListBottomSheet(
-            context,
-            (sheetContext) => TileList.fromOptions(
-              FontEnum.getFontList(),
-              (item2) async {
-                FontEnum t = item2 as FontEnum;
-                _currentFont = t;
-                Navigator.pop(sheetContext);
-                setState(() {});
-                FontEnum.loadFont(context, t, autoRestartApp: false);
-              },
-              selected: _currentFont,
-              context: context,
-              title: S.current.chooseFontFamily,
-              onCloseTap: () => Navigator.pop(context),
-            ),
-          );
-        },
+      Selector<AppProvider, CustomFont>(
+        selector: (context, appProvider) => appProvider.currentFont,
+        builder: (context, currentFont, child) => ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.chooseFontFamily,
+          tip: currentFont.intlFontName,
+          bottomRadius: true,
+          onTap: () {
+            RouteUtil.pushCupertinoRoute(context, const SelectFontScreen());
+          },
+        ),
       ),
     ];
   }
@@ -186,8 +172,8 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
-        title: S.current.showBackupLogButton,
         topRadius: true,
+        title: S.current.showBackupLogButton,
         value: showBackupLogButton,
         onTap: () {
           setState(() {
@@ -221,12 +207,24 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       ItemBuilder.buildRadioItem(
         context: context,
         title: S.current.showSortButton,
-        bottomRadius: true,
         value: showSortButton,
         onTap: () {
           setState(() {
             showSortButton = !showSortButton;
             appProvider.showSortButton = showSortButton;
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: hideProgressBar,
+        bottomRadius: true,
+        title: S.current.hideProgressBar,
+        description: S.current.hideProgressBarTip,
+        onTap: () {
+          setState(() {
+            hideProgressBar = !hideProgressBar;
+            appProvider.hideProgressBar = hideProgressBar;
           });
         },
       ),

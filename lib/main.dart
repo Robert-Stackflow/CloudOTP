@@ -123,7 +123,7 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
     }
     await HotKeyManager.instance.unregisterAll();
   }
-  FontEnum.downloadFont(showToast: false);
+  CustomFont.downloadFont(showToast: false);
 }
 
 Future<void> initWindow() async {

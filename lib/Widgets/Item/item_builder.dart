@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Resources/fonts.dart';
 import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Utils/lottie_util.dart';
 import 'package:cloudotp/Widgets/Selectable/my_context_menu_item.dart';
@@ -1135,6 +1137,180 @@ class ItemBuilder {
     );
   }
 
+  static Widget buildFontItem({
+    required CustomFont font,
+    required CustomFont currentFont,
+    required BuildContext context,
+    required Function(CustomFont?)? onChanged,
+    Function(CustomFont?)? onDelete,
+    bool showDelete = false,
+    double width = 110,
+    double height = 160,
+  }) {
+    bool exist = true;
+    TextTheme textTheme = Theme.of(context).textTheme;
+    return SizedBox(
+      width: width,
+      child: Column(
+        children: [
+          Container(
+            width: width,
+            height: height,
+            padding:
+                const EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: height - 65,
+                  child: FutureBuilder(
+                    future: Future<CustomFont>.sync(() async {
+                      exist = await CustomFont.isFontFileExist(font);
+                      return font;
+                    }),
+                    builder: (context, snapshot) {
+                      return exist
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AutoSizeText(
+                                  "AaBbCcDd",
+                                  style: textTheme.titleMedium?.apply(
+                                    fontFamily: font.fontFamily,
+                                    letterSpacingDelta: 1,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                                AutoSizeText(
+                                  "AaBbCcDd",
+                                  style: textTheme.titleLarge?.apply(
+                                    fontFamily: font.fontFamily,
+                                    letterSpacingDelta: 1,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                                AutoSizeText(
+                                  "你好世界",
+                                  style: textTheme.titleMedium?.apply(
+                                    fontFamily: font.fontFamily,
+                                    letterSpacingDelta: 1,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                                AutoSizeText(
+                                  "你好世界",
+                                  style: textTheme.titleLarge?.apply(
+                                    fontFamily: font.fontFamily,
+                                    letterSpacingDelta: 1,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                              ],
+                            )
+                          : Text(
+                              S.current.fontNotExist,
+                              style: textTheme.titleLarge?.apply(
+                                fontFamily: font.fontFamily,
+                                fontWeightDelta: 0,
+                              ),
+                            );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Radio(
+                      value: font,
+                      groupValue: currentFont,
+                      onChanged: onChanged,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      fillColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return Theme.of(context).primaryColor;
+                        } else {
+                          return Theme.of(context).textTheme.bodySmall?.color;
+                        }
+                      }),
+                    ),
+                    if (showDelete) const SizedBox(width: 5),
+                    if (showDelete)
+                      ItemBuilder.buildIconButton(
+                        context: context,
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.red,
+                          size: 21,
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        onTap: () {
+                          onDelete?.call(font);
+                        },
+                      ),
+                  ],
+                )
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            font.intlFontName,
+            style: Theme.of(context).textTheme.bodySmall?.apply(
+                  fontFamily: font.fontFamily,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget buildEmptyFontItem({
+    required BuildContext context,
+    required Function()? onTap,
+    double width = 110,
+    double height = 160,
+  }) {
+    return SizedBox(
+      width: width,
+      child: Column(
+        children: [
+          ItemBuilder.buildClickItem(
+            GestureDetector(
+              onTap: onTap,
+              child: Container(
+                width: width,
+                height: height,
+                padding: const EdgeInsets.only(
+                    top: 5, bottom: 5, left: 10, right: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                ),
+                child: Icon(
+                  Icons.add_rounded,
+                  size: 40,
+                  color: Theme.of(context).textTheme.labelSmall?.color,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            S.current.loadFontFamily,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
   static Widget buildEmptyThemeItem({
     required BuildContext context,
     required Function()? onTap,
@@ -2237,8 +2413,8 @@ class ItemBuilder {
       color: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
       child: WindowTitleBar(
         useMoveHandle: ResponsiveUtil.isDesktop(),
-        titleBarHeightDelta: 26,
-        margin: const EdgeInsets.symmetric(vertical: 8),
+        titleBarHeightDelta: 30,
+        margin: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
             ...leftWidgets,

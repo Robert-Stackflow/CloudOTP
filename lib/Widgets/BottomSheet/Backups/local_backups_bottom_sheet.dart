@@ -120,7 +120,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      FileUtil.extractFileNameFromUrl(file.path),
+                      FileUtil.getFileNameWithExtension(file.path),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(

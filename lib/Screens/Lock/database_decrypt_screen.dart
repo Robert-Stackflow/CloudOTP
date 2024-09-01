@@ -99,7 +99,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       backgroundColor: MyTheme.getBackground(context),
       appBar: ResponsiveUtil.isDesktop()
           ? PreferredSize(
-              preferredSize: const Size(0, 82),
+              preferredSize: const Size(0, 86),
               child: ItemBuilder.buildWindowTitle(
                 context,
                 forceClose: true,
@@ -116,7 +116,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
             )
           : null,
       bottomNavigationBar: Container(
-        height: 82,
+        height: 86,
         color: MyTheme.getBackground(context),
       ),
       body: SafeArea(

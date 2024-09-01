@@ -135,7 +135,7 @@ class ImportTokenUtil {
       Uint8List? imageBytes = await compute<String, Uint8List?>((path) {
         return File(path).readAsBytesSync();
       }, filepath);
-      String fileName = FileUtil.extractFileNameFromUrl(file.path);
+      String fileName = FileUtil.getFileNameWithExtension(file.path);
       if (ResponsiveUtil.isAndroid()) {
         await File("/storage/emulated/0/Pictures/$fileName")
             .delete(recursive: true);

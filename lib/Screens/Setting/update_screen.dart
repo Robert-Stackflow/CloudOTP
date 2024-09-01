@@ -150,7 +150,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                   String url = asset.browserDownloadUrl;
                   var appDocDir = await getDownloadsDirectory();
                   String savePath =
-                      "${appDocDir?.path}/${FileUtil.extractFileNameFromUrl(url)}";
+                      "${appDocDir?.path}/${FileUtil.getFileNameWithExtension(url)}";
                   if (downloadState == DownloadState.downloading) {
                     return;
                   } else if (downloadState == DownloadState.toInstall) {

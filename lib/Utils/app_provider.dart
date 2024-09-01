@@ -10,6 +10,7 @@ import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:queue/queue.dart';
 
+import '../Resources/fonts.dart';
 import '../Screens/home_screen.dart';
 import '../Widgets/Custom/keyboard_handler.dart';
 import '../generated/l10n.dart';
@@ -277,6 +278,15 @@ class AppProvider with ChangeNotifier {
   setDarkTheme(int index) {
     HiveUtil.setDarkTheme(index);
     _darkTheme = HiveUtil.getDarkTheme();
+    notifyListeners();
+  }
+
+  CustomFont _currentFont = CustomFont.getCurrentFont();
+
+  CustomFont get currentFont => _currentFont;
+
+  set currentFont(CustomFont value) {
+    _currentFont = value;
     notifyListeners();
   }
 

@@ -63,7 +63,7 @@ class FontUtil {
       case _FontSource.url:
         try {
           await loadFontFromList(
-            await downloadFont(
+            await downloadFontFile(
               uri,
               overwrite: overwrite ?? false,
               onReceiveProgress: onReceiveProgress,
@@ -79,7 +79,7 @@ class FontUtil {
   }
 }
 
-Future<Uint8List> downloadFont(
+Future<Uint8List> downloadFontFile(
   String url, {
   bool overwrite = false,
   Function(double)? onReceiveProgress,
@@ -98,8 +98,11 @@ Future<Uint8List> downloadFont(
   return bytes;
 }
 
-Future<void> downloadFontTo(String url,
-    {required String filepath, bool overwrite = false}) async {
+Future<void> downloadFontFileTo(
+  String url, {
+  required String filepath,
+  bool overwrite = false,
+}) async {
   final uri = Uri.parse(url);
   final file = File(filepath);
 

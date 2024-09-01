@@ -242,12 +242,16 @@ class FileUtil {
     return directory.path;
   }
 
-  static String extractFileNameFromUrl(String imageUrl) {
+  static String getFileNameWithExtension(String imageUrl) {
     return Uri.parse(imageUrl).pathSegments.last;
   }
 
-  static String extractFileExtensionFromUrl(String imageUrl) {
-    return extractFileNameFromUrl(imageUrl).split('.').last;
+  static String getFileExtension(String imageUrl) {
+    return getFileNameWithExtension(imageUrl).split('.').last;
+  }
+
+  static String getFileName(String imageUrl) {
+    return getFileNameWithExtension(imageUrl).split('.').first;
   }
 
   static Future<void> downloadAndUpdate(
@@ -264,7 +268,7 @@ class FileUtil {
         double progressValue = 0.0;
         var appDocDir = await getTemporaryDirectory();
         String savePath =
-            "${appDocDir.path}/${FileUtil.extractFileNameFromUrl(apkUrl)}";
+            "${appDocDir.path}/${FileUtil.getFileNameWithExtension(apkUrl)}";
         try {
           await Dio().download(
             apkUrl,

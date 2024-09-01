@@ -160,7 +160,7 @@ class FileOutput extends LogOutput {
       for (File file in logs) {
         if (file.existsSync()) {
           archive.addFile(ArchiveFile(
-              FileUtil.extractFileNameFromUrl(file.path),
+              FileUtil.getFileNameWithExtension(file.path),
               file.lengthSync(),
               file.readAsBytesSync()));
         }

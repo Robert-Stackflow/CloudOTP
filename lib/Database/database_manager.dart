@@ -173,11 +173,14 @@ class DatabaseManager {
         await db.execute(
             "alter table token_category add column uid TEXT NOT NULL DEFAULT ''");
       }
+      await updateToV6(db);
       if ((await isColumnExist("token_category", "token_ids",
           overrideDb: db))) {
-        await db.execute("alter table token_category delete column token_ids");
+        await db.execute(
+            "create table temp as select id,uid,seq,title,description,create_timestamp,edit_timestamp,pinned,remark from token_category where 1=1;");
+        await db.execute("drop table token_category");
+        await db.execute("alter table temp rename to token_category");
       }
-      await updateToV6(db);
     }
   }
 

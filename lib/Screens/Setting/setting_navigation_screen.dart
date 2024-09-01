@@ -55,7 +55,6 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
                       .titleMedium
                       ?.apply(fontWeightDelta: 2),
                 ),
-                center: true,
                 actions: [
                   ItemBuilder.buildBlankIconButton(context),
                   const SizedBox(width: 5),

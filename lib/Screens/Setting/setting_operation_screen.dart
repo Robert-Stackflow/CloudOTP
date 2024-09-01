@@ -27,7 +27,6 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
   bool autoMinimizeAfterClickToCopy = HiveUtil.getBool(
       HiveUtil.autoMinimizeAfterClickToCopyKey,
       defaultValue: false);
-  bool hideProgressBar = HiveUtil.getBool(HiveUtil.hideProgressBarKey);
   bool autoHideCode = HiveUtil.getBool(HiveUtil.autoHideCodeKey);
   bool defaultHideCode = HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
   bool dragToReorder = HiveUtil.getBool(HiveUtil.dragToReorderKey,
@@ -64,7 +63,6 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
                       .titleMedium
                       ?.apply(fontWeightDelta: 2),
                 ),
-                center: true,
                 actions: [
                   ItemBuilder.buildBlankIconButton(context),
                   const SizedBox(width: 5),
@@ -152,20 +150,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
       const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
-        value: hideProgressBar,
-        topRadius: true,
-        title: S.current.hideProgressBar,
-        description: S.current.hideProgressBarTip,
-        onTap: () {
-          setState(() {
-            hideProgressBar = !hideProgressBar;
-            appProvider.hideProgressBar = hideProgressBar;
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
         value: autoHideCode,
+        topRadius: true,
         title: S.current.autoHideCode,
         description: S.current.autoHideCodeTip,
         onTap: () {

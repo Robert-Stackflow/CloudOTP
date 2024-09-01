@@ -260,7 +260,7 @@ class ThemeColorData {
     );
 
     return ThemeData(
-      fontFamily: FontEnum.getCurrentFont().fontFamily,
+      fontFamily: CustomFont.getCurrentFont().fontFamily,
       brightness: isDarkMode ? Brightness.dark : Brightness.light,
       primaryColor: primaryColor,
       hintColor: primaryColor,
