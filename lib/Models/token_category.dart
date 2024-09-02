@@ -35,8 +35,9 @@ class TokenCategory {
 
   TokenCategory.title({
     required this.title,
+    String? tUid,
   })  : id = 0,
-        uid = Utils.generateUid(),
+        uid = tUid ?? Utils.generateUid(),
         seq = 0,
         createTimeStamp = DateTime.now().millisecondsSinceEpoch,
         editTimeStamp = DateTime.now().millisecondsSinceEpoch,

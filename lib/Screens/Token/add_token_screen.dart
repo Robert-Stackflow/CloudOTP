@@ -527,7 +527,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               controller: _digitsController,
               buttons: OtpDigits.toStrings(),
               onSelected: (value, index, isSelected) {
-                _otpToken.digits = OtpDigits.froMString(value);
+                _otpToken.digits = OtpDigits.fromString(value);
                 setState(() {});
               },
             ),

@@ -21,11 +21,13 @@ class PinVerifyScreen extends StatefulWidget {
     this.isModal = true,
     this.autoAuth = true,
     this.jumpToMain = false,
+    this.showWindowTitle = false,
   });
 
   final bool isModal;
   final bool autoAuth;
   final bool jumpToMain;
+  final bool showWindowTitle;
   final Function()? onSuccess;
   static const String routeName = "/pin/verify";
 
@@ -103,7 +105,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MyTheme.getBackground(context),
-      appBar: ResponsiveUtil.isDesktop() && widget.jumpToMain
+      appBar: ResponsiveUtil.isDesktop() && widget.showWindowTitle
           ? PreferredSize(
         preferredSize: const Size(0, 86),
         child: ItemBuilder.buildWindowTitle(
@@ -121,7 +123,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
         ),
       )
           : null,
-      bottomNavigationBar: widget.jumpToMain ? Container(
+      bottomNavigationBar: widget.showWindowTitle ? Container(
         height: 86,
         color: MyTheme.getBackground(context),
       ) : null,

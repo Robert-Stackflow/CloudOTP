@@ -227,6 +227,7 @@ class MainScreenState extends State<MainScreen>
         context,
         PinVerifyScreen(
           onSuccess: () {},
+          showWindowTitle: true,
           isModal: true,
           autoAuth: autoAuth,
         ), onThen: (_) {

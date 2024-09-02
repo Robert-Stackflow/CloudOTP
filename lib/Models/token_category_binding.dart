@@ -27,4 +27,8 @@ class TokenCategoryBinding {
 
   factory TokenCategoryBinding.fromJson(String source) =>
       TokenCategoryBinding.fromMap(jsonDecode(source));
+
+  @override
+  String toString() =>
+      'TokenCategoryBinding(tokenUid: $tokenUid, categoryUid: $categoryUid)';
 }

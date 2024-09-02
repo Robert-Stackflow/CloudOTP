@@ -1,37 +1,32 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
+import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
-import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:pointycastle/api.dart';
+import 'package:pointycastle/block/aes.dart';
+import 'package:pointycastle/block/modes/cbc.dart';
+import 'package:pointycastle/block/modes/gcm.dart';
+import 'package:pointycastle/digests/sha256.dart';
+import 'package:pointycastle/key_derivators/api.dart';
+import 'package:pointycastle/key_derivators/pbkdf2.dart';
+import 'package:pointycastle/macs/hmac.dart';
+import 'package:pointycastle/padded_block_cipher/padded_block_cipher_impl.dart';
+import 'package:pointycastle/paddings/pkcs7.dart';
 
 import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
+import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
+import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
-// {
-// "name": "GitHub",
-// "secret": "KAVWPE6KSLJPXYGC",
-// "updatedAt": 1724591267919,
-// "serviceTypeID": "3ec08d85-d803-4b6a-a2f4-f5d24c9bba67",
-// "otp": {
-// "label": "Robert-Stackflow",
-// "account": "Robert-Stackflow",
-// "issuer": "GitHub",
-// "digits": 6,
-// "algorithm": "SHA1",
-// "tokenType": "TOTP",
-// "source": "Link"
-// },
-// "order": { "position": 0 },
-// "icon": {
-// "selected": "IconCollection",
-// "iconCollection": { "id": "fff32440-f5be-4b9c-b471-f37d421f10c3" }
-// }
-// },
-//据此json，生成TwoFASToken对象
 class TwoFASTokenOtp {
   String label;
   String account;
@@ -56,7 +51,7 @@ class TwoFASTokenOtp {
       label: json['label'] ?? "",
       account: json['account'] ?? "",
       issuer: json['issuer'] ?? json['account'],
-      digits: json['digits'],
+      digits: json['digits'] ?? 0,
       algorithm: json['algorithm'],
       tokenType: json['tokenType'],
       period: json['period'] ?? 0,
@@ -69,12 +64,14 @@ class TwoFASToken {
   String secret;
   TwoFASTokenOtp otp;
   String groupId;
+  String serviceTypeID;
 
   TwoFASToken({
     required this.name,
     required this.secret,
     required this.otp,
     required this.groupId,
+    required this.serviceTypeID,
   });
 
   factory TwoFASToken.fromJson(Map<String, dynamic> json) {
@@ -83,19 +80,37 @@ class TwoFASToken {
       secret: json['secret'],
       otp: TwoFASTokenOtp.fromJson(json['otp']),
       groupId: json['groupId'] ?? "",
+      serviceTypeID: json['serviceTypeID'] ?? "",
     );
   }
 
   OtpToken toOtpToken() {
     OtpToken token = OtpToken.init();
+    token.uid = serviceTypeID;
     token.issuer = otp.issuer;
     token.account = otp.account;
     token.secret = secret;
-    token.counterString = otp.digits.toString();
-    token.periodString = otp.period.toString();
+    // token.counterString = otp.digits > 0
+    //     ? otp.digits.toString()
+    //     : token.tokenType.defaultDigits.toString();
+    token.digits = otp.digits > 0
+        ? OtpDigits.fromString(otp.digits.toString())
+        : token.tokenType.defaultDigits;
     token.algorithm = OtpAlgorithm.fromString(otp.algorithm);
     token.tokenType = OtpTokenType.fromString(otp.tokenType);
+    token.periodString = otp.period <= 0
+        ? token.tokenType.defaultPeriod.toString()
+        : otp.period.toString();
     return token;
+  }
+
+  List<TokenCategoryBinding> getBindings() {
+    return [
+      TokenCategoryBinding(
+        tokenUid: serviceTypeID,
+        categoryUid: groupId,
+      ),
+    ];
   }
 }
 
@@ -110,6 +125,7 @@ class TwoFASGroup {
 
   TokenCategory toTokenCategory() {
     return TokenCategory.title(
+      tUid: id,
       title: name,
     );
   }
@@ -123,21 +139,102 @@ class TwoFASGroup {
 }
 
 class TwoFASTokenImporter implements BaseTokenImporter {
-  @override
-  ImporterResult importFromData(Uint8List data) {
-    return ImporterResult([], []);
+  static const String baseAlgorithm = 'AES';
+  static const String mode = 'GCM';
+  static const String padding = 'NoPadding';
+  static const String algorithmDescription = '$baseAlgorithm/$mode/$padding';
+
+  static const int iterations = 10000;
+  static const int keyLength = 32;
+
+  static dynamic decryptServices(String payload, String password) {
+    var parts = payload.split(":");
+
+    if (parts.length < 3) {
+      return [
+        DecryptResult.invalidPasswordOrDataCorrupted,
+        null,
+      ];
+    }
+
+    var encryptedData = base64Decode(parts[0]);
+    var salt = base64Decode(parts[1]);
+    var iv = base64Decode(parts[2]);
+
+    var key = deriveKey(password, salt);
+    var cipher = GCMBlockCipher(AESEngine())
+      ..init(false, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
+
+    Uint8List decryptedBytes;
+
+    try {
+      decryptedBytes = cipher.process(encryptedData);
+    } catch (e) {
+      return [
+        DecryptResult.invalidPasswordOrDataCorrupted,
+        null,
+      ];
+    }
+
+    var decryptedJson = utf8.decode(decryptedBytes);
+    return [DecryptResult.success, jsonDecode(decryptedJson)];
+  }
+
+  static Uint8List deriveKey(String password, Uint8List salt) {
+    var passwordBytes = utf8.encode(password);
+    var pbkdf2 = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
+      ..init(Pbkdf2Parameters(salt, iterations, keyLength));
+    return pbkdf2.process(Uint8List.fromList(passwordBytes));
+  }
+
+  PaddedBlockCipher createCipher(
+      bool forEncryption, KeyParameter key, Uint8List iv) {
+    var cipher =
+        PaddedBlockCipherImpl(PKCS7Padding(), CBCBlockCipher(AESEngine()))
+          ..init(
+              forEncryption,
+              PaddedBlockCipherParameters<ParametersWithIV, ParametersWithIV>(
+                  ParametersWithIV(key, iv), ParametersWithIV(key, iv)));
+    return cipher;
+  }
+
+  Future<void> import(Map<String, dynamic> json) async {
+    List<OtpToken> tokens = [];
+    List<TokenCategory> categories = [];
+    List<TokenCategoryBinding> bindings = [];
+    List<TwoFASGroup> twoFASGroups = [];
+    List<TwoFASToken> twoFASTokens = [];
+    if (json.containsKey('services')) {
+      for (var service in json['services']) {
+        try {
+          twoFASTokens.add(TwoFASToken.fromJson(service));
+        } finally {}
+      }
+    }
+    if (json.containsKey('groups')) {
+      for (var service in json['groups']) {
+        try {
+          twoFASGroups.add(TwoFASGroup.fromJson(service));
+        } finally {}
+      }
+    }
+    categories = twoFASGroups.map((e) => e.toTokenCategory()).toList();
+    tokens = twoFASTokens.map((e) => e.toOtpToken()).toList();
+    bindings = twoFASTokens.expand((e) => e.getBindings()).toList();
+    await BaseTokenImporter.importResult(
+        ImporterResult(tokens, categories, bindings));
   }
 
   @override
-  Future<ImporterResult> importerFromPath(
+  Future<void> importFromPath(
     String path, {
     bool showLoading = true,
   }) async {
+    late ProgressDialog dialog;
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.importing);
+      dialog =
+          showProgressDialog(msg: S.current.importing, showProgress: false);
     }
-    List<OtpToken> tokens = [];
-    List<TokenCategory> categories = [];
     try {
       File file = File(path);
       if (!file.existsSync()) {
@@ -146,34 +243,78 @@ class TwoFASTokenImporter implements BaseTokenImporter {
         String content = file.readAsStringSync();
         Map<String, dynamic> json = jsonDecode(content);
         if (json.containsKey('servicesEncrypted')) {
-          json['services'] = json['servicesEncrypted'];
+          if (showLoading) dialog.dismiss();
+          InputValidateAsyncController validateAsyncController =
+              InputValidateAsyncController(
+            listen: false,
+            validator: (text) async {
+              if (text.isEmpty) {
+                return S.current.autoBackupPasswordCannotBeEmpty;
+              }
+              if (showLoading) {
+                dialog.show(msg: S.current.importing, showProgress: false);
+              }
+              var res = await compute(
+                (receiveMessage) {
+                  return decryptServices(receiveMessage["servicesEncrypted"],
+                      receiveMessage["password"]);
+                },
+                {
+                  'servicesEncrypted': json['servicesEncrypted'],
+                  'password': text,
+                },
+              );
+              DecryptResult decryptResult = res[0];
+              if (decryptResult == DecryptResult.success) {
+                json['services'] = res[1];
+                await import(json);
+                if (showLoading) {
+                  dialog.dismiss();
+                }
+                return null;
+              } else {
+                if (showLoading) {
+                  dialog.dismiss();
+                }
+                return S.current.invalidPasswordOrDataCorrupted;
+              }
+            },
+            controller: TextEditingController(),
+          );
+          BottomSheetBuilder.showBottomSheet(
+            rootContext,
+            responsive: true,
+            useWideLandscape: true,
+            (context) => InputBottomSheet(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              checkSyncValidator: false,
+              validateAsyncController: validateAsyncController,
+              title: S.current.inputImportPasswordTitle,
+              message: S.current.inputImportPasswordTip,
+              hint: S.current.inputImportPasswordHint,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+              ],
+              tailingType: InputItemTailingType.password,
+              onValidConfirm: (password) async {},
+            ),
+          );
+        } else {
+          await import(json);
         }
-        List<TwoFASGroup> twoFASGroups = [];
-        List<TwoFASToken> twoFASTokens = [];
-        if (json.containsKey('services')) {
-          for (var service in json['services']) {
-            try {
-              twoFASTokens.add(TwoFASToken.fromJson(service));
-            } finally {}
-          }
-        }
-        if (json.containsKey('groups')) {
-          for (var service in json['groups']) {
-            try {
-              twoFASGroups.add(TwoFASGroup.fromJson(service));
-            } finally {}
-          }
-        }
-        categories = twoFASGroups.map((e) => e.toTokenCategory()).toList();
-        tokens = twoFASTokens.map((e) => e.toOtpToken()).toList();
       }
     } catch (e, t) {
       ILogger.error("Failed to import from 2FAS", e, t);
+      IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {
-        CustomLoadingDialog.dismissLoading();
+        dialog.dismiss();
       }
     }
-    return ImporterResult(tokens, categories);
   }
 }

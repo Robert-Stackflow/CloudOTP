@@ -1,4 +1,6 @@
 import 'package:cloudotp/Database/config_dao.dart';
+import 'package:cloudotp/TokenUtils/ThirdParty/aegis_importer.dart';
+import 'package:cloudotp/TokenUtils/ThirdParty/freeotp_importer.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
@@ -14,6 +16,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../TokenUtils/ThirdParty/2fas_importer.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/file_util.dart';
 import '../../Utils/utils.dart';
@@ -324,7 +327,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             context: context, title: S.current.importFromThirdParty),
         ItemBuilder.buildEntryItem(
           context: context,
-          bottomRadius: true,
           title: S.current.importFromGoogleAuthenticator,
           description: S.current.importFromGoogleAuthenticatorTip,
           onTap: () async {
@@ -338,23 +340,55 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             }
           },
         ),
-        // ItemBuilder.buildEntryItem(
-        //   context: context,
-        //   bottomRadius: true,
-        //   title: S.current.importFrom2FAS,
-        //   description: S.current.importFrom2FASTip,
-        //   onTap: () async {
-        //     FilePickerResult? result = await FileUtil.pickFiles(
-        //       dialogTitle: S.current.importFrom2FASTitle,
-        //       type: FileType.custom,
-        //       allowedExtensions: ['2fas'],
-        //       lockParentWindow: true,
-        //     );
-        //     if (result != null) {
-        //       TwoFASTokenImporter().importerFromPath(result.files.single.path!);
-        //     }
-        //   },
-        // ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importFrom2FAS,
+          description: S.current.importFrom2FASTip,
+          onTap: () async {
+            FilePickerResult? result = await FileUtil.pickFiles(
+              dialogTitle: S.current.importFrom2FASTitle,
+              type: FileType.custom,
+              allowedExtensions: ['2fas'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              TwoFASTokenImporter().importFromPath(result.files.single.path!);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importFromAegis,
+          description: S.current.importFromAegisTip,
+          onTap: () async {
+            FilePickerResult? result = await FileUtil.pickFiles(
+              dialogTitle: S.current.importFromAegisTitle,
+              type: FileType.custom,
+              allowedExtensions: ['json'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              AegisTokenImporter().importFromPath(result.files.single.path!);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          bottomRadius: true,
+          title: S.current.importFromFreeOTP,
+          description: S.current.importFromFreeOTPTip,
+          onTap: () async {
+            FilePickerResult? result = await FileUtil.pickFiles(
+              dialogTitle: S.current.importFromFreeOTPTitle,
+              type: FileType.custom,
+              allowedExtensions: ['xml'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              FreeOTPTokenImporter().importFromPath(result.files.single.path!);
+            }
+          },
+        ),
         const SizedBox(height: 10),
         ItemBuilder.buildCaptionItem(
             context: context, title: S.current.exportToThirdParty),

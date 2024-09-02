@@ -117,7 +117,7 @@ class OtpTokenParser {
     }
     if (queryParameters.containsKey("digits") &&
         Utils.isNotEmpty(queryParameters["digits"])) {
-      token.digits = OtpDigits.froMString(queryParameters["digits"]!);
+      token.digits = OtpDigits.fromString(queryParameters["digits"]!);
     } else {
       token.digits = token.tokenType.defaultDigits;
     }
@@ -168,7 +168,7 @@ class OtpTokenParser {
     }
     if (queryParameters.containsKey("digits") &&
         Utils.isNotEmpty(queryParameters["digits"])) {
-      token.digits = OtpDigits.froMString(queryParameters["digits"]!);
+      token.digits = OtpDigits.fromString(queryParameters["digits"]!);
     } else {
       token.digits = token.tokenType.defaultDigits;
     }

@@ -226,7 +226,7 @@ enum OtpDigits {
     }
   }
 
-  static OtpDigits froMString(String label) {
+  static OtpDigits fromString(String label) {
     label = label.toUpperCase();
     switch (label) {
       case "5":

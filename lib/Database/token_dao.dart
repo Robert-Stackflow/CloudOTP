@@ -229,7 +229,7 @@ class TokenDao {
         where: searchKey.isEmpty ? 'uid = ?' : 'uid = ? AND issuer LIKE ?',
         whereArgs: searchKey.isEmpty ? [uid] : [uid, "%$searchKey%"],
       );
-      return OtpToken.fromMap(maps[0]);
+      return maps.isNotEmpty ? OtpToken.fromMap(maps[0]) : null;
     } catch (e, t) {
       ILogger.error(
           "Failed to get token by uid $uid and searchKey $searchKey", e, t);

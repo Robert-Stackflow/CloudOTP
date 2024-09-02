@@ -32,6 +32,12 @@ import 'Backup/backup.dart';
 import 'Backup/backup_encrypt_interface.dart';
 import 'Backup/backup_encrypt_v1.dart';
 
+extension TrimPadding on String {
+  String trimPadding() {
+    return replaceAll(RegExp(r'=+$'), '').toUpperCase();
+  }
+}
+
 class ImportAnalysis {
   int parseFailed;
 
@@ -503,9 +509,10 @@ class ImportTokenUtil {
 
   static OtpToken? contain(OtpToken token, List<OtpToken> tokenList) {
     for (OtpToken otpToken in tokenList) {
-      if (otpToken.issuer == token.issuer &&
-          otpToken.account == token.account &&
-          otpToken.secret == token.secret) {
+      if (otpToken.issuer.trim() == token.issuer.trim() &&
+          otpToken.account.trim() == token.account.trim() &&
+          (otpToken.secret.trim() == token.secret.trim() ||
+              otpToken.secret.trimPadding() == token.secret.trimPadding())) {
         return otpToken;
       }
     }
@@ -564,6 +571,16 @@ class ImportTokenUtil {
     List<TokenCategory> categoryList, {
     bool performInsert = true,
   }) async {
+    Map<String, int> categoryCount = {};
+    for (TokenCategory category in categoryList) {
+      if (categoryCount.containsKey(category.title)) {
+        categoryCount[category.title] = categoryCount[category.title]! + 1;
+        category.title =
+            "${category.title}(${categoryCount[category.title]! - 1})";
+      } else {
+        categoryCount[category.title] = 1;
+      }
+    }
     List<TokenCategory> already = await CategoryDao.listCategories();
     List<TokenCategory> newCategoryList = [];
     for (TokenCategory category in categoryList) {

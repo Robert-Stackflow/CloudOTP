@@ -65,6 +65,7 @@ Future<void> runMyApp(List<String> args) async {
       isModal: true,
       autoAuth: true,
       jumpToMain: true,
+      showWindowTitle: true,
     );
   } else {
     home = MainScreen(key: mainScreenKey);
