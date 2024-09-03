@@ -22,9 +22,8 @@ class SteamTOTP {
       if (_sharedSecretArray.isEmpty) {
         throw Exception();
       }
-    } catch (e, t) {
-      ILogger.error("Failed to get steam TOTP", e, t);
-      throw ArgumentError('secret must be valid base32.');
+    } catch (e) {
+      throw ArgumentError('secret $secret must be valid base32.');
     }
   }
 

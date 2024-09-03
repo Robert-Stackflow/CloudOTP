@@ -138,7 +138,7 @@ class ProgressDialog {
         children: [
           PopScope(
             canPop: barrierDismissible,
-            onPopInvoked: (_) {
+            onPopInvokedWithResult: (_, __) {
               if (barrierDismissible) {
                 _dialogIsOpen = false;
               }

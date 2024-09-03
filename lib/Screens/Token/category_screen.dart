@@ -132,8 +132,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                 return _buildCategoryItem(categories[index]);
               },
               cacheExtent: 9999,
-              padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveUtil.isLandscape() ? 20 : 10),
+              padding: EdgeInsets.only(left: 10, right: 10, bottom: 30),
               buildDefaultDragHandles: false,
               itemCount: categories.length,
               onReorder: (oldIndex, newIndex) {

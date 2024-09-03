@@ -17,6 +17,9 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../TokenUtils/ThirdParty/2fas_importer.dart';
+import '../../TokenUtils/ThirdParty/andotp_importer.dart';
+import '../../TokenUtils/ThirdParty/bitwarden_importer.dart';
+import '../../TokenUtils/ThirdParty/freeotpplus_importer.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/file_util.dart';
 import '../../Utils/utils.dart';
@@ -374,7 +377,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         ),
         ItemBuilder.buildEntryItem(
           context: context,
-          bottomRadius: true,
           title: S.current.importFromFreeOTP,
           description: S.current.importFromFreeOTPTip,
           onTap: () async {
@@ -386,6 +388,57 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             );
             if (result != null) {
               FreeOTPTokenImporter().importFromPath(result.files.single.path!);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          bottomRadius: true,
+          title: S.current.importFromFreeOTPPlus,
+          description: S.current.importFromFreeOTPPlusTip,
+          onTap: () async {
+            FilePickerResult? result = await FileUtil.pickFiles(
+              dialogTitle: S.current.importFromFreeOTPPlusTitle,
+              type: FileType.custom,
+              allowedExtensions: ['json'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              FreeOTPPlusTokenImporter()
+                  .importFromPath(result.files.single.path!);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importFromAndOTP,
+          description: S.current.importFromAndOTPTip,
+          onTap: () async {
+            FilePickerResult? result = await FileUtil.pickFiles(
+              dialogTitle: S.current.importFromAndOTPTitle,
+              type: FileType.custom,
+              allowedExtensions: ['json', 'aes'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              AndOTPTokenImporter().importFromPath(result.files.single.path!);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          bottomRadius: true,
+          title: S.current.importFromBitwarden,
+          description: S.current.importFromBitwardenTip,
+          onTap: () async {
+            FilePickerResult? result = await FileUtil.pickFiles(
+              dialogTitle: S.current.importFromBitwardenTitle,
+              type: FileType.custom,
+              allowedExtensions: ['json', 'csv'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              BitwardenTokenImporter().importFromPath(result.files.single.path!);
             }
           },
         ),

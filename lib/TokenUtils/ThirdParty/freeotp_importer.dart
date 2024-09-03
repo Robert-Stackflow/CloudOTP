@@ -10,14 +10,8 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:pointycastle/api.dart';
 import 'package:pointycastle/asn1.dart';
-import 'package:pointycastle/digests/sha1.dart';
-import 'package:pointycastle/digests/sha512.dart';
 import 'package:pointycastle/export.dart';
-import 'package:pointycastle/key_derivators/api.dart';
-import 'package:pointycastle/key_derivators/pbkdf2.dart';
-import 'package:pointycastle/macs/hmac.dart';
 
 import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
@@ -26,8 +20,6 @@ import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
-//{f5d91a9f-da3f-49db-b432-e8a9dfc36408-token: {"algo":"SHA1","digits":6,"issuerExt":"Atlassian","label":"yutuan.victory@gmail.com","period":30,"type":"TOTP"}, 75f207ff-543b-40af-b145-4c39f5ebfce3: {"key":"{\"mCipher\":\"AES\/GCM\/NoPadding\",\"mCipherText\":[109,-51,-116,-11,-27,-107,-9,65,-117,59,4,58,117,-82,-115,87,-48,-104,95,53,-66,94,-67,-124,-84],\"mParameters\":[48,17,4,12,-10,-86,-14,-30,72,14,-119,100,-81,36,-57,-45,2,1,16],\"mToken\":\"HmacSHA1\"}"}, 75f207ff-543b-40af-b145-4c39f5ebfce3-token: {"algo":"SHA1","digits":6,"issuerExt":"Github","label":"demo@cloudchewie.com","period":30,"type":"TOTP"}, f5d91a9f-da3f-49db-b432-e8a9dfc36408: {"key":"{\"mCipher\":\"AES\/GCM\/NoPadding\",\"mCipherText\":[45,46,-18,-106,-76,75,104,-48,-19,-73,0,-88,-55,45,-59,56,73,85,-72,-108,100,9,58,27,-75,111,105,51,69,21,75,-91,117,-73,-32,-44],\"mParameters\":[48,17,4,12,-103,-45,-119,-57,43,-106,120,59,76,-49,-30,0,2,1,16],\"mToken\":\"HmacSHA1\"}"}, masterKey: {"mAlgorithm":"PBKDF2withHmacSHA512","mEncryptedKey":{"mCipher":"AES/GCM/NoPadding","mCipherText":[-55,34,16,112,-124,-47,-92,-93,4,51,98,-46,71,-20,-27,61,107,27,-101,-100,111,20,19,-63,32,73,62,103,-26,88,100,-31,-111,-16,-43,-117,118,-99,40,119,-101,-85,-51,102,108,-116,-74,113],"mParameters":[48,17,4,12,18,-68,53,-99,29,43,1,53,88,13,118,60,2,1,16],"mToken":"AES"},"mIterations":100000,"mSalt":[-107,127,8,71,13,-61,-41,-68,-57,19,-104,31,-107,60,-92,-61,-19,-11,-121,20,-53,32,-19,114,23,1,18,93,-110,-5,-65,123]}}
-//据此构建MaterKey、EncryptedKey、TokenInfo、TokenKeyInfo类
 class MasterKey {
   String algorithm;
   int iterations;
@@ -278,11 +270,14 @@ class FreeOTPTokenImporter implements BaseTokenImporter {
 
   static KeyParameter? decryptMasterKey(MasterKey masterKey, String password) {
     final salt = masterKey.salt.cast<int>();
-    print(masterKey.toJson());
-    final key = deriveKey(
-        password, masterKey.algorithm, masterKey.iterations ~/ 100, salt);
+    print(password);
+    int time = DateTime.now().millisecondsSinceEpoch;
+    print("start to derive key");
+    final key =
+        deriveKey(password, masterKey.algorithm, masterKey.iterations, salt);
+    print(
+        "finish derive key ${(DateTime.now().millisecondsSinceEpoch - time) / 1000}");
     final master = decryptEncryptedKey(masterKey.encryptedKey, key);
-    print(master);
     if (master == null) {
       return null;
     }
@@ -299,12 +294,12 @@ class FreeOTPTokenImporter implements BaseTokenImporter {
     final parameters =
         readAsn1Parameters(key, encodedParams, encryptedKey.token);
 
-    final cipher = PaddedBlockCipher(encryptedKey.cipher)
-      ..init(false, parameters);
+    final cipher = GCMBlockCipher(AESEngine())..init(false, parameters);
 
     try {
       return cipher.process(encryptedData);
-    } catch (e) {
+    } catch (e, t) {
+      debugPrint("$e\n$t");
       return null;
     }
   }
@@ -316,7 +311,6 @@ class FreeOTPTokenImporter implements BaseTokenImporter {
     final int macLength =
         (sequence.elements![1] as ASN1Integer).integer!.toInt();
     final Uint8List associatedBytes = utf8.encode(associatedText);
-
     return AEADParameters(key, macLength * 8, iv, associatedBytes);
   }
 
@@ -337,17 +331,16 @@ class FreeOTPTokenImporter implements BaseTokenImporter {
     final passwordBytes = utf8.encode(password);
     final generator = PBKDF2KeyDerivator(HMac(digest, 64))
       ..init(Pbkdf2Parameters(
-          Uint8List.fromList(salt), iterations, MasterKeyBytes * 8));
-
+          Uint8List.fromList(salt), iterations, MasterKeyBytes));
     return KeyParameter(generator.process(Uint8List.fromList(passwordBytes)));
   }
 
-  Future<void> import(List<FreeOTPToken> twoFASTokens) async {
+  Future<void> import(List<FreeOTPToken> freeOTPTokens) async {
     List<OtpToken> tokens = [];
     List<TokenCategory> categories = [];
     List<TokenCategoryBinding> bindings = [];
-    tokens = twoFASTokens.map((e) => e.toOtpToken()).toList();
-    bindings = twoFASTokens.expand((e) => e.getBindings()).toList();
+    tokens = freeOTPTokens.map((e) => e.toOtpToken()).toList();
+    bindings = freeOTPTokens.expand((e) => e.getBindings()).toList();
     await BaseTokenImporter.importResult(
         ImporterResult(tokens, categories, bindings));
   }

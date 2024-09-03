@@ -27,6 +27,7 @@ class BindingDao {
     if (bindings.isEmpty) return 0;
     final db = overrideDb ?? await DatabaseManager.getDataBase();
     Batch batch = db.batch();
+    bindings = bindings.toSet().toList();
     for (TokenCategoryBinding binding in bindings) {
       batch.insert(
         tableName,
@@ -130,6 +131,8 @@ class BindingDao {
       whereArgs: [categoryUid],
     );
     List<String> uids = List.generate(maps.length, (i) => maps[i]["token_uid"]);
+    uids = uids.toSet().toList();
+    uids.removeWhere((e) => !Utils.isUid(e));
     List<OtpToken> tokens = [];
     for (String uid in uids) {
       OtpToken? token = await TokenDao.getTokenByUid(uid, searchKey: searchKey);

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:cloudotp/Models/token_category_binding.dart';
 
 import '../../Models/opt_token.dart';
@@ -29,9 +27,12 @@ abstract class BaseTokenImporter {
         element.bindings.add(binding.tokenUid);
       });
     }
-    analysis.importSuccess = await ImportTokenUtil.mergeTokens(res.tokens);
-    analysis.importCategorySuccess =
-        await ImportTokenUtil.mergeCategories(res.categories);
+    ImportAnalysis tmpAnalysis = await ImportTokenUtil.mergeTokensAndCategories(
+      res.tokens,
+      res.categories,
+    );
+    analysis.importSuccess = tmpAnalysis.importSuccess;
+    analysis.importCategorySuccess = tmpAnalysis.importCategorySuccess;
     analysis.showToast(S.current.fileDoesNotContainToken);
   }
 }

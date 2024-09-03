@@ -454,8 +454,12 @@ class ImportTokenUtil {
     ImportAnalysis analysis = ImportAnalysis();
     analysis.parseSuccess = backup.tokens.length;
     analysis.parseCategorySuccess = backup.categories.length;
-    analysis.importSuccess = await mergeTokens(backup.tokens);
-    analysis.importCategorySuccess = await mergeCategories(backup.categories);
+    ImportAnalysis tmpAnalysis = await mergeTokensAndCategories(
+      backup.tokens,
+      backup.categories,
+    );
+    analysis.importSuccess = tmpAnalysis.importSuccess;
+    analysis.importCategorySuccess = tmpAnalysis.importCategorySuccess;
     analysis.showToast(S.current.fileDoesNotContainToken);
     return true;
   }
@@ -505,95 +509,6 @@ class ImportTokenUtil {
     analysis.importCategorySuccess = await mergeCategories(categories);
     analysis.showToast();
     return categories;
-  }
-
-  static OtpToken? contain(OtpToken token, List<OtpToken> tokenList) {
-    for (OtpToken otpToken in tokenList) {
-      if (otpToken.issuer.trim() == token.issuer.trim() &&
-          otpToken.account.trim() == token.account.trim() &&
-          (otpToken.secret.trim() == token.secret.trim() ||
-              otpToken.secret.trimPadding() == token.secret.trimPadding())) {
-        return otpToken;
-      }
-    }
-    return null;
-  }
-
-  static bool containCategory(
-    TokenCategory category,
-    List<TokenCategory> categoryList,
-  ) {
-    for (TokenCategory tokenCategory in categoryList) {
-      if (tokenCategory.uid == category.uid &&
-          tokenCategory.title != category.title) {
-        category.uid = Utils.generateUid();
-      }
-      if (tokenCategory.title == category.title) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static Future<List<OtpToken>> getAlreadyExistUid(
-      List<OtpToken> tokenList) async {
-    List<OtpToken> already = await TokenDao.listTokens();
-    for (OtpToken token in tokenList) {
-      OtpToken? alreadyToken = contain(token, already);
-      if (alreadyToken != null) {
-        token.uid = alreadyToken.uid;
-      }
-    }
-    return tokenList;
-  }
-
-  static Future<int> mergeTokens(
-    List<OtpToken> tokenList, {
-    bool performInsert = true,
-  }) async {
-    List<OtpToken> already = await TokenDao.listTokens();
-    List<OtpToken> newTokenList = [];
-    for (OtpToken otpToken in tokenList) {
-      OtpToken? alreadyToken = contain(otpToken, already);
-      if (alreadyToken == null && contain(otpToken, newTokenList) == null) {
-        newTokenList.add(otpToken);
-      }
-    }
-    if (performInsert) {
-      await TokenDao.insertTokens(newTokenList);
-      homeScreenState?.refresh();
-    }
-    await getAlreadyExistUid(tokenList);
-    return newTokenList.length;
-  }
-
-  static Future<int> mergeCategories(
-    List<TokenCategory> categoryList, {
-    bool performInsert = true,
-  }) async {
-    Map<String, int> categoryCount = {};
-    for (TokenCategory category in categoryList) {
-      if (categoryCount.containsKey(category.title)) {
-        categoryCount[category.title] = categoryCount[category.title]! + 1;
-        category.title =
-            "${category.title}(${categoryCount[category.title]! - 1})";
-      } else {
-        categoryCount[category.title] = 1;
-      }
-    }
-    List<TokenCategory> already = await CategoryDao.listCategories();
-    List<TokenCategory> newCategoryList = [];
-    for (TokenCategory category in categoryList) {
-      if (!containCategory(category, already) &&
-          !containCategory(category, newCategoryList)) {
-        newCategoryList.add(category);
-      }
-    }
-    if (performInsert) {
-      await CategoryDao.insertCategories(newCategoryList);
-      homeScreenState?.refresh();
-    }
-    return newCategoryList.length;
   }
 
   static importFromCloud(
@@ -665,5 +580,111 @@ class ImportTokenUtil {
         ),
       );
     }
+  }
+
+  static Future<Map<String, String>> getAlreadyExistUid(
+      List<OtpToken> tokenList) async {
+    List<OtpToken> already = await TokenDao.listTokens();
+    Map<String, String> uidMap = {};
+    for (OtpToken token in tokenList) {
+      OtpToken? alreadyToken = checkTokenExist(token, already);
+      if (alreadyToken != null) {
+        uidMap[token.uid] = alreadyToken.uid;
+        token.uid = alreadyToken.uid;
+      }
+    }
+    return uidMap;
+  }
+
+  static OtpToken? checkTokenExist(OtpToken token, List<OtpToken> tokenList) {
+    for (OtpToken otpToken in tokenList) {
+      if (otpToken.issuer.trim() == token.issuer.trim() &&
+          otpToken.account.trim() == token.account.trim() &&
+          (otpToken.secret.trim() == token.secret.trim() ||
+              otpToken.secret.trimPadding() == token.secret.trimPadding())) {
+        return otpToken;
+      }
+    }
+    return null;
+  }
+
+  static bool checkCategoryExist(
+    TokenCategory category,
+    List<TokenCategory> categoryList,
+  ) {
+    for (TokenCategory tokenCategory in categoryList) {
+      if (tokenCategory.uid == category.uid &&
+          tokenCategory.title != category.title) {
+        category.uid = Utils.generateUid();
+      }
+      if (tokenCategory.title == category.title) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static Future<ImportAnalysis> mergeTokensAndCategories(
+    List<OtpToken> tokenList,
+    List<TokenCategory> categoryList, {
+    bool performInsert = true,
+  }) async {
+    ImportAnalysis analysis = ImportAnalysis();
+    analysis.importSuccess = await mergeTokens(tokenList);
+    Map<String, String> uidMap = await getAlreadyExistUid(tokenList);
+    for (TokenCategory category in categoryList) {
+      category.bindings = category.bindings.map((e) => uidMap[e] ?? e).toList();
+    }
+    analysis.importCategorySuccess = await mergeCategories(categoryList);
+    return analysis;
+  }
+
+  static Future<int> mergeTokens(
+    List<OtpToken> tokenList, {
+    bool performInsert = true,
+  }) async {
+    List<OtpToken> already = await TokenDao.listTokens();
+    List<OtpToken> newTokenList = [];
+    for (OtpToken otpToken in tokenList) {
+      OtpToken? alreadyToken = checkTokenExist(otpToken, already);
+      if (alreadyToken == null &&
+          checkTokenExist(otpToken, newTokenList) == null) {
+        newTokenList.add(otpToken);
+      }
+    }
+    if (performInsert) {
+      await TokenDao.insertTokens(newTokenList);
+      homeScreenState?.refresh();
+    }
+    return newTokenList.length;
+  }
+
+  static Future<int> mergeCategories(
+    List<TokenCategory> categoryList, {
+    bool performInsert = true,
+  }) async {
+    Map<String, int> categoryCount = {};
+    for (TokenCategory category in categoryList) {
+      if (categoryCount.containsKey(category.title)) {
+        categoryCount[category.title] = categoryCount[category.title]! + 1;
+        category.title =
+            "${category.title}(${categoryCount[category.title]! - 1})";
+      } else {
+        categoryCount[category.title] = 1;
+      }
+    }
+    List<TokenCategory> already = await CategoryDao.listCategories();
+    List<TokenCategory> newCategoryList = [];
+    for (TokenCategory category in categoryList) {
+      if (!checkCategoryExist(category, already) &&
+          !checkCategoryExist(category, newCategoryList)) {
+        newCategoryList.add(category);
+      }
+    }
+    if (performInsert) {
+      await CategoryDao.insertCategories(newCategoryList);
+      homeScreenState?.refresh();
+    }
+    return newCategoryList.length;
   }
 }

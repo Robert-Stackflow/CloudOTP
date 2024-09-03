@@ -1,0 +1,455 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Models/token_category.dart';
+import 'package:cloudotp/Models/token_category_binding.dart';
+import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
+import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/utils.dart';
+import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:pointycastle/api.dart';
+import 'package:pointycastle/block/aes.dart';
+import 'package:pointycastle/block/modes/cbc.dart';
+import 'package:pointycastle/digests/sha256.dart';
+import 'package:pointycastle/key_derivators/api.dart';
+import 'package:pointycastle/key_derivators/argon2_native_int_impl.dart';
+import 'package:pointycastle/key_derivators/hkdf.dart';
+import 'package:pointycastle/key_derivators/pbkdf2.dart';
+import 'package:pointycastle/macs/hmac.dart';
+
+import '../../Utils/ilogger.dart';
+import '../../Utils/itoast.dart';
+import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
+import '../../Widgets/Item/input_item.dart';
+import '../../generated/l10n.dart';
+
+class BitwardenFolder {
+  String name;
+  String uid;
+
+  BitwardenFolder({
+    required this.name,
+    required this.uid,
+  });
+
+  factory BitwardenFolder.fromJson(Map<String, dynamic> json) {
+    return BitwardenFolder(
+      name: json['name'] ?? "",
+      uid: json['id'] ?? Utils.generateUid(),
+    );
+  }
+}
+
+enum KdfType {
+  Pbkdf2Sha256,
+  Argon2Id,
+}
+
+class Vault {
+  List<BitwardenFolder> folders;
+  List<BitwardenItem> items;
+  String? encKeyValidation;
+  bool encrypted;
+  bool? passwordProtected;
+  String? salt;
+  KdfType? kdfType;
+  int? kdfIterations;
+  int? kdfMemory;
+  int? kdfParallelism;
+  String? data;
+
+  Vault({
+    required this.folders,
+    required this.items,
+    this.encKeyValidation,
+    required this.encrypted,
+    this.passwordProtected,
+    this.salt,
+    this.kdfType,
+    this.kdfIterations,
+    this.kdfMemory,
+    this.kdfParallelism,
+    this.data,
+  });
+
+  bool get isValidEncryt =>
+      encKeyValidation != null &&
+      encrypted &&
+      passwordProtected == true &&
+      salt != null &&
+      data != null;
+
+  factory Vault.fromJson(Map<String, dynamic> json) {
+    List<dynamic> items =
+        json['items'] != null ? json['items'] as List<dynamic> : [];
+    List<BitwardenItem> bitwardenItems = [];
+    for (var item in items) {
+      var tmp = BitwardenItem.fromJson(item);
+      if (tmp != null) {
+        bitwardenItems.add(tmp);
+      }
+    }
+    return Vault(
+      folders: json['folders'] != null
+          ? (json['folders'] as List<dynamic>)
+              .map((e) => BitwardenFolder.fromJson(e))
+              .toList()
+          : [],
+      items: bitwardenItems,
+      encKeyValidation: json['encKeyValidation_DO_NOT_EDIT'] as String?,
+      encrypted: json['encrypted'] as bool,
+      passwordProtected: json['passwordProtected'] as bool?,
+      salt: json['salt'] as String?,
+      kdfType: json['kdfType'] != null && json['kdfType'] is int
+          ? KdfType.values[
+              (json['kdfType'] as int).clamp(0, KdfType.values.length - 1)]
+          : null,
+      kdfIterations: json['kdfIterations'] as int?,
+      kdfMemory: json['kdfMemory'] as int?,
+      kdfParallelism: json['kdfParallelism'] as int?,
+      data: json['data'] as String?,
+    );
+  }
+}
+
+class BitwardenItem {
+  String uid;
+  String name;
+  String? folderId;
+  int type;
+  String? totp;
+  String? username;
+  bool favorite;
+
+  BitwardenItem({
+    required this.uid,
+    required this.name,
+    required this.folderId,
+    required this.type,
+    this.totp,
+    this.username,
+    required this.favorite,
+  });
+
+  static BitwardenItem? fromJson(Map<String, dynamic> json) {
+    if (json['login'] == null ||
+        json['login']['totp'] == null ||
+        json['login']['totp'].isEmpty) {
+      return null;
+    }
+    return BitwardenItem(
+      favorite: json['favorite'] as bool,
+      uid: json['id'] ?? Utils.generateUid(),
+      name: json['name'] as String,
+      folderId: json['folderId'] as String?,
+      type: json['type'] as int,
+      totp: json['login']['totp'] as String?,
+      username: json['login']['username'] as String?,
+    );
+  }
+
+  List<TokenCategoryBinding> getBindings() {
+    return folderId != null
+        ? [
+            TokenCategoryBinding(
+              tokenUid: uid,
+              categoryUid: folderId!,
+            ),
+          ]
+        : [];
+  }
+
+  OtpToken? toOtpToken() {
+    if (totp == null || totp!.isEmpty) {
+      return null;
+    }
+    OtpToken token = OtpToken.init();
+    if (totp!.startsWith("otpauth://")) {
+      return OtpTokenParser.parseOtpauthUri(Uri.parse(totp!));
+    } else if (totp!.startsWith("steam://")) {
+      token.tokenType = OtpTokenType.Steam;
+      totp = totp!.substring(8);
+    } else {
+      token.tokenType = OtpTokenType.TOTP;
+    }
+    token.digits = token.tokenType.defaultDigits;
+    token.periodString = token.tokenType.defaultPeriod.toString();
+    token.uid = uid;
+    token.account = username ?? "";
+    token.issuer = name;
+    token.pinned = favorite;
+    token.secret = totp ?? "";
+    return token;
+  }
+}
+
+class BitwardenTokenImporter implements BaseTokenImporter {
+  static const String BaseAlgorithm = "AES";
+  static const String Mode = "CBC";
+  static const String Padding = "PKCS7";
+  static const String AlgorithmDescription = "$BaseAlgorithm/$Mode/$Padding";
+
+  static const int loginType = 1;
+  static const int pbkdf2Iterations = 6000;
+  static const int argon2IdIterations = 3;
+  static const int keyLength = 32;
+  static const int saltLength = 16;
+
+  static Vault? decrypt(Vault vault, String password) {
+    var parts = vault.data!.split(".");
+    var data = parts[1].split("|");
+
+    if (data.length < 3) {
+      debugPrint("Data format is invalid");
+      return null;
+    }
+
+    Uint8List? key = deriveMainKey(vault, password);
+    if (key == null) {
+      debugPrint("Failed to derive key");
+      return null;
+    }
+
+    var iv = base64.decode(data[0]);
+    var payload = base64.decode(data[1]);
+    var mac = base64.decode(data[2]);
+
+    var encryptionKey = hkdfExpand(key, "enc");
+    var macKey = hkdfExpand(key, "mac");
+
+    if (!verifyMac(macKey, iv, payload, mac)) {
+      debugPrint("MAC verification failed");
+      return null;
+    }
+
+    var keyParameter = ParametersWithIV(KeyParameter(encryptionKey), iv);
+    var cipher = CBCBlockCipher(AESEngine())..init(false, keyParameter);
+
+    Uint8List decryptedBytes;
+    try {
+      decryptedBytes = cipher.process(payload);
+    } catch (e) {
+      return null;
+    }
+
+    var json = utf8.decode(decryptedBytes);
+    var tmp = {"encrypted": false};
+    tmp.addAll(jsonDecode(json));
+    return Vault.fromJson(tmp);
+  }
+
+  static bool verifyMac(
+      Uint8List key, Uint8List iv, Uint8List payload, Uint8List expected) {
+    var material = Uint8List(iv.length + payload.length);
+    material.setRange(0, iv.length, iv);
+    material.setRange(iv.length, iv.length + payload.length, payload);
+
+    var hmac = HMac(SHA256Digest(), 64)..init(KeyParameter(key));
+    var hash = hmac.process(material);
+
+    return constantTimeAreEqual(hash, expected);
+  }
+
+  static Uint8List? deriveMainKey(Vault vault, String password) {
+    var passwordBytes = utf8.encode(password);
+    var saltBytes = utf8.encode(vault.salt!);
+
+    switch (vault.kdfType) {
+      case KdfType.Pbkdf2Sha256:
+        return derivePbkdf2Sha256(
+          passwordBytes,
+          vault.kdfIterations,
+          saltBytes,
+        );
+
+      case KdfType.Argon2Id:
+        return deriveArgon2Id(
+          passwordBytes,
+          iterations: vault.kdfIterations,
+          memory: vault.kdfMemory,
+          parallelism: vault.kdfParallelism,
+          saltBytes,
+        );
+
+      default:
+        throw ArgumentError("Unsupported KDF type");
+    }
+  }
+
+  static Uint8List derivePbkdf2Sha256(
+    Uint8List password,
+    int? iterations,
+    Uint8List salt,
+  ) {
+    var generator = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
+      ..init(Pbkdf2Parameters(salt, iterations ?? pbkdf2Iterations, keyLength));
+    return generator.process(password);
+  }
+
+  static Uint8List deriveArgon2Id(
+    Uint8List password,
+    Uint8List salt, {
+    int? memory,
+    int? parallelism,
+    int? iterations,
+    int? keyLength,
+  }) {
+    final argon2 = Argon2BytesGenerator();
+    argon2.init(Argon2Parameters(
+      Argon2Parameters.ARGON2_id,
+      salt,
+      lanes: parallelism ?? 4,
+      iterations: iterations ?? BitwardenTokenImporter.argon2IdIterations,
+      memory: memory,
+      desiredKeyLength: keyLength ?? BitwardenTokenImporter.keyLength * 8,
+    ));
+    return argon2.process(password);
+  }
+
+  static Uint8List hkdfExpand(Uint8List key, String info) {
+    HKDFKeyDerivator generator = HKDFKeyDerivator(SHA256Digest());
+    var infoBytes = utf8.encode(info);
+    generator.init(HkdfParameters(key, keyLength, null, infoBytes, true));
+    return generator.process(key);
+  }
+
+  static bool constantTimeAreEqual(Uint8List a, Uint8List b) {
+    if (a.length != b.length) return false;
+    var result = 0;
+    for (var i = 0; i < a.length; i++) {
+      result |= a[i] ^ b[i];
+    }
+    return result == 0;
+  }
+
+  Future<void> import(Vault vault) async {
+    List<OtpToken> tokens = [];
+    List<TokenCategory> categories = [];
+    List<String> usedCategoryUids = [];
+    List<TokenCategoryBinding> bindings = [];
+    for (var service in vault.items) {
+      try {
+        OtpToken? token = service.toOtpToken();
+        if (token != null) {
+          tokens.add(token);
+        }
+      } finally {}
+    }
+    bindings = vault.items.expand((e) => e.getBindings()).toList();
+    for (var binding in bindings) {
+      if (!usedCategoryUids.contains(binding.categoryUid)) {
+        usedCategoryUids.add(binding.categoryUid);
+      }
+    }
+    for (var folder in vault.folders) {
+      if (usedCategoryUids.contains(folder.uid)) {
+        categories.add(TokenCategory.title(
+          tUid: folder.uid,
+          title: folder.name,
+        ));
+      }
+    }
+    await BaseTokenImporter.importResult(
+        ImporterResult(tokens, categories, bindings));
+  }
+
+  @override
+  Future<void> importFromPath(
+    String path, {
+    bool showLoading = true,
+  }) async {
+    late ProgressDialog dialog;
+    if (showLoading) {
+      dialog =
+          showProgressDialog(msg: S.current.importing, showProgress: false);
+    }
+    try {
+      File file = File(path);
+      if (!file.existsSync()) {
+        IToast.showTop(S.current.fileNotExist);
+      } else {
+        String content = file.readAsStringSync();
+        Vault vault = Vault.fromJson(jsonDecode(content));
+        if (vault.encrypted) {
+          if (showLoading) dialog.dismiss();
+          if (!vault.isValidEncryt) {
+            IToast.showTop(S.current.cannotImportFromBitwarden);
+            return;
+          }
+          InputValidateAsyncController validateAsyncController =
+              InputValidateAsyncController(
+            listen: false,
+            validator: (text) async {
+              if (text.isEmpty) {
+                return S.current.autoBackupPasswordCannotBeEmpty;
+              }
+              if (showLoading) {
+                dialog.show(msg: S.current.importing, showProgress: false);
+              }
+              Vault? res = await compute(
+                (receiveMessage) {
+                  Vault vault = Vault.fromJson(receiveMessage['data']);
+                  return decrypt(vault, receiveMessage["password"] as String);
+                },
+                {
+                  'data': jsonDecode(content),
+                  'password': text,
+                },
+              );
+              if (res != null) {
+                await import(res);
+                if (showLoading) {
+                  dialog.dismiss();
+                }
+                return null;
+              } else {
+                if (showLoading) {
+                  dialog.dismiss();
+                }
+                return S.current.invalidPasswordOrDataCorrupted;
+              }
+            },
+            controller: TextEditingController(),
+          );
+          BottomSheetBuilder.showBottomSheet(
+            rootContext,
+            responsive: true,
+            useWideLandscape: true,
+            (context) => InputBottomSheet(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              checkSyncValidator: false,
+              validateAsyncController: validateAsyncController,
+              title: S.current.inputImportPasswordTitle,
+              message: S.current.inputImportPasswordTip,
+              hint: S.current.inputImportPasswordHint,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+              ],
+              tailingType: InputItemTailingType.password,
+              onValidConfirm: (password) async {},
+            ),
+          );
+        } else {
+          await import(vault);
+        }
+      }
+    } catch (e, t) {
+      ILogger.error("Failed to import from Bitwarden", e, t);
+      IToast.showTop(S.current.importFailed);
+    } finally {
+      if (showLoading) {
+        dialog.dismiss();
+      }
+    }
+  }
+}

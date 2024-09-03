@@ -56,7 +56,7 @@ class Slot {
   factory Slot.fromJson(Map<String, dynamic> json) {
     return Slot(
       type: SlotType
-          .values[(json['type'] as int).clamp(0, SlotType.values.length)],
+          .values[(json['type'] as int).clamp(0, SlotType.values.length-1)],
       uuid: json['uuid'],
       key: json['key'],
       keyParams: KeyParams.fromJson(json['key_params']),
@@ -336,23 +336,6 @@ class AegisTokenImporter implements BaseTokenImporter {
 
   static const int keyLength = 32;
 
-  static Uint8List getAuthenticatedBytes(Uint8List payload, Uint8List mac) {
-    final result = Uint8List(payload.length + mac.length);
-    result.setRange(0, payload.length, payload);
-    result.setRange(payload.length, result.length, mac);
-    return result;
-  }
-
-  static Uint8List decryptAesGcm(
-      Uint8List key, Uint8List iv, Uint8List data, Uint8List mac) {
-    final cipher = GCMBlockCipher(AESEngine());
-    final aeadParams = AEADParameters(KeyParameter(key), 128, iv, Uint8List(0));
-    cipher.init(false, aeadParams);
-
-    final authenticatedBytes = getAuthenticatedBytes(data, mac);
-    return cipher.process(authenticatedBytes);
-  }
-
   static dynamic decryptBackup(AegisBackup backup) {
     if (backup.dbString == null || backup.header.params == null) {
       return [
@@ -425,19 +408,36 @@ class AegisTokenImporter implements BaseTokenImporter {
     return decryptAesGcm(derivedKey, ivBytes, keyBytes, macBytes);
   }
 
+  static Uint8List decryptAesGcm(
+      Uint8List key, Uint8List iv, Uint8List data, Uint8List mac) {
+    final cipher = GCMBlockCipher(AESEngine());
+    final aeadParams = AEADParameters(KeyParameter(key), 128, iv, Uint8List(0));
+    cipher.init(false, aeadParams);
+
+    final authenticatedBytes = getAuthenticatedBytes(data, mac);
+    return cipher.process(authenticatedBytes);
+  }
+
+  static Uint8List getAuthenticatedBytes(Uint8List payload, Uint8List mac) {
+    final result = Uint8List(payload.length + mac.length);
+    result.setRange(0, payload.length, payload);
+    result.setRange(payload.length, result.length, mac);
+    return result;
+  }
+
   Future<void> import(AegisBackup backup) async {
     List<OtpToken> tokens = [];
     List<TokenCategory> categories = [];
     List<TokenCategoryBinding> bindings = [];
-    List<AegisGroup> twoFASGroups = [];
-    List<AegisToken> twoFASTokens = [];
+    List<AegisGroup> aegisGroups = [];
+    List<AegisToken> aegisTokens = [];
     if (backup.db != null) {
-      twoFASTokens = backup.db!.entries;
-      twoFASGroups = backup.db!.groups;
+      aegisTokens = backup.db!.entries;
+      aegisGroups = backup.db!.groups;
     }
-    categories = twoFASGroups.map((e) => e.toTokenCategory()).toList();
-    tokens = twoFASTokens.map((e) => e.toOtpToken()).toList();
-    bindings = twoFASTokens.expand((e) => e.getBindings()).toList();
+    categories = aegisGroups.map((e) => e.toTokenCategory()).toList();
+    tokens = aegisTokens.map((e) => e.toOtpToken()).toList();
+    bindings = aegisTokens.expand((e) => e.getBindings()).toList();
     await BaseTokenImporter.importResult(
         ImporterResult(tokens, categories, bindings));
   }

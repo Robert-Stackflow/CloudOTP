@@ -31,4 +31,14 @@ class TokenCategoryBinding {
   @override
   String toString() =>
       'TokenCategoryBinding(tokenUid: $tokenUid, categoryUid: $categoryUid)';
+
+  @override
+  bool operator ==(Object other) {
+    return other is TokenCategoryBinding &&
+        other.tokenUid == tokenUid &&
+        other.categoryUid == categoryUid;
+  }
+
+  @override
+  int get hashCode => tokenUid.hashCode ^ categoryUid.hashCode;
 }

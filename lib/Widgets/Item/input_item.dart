@@ -388,7 +388,7 @@ class RegexInputFormatter implements TextInputFormatter {
   static RegexInputFormatter onlyNumberAndLetter =
       RegexInputFormatter(RegExp(r'^[a-zA-Z0-9]*$'));
   static RegexInputFormatter onlyNumberAndLetterAndSymbol = RegexInputFormatter(
-      RegExp(r'^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]\{\};:",<>.?/\\|`~]+$'));
+      RegExp(r'^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]\{\};:",<>.?/\\|`~]*$'));
 
   static RegexInputFormatter onlyUrl = RegexInputFormatter(
       RegExp(r'''^[a-zA-Z0-9!@#$%^&*()-_+=~{}:";',./|\\\[\]<>?]+$'''));

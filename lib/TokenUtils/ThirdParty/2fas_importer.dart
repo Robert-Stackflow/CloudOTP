@@ -163,7 +163,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
 
     var key = deriveKey(password, salt);
     var cipher = GCMBlockCipher(AESEngine())
-      ..init(false, AEADParameters(KeyParameter(key), 128, iv, Uint8List(0)));
+      ..init(false, AEADParameters(key, 128, iv, Uint8List(0)));
 
     Uint8List decryptedBytes;
 
@@ -180,22 +180,11 @@ class TwoFASTokenImporter implements BaseTokenImporter {
     return [DecryptResult.success, jsonDecode(decryptedJson)];
   }
 
-  static Uint8List deriveKey(String password, Uint8List salt) {
+  static KeyParameter deriveKey(String password, Uint8List salt) {
     var passwordBytes = utf8.encode(password);
-    var pbkdf2 = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
+    PBKDF2KeyDerivator generator = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
       ..init(Pbkdf2Parameters(salt, iterations, keyLength));
-    return pbkdf2.process(Uint8List.fromList(passwordBytes));
-  }
-
-  PaddedBlockCipher createCipher(
-      bool forEncryption, KeyParameter key, Uint8List iv) {
-    var cipher =
-        PaddedBlockCipherImpl(PKCS7Padding(), CBCBlockCipher(AESEngine()))
-          ..init(
-              forEncryption,
-              PaddedBlockCipherParameters<ParametersWithIV, ParametersWithIV>(
-                  ParametersWithIV(key, iv), ParametersWithIV(key, iv)));
-    return cipher;
+    return KeyParameter(generator.process(Uint8List.fromList(passwordBytes)));
   }
 
   Future<void> import(Map<String, dynamic> json) async {
