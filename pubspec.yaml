@@ -65,6 +65,8 @@ dependencies:
   protoc_plugin: ^21.1.2  # Protobuf
   flutter_native_splash: ^2.4.1 # Splash屏
   queue: ^3.1.0+2 # 队列
+  ente_crypto_dart:
+    path: third-party/ente_crypto
   # 系统
   provider: ^6.0.5 # 状态管理
   local_auth: ^2.2.0 # 指纹验证

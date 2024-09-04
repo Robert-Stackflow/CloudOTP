@@ -14,6 +14,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_capturer_windows
   screen_retriever
   share_plus
+  sodium_libs
   tray_manager
   url_launcher_windows
   window_manager

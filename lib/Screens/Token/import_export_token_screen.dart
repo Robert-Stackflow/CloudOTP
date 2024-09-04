@@ -19,6 +19,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../TokenUtils/ThirdParty/2fas_importer.dart';
 import '../../TokenUtils/ThirdParty/andotp_importer.dart';
 import '../../TokenUtils/ThirdParty/bitwarden_importer.dart';
+import '../../TokenUtils/ThirdParty/enteauth_importer.dart';
 import '../../TokenUtils/ThirdParty/freeotpplus_importer.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/file_util.dart';
@@ -375,25 +376,24 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             }
           },
         ),
+        // ItemBuilder.buildEntryItem(
+        //   context: context,
+        //   title: S.current.importFromFreeOTP,
+        //   description: S.current.importFromFreeOTPTip,
+        //   onTap: () async {
+        //     FilePickerResult? result = await FileUtil.pickFiles(
+        //       dialogTitle: S.current.importFromFreeOTPTitle,
+        //       type: FileType.custom,
+        //       allowedExtensions: ['xml'],
+        //       lockParentWindow: true,
+        //     );
+        //     if (result != null) {
+        //       FreeOTPTokenImporter().importFromPath(result.files.single.path!);
+        //     }
+        //   },
+        // ),
         ItemBuilder.buildEntryItem(
           context: context,
-          title: S.current.importFromFreeOTP,
-          description: S.current.importFromFreeOTPTip,
-          onTap: () async {
-            FilePickerResult? result = await FileUtil.pickFiles(
-              dialogTitle: S.current.importFromFreeOTPTitle,
-              type: FileType.custom,
-              allowedExtensions: ['xml'],
-              lockParentWindow: true,
-            );
-            if (result != null) {
-              FreeOTPTokenImporter().importFromPath(result.files.single.path!);
-            }
-          },
-        ),
-        ItemBuilder.buildEntryItem(
-          context: context,
-          bottomRadius: true,
           title: S.current.importFromFreeOTPPlus,
           description: S.current.importFromFreeOTPPlusTip,
           onTap: () async {
@@ -405,6 +405,23 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             );
             if (result != null) {
               FreeOTPPlusTokenImporter()
+                  .importFromPath(result.files.single.path!);
+            }
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.importFromEnteAuth,
+          description: S.current.importFromEnteAuthTip,
+          onTap: () async {
+            FilePickerResult? result = await FileUtil.pickFiles(
+              dialogTitle: S.current.importFromEnteAuthTitle,
+              type: FileType.custom,
+              allowedExtensions: ['txt'],
+              lockParentWindow: true,
+            );
+            if (result != null) {
+              EnteAuthTokenImporter()
                   .importFromPath(result.files.single.path!);
             }
           },

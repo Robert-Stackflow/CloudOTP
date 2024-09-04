@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:protobuf/protobuf.dart';
 
 import '../Models/Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
@@ -140,6 +141,22 @@ class OtpTokenParser {
     }
     if (queryParameters.containsKey("pin")) {
       token.pin = queryParameters["pin"]!;
+    }
+    if (queryParameters.containsKey("codeDisplay")) {
+      Map<String, dynamic> json = {};
+      try {
+        json = jsonDecode(queryParameters["codeDisplay"]!);
+        if (json.containsKey("pinned")) {
+          token.pinned = json["pinned"];
+        }
+        token.tags = json["tags"] != null
+            ? (json["tags"] as List).map((e) => e.toString()).toList()
+            : [];
+      } catch (e, t) {
+        debugPrint(
+          "Failed to parse codeDisplay:$e\n$t",
+        );
+      }
     }
     token.imagePath = TokenImageUtil.matchBrandLogo(token) ?? "";
     return token;

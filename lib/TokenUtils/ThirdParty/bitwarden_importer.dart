@@ -20,6 +20,7 @@ import 'package:pointycastle/key_derivators/argon2_native_int_impl.dart';
 import 'package:pointycastle/key_derivators/hkdf.dart';
 import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
+import 'package:pointycastle/paddings/pkcs7.dart';
 
 import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
@@ -50,6 +51,14 @@ enum KdfType {
   Argon2Id,
 }
 
+enum VaultInvalidType {
+  Valid,
+  AccountRestricted,
+  ParameterLoss,
+  SaltLoss,
+  DataLoss,
+}
+
 class Vault {
   List<BitwardenFolder> folders;
   List<BitwardenItem> items;
@@ -77,12 +86,29 @@ class Vault {
     this.data,
   });
 
-  bool get isValidEncryt =>
-      encKeyValidation != null &&
-      encrypted &&
-      passwordProtected == true &&
-      salt != null &&
-      data != null;
+  VaultInvalidType get isValidEncryt {
+    if (encrypted &&
+        (passwordProtected == null || passwordProtected == false)) {
+      return VaultInvalidType.AccountRestricted;
+    }
+    if (data == null || data!.isEmpty) return VaultInvalidType.DataLoss;
+    if (kdfType == null) return VaultInvalidType.ParameterLoss;
+    if (salt == null || salt!.isEmpty) return VaultInvalidType.SaltLoss;
+    switch (kdfType) {
+      case KdfType.Pbkdf2Sha256:
+        return kdfIterations != null
+            ? VaultInvalidType.Valid
+            : VaultInvalidType.ParameterLoss;
+      case KdfType.Argon2Id:
+        return kdfIterations != null &&
+                kdfMemory != null &&
+                kdfParallelism != null
+            ? VaultInvalidType.Valid
+            : VaultInvalidType.ParameterLoss;
+      default:
+        return VaultInvalidType.ParameterLoss;
+    }
+  }
 
   factory Vault.fromJson(Map<String, dynamic> json) {
     List<dynamic> items =
@@ -114,6 +140,11 @@ class Vault {
       kdfParallelism: json['kdfParallelism'] as int?,
       data: json['data'] as String?,
     );
+  }
+
+  @override
+  String toString() {
+    return 'Vault{folders: $folders, items: $items, encKeyValidation: $encKeyValidation, encrypted: $encrypted, passwordProtected: $passwordProtected, salt: $salt, kdfType: $kdfType, kdfIterations: $kdfIterations, kdfMemory: $kdfMemory, kdfParallelism: $kdfParallelism, data: $data}';
   }
 }
 
@@ -201,46 +232,56 @@ class BitwardenTokenImporter implements BaseTokenImporter {
   static const int saltLength = 16;
 
   static Vault? decrypt(Vault vault, String password) {
-    var parts = vault.data!.split(".");
-    var data = parts[1].split("|");
-
-    if (data.length < 3) {
-      debugPrint("Data format is invalid");
-      return null;
-    }
-
-    Uint8List? key = deriveMainKey(vault, password);
-    if (key == null) {
-      debugPrint("Failed to derive key");
-      return null;
-    }
-
-    var iv = base64.decode(data[0]);
-    var payload = base64.decode(data[1]);
-    var mac = base64.decode(data[2]);
-
-    var encryptionKey = hkdfExpand(key, "enc");
-    var macKey = hkdfExpand(key, "mac");
-
-    if (!verifyMac(macKey, iv, payload, mac)) {
-      debugPrint("MAC verification failed");
-      return null;
-    }
-
-    var keyParameter = ParametersWithIV(KeyParameter(encryptionKey), iv);
-    var cipher = CBCBlockCipher(AESEngine())..init(false, keyParameter);
-
-    Uint8List decryptedBytes;
     try {
-      decryptedBytes = cipher.process(payload);
-    } catch (e) {
+      var parts = vault.data!.split(".");
+      var data = parts[1].split("|");
+
+      if (data.length < 3) {
+        debugPrint("Data format is invalid");
+        return null;
+      }
+
+      Uint8List? key = deriveMainKey(vault, password);
+      if (key == null) {
+        debugPrint("Failed to derive key");
+        return null;
+      }
+
+      var iv = base64.decode(data[0]);
+      var payload = base64.decode(data[1]);
+      var mac = base64.decode(data[2]);
+
+      var encryptionKey = hkdfExpand(key, "enc");
+      var macKey = hkdfExpand(key, "mac");
+
+      if (!verifyMac(macKey, iv, payload, mac)) {
+        debugPrint("MAC verification failed");
+        return null;
+      }
+
+      var keyParameter = ParametersWithIV(KeyParameter(encryptionKey), iv);
+      var cipher = CBCBlockCipher(AESEngine())..init(false, keyParameter);
+
+      Uint8List decryptedBytes;
+      try {
+        final decrypted = Uint8List(payload.length);
+        var offset = 0;
+        while (offset < payload.length) {
+          offset += cipher.processBlock(payload, offset, decrypted, offset);
+        }
+        final padding = PKCS7Padding();
+        final padCount = padding.padCount(decrypted);
+        decryptedBytes = decrypted.sublist(0, decrypted.length - padCount);
+      } catch (e) {
+        return null;
+      }
+
+      var json = utf8.decode(decryptedBytes);
+      return Vault.fromJson(jsonDecode(json));
+    } catch (e, t) {
+      debugPrint("Failed to decrypt vault: $e\n$t");
       return null;
     }
-
-    var json = utf8.decode(decryptedBytes);
-    var tmp = {"encrypted": false};
-    tmp.addAll(jsonDecode(json));
-    return Vault.fromJson(tmp);
   }
 
   static bool verifyMac(
@@ -257,7 +298,11 @@ class BitwardenTokenImporter implements BaseTokenImporter {
 
   static Uint8List? deriveMainKey(Vault vault, String password) {
     var passwordBytes = utf8.encode(password);
-    var saltBytes = utf8.encode(vault.salt!);
+    final sha256 = SHA256Digest();
+    final saltBytes = Uint8List.fromList(utf8.encode(vault.salt!));
+    sha256.update(saltBytes, 0, saltBytes.length);
+    final saltHash = Uint8List(sha256.digestSize);
+    sha256.doFinal(saltHash, 0);
 
     switch (vault.kdfType) {
       case KdfType.Pbkdf2Sha256:
@@ -271,9 +316,10 @@ class BitwardenTokenImporter implements BaseTokenImporter {
         return deriveArgon2Id(
           passwordBytes,
           iterations: vault.kdfIterations,
-          memory: vault.kdfMemory,
+          memory: (vault.kdfMemory ?? 64) * 1024,
           parallelism: vault.kdfParallelism,
-          saltBytes,
+          keyLength: keyLength,
+          saltHash,
         );
 
       default:
@@ -306,7 +352,7 @@ class BitwardenTokenImporter implements BaseTokenImporter {
       lanes: parallelism ?? 4,
       iterations: iterations ?? BitwardenTokenImporter.argon2IdIterations,
       memory: memory,
-      desiredKeyLength: keyLength ?? BitwardenTokenImporter.keyLength * 8,
+      desiredKeyLength: keyLength ?? BitwardenTokenImporter.keyLength,
     ));
     return argon2.process(password);
   }
@@ -315,7 +361,9 @@ class BitwardenTokenImporter implements BaseTokenImporter {
     HKDFKeyDerivator generator = HKDFKeyDerivator(SHA256Digest());
     var infoBytes = utf8.encode(info);
     generator.init(HkdfParameters(key, keyLength, null, infoBytes, true));
-    return generator.process(key);
+    final output = Uint8List(keyLength);
+    generator.deriveKey(null, 0, output, 0);
+    return output;
   }
 
   static bool constantTimeAreEqual(Uint8List a, Uint8List b) {
@@ -377,9 +425,20 @@ class BitwardenTokenImporter implements BaseTokenImporter {
         Vault vault = Vault.fromJson(jsonDecode(content));
         if (vault.encrypted) {
           if (showLoading) dialog.dismiss();
-          if (!vault.isValidEncryt) {
-            IToast.showTop(S.current.cannotImportFromBitwarden);
-            return;
+          VaultInvalidType type = vault.isValidEncryt;
+          switch (type) {
+            case VaultInvalidType.AccountRestricted:
+              IToast.showTop(
+                  S.current.cannotImportFromBitwardenAccountRestricted);
+              return;
+            case VaultInvalidType.ParameterLoss:
+              IToast.showTop(S.current.cannotImportFromBitwardenParameterLoss);
+              return;
+            case VaultInvalidType.DataLoss:
+              IToast.showTop(S.current.cannotImportFromBitwardenDataLoss);
+              return;
+            default:
+              break;
           }
           InputValidateAsyncController validateAsyncController =
               InputValidateAsyncController(

@@ -469,9 +469,10 @@ class ImportTokenUtil {
     String emptyTip = "",
     String noTokenToast = "",
     bool showLoading = true,
+    bool showToast = true,
   }) async {
     if (Utils.isEmpty(content) && Utils.isNotEmpty(emptyTip)) {
-      IToast.showTop(emptyTip);
+      if (showToast) IToast.showTop(emptyTip);
       return [];
     }
     if (showLoading) {
@@ -493,7 +494,7 @@ class ImportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.dismissLoading();
     }
-    analysis.showToast(noTokenToast);
+    if (showToast) analysis.showToast(noTokenToast);
     return tokens;
   }
 

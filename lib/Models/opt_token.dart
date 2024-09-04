@@ -430,6 +430,7 @@ class OtpToken {
   int lastCopyTimeStamp;
   String pin;
   String description;
+  List<String> tags=[];
 
   int get pinnedInt => pinned ? 1 : 0;
 

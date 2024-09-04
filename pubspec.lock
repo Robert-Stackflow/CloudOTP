@@ -384,6 +384,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.1"
+  ente_crypto_dart:
+    dependency: "direct main"
+    description:
+      path: "third-party/ente_crypto"
+      relative: true
+    source: path
+    version: "1.0.0"
   fake_async:
     dependency: transitive
     description:
@@ -689,6 +696,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "8.2.6"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.4.4"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1631,6 +1646,22 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  sodium:
+    dependency: transitive
+    description:
+      name: sodium
+      sha256: d9830a388e37c82891888e64cfd4c6764fa3ac716bed80ac6eab89ee42c3cd76
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.3.1+1"
+  sodium_libs:
+    dependency: transitive
+    description:
+      name: sodium_libs
+      sha256: aa764acd6ccc6113e119c2d99471aeeb4637a9a501639549b297d3a143ff49b3
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.2.1+6"
   source_gen:
     dependency: transitive
     description:

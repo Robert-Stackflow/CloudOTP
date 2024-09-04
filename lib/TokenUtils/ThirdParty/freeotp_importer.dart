@@ -5,6 +5,7 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
+import 'package:cloudotp/TokenUtils/ThirdParty/pkcs5s2_generator.dart';
 import 'package:cloudotp/Utils/Base32/base32.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
@@ -173,7 +174,7 @@ class JvmStringDecoder {
 }
 
 class FreeOTPTokenImporter implements BaseTokenImporter {
-  static const int MasterKeyBytes = 32;
+  static const int MasterKeyLength = 32;
 
   Map<String, String> deserialise(Uint8List data) {
     final memoryStream = ByteData.sublistView(data);
@@ -269,27 +270,23 @@ class FreeOTPTokenImporter implements BaseTokenImporter {
   }
 
   static KeyParameter? decryptMasterKey(MasterKey masterKey, String password) {
-    final salt = masterKey.salt.cast<int>();
-    print(password);
-    int time = DateTime.now().millisecondsSinceEpoch;
-    print("start to derive key");
-    final key =
-        deriveKey(password, masterKey.algorithm, masterKey.iterations, salt);
-    print(
-        "finish derive key ${(DateTime.now().millisecondsSinceEpoch - time) / 1000}");
+    final salt = masterKey.salt;
+    debugPrint("Salt: ${base64Encode(Uint8List.fromList(salt).toList())}");
+    final key = deriveKey(password, masterKey.algorithm, masterKey.iterations,
+        Uint8List.fromList(salt));
+    debugPrint("DeriveKey: ${base64Encode(key.key)}");
     final master = decryptEncryptedKey(masterKey.encryptedKey, key);
     if (master == null) {
       return null;
     }
+    debugPrint("Master: ${base64Encode(master)}");
     return KeyParameter(master);
   }
 
   static Uint8List? decryptEncryptedKey(
       EncryptedKey encryptedKey, KeyParameter key) {
-    final encodedParams =
-        Uint8List.fromList(encryptedKey.parameters.cast<int>());
-    final encryptedData =
-        Uint8List.fromList(encryptedKey.cipherText.cast<int>());
+    final encodedParams = Uint8List.fromList(encryptedKey.parameters);
+    final encryptedData = Uint8List.fromList(encryptedKey.cipherText);
 
     final parameters =
         readAsn1Parameters(key, encodedParams, encryptedKey.token);
@@ -315,7 +312,8 @@ class FreeOTPTokenImporter implements BaseTokenImporter {
   }
 
   static KeyParameter deriveKey(
-      String password, String algorithm, int iterations, List<int> salt) {
+      String password, String algorithm, int iterations, Uint8List salt) {
+    debugPrint("Derive key from $password, $algorithm, $iterations, $salt");
     Digest digest;
     switch (algorithm) {
       case 'PBKDF2withHmacSHA1':
@@ -329,10 +327,9 @@ class FreeOTPTokenImporter implements BaseTokenImporter {
     }
 
     final passwordBytes = utf8.encode(password);
-    final generator = PBKDF2KeyDerivator(HMac(digest, 64))
-      ..init(Pbkdf2Parameters(
-          Uint8List.fromList(salt), iterations, MasterKeyBytes));
-    return KeyParameter(generator.process(Uint8List.fromList(passwordBytes)));
+    final generator = Pkcs5S2ParametersGenerator(digest);
+    return KeyParameter(generator.generateDerivedKey(
+        passwordBytes, salt, iterations, MasterKeyLength));
   }
 
   Future<void> import(List<FreeOTPToken> freeOTPTokens) async {
