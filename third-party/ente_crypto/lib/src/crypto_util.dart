@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' as io;
 import 'dart:developer';
+import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:ente_crypto_dart/src/core/errors.dart';
 import 'package:ente_crypto_dart/src/models/derived_key_result.dart';
 import 'package:ente_crypto_dart/src/models/device_info.dart';
 import 'package:ente_crypto_dart/src/models/encryption_result.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:sodium/sodium_sumo.dart';
 import 'package:sodium_libs/sodium_libs.dart';
@@ -19,7 +20,7 @@ const int hashChunkSize = 4 * 1024 * 1024;
 const int loginSubKeyLen = 32;
 const int loginSubKeyId = 1;
 const String loginSubKeyContext = "loginctx";
-late SodiumSumo sodium;
+late final SodiumSumo sodium;
 
 // Computes and returns the hash of the source file
 Future<Uint8List> getHash(io.File source) {
@@ -500,6 +501,7 @@ class CryptoUtil {
             cryptoPwHash(password, salt, memLimit, opsLimit, sodium),
       );
     } catch (e, s) {
+      debugPrint("$e\n$s");
       final String errMessage = 'failed to deriveKey memLimit: $memLimit and '
           'opsLimit: $opsLimit';
       Logger("CryptoUtilDeriveKey").warning(errMessage, e, s);

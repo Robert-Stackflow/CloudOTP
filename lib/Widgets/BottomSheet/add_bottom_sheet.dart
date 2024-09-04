@@ -18,6 +18,7 @@ import '../../Utils/route_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import 'bottom_sheet_builder.dart';
+import 'import_from_third_party_bottom_sheet.dart';
 
 class AddBottomSheet extends StatefulWidget {
   const AddBottomSheet({
@@ -312,6 +313,21 @@ class AddBottomSheetState extends State<AddBottomSheet>
             RouteUtil.pushDialogRoute(context, const ImportExportTokenScreen());
           },
           leading: Icons.import_export_rounded,
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          horizontalPadding: 20,
+          title: S.current.importFromThirdParty,
+          showLeading: true,
+          showTrailing: false,
+          onTap: () {
+            Navigator.pop(context);
+            RouteUtil.pushDialogRoute(
+              context,
+              const ImportFromThirdPartyBottomSheet(),
+            );
+          },
+          leading: Icons.apps_rounded,
         ),
       ],
     );

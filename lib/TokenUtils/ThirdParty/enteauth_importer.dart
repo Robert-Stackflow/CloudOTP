@@ -11,7 +11,6 @@ import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:pointycastle/export.dart';
 
 import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
@@ -94,16 +93,16 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
   static const int KeyLength = 32;
   static const int DerivationParallelism = 1;
 
-  static dynamic decrypt(String password, KdfParams param, String data,
-      String header) async {
-    final derivedKey = await CryptoUtil.deriveKey(
-      utf8.encode(password),
-      CryptoUtil.base642bin(param.salt),
-      param.memLimit,
-      param.opsLimit,
-    );
-    Uint8List? decryptedContent;
+  static dynamic decrypt(
+      String password, KdfParams param, String data, String header) async {
     try {
+      final derivedKey = await CryptoUtil.deriveKey(
+        utf8.encode(password),
+        CryptoUtil.base642bin(param.salt),
+        param.memLimit,
+        param.opsLimit,
+      );
+      Uint8List? decryptedContent;
       decryptedContent = await CryptoUtil.decryptData(
         CryptoUtil.base642bin(data),
         derivedKey,
@@ -120,18 +119,15 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
     List<TokenCategory> categories = [];
     List<TokenCategoryBinding> bindings = [];
     List<String> uniqueTags =
-    toImportTokens.expand((element) => element.tags).toSet().toList();
+        toImportTokens.expand((element) => element.tags).toSet().toList();
     categories.addAll(uniqueTags
         .map((e) => TokenCategory.title(title: e))
         .where((element) => !categories.contains(element)));
     for (var token in toImportTokens) {
-      bindings.addAll(token.tags.map((e) =>
-          TokenCategoryBinding(
+      bindings.addAll(token.tags.map((e) => TokenCategoryBinding(
             tokenUid: token.uid,
             categoryUid:
-            categories
-                .firstWhere((element) => element.title == e)
-                .uid,
+                categories.firstWhere((element) => element.title == e).uid,
           )));
     }
     await BaseTokenImporter.importResult(
@@ -139,7 +135,8 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
   }
 
   @override
-  Future<void> importFromPath(String path, {
+  Future<void> importFromPath(
+    String path, {
     bool showLoading = true,
   }) async {
     late ProgressDialog dialog;
@@ -163,7 +160,7 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
           }
           if (showLoading) dialog.dismiss();
           InputValidateAsyncController validateAsyncController =
-          InputValidateAsyncController(
+              InputValidateAsyncController(
             listen: false,
             validator: (text) async {
               if (text.isEmpty) {
@@ -172,25 +169,27 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
               if (showLoading) {
                 dialog.show(msg: S.current.importing, showProgress: false);
               }
-              var res = await compute(
-                    (receiveMessage) async {
-                  return await decrypt(
-                      receiveMessage["password"] as String,
-                      KdfParams.fromJson(
-                          receiveMessage["params"] as Map<String, dynamic>),
-                      receiveMessage["data"] as String,
-                      receiveMessage["header"] as String);
-                },
-                {
-                  'data': backup.encryptedData,
-                  "params": backup.kdfParams.toJson(),
-                  'header': backup.encryptedNonce,
-                  'password': text,
-                },
-              );
+              // var res = await compute(
+              //   (receiveMessage) async {
+              //     return await decrypt(
+              //         receiveMessage["password"] as String,
+              //         KdfParams.fromJson(
+              //             receiveMessage["params"] as Map<String, dynamic>),
+              //         receiveMessage["data"] as String,
+              //         receiveMessage["header"] as String);
+              //   },
+              //   {
+              //     'data': backup.encryptedData,
+              //     "params": backup.kdfParams.toJson(),
+              //     'header': backup.encryptedNonce,
+              //     'password': text,
+              //   },
+              // );
+              var res = await decrypt(text, backup.kdfParams, backup.encryptedData,
+                  backup.encryptedNonce);
               if (res[0] == DecryptResult.success) {
                 List<OtpToken> tokens =
-                await ImportTokenUtil.importText(res[1], showToast: false);
+                    await ImportTokenUtil.importText(res[1], showToast: false);
                 await import(tokens);
                 if (showLoading) {
                   dialog.dismiss();
@@ -209,29 +208,28 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
             rootContext,
             responsive: true,
             useWideLandscape: true,
-                (context) =>
-                InputBottomSheet(
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return S.current.autoBackupPasswordCannotBeEmpty;
-                    }
-                    return null;
-                  },
-                  checkSyncValidator: false,
-                  validateAsyncController: validateAsyncController,
-                  title: S.current.inputImportPasswordTitle,
-                  message: S.current.inputImportPasswordTip,
-                  hint: S.current.inputImportPasswordHint,
-                  inputFormatters: [
-                    RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-                  ],
-                  tailingType: InputItemTailingType.password,
-                  onValidConfirm: (password) async {},
-                ),
+            (context) => InputBottomSheet(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              checkSyncValidator: false,
+              validateAsyncController: validateAsyncController,
+              title: S.current.inputImportPasswordTitle,
+              message: S.current.inputImportPasswordTip,
+              hint: S.current.inputImportPasswordHint,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+              ],
+              tailingType: InputItemTailingType.password,
+              onValidConfirm: (password) async {},
+            ),
           );
         } catch (e) {
           List<OtpToken> tokens =
-          await ImportTokenUtil.importText(content, showToast: false);
+              await ImportTokenUtil.importText(content, showToast: false);
           await import(tokens);
         }
       }

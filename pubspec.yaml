@@ -145,6 +145,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/lottie/
+    - assets/auth/
     - assets/icon/
     - assets/brand/
     - assets/logo.png

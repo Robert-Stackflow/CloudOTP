@@ -41,6 +41,8 @@ import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
 import '../Utils/utils.dart';
+import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
+import '../Widgets/BottomSheet/import_from_third_party_bottom_sheet.dart';
 import '../Widgets/Custom/loading_icon.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/General/EasyRefresh/easy_refresh.dart';
@@ -642,6 +644,22 @@ class MainScreenState extends State<MainScreen>
                     DialogBuilder.showPageDialog(
                       context,
                       child: const ImportExportTokenScreen(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 4),
+                ItemBuilder.buildIconTextButton(
+                  context,
+                  quarterTurns: quarterTurns,
+                  text: S.current.importFromThirdParty,
+                  fontSizeDelta: -2,
+                  showText: false,
+                  direction: Axis.vertical,
+                  icon: const Icon(Icons.apps_rounded),
+                  onTap: () async {
+                    RouteUtil.pushDialogRoute(
+                      context,
+                      const ImportFromThirdPartyBottomSheet(),
                     );
                   },
                 ),

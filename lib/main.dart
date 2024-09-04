@@ -10,6 +10,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/request_header_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
+import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -94,6 +95,7 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
       HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.defaultPassword);
     }
   }
+  await initCryptoUtil();
   NotificationUtil.init();
   await TokenImageUtil.loadBrandLogos();
   if (ResponsiveUtil.isMobile()) {

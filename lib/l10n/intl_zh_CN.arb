@@ -485,6 +485,7 @@
   "importFromThirdParty": "从第三方软件导入",
   "importFromGoogleAuthenticator": "从Google Authenticator导入",
   "importFromGoogleAuthenticatorTip": "在Google Authenticator中选择侧边栏-迁移账户-导出，屏幕上将会显示二维码，使用CloudOTP扫描该二维码即可导入",
+  "importFromGoogleAuthenticatorInMobile": "请从移动端设备扫码导入",
   "importFrom2FAS": "从2FAS导入",
   "importFrom2FASTitle": "选择2fas-backup.2fas文件",
   "importFrom2FASTip": "在2FAS中选择设置-2FAS备份-导出到文件；然后导入2fas-backup.2fas文件",

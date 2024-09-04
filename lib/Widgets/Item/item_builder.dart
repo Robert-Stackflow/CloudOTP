@@ -592,7 +592,7 @@ class ItemBuilder {
                               ? Text(description,
                                   style: Theme.of(context)
                                       .textTheme
-                                      .labelSmall
+                                      .bodySmall
                                       ?.apply(fontSizeDelta: 1))
                               : emptyWidget,
                         ],
@@ -757,7 +757,7 @@ class ItemBuilder {
                                   description,
                                   style: Theme.of(context)
                                       .textTheme
-                                      .labelSmall
+                                      .bodySmall
                                       ?.apply(
                                         fontSizeDelta: 1,
                                         color: descriptionColor,
