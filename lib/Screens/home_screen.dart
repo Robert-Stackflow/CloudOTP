@@ -17,6 +17,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -104,6 +105,13 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       value: 1,
       duration: const Duration(milliseconds: 300),
     );
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (!ResponsiveUtil.isLandscape() &&
+          HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey,
+              defaultValue: false)) {
+        changeSearchBar(true);
+      }
+    });
   }
 
   initAppName() {
@@ -754,7 +762,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           )
         : gridView;
-    return body;
+    return SlidableAutoCloseBehavior(child:body);
   }
 
   _buildTabBar([EdgeInsetsGeometry? padding]) {
@@ -1067,9 +1075,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 enum LayoutType {
   Simple,
   Compact,
-  Tile,
-  List,
-  Spotlight;
+  Spotlight,
+  List;
 
   double get maxCrossAxisExtent {
     switch (this) {
@@ -1077,8 +1084,8 @@ enum LayoutType {
         return 250;
       case LayoutType.Compact:
         return 250;
-      case LayoutType.Tile:
-        return 420;
+      // case LayoutType.Tile:
+      //   return 420;
       case LayoutType.List:
         return 480;
       case LayoutType.Spotlight:
@@ -1092,8 +1099,8 @@ enum LayoutType {
         return 108;
       case LayoutType.Compact:
         return 108;
-      case LayoutType.Tile:
-        return 114;
+      // case LayoutType.Tile:
+      //   return 114;
       case LayoutType.List:
         return 60;
       case LayoutType.Spotlight:

@@ -16,6 +16,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -204,18 +205,122 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
+  _buildSlidable({
+    required Widget child,
+    bool simple = false,
+    double startExtentRatio = 0.16,
+    double endExtentRatio = 0.64,
+  }) {
+    return Slidable(
+      groupTag: "TokenLayout",
+      enabled: !ResponsiveUtil.isWideLandscape(),
+      startActionPane: ActionPane(
+        extentRatio: startExtentRatio,
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) => _processPin(),
+            backgroundColor: widget.token.pinned
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            foregroundColor: Theme.of(context).primaryColor,
+            icon: widget.token.pinned
+                ? Icons.push_pin_rounded
+                : Icons.push_pin_outlined,
+            label: widget.token.pinned
+                ? S.current.unPinTokenShort
+                : S.current.pinTokenShort,
+            simple: simple,
+            spacing: 8,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            iconAndTextColor: widget.token.pinned ? Colors.white : null,
+          ),
+          const SizedBox(width: 6),
+        ],
+      ),
+      endActionPane: ActionPane(
+        extentRatio: endExtentRatio,
+        motion: const ScrollMotion(),
+        children: [
+          const SizedBox(width: 6),
+          SlidableAction(
+            onPressed: (context) => _processViewQrCode(),
+            backgroundColor: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            foregroundColor: Theme.of(context).primaryColor,
+            icon: Icons.qr_code_rounded,
+            label: S.current.viewTokenQrCodeShort,
+            spacing: 8,
+            simple: simple,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+          ),
+          const SizedBox(width: 6),
+          SlidableAction(
+            onPressed: (context) => _processEdit(),
+            backgroundColor: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            foregroundColor: Theme.of(context).primaryColor,
+            icon: Icons.edit_outlined,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            label: S.current.editTokenShort,
+            simple: simple,
+            spacing: 8,
+          ),
+          const SizedBox(width: 6),
+          SlidableAction(
+            onPressed: (context) => showContextMenu(),
+            backgroundColor: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            foregroundColor: Theme.of(context).primaryColor,
+            icon: Icons.more_vert_rounded,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            label: S.current.moreOptionShort,
+            simple: simple,
+            spacing: 8,
+          ),
+          const SizedBox(width: 6),
+          SlidableAction(
+            onPressed: (context) => _processDelete(),
+            backgroundColor: Colors.red,
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            foregroundColor: Theme.of(context).primaryColor,
+            icon: Icons.delete,
+            simple: simple,
+            label: S.current.deleteTokenShort,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            spacing: 8,
+            iconAndTextColor: Colors.white,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   _buildBody() {
     switch (widget.layoutType) {
       case LayoutType.Simple:
         return _buildSimpleLayout();
       case LayoutType.Compact:
         return _buildCompactLayout();
-      case LayoutType.Tile:
-        return _buildTileLayout();
+      // case LayoutType.Tile:
+      //   return _buildSlidable(
+      //     startExtentRatio: 0.23,
+      //     endExtentRatio: 0.9,
+      //     child: _buildTileLayout(),
+      //   );
       case LayoutType.List:
-        return _buildListLayout();
+        return _buildSlidable(
+          simple: true,
+          child: _buildListLayout(),
+        );
       case LayoutType.Spotlight:
-        return _buildSpotlightLayout();
+        return _buildSlidable(
+          startExtentRatio: 0.21,
+          endExtentRatio: 0.8,
+          child: _buildSpotlightLayout(),
+        );
     }
   }
 

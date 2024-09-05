@@ -45,6 +45,7 @@ class HiveUtil {
   static const String inappWebviewKey = "inappWebview";
 
   static const String clickToCopyKey = "clickToCopy";
+  static const String autoFocusSearchBarKey = "autoFocusSearchBar";
   static const String autoCopyNextCodeKey = "autoCopyNextCode";
   static const String autoDisplayNextCodeKey = "autoDisplayNextCode";
   static const String autoMinimizeAfterClickToCopyKey =
@@ -108,6 +109,7 @@ class HiveUtil {
     await HiveUtil.put(HiveUtil.inappWebviewKey, true);
     await HiveUtil.put(HiveUtil.layoutTypeKey, LayoutType.Compact.index);
     await HiveUtil.put(HiveUtil.enableSafeModeKey, true);
+    await HiveUtil.put(HiveUtil.autoFocusSearchBarKey, false);
     await HiveUtil.put(HiveUtil.maxBackupsCountKey, defaultMaxBackupCount);
     await HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getBackupDir());
     await HiveUtil.put(HiveUtil.dragToReorderKey, !ResponsiveUtil.isMobile());

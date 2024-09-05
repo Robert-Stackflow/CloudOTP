@@ -278,26 +278,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         ),
         ItemBuilder.buildEntryItem(
           context: context,
-          title: S.current.exportQrcode,
-          description: S.current.exportQrcodeHint,
-          onTap: () async {
-            List<String>? qrCodes = await ExportTokenUtil.exportToQrcodes();
-            if (qrCodes != null && qrCodes.isNotEmpty) {
-              DialogBuilder.showQrcodesDialog(
-                context,
-                title: S.current.exportQrcode,
-                message: S.current.exportQrcodeMessage,
-                qrcodes: qrCodes,
-              );
-            } else if (qrCodes != null && qrCodes.isEmpty) {
-              IToast.showTop(S.current.exportQrcodeNoData);
-            } else {
-              IToast.showTop(S.current.exportFailed);
-            }
-          },
-        ),
-        ItemBuilder.buildEntryItem(
-          context: context,
           title: S.current.exportUriFile,
           description: S.current.exportUriFileHint,
           onTap: () async {
@@ -323,6 +303,26 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               },
               onTapCancel: () {},
             );
+          },
+        ),
+        ItemBuilder.buildEntryItem(
+          context: context,
+          title: S.current.exportQrcode,
+          description: S.current.exportQrcodeHint,
+          onTap: () async {
+            List<String>? qrCodes = await ExportTokenUtil.exportToQrcodes();
+            if (qrCodes != null && qrCodes.isNotEmpty) {
+              DialogBuilder.showQrcodesDialog(
+                context,
+                title: S.current.exportQrcode,
+                message: S.current.exportQrcodeMessage,
+                qrcodes: qrCodes,
+              );
+            } else if (qrCodes != null && qrCodes.isEmpty) {
+              IToast.showTop(S.current.exportQrcodeNoData);
+            } else {
+              IToast.showTop(S.current.exportFailed);
+            }
           },
         ),
         // const SizedBox(height: 10),

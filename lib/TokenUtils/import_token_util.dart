@@ -5,6 +5,7 @@ import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
+import 'package:cloudotp/TokenUtils/token_image_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -648,6 +649,8 @@ class ImportTokenUtil {
     List<OtpToken> already = await TokenDao.listTokens();
     List<OtpToken> newTokenList = [];
     for (OtpToken otpToken in tokenList) {
+      if (otpToken.issuer.isEmpty) otpToken.issuer = otpToken.account;
+      otpToken.imagePath = TokenImageUtil.matchBrandLogo(otpToken) ?? "";
       OtpToken? alreadyToken = checkTokenExist(otpToken, already);
       if (alreadyToken == null &&
           checkTokenExist(otpToken, newTokenList) == null) {

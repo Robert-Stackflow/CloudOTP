@@ -41,7 +41,6 @@ import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/route_util.dart';
 import '../Utils/utils.dart';
-import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../Widgets/BottomSheet/import_from_third_party_bottom_sheet.dart';
 import '../Widgets/Custom/loading_icon.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
@@ -185,6 +184,10 @@ class MainScreenState extends State<MainScreen>
         autoForward: !Utils.isDark(context),
         controller: darkModeController,
       );
+      if (HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey,
+          defaultValue: false)) {
+        searchFocusNode.requestFocus();
+      }
     });
     initGlobalConfig();
     searchController.addListener(() {
@@ -432,13 +435,13 @@ class MainScreenState extends State<MainScreen>
             homeScreenState?.changeLayoutType(LayoutType.Compact);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
-          S.current.tileLayoutType,
-          checked: homeScreenState?.layoutType == LayoutType.Tile,
-          onPressed: () {
-            homeScreenState?.changeLayoutType(LayoutType.Tile);
-          },
-        ),
+        // ContextMenuButtonConfig.checkbox(
+        //   S.current.tileLayoutType,
+        //   checked: homeScreenState?.layoutType == LayoutType.Tile,
+        //   onPressed: () {
+        //     homeScreenState?.changeLayoutType(LayoutType.Tile);
+        //   },
+        // ),
         ContextMenuButtonConfig.checkbox(
           S.current.listLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.List,

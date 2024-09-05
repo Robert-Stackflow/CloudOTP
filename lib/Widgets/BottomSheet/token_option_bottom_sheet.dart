@@ -217,6 +217,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                             ? Theme.of(context).primaryColor
                             : Colors.red,
                         backgroundColor: Colors.grey.withOpacity(0.3),
+                        strokeCap: StrokeCap.round,
                       );
                     },
                   ),

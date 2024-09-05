@@ -43,6 +43,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
 
   @override
   Widget build(BuildContext context) {
+    double maxHeight = min(360, MediaQuery.sizeOf(context).width - 90);
     return Align(
       alignment: widget.align,
       child: Material(
@@ -89,9 +90,8 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                   ],
                 ),
               ),
-              Container(
-                constraints: BoxConstraints(
-                    maxHeight: min(360, MediaQuery.sizeOf(context).width - 90)),
+              SizedBox(
+                height: maxHeight,
                 child: PageView.builder(
                   controller: controller,
                   itemCount: widget.qrcodes.length,
@@ -102,8 +102,12 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       alignment: Alignment.center,
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
-                      padding: const EdgeInsets.all(16),
+                      margin: EdgeInsets.symmetric(
+                          horizontal: ResponsiveUtil.isWideLandscape()
+                              ? 30
+                              : (MediaQuery.sizeOf(context).width - maxHeight) /
+                                  2),
+                      padding: const EdgeInsets.all(20),
                       child: PrettyQrView.data(
                         data: widget.qrcodes[index],
                       ),
@@ -117,6 +121,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                 child: widget.qrcodes.length == 1
                     ? ItemBuilder.buildRoundButton(context,
                         text: S.current.confirm,
+                        fontSizeDelta: 2,
                         background: Theme.of(context).primaryColor, onTap: () {
                         Navigator.of(context).pop();
                       })
@@ -124,6 +129,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                         children: [
                           ItemBuilder.buildRoundButton(
                             context,
+                            fontSizeDelta: 2,
                             icon: const Icon(Icons.arrow_back_rounded),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 31, vertical: 8),

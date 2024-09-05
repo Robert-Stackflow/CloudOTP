@@ -120,7 +120,7 @@ class ThemeColorData {
       dividerColor: const Color(0xFFF5F5F5),
       tagBackground: const Color(0xFFF5F5F5),
       tagColor: const Color(0xFFBDBDBD),
-      cardBackground: const Color(0xFFF5F5F5),
+      cardBackground: const Color(0x119E9E9E),
     ),
     ThemeColorData(
       id: "freshGreen",

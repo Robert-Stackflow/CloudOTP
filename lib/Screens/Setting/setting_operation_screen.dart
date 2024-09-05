@@ -24,6 +24,7 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
   bool clipToCopy = HiveUtil.getBool(HiveUtil.clickToCopyKey);
   bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
   bool autoDisplayNextCode = HiveUtil.getBool(HiveUtil.autoDisplayNextCodeKey);
+  bool autoFocusSearchBar = HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey,defaultValue: false);
   bool autoMinimizeAfterClickToCopy = HiveUtil.getBool(
       HiveUtil.autoMinimizeAfterClickToCopyKey,
       defaultValue: false);
@@ -206,6 +207,21 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
             },
             onTapCancel: () {},
           );
+        },
+      ),
+      const SizedBox(height: 10),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: autoFocusSearchBar,
+        title: S.current.autoFocusSearchBar,
+        description: S.current.autoFocusSearchBarTip,
+        topRadius: true,
+        bottomRadius: true,
+        onTap: () {
+          setState(() {
+            autoFocusSearchBar = !autoFocusSearchBar;
+            HiveUtil.put(HiveUtil.autoFocusSearchBarKey, autoFocusSearchBar);
+          });
         },
       ),
     ];

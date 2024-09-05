@@ -57,7 +57,6 @@ class ImportFromThirdPartyBottomSheetState
               .titleMedium
               ?.apply(fontWeightDelta: 2),
         ),
-        center: !ResponsiveUtil.isLandscape(),
         actions: ResponsiveUtil.isLandscape()
             ? []
             : [
@@ -226,6 +225,12 @@ class ImportFromThirdPartyBottomSheetState
     Function(String)? onImport,
     bool useImport = true,
   }) {
+    final allowedExtensionsInAndroid = ['txt', 'json', 'zip'];
+    bool containUnsupportExt = false;
+    for (var ext in allowedExtensions) {
+      if (!allowedExtensionsInAndroid.contains(ext)) containUnsupportExt = true;
+    }
+    containUnsupportExt = containUnsupportExt && ResponsiveUtil.isAndroid();
     return Material(
       color: Theme.of(context).canvasColor,
       borderRadius: BorderRadius.circular(10),
@@ -234,8 +239,9 @@ class ImportFromThirdPartyBottomSheetState
             ? () async {
                 FilePickerResult? result = await FileUtil.pickFiles(
                   dialogTitle: dialogTitle,
-                  type: FileType.custom,
-                  allowedExtensions: allowedExtensions,
+                  type: containUnsupportExt ? FileType.any : FileType.custom,
+                  allowedExtensions:
+                      containUnsupportExt ? [] : allowedExtensions,
                   lockParentWindow: true,
                 );
                 if (result != null) {
