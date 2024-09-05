@@ -482,6 +482,7 @@ class ImportTokenUtil {
     List<String> lines = content.split("\n");
     List<OtpToken> tokens = [];
     for (String line in lines) {
+      line = line.trim();
       List<OtpToken> parsedTokens = OtpTokenParser.parseUri(line);
       if (parsedTokens.isNotEmpty) {
         tokens.addAll(parsedTokens);

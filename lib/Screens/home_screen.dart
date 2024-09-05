@@ -744,6 +744,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     Widget body = tokens.isEmpty
         ? ListView(
+            padding: const EdgeInsets.symmetric(vertical: 50),
             children: [
               ItemBuilder.buildEmptyPlaceholder(
                   context: context,
@@ -1088,11 +1089,11 @@ enum LayoutType {
   double getHeight([bool hideProgressBar = false]) {
     switch (this) {
       case LayoutType.Simple:
-        return hideProgressBar ? 94 : 110;
+        return 108;
       case LayoutType.Compact:
-        return hideProgressBar ? 97 : 111;
+        return 108;
       case LayoutType.Tile:
-        return hideProgressBar ? 105 : 118;
+        return 114;
       case LayoutType.List:
         return 60;
       case LayoutType.Spotlight:

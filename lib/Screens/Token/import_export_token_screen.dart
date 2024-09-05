@@ -299,7 +299,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         ItemBuilder.buildEntryItem(
           context: context,
           title: S.current.exportUriFile,
-          bottomRadius: true,
           description: S.current.exportUriFileHint,
           onTap: () async {
             DialogBuilder.showConfirmDialog(
@@ -326,9 +325,9 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             );
           },
         ),
-        const SizedBox(height: 10),
-        ItemBuilder.buildCaptionItem(
-            context: context, title: S.current.exportToThirdParty),
+        // const SizedBox(height: 10),
+        // ItemBuilder.buildCaptionItem(
+        //     context: context, title: S.current.exportToThirdParty),
         ItemBuilder.buildEntryItem(
           context: context,
           bottomRadius: true,

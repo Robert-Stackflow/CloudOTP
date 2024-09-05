@@ -42,7 +42,7 @@ packages:
     source: hosted
     version: "2.0.2"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
@@ -436,14 +436,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_archive:
-    dependency: "direct main"
-    description:
-      name: flutter_archive
-      sha256: "5ca235f304c12bf468979235f400f79846d204169d715939e39197106f5fc970"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "6.0.3"
   flutter_cache_manager:
     dependency: "direct main"
     description:

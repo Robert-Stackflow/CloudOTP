@@ -400,17 +400,17 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
-  _buildLinearProgress() {
-    return isHOTP
-        ? const SizedBox.shrink()
+  _buildLinearProgress([bool hideProgressBar = false]) {
+    return isHOTP || hideProgressBar
+        ? const SizedBox(height: 1)
         : ValueListenableBuilder(
             valueListenable: progressNotifier,
             builder: (context, progress, child) {
               return Container(
-                margin: const EdgeInsets.only(top: 3, bottom: 13),
+                constraints: const BoxConstraints(minHeight: 2, maxHeight: 2),
                 child: LinearProgressIndicator(
                   value: progress,
-                  minHeight: 1,
+                  minHeight: 2,
                   color: progress > autoCopyNextCodeProgressThrehold
                       ? Theme.of(context).primaryColor
                       : Colors.red,
@@ -443,6 +443,7 @@ class TokenLayoutState extends State<TokenLayout>
                             ? Theme.of(context).primaryColor
                             : Colors.red,
                         backgroundColor: Colors.grey.withOpacity(0.3),
+                        strokeCap: StrokeCap.round,
                       );
                     },
                   ),
@@ -457,7 +458,7 @@ class TokenLayoutState extends State<TokenLayout>
                                         autoCopyNextCodeProgressThrehold
                                     ? Theme.of(context).primaryColor
                                     : Colors.red,
-                                fontSizeDelta: -2,
+                                fontSizeDelta: -3,
                               ),
                         );
                       },
@@ -510,53 +511,54 @@ class TokenLayoutState extends State<TokenLayout>
         child: InkWell(
           onTap: _processTap,
           borderRadius: BorderRadius.circular(12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Row(
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
                   children: [
-                    ItemBuilder.buildTokenImage(widget.token, size: 32),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        widget.token.issuer,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.apply(fontWeightDelta: 2),
-                      ),
-                    ),
-                    if (isHOTP) _buildHOTPRefreshButton(padding: 6),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Selector<AppProvider, bool>(
-                  selector: (context, provider) => provider.hideProgressBar,
-                  builder: (context, hideProgressBar, child) => Container(
-                    constraints: BoxConstraints(
-                      minHeight: hideProgressBar ? 42 : 58,
-                      maxHeight: hideProgressBar ? 42 : 58,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    const SizedBox(height: 12),
+                    Row(
                       children: [
-                        _buildCodeLayout(
-                            letterSpacing: 10, alignment: Alignment.center),
-                        const SizedBox(height: 5),
-                        if (!hideProgressBar) _buildLinearProgress(),
+                        ItemBuilder.buildTokenImage(widget.token, size: 32),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            widget.token.issuer,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.apply(fontWeightDelta: 2),
+                          ),
+                        ),
+                        if (isHOTP) _buildHOTPRefreshButton(padding: 6),
                       ],
                     ),
-                  ),
-                )
-              ],
-            ),
+                    const SizedBox(height: 3),
+                    Container(
+                      constraints:
+                          const BoxConstraints(minHeight: 56, maxHeight: 56),
+                      child: _buildCodeLayout(
+                        letterSpacing: 10,
+                        alignment: Alignment.center,
+                        fontSize: 27,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                  ],
+                ),
+              ),
+              Selector<AppProvider, bool>(
+                selector: (context, provider) => provider.hideProgressBar,
+                builder: (context, hideProgressBar, child) =>
+                    _buildLinearProgress(hideProgressBar),
+              ),
+            ],
           ),
         ),
       ),
@@ -574,86 +576,82 @@ class TokenLayoutState extends State<TokenLayout>
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: _processTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Row(
+          customBorder:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.token.issuer,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.apply(fontWeightDelta: 2),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.token.issuer,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.apply(fontWeightDelta: 2),
+                              ),
+                              Text(
+                                widget.token.account,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                           ),
-                          Text(
-                            widget.token.account,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(width: 8),
+                        ItemBuilder.buildTokenImage(widget.token, size: 28),
+                      ],
+                    ),
+                    Container(
+                      constraints:
+                          const BoxConstraints(minHeight: 56, maxHeight: 56),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(child: _buildCodeLayout(letterSpacing: 8)),
+                          if (isHOTP)
+                            _buildHOTPRefreshButton(
+                              padding: 4,
+                              color: textTheme.labelSmall?.color,
+                            ),
+                          ItemBuilder.buildIconButton(
+                            context: context,
+                            padding: const EdgeInsets.all(4),
+                            icon: Icon(
+                              Icons.more_vert_rounded,
+                              color:
+                                  Theme.of(context).textTheme.labelSmall?.color,
+                              size: 20,
+                            ),
+                            onTap: showContextMenu,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    ItemBuilder.buildTokenImage(widget.token, size: 28),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Selector<AppProvider, bool>(
-                  selector: (context, provider) => provider.hideProgressBar,
-                  builder: (context, hideProgressBar, child) => Container(
-                    constraints: BoxConstraints(
-                      minHeight: hideProgressBar ? 39 : 53,
-                      maxHeight: hideProgressBar ? 39 : 53,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(child: _buildCodeLayout()),
-                            if (isHOTP)
-                              _buildHOTPRefreshButton(
-                                padding: 4,
-                                color: textTheme.labelSmall?.color,
-                              ),
-                            ItemBuilder.buildIconButton(
-                              context: context,
-                              padding: const EdgeInsets.all(4),
-                              icon: Icon(
-                                Icons.more_vert_rounded,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.color,
-                                size: 20,
-                              ),
-                              onTap: showContextMenu,
-                            ),
-                          ],
-                        ),
-                        if (!hideProgressBar) _buildLinearProgress(),
-                        if (hideProgressBar) const SizedBox(height: 2),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+              Selector<AppProvider, bool>(
+                selector: (context, provider) => provider.hideProgressBar,
+                builder: (context, hideProgressBar, child) =>
+                    _buildLinearProgress(hideProgressBar),
+              ),
+            ],
           ),
         ),
       ),
@@ -671,84 +669,92 @@ class TokenLayoutState extends State<TokenLayout>
         child: InkWell(
           onTap: _processTap,
           borderRadius: BorderRadius.circular(12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Row(
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
                   children: [
-                    ItemBuilder.buildTokenImage(widget.token, size: 36),
-                    const SizedBox(width: 8),
-                    Expanded(
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        ItemBuilder.buildTokenImage(widget.token, size: 36),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                widget.token.issuer,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.apply(fontWeightDelta: 2),
+                              ),
+                              Text(
+                                widget.token.account,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isHOTP) _buildHOTPRefreshButton(),
+                        ItemBuilder.buildIconButton(
+                            context: context,
+                            icon: Icon(Icons.edit_rounded,
+                                color: Theme.of(context).iconTheme.color,
+                                size: 20),
+                            onTap: _processEdit),
+                        ItemBuilder.buildIconButton(
+                            context: context,
+                            icon: Icon(Icons.qr_code_rounded,
+                                color: Theme.of(context).iconTheme.color,
+                                size: 20),
+                            onTap: _processViewQrCode),
+                        ItemBuilder.buildIconButton(
+                          context: context,
+                          icon: Icon(Icons.more_vert_rounded,
+                              color: Theme.of(context).iconTheme.color,
+                              size: 20),
+                          onTap: showContextMenu,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Container(
+                      constraints:
+                          const BoxConstraints(minHeight: 60, maxHeight: 60),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            widget.token.issuer,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.apply(fontWeightDelta: 2),
-                          ),
-                          Text(
-                            widget.token.account,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              _buildCodeLayout(fontSize: 28, letterSpacing: 10)
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    if (isHOTP) _buildHOTPRefreshButton(),
-                    ItemBuilder.buildIconButton(
-                        context: context,
-                        icon: Icon(Icons.edit_rounded,
-                            color: Theme.of(context).iconTheme.color, size: 20),
-                        onTap: _processEdit),
-                    ItemBuilder.buildIconButton(
-                        context: context,
-                        icon: Icon(Icons.qr_code_rounded,
-                            color: Theme.of(context).iconTheme.color, size: 20),
-                        onTap: _processViewQrCode),
-                    ItemBuilder.buildIconButton(
-                      context: context,
-                      icon: Icon(Icons.more_vert_rounded,
-                          color: Theme.of(context).iconTheme.color, size: 20),
-                      onTap: showContextMenu,
-                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Selector<AppProvider, bool>(
-                  selector: (context, provider) => provider.hideProgressBar,
-                  builder: (context, hideProgressBar, child) => Container(
-                    constraints: BoxConstraints(
-                      minHeight: hideProgressBar ? 49 : 62,
-                      maxHeight: hideProgressBar ? 49 : 62,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [_buildCodeLayout(fontSize: 30)],
-                        ),
-                        if (!hideProgressBar) _buildLinearProgress(),
-                        if (hideProgressBar) const SizedBox(height: 4),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+              Selector<AppProvider, bool>(
+                selector: (context, provider) => provider.hideProgressBar,
+                builder: (context, hideProgressBar, child) =>
+                    _buildLinearProgress(hideProgressBar),
+              ),
+            ],
           ),
         ),
       ),
@@ -806,7 +812,9 @@ class TokenLayoutState extends State<TokenLayout>
                           constraints: const BoxConstraints(
                               maxHeight: 45, minHeight: 45),
                           child: _buildCodeLayout(
-                              fontSize: 30, forceNoType: false),
+                              fontSize: 28,
+                              forceNoType: false,
+                              letterSpacing: 10),
                         ),
                       ],
                     ),

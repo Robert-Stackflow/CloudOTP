@@ -7,6 +7,7 @@ import '../import_token_util.dart';
 
 enum DecryptResult {
   success,
+  noFileInZip,
   invalidPasswordOrDataCorrupted,
 }
 

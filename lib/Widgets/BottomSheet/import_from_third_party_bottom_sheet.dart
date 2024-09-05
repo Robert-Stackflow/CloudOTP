@@ -2,6 +2,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/andotp_importer.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/enteauth_importer.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/freeotpplus_importer.dart';
+import 'package:cloudotp/TokenUtils/ThirdParty/totpauthenticator_importer.dart';
+import 'package:cloudotp/TokenUtils/ThirdParty/winauth_importer.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -77,18 +79,9 @@ class ImportFromThirdPartyBottomSheetState
       padding: const EdgeInsets.only(left: 10, right: 10, bottom: 20),
       children: [
         _buildItem(
-          asset: AssetUtil.icAndotp,
-          title: S.current.importFromAndOTP,
-          description: S.current.importFromAndOTPTip,
-          allowedExtensions: ['json', 'aes'],
-          onImport: (path) {
-            AndOTPTokenImporter().importFromPath(path);
-          },
-        ),
-        SizedBox(height: spacing),
-        _buildItem(
           asset: AssetUtil.icAegis,
           title: S.current.importFromAegis,
+          dialogTitle: S.current.importFromAegisTitle,
           description: S.current.importFromAegisTip,
           onImport: (path) {
             AegisTokenImporter().importFromPath(path);
@@ -96,8 +89,30 @@ class ImportFromThirdPartyBottomSheetState
         ),
         SizedBox(height: spacing),
         _buildItem(
+          asset: AssetUtil.icAndotp,
+          title: S.current.importFromAndOTP,
+          dialogTitle: S.current.importFromAndOTPTitle,
+          description: S.current.importFromAndOTPTip,
+          allowedExtensions: ['json', 'aes'],
+          onImport: (path) {
+            AndOTPTokenImporter().importFromPath(path);
+          },
+        ),
+        // _buildItem(
+        //   asset: AssetUtil.icAuthenticatorplus,
+        //   title: S.current.importFromAuthenticatorPlus,
+        //   dialogTitle: S.current.importFromAuthenticatorPlusTitle,
+        //   description: S.current.importFromAuthenticatorPlusTip,
+        //   allowedExtensions: ['db'],
+        //   onImport: (path) {
+        //     AuthenticatorPlusTokenImporter().importFromPath(path);
+        //   },
+        // ),
+        SizedBox(height: spacing),
+        _buildItem(
           asset: AssetUtil.icBitwarden,
           title: S.current.importFromBitwarden,
+          dialogTitle: S.current.importFromBitwardenTitle,
           description: S.current.importFromBitwardenTip,
           onImport: (path) {
             BitwardenTokenImporter().importFromPath(path);
@@ -107,6 +122,7 @@ class ImportFromThirdPartyBottomSheetState
         _buildItem(
           asset: AssetUtil.icEnteauth,
           title: S.current.importFromEnteAuth,
+          dialogTitle: S.current.importFromEnteAuthTitle,
           description: S.current.importFromEnteAuthTip,
           allowedExtensions: ['txt'],
           onImport: (path) {
@@ -118,6 +134,7 @@ class ImportFromThirdPartyBottomSheetState
         //   asset: AssetUtil.icFreeotp,
         //   allowedExtensions: ['xml'],
         //   title: S.current.importFromFreeOTP,
+        //   dialogTitle: S.current.importFromFreeOTPTitle,
         //   description: S.current.importFromFreeOTPTip,
         //   onImport: (path) {
         //     FreeOTPTokenImporter().importFromPath(path);
@@ -127,6 +144,7 @@ class ImportFromThirdPartyBottomSheetState
         _buildItem(
           asset: AssetUtil.icFreeotpplus,
           title: S.current.importFromFreeOTPPlus,
+          dialogTitle: S.current.importFromFreeOTPPlusTitle,
           description: S.current.importFromFreeOTPPlusTip,
           onImport: (path) {
             FreeOTPPlusTokenImporter().importFromPath(path);
@@ -146,19 +164,53 @@ class ImportFromThirdPartyBottomSheetState
                 responsive: true,
                 (context) => const AddBottomSheet(onlyShowScanner: true),
               );
-            }else{
+            } else {
               IToast.showTop(S.current.importFromGoogleAuthenticatorInMobile);
             }
           },
         ),
+        // SizedBox(height: spacing),
+        // _buildItem(
+        //   asset: AssetUtil.icLastpass,
+        //   title: S.current.importFromLastPassAuthenticator,
+        //   dialogTitle: S.current.importFromLastPassAuthenticatorTitle,
+        //   description: S.current.importFromLastPassAuthenticatorTip,
+        //   allowedExtensions: ['json'],
+        //   onImport: (path) {
+        //     WinauthTokenImporter().importFromPath(path);
+        //   },
+        // ),
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetUtil.ic2Fas,
           title: S.current.importFrom2FAS,
+          dialogTitle: S.current.importFrom2FASTitle,
           description: S.current.importFrom2FASTip,
           allowedExtensions: ['2fas'],
           onImport: (path) {
             TwoFASTokenImporter().importFromPath(path);
+          },
+        ),
+        SizedBox(height: spacing),
+        _buildItem(
+          asset: AssetUtil.icTotpauthenticator,
+          title: S.current.importFromTOTPAuthenticator,
+          dialogTitle: S.current.importFromTOTPAuthenticatorTitle,
+          description: S.current.importFromTOTPAuthenticatorTip,
+          allowedExtensions: ['encrypt'],
+          onImport: (path) {
+            TotpAuthenticatorTokenImporter().importFromPath(path);
+          },
+        ),
+        SizedBox(height: spacing),
+        _buildItem(
+          asset: AssetUtil.icWinauth,
+          title: S.current.importFromWinauth,
+          dialogTitle: S.current.importFromWinauthTitle,
+          description: S.current.importFromWinauthTip,
+          allowedExtensions: ['zip', 'txt'],
+          onImport: (path) {
+            WinauthTokenImporter().importFromPath(path);
           },
         ),
       ],
@@ -168,6 +220,7 @@ class ImportFromThirdPartyBottomSheetState
   _buildItem({
     required String asset,
     required String title,
+    String? dialogTitle,
     required String description,
     List<String> allowedExtensions = const ['json'],
     Function(String)? onImport,
@@ -180,7 +233,7 @@ class ImportFromThirdPartyBottomSheetState
         onTap: useImport
             ? () async {
                 FilePickerResult? result = await FileUtil.pickFiles(
-                  dialogTitle: S.current.importFromFreeOTPPlusTitle,
+                  dialogTitle: dialogTitle,
                   type: FileType.custom,
                   allowedExtensions: allowedExtensions,
                   lockParentWindow: true,
