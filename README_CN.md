@@ -7,10 +7,11 @@
 - 基于Flutter架构重构，支持Android和Windows
 - 支持TOTP、HOTP、MOTP、Steam、Yandex
 - 支持扫码添加、识别图片、手动输入密钥
-- 支持自定义图标和分类、支持排序和多种令牌布局
+- 支持自定义图标和分类、支持排序和多种令牌布局（简洁、紧凑、列表、聚焦）
 - 支持深色模式、多种语言、多种主题
 - 支持本地备份和自动备份、支持WebDav、Onedrive、GoogleDrive、Dropbox、S3存储等多种云备份方式
 - 支持导入/导出加密文件、URI列表
+- 支持从Aegis、andOTP、Bitwarden、EntAuth、FreeOTP+、Google Authenticator、2FAS、TOTP Authenticator、Winauth导入数据
 - 支持数据库加密、手势密码
 
 ## Screenshots
