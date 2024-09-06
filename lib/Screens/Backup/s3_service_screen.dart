@@ -16,6 +16,7 @@ import '../../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../../Utils/ilogger.dart';
 import '../../Widgets/BottomSheet/Backups/s3_backups_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
@@ -39,10 +40,6 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
   final TextEditingController _secretKeyController = TextEditingController();
   final TextEditingController _accessKeyController = TextEditingController();
   final TextEditingController _regionController = TextEditingController();
-  late final InputValidateAsyncController _endpointStateController;
-  late final InputValidateAsyncController _secretKeyStateController;
-  late final InputValidateAsyncController _bucketStateController;
-  late final InputValidateAsyncController _accessKeyStateController;
   CloudServiceConfig? _s3CloudServiceConfig;
   S3CloudService? _s3CloudService;
 
@@ -236,7 +233,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               leadingText: S.current.s3AccessKey,
               tailingType: InputItemTailingType.password,
               disabled: currentConfig.connected,
-              hint: S.current.s3AccessKeyCannotBeEmpty,
+              hint: S.current.s3AccessKeyHint,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetter,
               ],
@@ -255,7 +252,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               leadingText: S.current.s3SecretKey,
               tailingType: InputItemTailingType.password,
               disabled: currentConfig.connected,
-              hint: S.current.s3SecretKeyCannotBeEmpty,
+              hint: S.current.s3SecretKeyHint,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetter,
               ],
@@ -289,7 +286,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
         Expanded(
           child: ItemBuilder.buildRoundButton(
             context,
-            text: S.current.webDavSignin,
+            text: S.current.cloudSignin,
             background: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
@@ -318,19 +315,19 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
         Expanded(
           child: ItemBuilder.buildFramedButton(
             context,
-            text: S.current.webDavPullBackup,
+            text: S.current.cloudPullBackup,
             padding: const EdgeInsets.symmetric(vertical: 12),
             outline: Theme.of(context).primaryColor,
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
+              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
               try {
                 List<S3CloudFileInfo>? files =
                     await _s3CloudService!.listBackups();
                 if (files == null) {
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.webDavPullFailed);
+                  IToast.show(S.current.cloudPullFailed);
                   return;
                 }
                 CloudServiceConfigDao.updateLastPullTime(
@@ -347,7 +344,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                       cloudService: _s3CloudService!,
                       onSelected: (selectedFile) async {
                         var dialog = showProgressDialog(
-                          msg: S.current.webDavPulling,
+                          msg: S.current.cloudPulling,
                           showProgress: true,
                         );
                         Uint8List? res = await _s3CloudService!.downloadFile(
@@ -361,12 +358,12 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                     ),
                   );
                 } else {
-                  IToast.show(S.current.webDavNoBackupFile);
+                  IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
                 ILogger.error("Failed to pull from S3 cloud", e, t);
                 CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.webDavPullFailed);
+                IToast.show(S.current.cloudPullFailed);
               }
             },
           ),
@@ -377,7 +374,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             context,
             padding: const EdgeInsets.symmetric(vertical: 12),
             background: Theme.of(context).primaryColor,
-            text: S.current.webDavPushBackup,
+            text: S.current.cloudPushBackup,
             fontSizeDelta: 2,
             onTap: () async {
               ExportTokenUtil.backupEncryptToCloud(
@@ -393,12 +390,17 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             context,
             padding: const EdgeInsets.symmetric(vertical: 12),
             background: Colors.red,
-            text: S.current.webDavLogout,
+            text: S.current.cloudLogout,
             fontSizeDelta: 2,
             onTap: () async {
-              setState(() {
-                currentConfig.connected = false;
-                _s3CloudService = null;
+              DialogBuilder.showConfirmDialog(context,
+                  title: S.current.cloudLogout,
+                  message: S.current.cloudLogoutMessage,
+                  onTapConfirm: () async {
+                setState(() {
+                  currentConfig.connected = false;
+                  _s3CloudService = null;
+                });
               });
             },
           ),

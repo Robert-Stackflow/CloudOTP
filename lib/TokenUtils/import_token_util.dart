@@ -525,7 +525,7 @@ class ImportTokenUtil {
     );
     if (res == null) {
       dialog.dismiss();
-      IToast.showTop(S.current.webDavPullFailed);
+      IToast.showTop(S.current.cloudPullFailed);
       return;
     }
     bool success = await ImportTokenUtil.importBackupFile(

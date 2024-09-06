@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloudotp/Utils/route_util.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,29 @@ import '../Screens/main_screen.dart';
 import 'app_provider.dart';
 
 class ResponsiveUtil {
+  static String deviceName = "";
+
+  static init() async {
+    deviceName = await getDeviceName();
+  }
+
+  static Future<String> getDeviceName() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      return "Android-${(await deviceInfo.androidInfo).brand}-${(await deviceInfo.androidInfo).model}";
+    } else if (Platform.isIOS) {
+      return "iOS-${(await deviceInfo.iosInfo).name}";
+    } else if (Platform.isMacOS) {
+      return "MacOS-${(await deviceInfo.macOsInfo).computerName}";
+    } else if (Platform.isWindows) {
+      return "Windows-${(await deviceInfo.windowsInfo).computerName}";
+    } else if (Platform.isLinux) {
+      return "Linux-${(await deviceInfo.linuxInfo).prettyName}";
+    } else {
+      return "Unknown";
+    }
+  }
+
   static Future<void> restartApp(BuildContext context) async {
     if (ResponsiveUtil.isDesktop()) {
     } else {

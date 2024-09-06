@@ -17,18 +17,22 @@ class AssetUtil {
   static const String ic2Fas = "assets/auth/ic_2fas.png";
   static const String icAegis = "assets/auth/ic_aegis.png";
   static const String icAndotp = "assets/auth/ic_andotp.png";
-  static const String icAuthenticatorplus = "assets/auth/ic_authenticatorplus.png";
-  static const String icAuthenticatorpro = "assets/auth/ic_authenticatorpro.png";
+  static const String icAuthenticatorplus =
+      "assets/auth/ic_authenticatorplus.png";
+  static const String icAuthenticatorpro =
+      "assets/auth/ic_authenticatorpro.png";
   static const String icAuthy = "assets/auth/ic_authy.png";
   static const String icBitwarden = "assets/auth/ic_bitwarden.png";
   static const String icBlizzard = "assets/auth/ic_blizzard.png";
   static const String icEnteauth = "assets/auth/ic_enteauth.png";
   static const String icFreeotp = "assets/auth/ic_freeotp.png";
   static const String icFreeotpplus = "assets/auth/ic_freeotpplus.png";
-  static const String icGoogleauthenticator = "assets/auth/ic_googleauthenticator.png";
+  static const String icGoogleauthenticator =
+      "assets/auth/ic_googleauthenticator.png";
   static const String icLastpass = "assets/auth/ic_lastpass.png";
   static const String icSteam = "assets/auth/ic_steam.png";
-  static const String icTotpauthenticator = "assets/auth/ic_totpauthenticator.png";
+  static const String icTotpauthenticator =
+      "assets/auth/ic_totpauthenticator.png";
   static const String icWinauth = "assets/auth/ic_winauth.png";
 
   static load(
@@ -44,6 +48,16 @@ class AssetUtil {
       width: width ?? size,
       height: height ?? size,
     );
+  }
+
+  static getBrandPath(
+    String brand, {
+    bool forceLight = true,
+  }) {
+    if (brand.isEmpty) return "";
+    String darkPath = brand.replaceAll(".png", "_dark.png");
+    bool hasDark = TokenImageUtil.darkBrandLogos.contains(darkPath);
+    return 'assets/brand/$brand';
   }
 
   static loadBrand(

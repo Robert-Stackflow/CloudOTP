@@ -181,6 +181,7 @@ class DialogBuilder {
     required List<String> qrcodes,
     String? title,
     String? message,
+    String? asset,
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
@@ -191,6 +192,7 @@ class DialogBuilder {
         message: message,
         qrcodes: qrcodes,
         align: Alignment.center,
+        asset: asset,
       );
     } else {
       QrcodeDialog.showAnimatedFromBottom(
@@ -199,6 +201,7 @@ class DialogBuilder {
         qrcodes: qrcodes,
         message: message,
         align: align,
+        asset: asset,
       );
     }
   }

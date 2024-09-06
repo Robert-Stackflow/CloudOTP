@@ -111,6 +111,7 @@ class ReleaseItem {
 
 ///Release Asset，Data related to a release.
 class ReleaseAsset {
+  String pkgsDownloadUrl = "";
   String browserDownloadUrl;
   String contentType;
   DateTime createdAt;
@@ -179,7 +180,7 @@ class ReleaseAsset {
 
   @override
   String toString() {
-    return 'ReleaseAsset{browserDownloadUrl: $browserDownloadUrl, contentType: $contentType, createdAt: $createdAt, downloadCount: $downloadCount, id: $id, label: $label, name: $name, nodeId: $nodeId, size: $size, state: $state, updatedAt: $updatedAt, uploader: $uploader, url: $url}';
+    return 'ReleaseAsset{pkgsDownloadUrl: $pkgsDownloadUrl, browserDownloadUrl: $browserDownloadUrl, contentType: $contentType, createdAt: $createdAt, downloadCount: $downloadCount, id: $id, label: $label, name: $name, nodeId: $nodeId, size: $size, state: $state, updatedAt: $updatedAt, uploader: $uploader, url: $url}';
   }
 }
 

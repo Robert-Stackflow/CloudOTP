@@ -67,6 +67,8 @@ Queue autoBackupQueue = Queue();
 AppProvider appProvider = AppProvider();
 
 class AppProvider with ChangeNotifier {
+  String currentDatabasePassword = "";
+
   String latestVersion = "";
 
   final List<AutoBackupLog> _autoBackupLogs = [];

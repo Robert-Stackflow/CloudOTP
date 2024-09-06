@@ -14,7 +14,7 @@ import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_v1.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
-import 'package:cloudotp/Utils/iprint.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
@@ -24,9 +24,10 @@ import '../Database/config_dao.dart';
 import '../Models/Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/token_category.dart';
+import '../Utils/constant.dart';
 import '../Utils/file_util.dart';
-import '../Utils/itoast.dart';
 import '../Utils/ilogger.dart';
+import '../Utils/itoast.dart';
 import '../Utils/utils.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/Dialog/progress_dialog.dart';
@@ -42,7 +43,7 @@ class ExportTokenUtil {
   }
 
   static String getExportFileName(String extension) {
-    return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}.$extension";
+    return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}-${ResponsiveUtil.deviceName}.$extension";
   }
 
   static exportUriFile(
@@ -254,6 +255,7 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(S.current.backupFailed);
         return;
       } else {
+        bool noPermission = false;
         log.addStatus(AutoBackupStatus.encrpytSuccess);
         if (canLocalBackup) {
           try {
@@ -271,6 +273,9 @@ class ExportTokenUtil {
             log.addStatus(AutoBackupStatus.saveSuccess);
           } catch (e, t) {
             ILogger.error("Failed to local backup", e, t);
+            if (e is PathAccessException) {
+              noPermission = true;
+            }
             log.addStatus(AutoBackupStatus.saveFailed);
           }
         }
@@ -283,7 +288,7 @@ class ExportTokenUtil {
                     type: cloudService.type);
                 if (showLoading && dialog != null) {
                   dialog.updateMessage(
-                    msg: S.current.webDavPushingTo(cloudService.type.label),
+                    msg: S.current.cloudPushingTo(cloudService.type.label),
                     showProgress: true,
                   );
                   dialog.updateProgress(progress: 0);
@@ -322,7 +327,11 @@ class ExportTokenUtil {
           if (showToast) IToast.showTop(S.current.backupSuccess);
         } else {
           log.addStatus(AutoBackupStatus.failed);
-          if (showToast) IToast.showTop(S.current.backupFailed);
+          if (showToast) {
+            IToast.showTop(noPermission
+                ? S.current.pleaseGrantFilePermission
+                : S.current.backupFailed);
+          }
         }
       }
     } catch (e, t) {
@@ -403,8 +412,7 @@ class ExportTokenUtil {
         return;
       } else {
         if (showLoading && dialog != null) {
-          dialog.updateMessage(
-              msg: S.current.webDavPushing, showProgress: true);
+          dialog.updateMessage(msg: S.current.cloudPushing, showProgress: true);
         }
         bool uploadStatus = await cloudService.uploadFile(
           ExportTokenUtil.getExportFileName("bin"),
@@ -472,7 +480,6 @@ class ExportTokenUtil {
   static Future<List<dynamic>?> exportToGoogleAuthentcatorQrcodes({
     bool showLoading = true,
   }) async {
-    int maxBytesLength = 1200;
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.exporting);
     }
@@ -504,7 +511,8 @@ class ExportTokenUtil {
           .toList();
       return [tokenQrcodes, passCount];
     } catch (e, t) {
-      ILogger.error("Failed to export data to google authenticator qrcodes", e, t);
+      ILogger.error(
+          "Failed to export data to google authenticator qrcodes", e, t);
       return null;
     } finally {
       if (showLoading) {
@@ -516,7 +524,6 @@ class ExportTokenUtil {
   static Future<List<String>?> exportToQrcodes({
     bool showLoading = true,
   }) async {
-    int maxBytesLength = 1200;
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.exporting);
     }

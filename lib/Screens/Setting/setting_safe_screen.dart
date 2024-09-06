@@ -1,3 +1,6 @@
+import 'package:biometric_storage/biometric_storage.dart';
+import 'package:cloudotp/Utils/biometric_util.dart';
+import 'package:cloudotp/Utils/ilogger.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
@@ -31,20 +34,56 @@ class SafeSettingScreen extends StatefulWidget {
 class _SafeSettingScreenState extends State<SafeSettingScreen>
     with TickerProviderStateMixin {
   bool _enableGuesturePasswd =
-      HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);
+  HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey);
   bool _hasGuesturePasswd =
       HiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
           HiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
   bool _autoLock = HiveUtil.getBool(HiveUtil.autoLockKey);
   bool _enableSafeMode = HiveUtil.getBool(HiveUtil.enableSafeModeKey);
   bool _enableBiometric = HiveUtil.getBool(HiveUtil.enableBiometricKey);
-  bool _biometricAvailable = false;
+  bool _enableDatabaseBiometric = HiveUtil.getBool(
+      HiveUtil.enableDatabaseBiometricKey,
+      defaultValue: false);
+  bool _biometricHwAvailable = false;
   EncryptDatabaseStatus _encryptDatabaseStatus =
-      HiveUtil.getEncryptDatabaseStatus();
+  HiveUtil.getEncryptDatabaseStatus();
+  String? canAuthenticateResponseString;
+  CanAuthenticateResponse? canAuthenticateResponse;
+
+  bool get _biometricAvailable =>
+      _biometricHwAvailable&&
+          (canAuthenticateResponse != CanAuthenticateResponse.unsupported &&
+              canAuthenticateResponse != CanAuthenticateResponse.statusUnknown);
 
   @override
   void initState() {
     super.initState();
+    BiometricUtil.canAuthenticate().then((value) {
+      canAuthenticateResponse = value;
+      switch (value) {
+        case CanAuthenticateResponse.errorHwUnavailable:
+          canAuthenticateResponseString = S.current.biometricErrorHwUnavailable;
+          break;
+        case CanAuthenticateResponse.errorNoBiometricEnrolled:
+          canAuthenticateResponseString =
+              S.current.biometricErrorNoBiometricEnrolled;
+          break;
+        case CanAuthenticateResponse.errorNoHardware:
+          canAuthenticateResponseString = S.current.biometricErrorNoHardware;
+          break;
+        case CanAuthenticateResponse.errorPasscodeNotSet:
+          canAuthenticateResponseString =
+              S.current.biometricErrorPasscodeNotSet;
+          break;
+        case CanAuthenticateResponse.success:
+          canAuthenticateResponseString = S.current.biometricTip;
+          break;
+        default:
+          canAuthenticateResponseString = S.current.biometricErrorUnkown;
+          break;
+      }
+      setState(() {});
+    });
     initBiometricAuthentication();
   }
 
@@ -56,29 +95,32 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
       child: Scaffold(
         appBar: ResponsiveUtil.isLandscape()
             ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.safeSetting,
-                context: context,
-                transparent: true,
-              )
+          title: S.current.safeSetting,
+          context: context,
+          transparent: true,
+        )
             : ItemBuilder.buildAppBar(
-                context: context,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                leading: Icons.arrow_back_rounded,
-                onLeadingTap: () {
-                  Navigator.pop(context);
-                },
-                title: Text(
-                  S.current.safeSetting,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontWeightDelta: 2),
-                ),
-                actions: [
-                  ItemBuilder.buildBlankIconButton(context),
-                  const SizedBox(width: 5),
-                ],
-              ),
+          context: context,
+          backgroundColor: Theme
+              .of(context)
+              .scaffoldBackgroundColor,
+          leading: Icons.arrow_back_rounded,
+          onLeadingTap: () {
+            Navigator.pop(context);
+          },
+          title: Text(
+            S.current.safeSetting,
+            style: Theme
+                .of(context)
+                .textTheme
+                .titleMedium
+                ?.apply(fontWeightDelta: 2),
+          ),
+          actions: [
+            ItemBuilder.buildBlankIconButton(context),
+            const SizedBox(width: 5),
+          ],
+        ),
         body: EasyRefresh(
           child: ListView(
             physics: const BouncingScrollPhysics(),
@@ -113,19 +155,19 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
               ? S.current.changeGestureLock
               : S.current.setGestureLock,
           description:
-              _hasGuesturePasswd ? "" : S.current.haveToSetGestureLockTip,
+          _hasGuesturePasswd ? "" : S.current.haveToSetGestureLockTip,
           onTap: onChangePinTapped,
         ),
       ),
       Visibility(
         visible:
-            _enableGuesturePasswd && _hasGuesturePasswd && _biometricAvailable,
+        _enableGuesturePasswd && _hasGuesturePasswd && _biometricAvailable,
         child: ItemBuilder.buildRadioItem(
           context: context,
           value: _enableBiometric,
-          disabled: ResponsiveUtil.isMacOS() || ResponsiveUtil.isLinux(),
           title: S.current.biometric,
-          description: S.current.biometricTip,
+          disabled: canAuthenticateResponse != CanAuthenticateResponse.success,
+          description: canAuthenticateResponseString ?? "",
           onTap: onBiometricTapped,
         ),
       ),
@@ -133,7 +175,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
         visible: _enableGuesturePasswd && _hasGuesturePasswd,
         child: ItemBuilder.buildRadioItem(
           bottomRadius:
-              !(_enableGuesturePasswd && _hasGuesturePasswd && _autoLock),
+          !(_enableGuesturePasswd && _hasGuesturePasswd && _autoLock),
           context: context,
           value: _autoLock,
           title: S.current.autoLock,
@@ -145,28 +187,30 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
         visible: _enableGuesturePasswd && _hasGuesturePasswd && _autoLock,
         child: Selector<AppProvider, int>(
           selector: (context, appProvider) => appProvider.autoLockTime,
-          builder: (context, autoLockTime, child) => ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.autoLockDelay,
-            bottomRadius: true,
-            tip: AppProvider.getAutoLockOptionLabel(autoLockTime),
-            onTap: () {
-              BottomSheetBuilder.showListBottomSheet(
-                context,
-                (context) => TileList.fromOptions(
-                  AppProvider.getAutoLockOptions(),
-                  (item2) {
-                    appProvider.autoLockTime = item2;
-                    Navigator.pop(context);
-                  },
-                  selected: autoLockTime,
-                  context: context,
-                  title: S.current.chooseAutoLockDelay,
-                  onCloseTap: () => Navigator.pop(context),
-                ),
-              );
-            },
-          ),
+          builder: (context, autoLockTime, child) =>
+              ItemBuilder.buildEntryItem(
+                context: context,
+                title: S.current.autoLockDelay,
+                bottomRadius: true,
+                tip: AppProvider.getAutoLockOptionLabel(autoLockTime),
+                onTap: () {
+                  BottomSheetBuilder.showListBottomSheet(
+                    context,
+                        (context) =>
+                        TileList.fromOptions(
+                          AppProvider.getAutoLockOptions(),
+                              (item2) {
+                            appProvider.autoLockTime = item2;
+                            Navigator.pop(context);
+                          },
+                          selected: autoLockTime,
+                          context: context,
+                          title: S.current.chooseAutoLockDelay,
+                          onCloseTap: () => Navigator.pop(context),
+                        ),
+                  );
+                },
+              ),
         ),
       ),
       const SizedBox(height: 10),
@@ -185,7 +229,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
         child: ItemBuilder.buildEntryItem(
           context: context,
           bottomRadius:
-              _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword,
+          _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword,
           title: S.current.editEncryptDatabasePassword,
           description: S.current.encryptDatabaseTip,
           tip: _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword
@@ -196,26 +240,66 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
               context,
               responsive: true,
               useWideLandscape: true,
-              (context) => InputPasswordBottomSheet(
-                title: S.current.editEncryptDatabasePassword,
-                message: S.current.editEncryptDatabasePasswordTip,
-                onConfirm: (passord, confirmPassword) async {},
-                onValidConfirm: (passord, confirmPassword) async {
-                  bool res = await DatabaseManager.changePassword(passord);
-                  if (res) {
-                    IToast.showTop(S.current.editSuccess);
-                    HiveUtil.setEncryptDatabaseStatus(
-                        EncryptDatabaseStatus.customPassword);
-                    setState(() {
-                      _encryptDatabaseStatus =
-                          EncryptDatabaseStatus.customPassword;
-                    });
-                  } else {
-                    IToast.showTop(S.current.editFailed);
-                  }
-                },
-              ),
+                  (context) =>
+                  InputPasswordBottomSheet(
+                    title: S.current.editEncryptDatabasePassword,
+                    message: S.current.editEncryptDatabasePasswordTip,
+                    onConfirm: (passord, confirmPassword) async {},
+                    onValidConfirm: (passord, confirmPassword) async {
+                      bool res = await DatabaseManager.changePassword(passord);
+                      if (res) {
+                        IToast.showTop(S.current.editSuccess);
+                        HiveUtil.setEncryptDatabaseStatus(
+                            EncryptDatabaseStatus.customPassword);
+                        setState(() {
+                          _encryptDatabaseStatus =
+                              EncryptDatabaseStatus.customPassword;
+                        });
+                        if (_enableDatabaseBiometric) {
+                          _enableDatabaseBiometric =
+                          await BiometricUtil.setDatabasePassword(
+                              appProvider.currentDatabasePassword);
+                          setState(() {});
+                        }
+                        HiveUtil.put(HiveUtil.enableDatabaseBiometricKey,
+                            _enableDatabaseBiometric);
+                      } else {
+                        IToast.showTop(S.current.editFailed);
+                      }
+                    },
+                  ),
             );
+          },
+        ),
+      ),
+      Visibility(
+        visible: DatabaseManager.isDatabaseEncrypted &&
+            _encryptDatabaseStatus == EncryptDatabaseStatus.customPassword &&
+            _biometricAvailable,
+        child: ItemBuilder.buildRadioItem(
+          context: context,
+          value: _enableDatabaseBiometric,
+          disabled: canAuthenticateResponse != CanAuthenticateResponse.success,
+          description: canAuthenticateResponseString ?? "",
+          title: S.current.biometric,
+          onTap: () async {
+            if (canAuthenticateResponse != CanAuthenticateResponse.success) {
+              return;
+            }
+            if (!_enableDatabaseBiometric) {
+              _enableDatabaseBiometric =
+              await BiometricUtil.setDatabasePassword(
+                  appProvider.currentDatabasePassword);
+              if (_enableDatabaseBiometric) {
+                IToast.showTop(S.current.enableBiometricSuccess);
+              }
+              setState(() {});
+            } else {
+              _enableDatabaseBiometric = false;
+              setState(() {});
+            }
+            HiveUtil.put(
+                HiveUtil.enableDatabaseBiometricKey, _enableDatabaseBiometric);
           },
         ),
       ),
@@ -259,7 +343,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
     LocalAuthentication localAuth = LocalAuthentication();
     bool available = await localAuth.canCheckBiometrics;
     setState(() {
-      _biometricAvailable = available;
+      _biometricHwAvailable = available;
     });
   }
 

@@ -77,7 +77,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.webDavBackupFiles(files.length),
+        S.current.cloudBackupFiles(files.length),
         style:
             Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),

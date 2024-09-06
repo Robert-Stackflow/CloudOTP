@@ -1676,7 +1676,7 @@ class ItemBuilder {
     bool feedback = false,
     bool reversePosition = false,
   }) {
-    Widget titleWidget = Text(
+    Widget titleWidget = AutoSizeText(
       text ?? "",
       style: textStyle ??
           Theme.of(context).textTheme.titleSmall?.apply(
@@ -1688,7 +1688,7 @@ class ItemBuilder {
                 fontSizeDelta: fontSizeDelta,
               ),
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      // overflow: TextOverflow.ellipsis,
     );
     return Material(
       color: background ?? Theme.of(context).cardColor,

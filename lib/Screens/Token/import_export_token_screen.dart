@@ -1,8 +1,7 @@
 import 'package:cloudotp/Database/config_dao.dart';
-import 'package:cloudotp/TokenUtils/ThirdParty/aegis_importer.dart';
-import 'package:cloudotp/TokenUtils/ThirdParty/freeotp_importer.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -16,15 +15,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../TokenUtils/ThirdParty/2fas_importer.dart';
-import '../../TokenUtils/ThirdParty/andotp_importer.dart';
-import '../../TokenUtils/ThirdParty/bitwarden_importer.dart';
-import '../../TokenUtils/ThirdParty/enteauth_importer.dart';
-import '../../TokenUtils/ThirdParty/freeotpplus_importer.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/file_util.dart';
 import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/add_bottom_sheet.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
@@ -314,6 +307,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             if (qrCodes != null && qrCodes.isNotEmpty) {
               DialogBuilder.showQrcodesDialog(
                 context,
+                asset: 'assets/logo.png',
                 title: S.current.exportQrcode,
                 message: S.current.exportQrcodeMessage,
                 qrcodes: qrCodes,
@@ -342,6 +336,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               if (qrCodes != null && qrCodes.isNotEmpty) {
                 DialogBuilder.showQrcodesDialog(
                   context,
+                  asset: AssetUtil.icGoogleauthenticator,
                   title: S.current.exportGoogleAuthenticatorQrcode,
                   message: S.current.exportGoogleAuthenticatorQrcodeMessage,
                   qrcodes: qrCodes,

@@ -11,6 +11,7 @@ import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -46,6 +47,7 @@ class DatabaseManager {
 
   static Future<void> initDataBase(String password) async {
     if (_database == null) {
+      appProvider.currentDatabasePassword = password;
       String path = join(await FileUtil.getDatabaseDir(), _dbName);
       File file = File(path);
       if (file.existsSync()) {
@@ -66,6 +68,7 @@ class DatabaseManager {
         isDatabaseEncrypted = true;
         _currentDbFactory = cipherDbFactory;
         password = await HiveUtil.regeneratePassword();
+        appProvider.currentDatabasePassword = password;
         ILogger.info("Database not exist and new password is $password");
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
@@ -93,6 +96,7 @@ class DatabaseManager {
             await _database!.rawQuery("PRAGMA rekey='$password'");
         ILogger.info("Change database password result is $res");
         if (res.isNotEmpty) {
+          appProvider.currentDatabasePassword = password;
           return true;
         }
       } else {

@@ -1,30 +1,46 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Models/github_response.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:install_plugin/install_plugin.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:saf/saf.dart';
 
 import '../../Utils/ilogger.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
-import '../Widgets/Item/item_builder.dart';
 import '../generated/l10n.dart';
 import 'itoast.dart';
 import 'notification_util.dart';
 
 class FileUtil {
+  static Future<String?> getDirectoryBySAF() async {
+    Saf saf = Saf("/Documents");
+    await Saf.releasePersistedPermissions();
+    bool? isGranted = await saf.getDirectoryPermission(
+      grantWritePermission: true,
+      isDynamic: true,
+    );
+    if (isGranted != null && isGranted) {
+      List<String>? directories = await Saf.getPersistedPermissionDirectories();
+      if (directories != null && directories.isNotEmpty) {
+        return "/storage/emulated/0/${directories.first}";
+      }
+      return null;
+    }
+    return null;
+  }
+
   static Future<FilePickerResult?> pickFiles({
     String? dialogTitle,
     String? initialDirectory,
@@ -96,6 +112,14 @@ class FileUtil {
   }) async {
     String? result;
     try {
+      if (Platform.isAndroid) {
+        DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        ILogger.debug(androidInfo.version.sdkInt.toString());
+        if (androidInfo.version.sdkInt >= 30) {
+          return await getDirectoryBySAF();
+        }
+      }
       result = await FilePicker.platform.getDirectoryPath(
         dialogTitle: dialogTitle,
         initialDirectory: initialDirectory,
@@ -118,7 +142,8 @@ class FileUtil {
     if (ResponsiveUtil.isDesktop()) {
       String? filePath = await FileUtil.saveFile(
         dialogTitle: S.current.exportLog,
-        fileName: "CloudOTP-Logs-${Utils.getFormattedDate(DateTime.now())}.zip",
+        fileName:
+            "CloudOTP-Logs-${Utils.getFormattedDate(DateTime.now())}-${ResponsiveUtil.deviceName}.zip",
         type: FileType.custom,
         allowedExtensions: ['zip'],
         lockParentWindow: true,
@@ -158,7 +183,7 @@ class FileUtil {
         String? filePath = await FileUtil.saveFile(
           dialogTitle: S.current.exportLog,
           fileName:
-              "CloudOTP-Logs-${Utils.getFormattedDate(DateTime.now())}.zip",
+              "CloudOTP-Logs-${Utils.getFormattedDate(DateTime.now())}-${ResponsiveUtil.deviceName}.zip",
           type: FileType.custom,
           allowedExtensions: ['zip'],
           lockParentWindow: true,
@@ -261,37 +286,39 @@ class FileUtil {
     String? version,
     Function(double)? onReceiveProgress,
   }) async {
-    await Permission.storage.onDeniedCallback(() {
-      IToast.showTop(S.current.pleaseGrantFilePermission);
-    }).onGrantedCallback(() async {
-      if (Utils.isNotEmpty(apkUrl)) {
-        double progressValue = 0.0;
-        var appDocDir = await getTemporaryDirectory();
-        String savePath =
-            "${appDocDir.path}/${FileUtil.getFileNameWithExtension(apkUrl)}";
-        try {
-          await Dio().download(
-            apkUrl,
-            savePath,
-            onReceiveProgress: (count, total) {
-              final value = count / total;
-              if (progressValue != value) {
-                if (progressValue < 1.0) {
-                  progressValue = count / total;
-                } else {
-                  progressValue = 0.0;
-                }
-                NotificationUtil.sendProgressNotification(
-                  0,
-                  (progressValue * 100).toInt(),
-                  title: S.current.downloadingNewVersionPackage,
-                  payload: version ?? "",
-                );
-                onReceiveProgress?.call(progressValue);
+    // await Permission.photos.onDeniedCallback(() {
+    //   IToast.showTop(S.current.pleaseGrantFilePermission);
+    // }).onGrantedCallback(() async {
+    bool enableNotification = await Permission.notification.isGranted;
+    if (Utils.isNotEmpty(apkUrl)) {
+      double progressValue = 0.0;
+      var appDocDir = await getTemporaryDirectory();
+      String savePath =
+          "${appDocDir.path}/${FileUtil.getFileNameWithExtension(apkUrl)}";
+      try {
+        await Dio().download(
+          apkUrl,
+          savePath,
+          onReceiveProgress: (count, total) {
+            final value = count / total;
+            if (progressValue != value) {
+              if (progressValue < 1.0) {
+                progressValue = count / total;
+              } else {
+                progressValue = 0.0;
               }
-            },
-          ).then((response) async {
-            if (response.statusCode == 200) {
+              NotificationUtil.sendProgressNotification(
+                0,
+                (progressValue * 100).toInt(),
+                title: S.current.downloadingNewVersionPackage,
+                payload: version ?? "",
+              );
+              onReceiveProgress?.call(progressValue);
+            }
+          },
+        ).then((response) async {
+          if (response.statusCode == 200) {
+            if (enableNotification) {
               NotificationUtil.closeNotification(0);
               NotificationUtil.sendInfoNotification(
                 1,
@@ -300,72 +327,44 @@ class FileUtil {
                 payload: savePath,
               );
             } else {
-              UriUtil.openExternal(htmlUrl);
+              DialogBuilder.showConfirmDialog(context,
+                  title: S.current.downloadComplete,
+                  message: S.current.downloadSuccessClickToInstall,
+                  cancelButtonText: S.current.updateLater,
+                  confirmButtonText: S.current.immediatelyInstall,
+                  onTapConfirm: () async {
+                await InstallPlugin.install(savePath);
+              });
             }
-          });
-        } catch (e, t) {
-          ILogger.error("Failed to download apk", e, t);
-          NotificationUtil.closeNotification(0);
-          NotificationUtil.sendInfoNotification(
-            2,
-            S.current.downloadFailedAndRetry,
-            S.current.downloadFailedAndRetryTip,
-          );
-        }
-      } else {
-        UriUtil.openExternal(htmlUrl);
+          } else {
+            UriUtil.openExternal(htmlUrl);
+          }
+        });
+      } catch (e, t) {
+        ILogger.error("Failed to download apk", e, t);
+        NotificationUtil.closeNotification(0);
+        NotificationUtil.sendInfoNotification(
+          2,
+          S.current.downloadFailedAndRetry,
+          S.current.downloadFailedAndRetryTip,
+        );
       }
-    }).onPermanentlyDeniedCallback(() {
-      IToast.showTop(S.current.hasRejectedFilePermission);
-      UriUtil.openExternal(apkUrl);
-    }).onRestrictedCallback(() {
-      IToast.showTop(S.current.pleaseGrantFilePermission);
-    }).onLimitedCallback(() {
-      IToast.showTop(S.current.pleaseGrantFilePermission);
-    }).onProvisionalCallback(() {
-      IToast.showTop(S.current.pleaseGrantFilePermission);
-    }).request();
-  }
-
-  static Future<ShareResultStatus> shareImage(
-    BuildContext context,
-    String imageUrl, {
-    bool showToast = true,
-    String? message,
-  }) async {
-    CachedNetworkImage image =
-        ItemBuilder.buildCachedImage(imageUrl: imageUrl, context: context);
-    BaseCacheManager manager = image.cacheManager ?? DefaultCacheManager();
-    Map<String, String> headers = image.httpHeaders ?? {};
-    File file = await manager.getSingleFile(
-      image.imageUrl,
-      headers: headers,
-    );
-    final shareResult =
-        await Share.shareXFiles([XFile(file.path)], text: message);
-    if (shareResult.status == ShareResultStatus.success) {
-      IToast.showTop(S.current.shareSuccess);
-    } else if (shareResult.status == ShareResultStatus.dismissed) {
-      IToast.showTop(S.current.cancelShare);
     } else {
-      IToast.showTop(S.current.shareFailed);
+      UriUtil.openExternal(htmlUrl);
     }
-    return shareResult.status;
-  }
-
-  static Future<File> getImageFile(
-    BuildContext context,
-    String imageUrl, {
-    bool showToast = true,
-  }) async {
-    CachedNetworkImage image =
-        ItemBuilder.buildCachedImage(imageUrl: imageUrl, context: context);
-    BaseCacheManager manager = image.cacheManager ?? DefaultCacheManager();
-    Map<String, String> headers = image.httpHeaders ?? {};
-    return await manager.getSingleFile(
-      image.imageUrl,
-      headers: headers,
-    );
+    // }).onPermanentlyDeniedCallback(() {
+    //   IToast.showTop(S.current.hasRejectedFilePermission);
+    //   UriUtil.openExternal(apkUrl);
+    // }).onRestrictedCallback(() {
+    //   IToast.showTop(S.current.pleaseGrantFilePermission);
+    //   UriUtil.openExternal(apkUrl);
+    // }).onLimitedCallback(() {
+    //   IToast.showTop(S.current.pleaseGrantFilePermission);
+    //   UriUtil.openExternal(apkUrl);
+    // }).onProvisionalCallback(() {
+    //   IToast.showTop(S.current.pleaseGrantFilePermission);
+    //   UriUtil.openExternal(apkUrl);
+    // }).request();
   }
 
   static Future<File> copyAndRenameFile(
@@ -382,6 +381,7 @@ class FileUtil {
 
   static Future<ReleaseAsset> getAndroidAsset(
       String latestVersion, ReleaseItem item) async {
+    ReleaseAsset? resAsset;
     List<ReleaseAsset> assets = item.assets
         .where((element) =>
             element.contentType == "application/vnd.android.package-archive" &&
@@ -399,22 +399,31 @@ class FileUtil {
         String abi =
             asset.name.split("CloudOTP-$latestVersion-").last.split(".").first;
         if (supportedAbis.contains(abi.toLowerCase())) {
-          return asset;
+          resAsset = asset;
         }
       }
     } finally {}
-    return generalAsset;
+    resAsset ??= generalAsset;
+    resAsset.pkgsDownloadUrl =
+        Utils.getDownloadUrl(latestVersion, resAsset.name);
+    return resAsset;
   }
 
-  static ReleaseAsset getWindowsPortableAsset(ReleaseItem item) {
-    return item.assets.firstWhere((element) =>
+  static ReleaseAsset getWindowsPortableAsset(
+      String latestVersion, ReleaseItem item) {
+    var asset = item.assets.firstWhere((element) =>
         element.contentType == "application/x-zip-compressed" &&
         element.name.endsWith(".zip"));
+    asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
+    return asset;
   }
 
-  static ReleaseAsset getWindowsInstallerAsset(ReleaseItem item) {
-    return item.assets.firstWhere((element) =>
+  static ReleaseAsset getWindowsInstallerAsset(
+      String latestVersion, ReleaseItem item) {
+    var asset = item.assets.firstWhere((element) =>
         element.contentType == "application/x-msdownload" &&
         element.name.endsWith(".exe"));
+    asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
+    return asset;
   }
 }

@@ -760,6 +760,7 @@ class QrcodeDialog {
     BuildContext context, {
     String? title,
     String? message,
+    String? asset,
     required List<String> qrcodes,
     Alignment align = Alignment.bottomCenter,
   }) =>
@@ -771,6 +772,7 @@ class QrcodeDialog {
           qrcodes: qrcodes,
           message: message,
           align: align,
+          asset: asset,
         ),
       );
 
@@ -778,6 +780,7 @@ class QrcodeDialog {
     BuildContext context, {
     String? title,
     String? message,
+    String? asset,
     required List<String> qrcodes,
     Alignment align = Alignment.bottomCenter,
   }) =>
@@ -791,6 +794,7 @@ class QrcodeDialog {
           message: message,
           qrcodes: qrcodes,
           align: align,
+          asset: asset,
         ),
         containerWidget: (_, animation, child) => FloatingModal(
           child: child,

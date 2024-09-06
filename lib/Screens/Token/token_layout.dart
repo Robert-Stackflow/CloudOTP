@@ -23,6 +23,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
+import '../../Utils/asset_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/utils.dart';
@@ -390,6 +391,7 @@ class TokenLayoutState extends State<TokenLayout>
       context,
       title: widget.token.title,
       qrcodes: [OtpTokenParser.toUri(widget.token).toString()],
+      asset: AssetUtil.getBrandPath(widget.token.imagePath),
     );
   }
 
@@ -880,7 +882,7 @@ class TokenLayoutState extends State<TokenLayout>
           child: Container(
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
             padding:
-                const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 3),
+                const EdgeInsets.only(left: 12, right: 12, top: 15, bottom: 8),
             child: Row(
               children: [
                 Container(

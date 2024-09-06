@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
@@ -17,7 +15,6 @@ import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:html/parser.dart';
@@ -27,7 +24,6 @@ import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:uuid/uuid.dart';
@@ -134,89 +130,6 @@ class Utils {
 
   static patchEnum(int index, int length, {int defaultValue = 0}) {
     return index < 0 || index > length - 1 ? defaultValue : index;
-  }
-
-  static Future<EncodedImage> _getImagePixelsByUrl(String url) async {
-    final Completer<EncodedImage> completer = Completer();
-    final ImageStream stream =
-        CachedNetworkImageProvider(url).resolve(const ImageConfiguration());
-    final listener =
-        ImageStreamListener((ImageInfo info, bool synchronousCall) async {
-      final ByteData? data = await info.image.toByteData();
-      if (data != null && !completer.isCompleted) {
-        completer.complete(
-            EncodedImage(data, width: 1, height: data.lengthInBytes ~/ 4));
-      }
-    });
-    stream.addListener(listener);
-    final EncodedImage encodedImage = await completer.future;
-    stream.removeListener(listener);
-    return encodedImage;
-  }
-
-  static Future<EncodedImage> _getImagePixelsByFile(File file) async {
-    final Completer<EncodedImage> completer = Completer();
-    final ImageStream stream =
-        FileImage(file).resolve(const ImageConfiguration());
-    final listener =
-        ImageStreamListener((ImageInfo info, bool synchronousCall) async {
-      final ByteData? data = await info.image.toByteData();
-      if (data != null && !completer.isCompleted) {
-        completer.complete(
-            EncodedImage(data, width: 1, height: data.lengthInBytes ~/ 4));
-      }
-    });
-    stream.addListener(listener);
-    final EncodedImage encodedImage = await completer.future;
-    stream.removeListener(listener);
-    return encodedImage;
-  }
-
-  static FutureOr<PaletteGenerator> _getPaletteGenerator(
-    EncodedImage encodedImage,
-  ) async {
-    final Completer<PaletteGenerator> completer = Completer();
-    PaletteGenerator.fromByteData(encodedImage).then((paletteGenerator) {
-      completer.complete(paletteGenerator);
-    });
-    return await completer.future;
-  }
-
-  static Future<PaletteGenerator> getPaletteGenerator(
-    String imageUrl, {
-    BuildContext? context,
-    bool getByFile = true,
-  }) async {
-    late final EncodedImage encodedImage;
-    if (getByFile && context != null) {
-      File file = await FileUtil.getImageFile(context, imageUrl);
-      encodedImage = await _getImagePixelsByFile(file);
-    } else {
-      encodedImage = await _getImagePixelsByUrl(imageUrl);
-    }
-    PaletteGenerator generator =
-        await compute(_getPaletteGenerator, encodedImage);
-    return generator;
-  }
-
-  static Future<List<Color>> getMainColors(
-    BuildContext context,
-    List<String> imageUrls, {
-    Function()? onFinished,
-  }) async {
-    List<Color> mainColors = List.filled(imageUrls.length, Colors.black);
-    for (var e in imageUrls) {
-      int index = imageUrls.indexOf(e);
-      await Utils.getPaletteGenerator(e, context: context)
-          .then((paletteGenerator) {
-        if (paletteGenerator.darkMutedColor != null) {
-          mainColors[index] = paletteGenerator.darkMutedColor!.color;
-        } else if (paletteGenerator.darkVibrantColor != null) {
-          mainColors[index] = paletteGenerator.darkVibrantColor!.color;
-        }
-      });
-    }
-    return mainColors;
   }
 
   static List<T> deepCopyList<T>(List<T> list) {
@@ -430,6 +343,10 @@ class Utils {
     windowManager.restore();
   }
 
+  static getDownloadUrl(String version, String name) {
+    return "$downloadUrl/$version/$name";
+  }
+
   static getReleases({
     required BuildContext context,
     Function(String)? onGetCurrentVersion,
@@ -492,7 +409,7 @@ class Utils {
                   ILogger.info("Get android asset: $androidAssset");
                   FileUtil.downloadAndUpdate(
                     context,
-                    androidAssset.browserDownloadUrl,
+                    androidAssset.pkgsDownloadUrl,
                     latestReleaseItem.htmlUrl,
                     version: latestVersion,
                   );

@@ -75,7 +75,7 @@ class HuaweiCloudBackupsBottomSheetState
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.webDavBackupFiles(widget.files.length),
+        S.current.cloudBackupFiles(widget.files.length),
         style:
             Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),

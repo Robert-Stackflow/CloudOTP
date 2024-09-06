@@ -325,7 +325,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       floatingActionButton:
           ResponsiveUtil.isDesktop() ? null : _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
-      extendBody: true,
     );
   }
 
@@ -632,8 +631,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   .withOpacity(enableFrostedGlassEffect ? 0.2 : 1),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).shadowColor.withAlpha(127),
-                  blurRadius: Utils.isDark(context) ? 50 : 10,
+                  color: Theme.of(context).shadowColor,
+                  blurRadius: 30,
                   spreadRadius: 1,
                 ),
               ],
@@ -1104,7 +1103,7 @@ enum LayoutType {
       case LayoutType.List:
         return 60;
       case LayoutType.Spotlight:
-        return 98;
+        return 108;
     }
   }
 }

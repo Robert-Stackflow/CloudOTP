@@ -2,30 +2,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.cloudchewie.cloudotp">
 
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-        </intent>
-    </queries>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEOS" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-sdk tools:overrideLibrary="dev.isar.isar_flutter_libs"/>
+
+    <uses-sdk tools:overrideLibrary="dev.isar.isar_flutter_libs" />
     <application
         android:name="${applicationName}"
+        android:allowBackup="false"
+        android:enableOnBackInvokedCallback="true"
+        android:extractNativeLibs="true"
+        android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
         android:label="CloudOTP"
         android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
-        android:enableOnBackInvokedCallback="true"
-        android:extractNativeLibs="true"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
@@ -50,8 +48,10 @@
             android:exported="true">
             <intent-filter android:label="flutter_web_auth_2">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data android:scheme="cloudotp" />
                 <data android:scheme="com.cloudchewie.cloudotp" />
             </intent-filter>

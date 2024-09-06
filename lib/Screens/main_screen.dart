@@ -140,7 +140,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onProtocolUrlReceived(String url) {
-    ILogger.info("Protocol url received", log);
+    ILogger.info("Protocol url received", url);
   }
 
   Future<void> fetchReleases() async {

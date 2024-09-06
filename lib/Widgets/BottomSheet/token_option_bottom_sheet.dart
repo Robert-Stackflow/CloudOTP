@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
@@ -317,6 +318,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               context,
               title: widget.token.title,
               qrcodes: [OtpTokenParser.toUri(widget.token).toString()],
+              asset: AssetUtil.getBrandPath(widget.token.imagePath),
             );
           },
         ),

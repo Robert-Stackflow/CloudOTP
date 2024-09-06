@@ -1,7 +1,6 @@
 library flutter_cloud;
 
 import 'dart:async';
-import 'dart:convert' show jsonDecode;
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -226,9 +225,7 @@ class OneDrive with ChangeNotifier {
     bool isAppFolder = false,
   }) async {
     try {
-      if (isAppFolder) {
-        await getMetadata(remotePath, isAppFolder: isAppFolder);
-      }
+      await createFolder(remotePath, isAppFolder: isAppFolder);
 
       final url = Uri.parse(
           "$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/children?select=id,name,size,createdDateTime,lastModifiedDateTime,file,description");
@@ -328,9 +325,7 @@ class OneDrive with ChangeNotifier {
     Function(int p1, int p2)? onProgress,
   }) async {
     try {
-      if (isAppFolder) {
-        await getMetadata(remotePath, isAppFolder: isAppFolder);
-      }
+      await createFolder(remotePath, isAppFolder: isAppFolder);
 
       const int pageSize = 1024 * 1024;
       final int maxPage = (bytes.length / pageSize.toDouble()).ceil();
@@ -404,30 +399,34 @@ class OneDrive with ChangeNotifier {
     return isAppFolder ? _appRootFolder : _defaultRootFolder;
   }
 
-  Future<Uint8List?> getMetadata(
+  Future<void> createFolder(
     String remotePath, {
     bool isAppFolder = false,
   }) async {
-    try {
-      final url =
-          Uri.parse("$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}");
 
-      final resp = await get(url);
+    try {
+      final url = Uri.parse(
+          "$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}/children");
+
+      final resp = await post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "name": remotePath.replaceAll("/", ""),
+          "folder": {},
+          "@microsoft.graph.conflictBehavior": "rename",
+        }),
+      );
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        debugPrint("# OneDrive -> metadata success: ${resp.body}");
-        return resp.bodyBytes;
-      } else if (resp.statusCode == 404) {
-        return Uint8List(0);
+        debugPrint("# OneDrive -> create folder success: ${resp.body}");
       } else {
         debugPrint(
-            "# OneDrive -> metadata failed: ${resp.statusCode}\n# Body: ${resp.body}");
+            "# OneDrive -> create folder failed: ${resp.statusCode}\n# Body: ${resp.body}");
       }
     } catch (err) {
-      debugPrint("# OneDrive -> metadata: $err");
+      debugPrint("# OneDrive -> create folder: $err");
     }
-
-    return null;
   }
 }
 

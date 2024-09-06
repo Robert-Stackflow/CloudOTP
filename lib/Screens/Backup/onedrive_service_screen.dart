@@ -4,6 +4,7 @@ import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
+import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cloud/onedrive_response.dart';
@@ -52,7 +53,12 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   @override
   void initState() {
     super.initState();
-    loadConfig();
+    try {
+      loadConfig();
+    } catch (e) {
+      inited = true;
+      IToast.show(S.current.cloudConnectionError);
+    }
   }
 
   loadConfig() async {
@@ -234,7 +240,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
         Expanded(
           child: ItemBuilder.buildRoundButton(
             context,
-            text: S.current.webDavSignin,
+            text: S.current.cloudSignin,
             background: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
@@ -259,19 +265,19 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
         Expanded(
           child: ItemBuilder.buildFramedButton(
             context,
-            text: S.current.webDavPullBackup,
+            text: S.current.cloudPullBackup,
             padding: const EdgeInsets.symmetric(vertical: 12),
             outline: Theme.of(context).primaryColor,
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
+              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
               try {
                 List<OneDriveFileInfo>? files =
                     await _oneDriveCloudService!.listBackups();
                 if (files == null) {
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.webDavPullFailed);
+                  IToast.show(S.current.cloudPullFailed);
                   return;
                 }
                 CloudServiceConfigDao.updateLastPullTime(
@@ -288,7 +294,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                       cloudService: _oneDriveCloudService!,
                       onSelected: (selectedFile) async {
                         var dialog = showProgressDialog(
-                          msg: S.current.webDavPulling,
+                          msg: S.current.cloudPulling,
                           showProgress: true,
                         );
                         Uint8List? res =
@@ -303,12 +309,12 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                     ),
                   );
                 } else {
-                  IToast.show(S.current.webDavNoBackupFile);
+                  IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
                 ILogger.error("Failed to pull from onedrive", e, t);
                 CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.webDavPullFailed);
+                IToast.show(S.current.cloudPullFailed);
               }
             },
           ),
@@ -319,7 +325,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             context,
             padding: const EdgeInsets.symmetric(vertical: 12),
             background: Theme.of(context).primaryColor,
-            text: S.current.webDavPushBackup,
+            text: S.current.cloudPushBackup,
             fontSizeDelta: 2,
             onTap: () async {
               ExportTokenUtil.backupEncryptToCloud(
@@ -335,23 +341,28 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             context,
             padding: const EdgeInsets.symmetric(vertical: 12),
             background: Colors.red,
-            text: S.current.webDavLogout,
+            text: S.current.cloudLogout,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(
-                  title: S.current.webDavLoggingOut);
-              await _oneDriveCloudService!.signOut();
-              setState(() {
-                _oneDriveCloudServiceConfig!.connected = false;
-                _oneDriveCloudServiceConfig!.account = "";
-                _oneDriveCloudServiceConfig!.email = "";
-                _oneDriveCloudServiceConfig!.totalSize =
-                    _oneDriveCloudServiceConfig!.remainingSize =
-                        _oneDriveCloudServiceConfig!.usedSize = -1;
-                updateConfig(_oneDriveCloudServiceConfig!);
+              DialogBuilder.showConfirmDialog(context,
+                  title: S.current.cloudLogout,
+                  message: S.current.cloudLogoutMessage,
+                  onTapConfirm: () async {
+                CustomLoadingDialog.showLoading(
+                    title: S.current.cloudLoggingOut);
+                await _oneDriveCloudService!.signOut();
+                setState(() {
+                  _oneDriveCloudServiceConfig!.connected = false;
+                  _oneDriveCloudServiceConfig!.account = "";
+                  _oneDriveCloudServiceConfig!.email = "";
+                  _oneDriveCloudServiceConfig!.totalSize =
+                      _oneDriveCloudServiceConfig!.remainingSize =
+                          _oneDriveCloudServiceConfig!.usedSize = -1;
+                  updateConfig(_oneDriveCloudServiceConfig!);
+                });
+                CustomLoadingDialog.dismissLoading();
+                IToast.show(S.current.cloudLogoutSuccess);
               });
-              CustomLoadingDialog.dismissLoading();
-              IToast.show(S.current.webDavLogoutSuccess);
             },
           ),
         ),

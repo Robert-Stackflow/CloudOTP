@@ -14,6 +14,7 @@ class QrcodesDialogWidget extends StatefulWidget {
   final String? title;
   final String? message;
   final Alignment align;
+  final String? asset;
 
   const QrcodesDialogWidget({
     super.key,
@@ -21,6 +22,7 @@ class QrcodesDialogWidget extends StatefulWidget {
     this.title,
     this.message,
     this.align = Alignment.bottomCenter,
+    this.asset,
   });
 
   @override
@@ -110,6 +112,40 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                       padding: const EdgeInsets.all(20),
                       child: PrettyQrView.data(
                         data: widget.qrcodes[index],
+                        errorCorrectLevel: QrErrorCorrectLevel.M,
+                        errorBuilder: (context, error, stacktrace) {
+                          return Text(
+                            S.current.errorQrCode + error.toString(),
+                            textAlign: TextAlign.center,
+                          );
+                        },
+                        decoration: PrettyQrDecoration(
+                          // shape: PrettyQrSmoothSymbol(
+                            // roundFactor: 1,
+                            // color: PrettyQrBrush.gradient(
+                            //   gradient: LinearGradient(
+                            //     begin: Alignment.topCenter,
+                            //     end: Alignment.bottomCenter,
+                            //     colors: [
+                            //       Theme.of(context).primaryColor,
+                            //       Colors.blue[200]!,
+                            //       Colors.teal[200]!,
+                            //       Colors.red[200]!,
+                            //     ],
+                            //   ),
+                            // ),
+                          // ),
+                          image:
+                              widget.asset != null && widget.asset!.isNotEmpty
+                                  ? PrettyQrDecorationImage(
+                                      scale: 0.15,
+                                      isAntiAlias: true,
+                                      padding: const EdgeInsets.all(20),
+                                      filterQuality: FilterQuality.high,
+                                      image: AssetImage(widget.asset!),
+                                    )
+                                  : null,
+                        ),
                       ),
                     );
                   },

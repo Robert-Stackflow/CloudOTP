@@ -6,9 +6,11 @@ import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/database_manager.dart';
+import '../../Utils/biometric_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/ilogger.dart';
@@ -32,6 +34,29 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool _isMaximized = false;
   bool _isStayOnTop = false;
+  bool _biometricAvailable = false;
+  final bool _enableDatabaseBiometric = HiveUtil.getBool(
+      HiveUtil.enableDatabaseBiometricKey,
+      defaultValue: false);
+
+  auth() async {
+    String? password = await BiometricUtil.getDatabasePassword();
+    if (password != null && password.isNotEmpty) {
+      validateAsyncController.controller.text = password;
+      onSubmit();
+    }
+  }
+
+  initBiometricAuthentication() async {
+    LocalAuthentication localAuth = LocalAuthentication();
+    bool available = await localAuth.canCheckBiometrics;
+    setState(() {
+      _biometricAvailable = available;
+    });
+    if (_biometricAvailable && _enableDatabaseBiometric) {
+      auth();
+    }
+  }
 
   @override
   void onWindowMaximize() {
@@ -68,6 +93,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   @override
   void initState() {
     super.initState();
+    initBiometricAuthentication();
     windowManager.addListener(this);
     Future.delayed(const Duration(milliseconds: 200), () {
       FocusScope.of(context).requestFocus(_focusNode);
@@ -150,6 +176,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        const Spacer(),
         Text(S.current.decryptDatabasePassword,
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 30),
@@ -172,6 +199,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
               validateAsyncController: validateAsyncController,
               focusNode: _focusNode,
               maxLines: 1,
+              obscureText: true,
               onSubmit: (_) => onSubmit(),
               textInputAction: TextInputAction.done,
               backgroundColor: Colors.transparent,
@@ -194,6 +222,25 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           background: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
           onTap: onSubmit,
+        ),
+        const Spacer(),
+        ItemBuilder.buildClickItem(
+          clickable: _biometricAvailable && _enableDatabaseBiometric,
+          GestureDetector(
+            onTap: _biometricAvailable && _enableDatabaseBiometric
+                ? () {
+                    auth();
+                  }
+                : null,
+            child: Text(
+              _biometricAvailable && _enableDatabaseBiometric
+                  ? S.current.biometric
+                  : "",
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
+                  ),
+            ),
+          ),
         ),
       ],
     );

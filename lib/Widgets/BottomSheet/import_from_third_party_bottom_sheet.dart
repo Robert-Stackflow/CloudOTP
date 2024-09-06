@@ -253,10 +253,8 @@ class ImportFromThirdPartyBottomSheetState
               },
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
           child: Row(
             children: [
               AssetUtil.load(asset, size: 32),
@@ -270,7 +268,7 @@ class ImportFromThirdPartyBottomSheetState
                       maxLines: 1,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 3),
                     Text(
                       description,
                       style: Theme.of(context).textTheme.bodySmall,

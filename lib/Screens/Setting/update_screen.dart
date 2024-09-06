@@ -119,7 +119,7 @@ class _UpdateScreenState extends State<UpdateScreen>
         children: [
           SizedBox(
             height: 45,
-            child: ItemBuilder.buildFramedButton(
+            child: ItemBuilder.buildRoundButton(
               context,
               text: S.current.updateLater,
               onTap: () {
@@ -144,10 +144,10 @@ class _UpdateScreenState extends State<UpdateScreen>
                 try {
                   late ReleaseAsset asset;
                   if (ResponsiveUtil.isWindows()) {
-                    asset =
-                        FileUtil.getWindowsInstallerAsset(latestReleaseItem);
+                    asset = FileUtil.getWindowsInstallerAsset(
+                        latestVersion, latestReleaseItem);
                   }
-                  String url = asset.browserDownloadUrl;
+                  String url = asset.pkgsDownloadUrl;
                   var appDocDir = await getDownloadsDirectory();
                   String savePath =
                       "${appDocDir?.path}/${FileUtil.getFileNameWithExtension(url)}";
@@ -184,7 +184,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     }
                   } else if (downloadState == DownloadState.installing) {
                   } else {
-                    if (Utils.isNotEmpty(asset.browserDownloadUrl)) {
+                    if (Utils.isNotEmpty(asset.pkgsDownloadUrl)) {
                       double progressValue = 0.0;
                       setState(() {
                         buttonText = S.current.alreadyDownloadProgress(0);

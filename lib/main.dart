@@ -5,6 +5,7 @@ import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Lock/pin_verify_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/biometric_util.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/request_header_util.dart';
@@ -97,7 +98,9 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   }
   await initCryptoUtil();
   NotificationUtil.init();
+  await BiometricUtil.initStorage();
   await TokenImageUtil.loadBrandLogos();
+  ResponsiveUtil.init();
   if (ResponsiveUtil.isMobile()) {
     await initDisplayMode();
     if (ResponsiveUtil.isAndroid()) {

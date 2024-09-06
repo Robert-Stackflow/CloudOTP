@@ -15,6 +15,7 @@ import '../../Utils/ilogger.dart';
 import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
+import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/Dialog/progress_dialog.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
@@ -220,7 +221,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
         Expanded(
           child: ItemBuilder.buildRoundButton(
             context,
-            text: S.current.webDavSignin,
+            text: S.current.cloudSignin,
             background: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
@@ -245,19 +246,19 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
         Expanded(
           child: ItemBuilder.buildFramedButton(
             context,
-            text: S.current.webDavPullBackup,
+            text: S.current.cloudPullBackup,
             padding: const EdgeInsets.symmetric(vertical: 12),
             outline: Theme.of(context).primaryColor,
             color: Theme.of(context).primaryColor,
             fontSizeDelta: 2,
             onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.webDavPulling);
+              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
               try {
                 List<GoogleDriveFileInfo>? files =
                     await _googledriveCloudService!.listBackups();
                 if (files == null) {
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.webDavPullFailed);
+                  IToast.show(S.current.cloudPullFailed);
                   return;
                 }
                 CloudServiceConfigDao.updateLastPullTime(
@@ -274,7 +275,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                       cloudService: _googledriveCloudService!,
                       onSelected: (selectedFile) async {
                         var dialog = showProgressDialog(
-                          msg: S.current.webDavPulling,
+                          msg: S.current.cloudPulling,
                           showProgress: true,
                         );
                         Uint8List? res =
@@ -289,12 +290,12 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                     ),
                   );
                 } else {
-                  IToast.show(S.current.webDavNoBackupFile);
+                  IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
                 ILogger.error("Failed to pull from google drive", e, t);
                 CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.webDavPullFailed);
+                IToast.show(S.current.cloudPullFailed);
               }
             },
           ),
@@ -305,7 +306,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             context,
             padding: const EdgeInsets.symmetric(vertical: 12),
             background: Theme.of(context).primaryColor,
-            text: S.current.webDavPushBackup,
+            text: S.current.cloudPushBackup,
             fontSizeDelta: 2,
             onTap: () async {
               ExportTokenUtil.backupEncryptToCloud(
@@ -321,18 +322,23 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             context,
             padding: const EdgeInsets.symmetric(vertical: 12),
             background: Colors.red,
-            text: S.current.webDavLogout,
+            text: S.current.cloudLogout,
             fontSizeDelta: 2,
             onTap: () async {
-              await _googledriveCloudService!.signOut();
-              setState(() {
-                _googledriveCloudServiceConfig!.connected = false;
-                _googledriveCloudServiceConfig!.account = "";
-                _googledriveCloudServiceConfig!.email = "";
-                _googledriveCloudServiceConfig!.totalSize =
-                    _googledriveCloudServiceConfig!.remainingSize =
-                        _googledriveCloudServiceConfig!.usedSize = -1;
-                updateConfig(_googledriveCloudServiceConfig!);
+              DialogBuilder.showConfirmDialog(context,
+                  title: S.current.cloudLogout,
+                  message: S.current.cloudLogoutMessage,
+                  onTapConfirm: () async {
+                await _googledriveCloudService!.signOut();
+                setState(() {
+                  _googledriveCloudServiceConfig!.connected = false;
+                  _googledriveCloudServiceConfig!.account = "";
+                  _googledriveCloudServiceConfig!.email = "";
+                  _googledriveCloudServiceConfig!.totalSize =
+                      _googledriveCloudServiceConfig!.remainingSize =
+                          _googledriveCloudServiceConfig!.usedSize = -1;
+                  updateConfig(_googledriveCloudServiceConfig!);
+                });
               });
             },
           ),
