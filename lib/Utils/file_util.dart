@@ -426,38 +426,35 @@ class FileUtil {
   }
 
   WindowsVersion checkWindowsVersion() {
+    WindowsVersion tmp = WindowsVersion.portable;
+
     final key = calloc<IntPtr>();
+    final installPathPtr = calloc<Uint16>(260);
+    final dataSize = calloc<Uint32>();
+    dataSize.value = 260 * 2;
+
     final result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT(windowsKeyPath), 0,
         REG_SAM_FLAGS.KEY_READ, key);
     if (result == WIN32_ERROR.ERROR_SUCCESS) {
+      final queryResult = RegQueryValueEx(key.value, TEXT('InstallPath'),
+          nullptr, nullptr, installPathPtr.cast(), dataSize);
 
-      WindowsVersion tmp = WindowsVersion.installed;
-
-      // final installPathPtr = calloc<Uint16>(260);
-      // final dataSize = calloc<Uint32>();
-      // dataSize.value = 260 * 2;
-      // final queryResult = RegQueryValueEx(key.value, TEXT('InstallPath'),
-      //     nullptr, nullptr, installPathPtr.cast(), dataSize);
-      // if (queryResult == WIN32_ERROR.ERROR_SUCCESS) {
-      //   final currentPath = Platform.resolvedExecutable;
-      //   final installPath = installPathPtr.toDartString();
-      //   print("currentPath: $currentPath installPath: $installPath");
-      //   tmp = installPath == currentPath
-      //       ? WindowsVersion.installed
-      //       : WindowsVersion.portable;
-      // } else {
-      //   tmp = WindowsVersion.portable;
-      // }
-
-      RegCloseKey(key.value);
-      calloc.free(key);
-      // calloc.free(installPathPtr);
-      // calloc.free(dataSize);
-      return tmp;
-    } else {
-      calloc.free(key);
-      return WindowsVersion.portable;
+      if (queryResult == WIN32_ERROR.ERROR_SUCCESS) {
+        final currentPath = Platform.resolvedExecutable;
+        final installPath = installPathPtr.cast<Utf16>().toDartString();
+        ILogger.info("Get install path: $installPath and current path: $currentPath");
+        tmp = installPath == currentPath
+            ? WindowsVersion.installed
+            : WindowsVersion.portable;
+      } else {
+        tmp = WindowsVersion.portable;
+      }
     }
+    RegCloseKey(key.value);
+    calloc.free(key);
+    calloc.free(installPathPtr);
+    calloc.free(dataSize);
+    return tmp;
   }
 
   static ReleaseAsset getWindowsAsset(String latestVersion, ReleaseItem item) {
