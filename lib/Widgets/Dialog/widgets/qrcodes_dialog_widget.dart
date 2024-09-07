@@ -58,8 +58,12 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
               ? const EdgeInsets.all(24)
               : EdgeInsets.zero,
           decoration: BoxDecoration(
-            color: MyTheme.getCardBackground(context),
-            borderRadius: BorderRadius.circular(15),
+            color: Theme.of(context).canvasColor,
+            borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(20),
+                bottom: ResponsiveUtil.isWideLandscape()
+                    ? const Radius.circular(20)
+                    : Radius.zero),
           ),
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 24),

@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
+import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
@@ -81,7 +82,6 @@ class MainScreenState extends State<MainScreen>
   Widget? darkModeWidget;
   bool _isMaximized = false;
   bool _isStayOnTop = false;
-  bool _hasJumpedToPinVerify = false;
   Orientation _oldOrientation = Orientation.portrait;
   TextEditingController searchController = TextEditingController();
   FocusNode searchFocusNode = FocusNode();
@@ -136,6 +136,11 @@ class MainScreenState extends State<MainScreen>
     setState(() {
       _isMaximized = false;
     });
+  }
+
+  void pushRootPage(Widget page) {
+    Navigator.pushAndRemoveUntil(
+        context, RouteUtil.getFadeRoute(page), (route) => false);
   }
 
   @override
@@ -216,7 +221,8 @@ class MainScreenState extends State<MainScreen>
           indicator: LottieUtil.load(LottieUtil.getLoadingPath(context)),
         );
     if (ResponsiveUtil.isMobile()) {
-      if (HiveUtil.getBool(HiveUtil.enableSafeModeKey)) {
+      if (HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+          defaultValue: defaultEnableSafeMode)) {
         FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
       } else {
         FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
@@ -224,20 +230,25 @@ class MainScreenState extends State<MainScreen>
     }
   }
 
-  void jumpToPinVerify({
+  Future<void> jumpToLock({
     bool autoAuth = false,
-  }) {
-    _hasJumpedToPinVerify = true;
-    RouteUtil.pushCupertinoRoute(
-        context,
+  }) async {
+    if (DatabaseManager.isDatabaseEncrypted &&
+        HiveUtil.getEncryptDatabaseStatus() ==
+            EncryptDatabaseStatus.customPassword) {
+      await DatabaseManager.resetDatabase();
+      pushRootPage(const DatabaseDecryptScreen());
+    } else {
+      pushRootPage(
         PinVerifyScreen(
           onSuccess: () {},
           showWindowTitle: true,
           isModal: true,
           autoAuth: autoAuth,
-        ), onThen: (_) {
-      _hasJumpedToPinVerify = false;
-    });
+          jumpToMain: true,
+        ),
+      );
+    }
   }
 
   @override
@@ -301,34 +312,6 @@ class MainScreenState extends State<MainScreen>
               ),
             ],
           ),
-        ),
-      ],
-    );
-    var rightPosWidget = Column(
-      children: [
-        _titleBar(),
-        Expanded(
-          child: Row(
-            children: [
-              Expanded(
-                child: _desktopMainContent(leftMargin: 5),
-              ),
-              _sideBar(leftPadding: 8, rightPadding: 8, topPadding: 8),
-            ],
-          ),
-        ),
-      ],
-    );
-    var bottomPosWidget = Column(
-      children: [
-        _titleBar(),
-        Expanded(
-          child: _desktopMainContent(leftMargin: 5, rightMargin: 5),
-        ),
-        RotatedBox(
-          quarterTurns: 3,
-          child: _sideBar(
-              quarterTurns: 1, leftPadding: 8, rightPadding: 8, topPadding: 5),
         ),
       ],
     );
@@ -836,7 +819,7 @@ class MainScreenState extends State<MainScreen>
                             ),
                             onPressed: () {
                               context.contextMenuOverlay
-                                  .show(const BackupLogScreen());
+                                  .show(const BackupLogScreen(isOverlay: true));
                             },
                           )
                         : const SizedBox.shrink(),
@@ -875,16 +858,14 @@ class MainScreenState extends State<MainScreen>
   }
 
   void setTimer() {
-    if (!_hasJumpedToPinVerify) {
-      _timer = Timer(
-        Duration(minutes: appProvider.autoLockTime),
-        () {
-          if (HiveUtil.shouldAutoLock()) {
-            jumpToPinVerify();
-          }
-        },
-      );
-    }
+    _timer = Timer(
+      Duration(seconds: appProvider.autoLockTime.seconds),
+      () {
+        if (!appProvider.hasJumpToFilePicker && HiveUtil.shouldAutoLock()) {
+          jumpToLock();
+        }
+      },
+    );
   }
 
   @override
@@ -924,7 +905,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onTrayIconRightMouseDown() {
-    if (!_hasJumpedToPinVerify) trayManager.popUpContextMenu();
+    trayManager.popUpContextMenu();
   }
 
   @override
@@ -936,7 +917,7 @@ class MainScreenState extends State<MainScreen>
       Utils.displayApp();
     } else if (menuItem.key == TrayKey.lockApp.key) {
       if (HiveUtil.canLock()) {
-        jumpToPinVerify();
+        jumpToLock();
       } else {
         IToast.showDesktopNotification(
           S.current.noGestureLock,

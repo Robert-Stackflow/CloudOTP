@@ -84,11 +84,10 @@ packages:
   biometric_storage:
     dependency: "direct main"
     description:
-      name: biometric_storage
-      sha256: "2cc569f2dbab39950812a6ae7fefa28c7d1c1eb07d2035c88f5e27da09022f5f"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "5.0.1"
+      path: "third-party/biometric_storage"
+      relative: true
+    source: path
+    version: "5.1.0-rc.5"
   boolean_selector:
     dependency: transitive
     description:

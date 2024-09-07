@@ -1,12 +1,16 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:cloudotp/Models/github_response.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/constant.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:ffi/ffi.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -16,12 +20,15 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:saf/saf.dart';
+import 'package:win32/win32.dart';
 
 import '../../Utils/ilogger.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../generated/l10n.dart';
 import 'itoast.dart';
 import 'notification_util.dart';
+
+enum WindowsVersion { installed, portable }
 
 class FileUtil {
   static Future<String?> getDirectoryBySAF() async {
@@ -57,6 +64,7 @@ class FileUtil {
   }) async {
     FilePickerResult? result;
     try {
+      appProvider.hasJumpToFilePicker = true;
       result = await FilePicker.platform.pickFiles(
         dialogTitle: dialogTitle,
         initialDirectory: initialDirectory,
@@ -74,6 +82,8 @@ class FileUtil {
     } catch (e, t) {
       ILogger.error("Failed to pick files", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
+    } finally {
+      appProvider.hasJumpToFilePicker = false;
     }
     return result;
   }
@@ -89,6 +99,7 @@ class FileUtil {
   }) async {
     String? result;
     try {
+      appProvider.hasJumpToFilePicker = true;
       result = await FilePicker.platform.saveFile(
         dialogTitle: dialogTitle,
         initialDirectory: initialDirectory,
@@ -101,6 +112,8 @@ class FileUtil {
     } catch (e, t) {
       ILogger.error("Failed to save file", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
+    } finally {
+      appProvider.hasJumpToFilePicker = false;
     }
     return result;
   }
@@ -112,6 +125,7 @@ class FileUtil {
   }) async {
     String? result;
     try {
+      appProvider.hasJumpToFilePicker = true;
       if (Platform.isAndroid) {
         DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
@@ -128,6 +142,8 @@ class FileUtil {
     } catch (e, t) {
       ILogger.error("Failed to get directory path", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
+    } finally {
+      appProvider.hasJumpToFilePicker = false;
     }
     return result;
   }
@@ -407,6 +423,50 @@ class FileUtil {
     resAsset.pkgsDownloadUrl =
         Utils.getDownloadUrl(latestVersion, resAsset.name);
     return resAsset;
+  }
+
+  WindowsVersion checkWindowsVersion() {
+    final key = calloc<IntPtr>();
+    final result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT(windowsKeyPath), 0,
+        REG_SAM_FLAGS.KEY_READ, key);
+    if (result == WIN32_ERROR.ERROR_SUCCESS) {
+
+      WindowsVersion tmp = WindowsVersion.installed;
+
+      // final installPathPtr = calloc<Uint16>(260);
+      // final dataSize = calloc<Uint32>();
+      // dataSize.value = 260 * 2;
+      // final queryResult = RegQueryValueEx(key.value, TEXT('InstallPath'),
+      //     nullptr, nullptr, installPathPtr.cast(), dataSize);
+      // if (queryResult == WIN32_ERROR.ERROR_SUCCESS) {
+      //   final currentPath = Platform.resolvedExecutable;
+      //   final installPath = installPathPtr.toDartString();
+      //   print("currentPath: $currentPath installPath: $installPath");
+      //   tmp = installPath == currentPath
+      //       ? WindowsVersion.installed
+      //       : WindowsVersion.portable;
+      // } else {
+      //   tmp = WindowsVersion.portable;
+      // }
+
+      RegCloseKey(key.value);
+      calloc.free(key);
+      // calloc.free(installPathPtr);
+      // calloc.free(dataSize);
+      return tmp;
+    } else {
+      calloc.free(key);
+      return WindowsVersion.portable;
+    }
+  }
+
+  static ReleaseAsset getWindowsAsset(String latestVersion, ReleaseItem item) {
+    final windowsVersion = FileUtil().checkWindowsVersion();
+    if (windowsVersion == WindowsVersion.installed) {
+      return getWindowsInstallerAsset(latestVersion, item);
+    } else {
+      return getWindowsPortableAsset(latestVersion, item);
+    }
   }
 
   static ReleaseAsset getWindowsPortableAsset(

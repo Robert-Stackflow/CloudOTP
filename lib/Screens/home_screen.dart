@@ -79,6 +79,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
 
+  bool get hasSearchFocus => _searchFocusNode.hasFocus;
+
   String get currentCategoryUid {
     if (_currentTabIndex == 0) {
       return "";
@@ -761,7 +763,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           )
         : gridView;
-    return SlidableAutoCloseBehavior(child:body);
+    return SlidableAutoCloseBehavior(child: body);
   }
 
   _buildTabBar([EdgeInsetsGeometry? padding]) {

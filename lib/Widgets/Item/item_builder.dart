@@ -1673,6 +1673,7 @@ class ItemBuilder {
     TextStyle? textStyle,
     double? width,
     bool align = false,
+    bool disabled = false,
     bool feedback = false,
     bool reversePosition = false,
   }) {
@@ -1683,7 +1684,9 @@ class ItemBuilder {
                 color: color ??
                     (background != null
                         ? Colors.white
-                        : Theme.of(context).textTheme.titleSmall?.color),
+                        : disabled
+                            ? Colors.grey
+                            : Theme.of(context).textTheme.titleSmall?.color),
                 fontWeightDelta: 2,
                 fontSizeDelta: fontSizeDelta,
               ),
@@ -1694,7 +1697,7 @@ class ItemBuilder {
       color: background ?? Theme.of(context).cardColor,
       borderRadius: BorderRadius.circular(radius),
       child: InkWell(
-        onTap: onTap != null
+        onTap: onTap != null && !disabled
             ? () {
                 onTap();
                 if (feedback) HapticFeedback.lightImpact();

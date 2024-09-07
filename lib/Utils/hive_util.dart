@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Resources/theme_color_data.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/enums.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
@@ -98,7 +99,7 @@ class HiveUtil {
   static const String enableGuesturePasswdKey = "enableGuesturePasswd";
   static const String guesturePasswdKey = "guesturePasswd";
   static const String enableBiometricKey = "enableBiometric";
-  static const String enableDatabaseBiometricKey = "enableDatabaseBiometric";
+  static const String allowDatabaseBiometricKey = "allowDatabaseBiometric";
   static const String autoLockKey = "autoLock";
   static const String autoLockTimeKey = "autoLockTime";
   static const String enableSafeModeKey = "enableSafeMode";
@@ -109,7 +110,7 @@ class HiveUtil {
   static initConfig() async {
     await HiveUtil.put(HiveUtil.inappWebviewKey, true);
     await HiveUtil.put(HiveUtil.layoutTypeKey, LayoutType.Compact.index);
-    await HiveUtil.put(HiveUtil.enableSafeModeKey, true);
+    await HiveUtil.put(HiveUtil.enableSafeModeKey, defaultEnableSafeMode);
     await HiveUtil.put(HiveUtil.autoFocusSearchBarKey, false);
     await HiveUtil.put(HiveUtil.maxBackupsCountKey, defaultMaxBackupCount);
     await HiveUtil.put(HiveUtil.backupPathKey, await FileUtil.getBackupDir());
@@ -121,6 +122,15 @@ class HiveUtil {
     String autoBackupPassword = (await ConfigDao.getConfig()).backupPassword;
     bool enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
     return enableCloudBackup && autoBackupPassword.isNotEmpty;
+  }
+
+  static AutoLockTime getAutoLockTime() {
+    return AutoLockTime.values[HiveUtil.getInt(HiveUtil.autoLockTimeKey)
+        .clamp(0, AutoLockTime.values.length - 1)];
+  }
+
+  static Future<void> setAutoLockTime(AutoLockTime time) async {
+    await HiveUtil.put(HiveUtil.autoLockTimeKey, time.index);
   }
 
   static int getMaxBackupsCount() {
@@ -385,10 +395,16 @@ class HiveUtil {
   static bool shouldAutoLock() =>
       canLock() && HiveUtil.getBool(HiveUtil.autoLockKey);
 
-  static bool canLock() =>
+  static bool canLock() => canGuestureLock() || canDatabaseLock();
+
+  static bool canGuestureLock() =>
       HiveUtil.getBool(HiveUtil.enableGuesturePasswdKey) &&
-      HiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
-      HiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
+      Utils.isNotEmpty(HiveUtil.getString(HiveUtil.guesturePasswdKey));
+
+  static bool canDatabaseLock() =>
+      HiveUtil.getEncryptDatabaseStatus() ==
+          EncryptDatabaseStatus.customPassword &&
+      DatabaseManager.isDatabaseEncrypted;
 
   static Map<String, String> getCookie() {
     Map<String, String> map = {};

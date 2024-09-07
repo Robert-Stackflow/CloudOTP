@@ -66,7 +66,7 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
         onInvoke: (_) {
           mainScreenState?.goHome();
           if (HiveUtil.canLock()) {
-            mainScreenState?.jumpToPinVerify();
+            mainScreenState?.jumpToLock();
           } else {
             IToast.showTop(S.current.noGestureLock);
           }

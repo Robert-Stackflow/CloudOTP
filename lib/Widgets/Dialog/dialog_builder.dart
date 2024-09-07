@@ -25,7 +25,7 @@ class DialogBuilder {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
@@ -89,7 +89,7 @@ class DialogBuilder {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
     bool topRadius = true,

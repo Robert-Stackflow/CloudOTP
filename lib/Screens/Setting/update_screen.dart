@@ -35,7 +35,13 @@ class UpdateScreen extends StatefulWidget {
   State<UpdateScreen> createState() => _UpdateScreenState();
 }
 
-enum DownloadState { normal, downloading, toInstall, installing }
+enum DownloadState {
+  normal,
+  downloading,
+  toInstallPortable,
+  toInstall,
+  installing
+}
 
 class _UpdateScreenState extends State<UpdateScreen>
     with TickerProviderStateMixin {
@@ -144,8 +150,9 @@ class _UpdateScreenState extends State<UpdateScreen>
                 try {
                   late ReleaseAsset asset;
                   if (ResponsiveUtil.isWindows()) {
-                    asset = FileUtil.getWindowsInstallerAsset(
+                    asset = FileUtil.getWindowsAsset(
                         latestVersion, latestReleaseItem);
+                    ILogger.info("Windows asset: $asset");
                   }
                   String url = asset.pkgsDownloadUrl;
                   var appDocDir = await getDownloadsDirectory();
@@ -153,6 +160,8 @@ class _UpdateScreenState extends State<UpdateScreen>
                       "${appDocDir?.path}/${FileUtil.getFileNameWithExtension(url)}";
                   if (downloadState == DownloadState.downloading) {
                     return;
+                  } else if (downloadState == DownloadState.toInstallPortable) {
+                    IToast.showTop(S.current.installPortableTip);
                   } else if (downloadState == DownloadState.toInstall) {
                     setState(() {
                       buttonText = S.current.installing;
@@ -212,7 +221,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                           IToast.showTop(S.current.downloadSuccess);
                           setState(() {
                             buttonText = S.current.immediatelyInstall;
-                            downloadState = DownloadState.toInstall;
+                            downloadState = DownloadState.toInstallPortable;
                           });
                         } else {
                           IToast.showTop(S.current.downloadFailed);

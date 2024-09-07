@@ -62,7 +62,7 @@ Future<void> runMyApp(List<String> args) async {
   late Widget home;
   if (!DatabaseManager.initialized) {
     home = const DatabaseDecryptScreen();
-  } else if (HiveUtil.canLock()) {
+  } else if (HiveUtil.canGuestureLock()) {
     home = const PinVerifyScreen(
       isModal: true,
       autoAuth: true,
@@ -170,7 +170,7 @@ class MyApp extends StatelessWidget {
 
   const MyApp({
     super.key,
-    this.home = const MainScreen(),
+    required this.home,
     this.title = 'CloudOTP',
   });
 
@@ -240,7 +240,8 @@ class MyApp extends StatelessWidget {
                           .copyWith(textScaler: TextScaler.noScaling),
                       child: Listener(
                         onPointerDown: (_) {
-                          if (!ResponsiveUtil.isDesktop()) {
+                          if (!ResponsiveUtil.isDesktop() &&
+                              homeScreenState?.hasSearchFocus == true) {
                             FocusManager.instance.primaryFocus?.unfocus();
                           }
                         },

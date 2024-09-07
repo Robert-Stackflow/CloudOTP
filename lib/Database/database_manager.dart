@@ -45,6 +45,11 @@ class DatabaseManager {
     return _database!;
   }
 
+  static resetDatabase() async {
+    await _database?.close();
+    _database = null;
+  }
+
   static Future<void> initDataBase(String password) async {
     if (_database == null) {
       appProvider.currentDatabasePassword = password;

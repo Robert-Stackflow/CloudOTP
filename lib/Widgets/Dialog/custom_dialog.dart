@@ -27,7 +27,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
     bool topRadius = true,
     bool bottomRadius = true,
@@ -70,7 +70,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -120,7 +120,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -170,7 +170,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -220,7 +220,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
     bool topRadius = true,
     bool bottomRadius = true,
@@ -274,7 +274,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -324,7 +324,7 @@ class CustomInfoDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -378,7 +378,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showDialog<T>(
@@ -421,7 +421,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -475,7 +475,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -529,7 +529,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -583,7 +583,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -637,7 +637,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(
@@ -691,7 +691,7 @@ class CustomConfirmDialog {
     EdgeInsets? margin,
     EdgeInsets? padding,
     bool barrierDismissible = true,
-    bool renderHtml = true,
+    bool renderHtml = false,
     Alignment align = Alignment.bottomCenter,
   }) =>
       showGeneralDialog<T>(

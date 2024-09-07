@@ -86,7 +86,7 @@ class TileList extends StatelessWidget {
         if (showCancel)
           ItemBuilder.buildEntryItem(
             title: S.current.cancel,
-            backgroundColor: Theme.of(context).cardColor.withAlpha(127),
+            backgroundColor: Colors.grey.withOpacity(0.1),
             showTrailing: false,
             onTap: onCloseTap,
             context: context,

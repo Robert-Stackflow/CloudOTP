@@ -1,5 +1,5 @@
 name: cloudotp
-version: 2.4.0+240
+version: 2.4.1+241
 description: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
 publish_to: none
 
@@ -78,7 +78,8 @@ dependencies:
   share_plus: ^9.0.0 # 分享
   protocol_handler: ^0.2.0 # 协议处理
   url_launcher: ^6.3.0 # URL跳转
-  biometric_storage: ^5.0.1 # 生物识别
+  biometric_storage:
+    path: third-party/biometric_storage
   # 平台适配
   saf:
     path: third-party/saf

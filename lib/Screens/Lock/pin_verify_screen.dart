@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:biometric_storage/biometric_storage.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Resources/theme.dart';
+import '../../Utils/biometric_util.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Widgets/Item/item_builder.dart';
@@ -37,13 +40,17 @@ class PinVerifyScreen extends StatefulWidget {
 
 class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
   final String? _password = HiveUtil.getString(HiveUtil.guesturePasswdKey);
-  late final bool _isUseBiometric =
-  HiveUtil.getBool(HiveUtil.enableBiometricKey);
+  late final bool _enableBiometric =
+      HiveUtil.getBool(HiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = GestureNotifier(
       status: GestureStatus.verify, gestureText: S.current.verifyGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
   bool _isMaximized = false;
   bool _isStayOnTop = false;
+  String? canAuthenticateResponseString;
+  CanAuthenticateResponse? canAuthenticateResponse;
+
+  bool get _biometricAvailable => canAuthenticateResponse?.isSuccess ?? false;
 
   @override
   void onWindowMaximize() {
@@ -81,7 +88,15 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
   void initState() {
     windowManager.addListener(this);
     super.initState();
-    if (_isUseBiometric && widget.autoAuth) {
+    initBiometricAuthentication();
+  }
+
+  initBiometricAuthentication() async {
+    canAuthenticateResponse = await BiometricUtil.canAuthenticate();
+    canAuthenticateResponseString =
+        await BiometricUtil.getCanAuthenticateResponseString();
+    setState(() {});
+    if (_biometricAvailable && _enableBiometric && widget.autoAuth) {
       auth();
     }
   }
@@ -92,7 +107,8 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
         if (widget.onSuccess != null) widget.onSuccess!();
         if (widget.jumpToMain) {
           Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
-              ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+              ItemBuilder.buildContextMenuOverlay(
+                  MainScreen(key: mainScreenKey))));
         } else {
           Navigator.of(context).pop();
         }
@@ -107,26 +123,28 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
       backgroundColor: MyTheme.getBackground(context),
       appBar: ResponsiveUtil.isDesktop() && widget.showWindowTitle
           ? PreferredSize(
-        preferredSize: const Size(0, 86),
-        child: ItemBuilder.buildWindowTitle(
-          context,
-          forceClose: true,
-          backgroundColor: MyTheme.getBackground(context),
-          isStayOnTop: _isStayOnTop,
-          isMaximized: _isMaximized,
-          onStayOnTopTap: () {
-            setState(() {
-              _isStayOnTop = !_isStayOnTop;
-              windowManager.setAlwaysOnTop(_isStayOnTop);
-            });
-          },
-        ),
-      )
+              preferredSize: const Size(0, 86),
+              child: ItemBuilder.buildWindowTitle(
+                context,
+                forceClose: true,
+                backgroundColor: MyTheme.getBackground(context),
+                isStayOnTop: _isStayOnTop,
+                isMaximized: _isMaximized,
+                onStayOnTopTap: () {
+                  setState(() {
+                    _isStayOnTop = !_isStayOnTop;
+                    windowManager.setAlwaysOnTop(_isStayOnTop);
+                  });
+                },
+              ),
+            )
           : null,
-      bottomNavigationBar: widget.showWindowTitle ? Container(
-        height: 86,
-        color: MyTheme.getBackground(context),
-      ) : null,
+      bottomNavigationBar: widget.showWindowTitle
+          ? Container(
+              height: 86,
+              color: MyTheme.getBackground(context),
+            )
+          : null,
       body: SafeArea(
         right: false,
         child: Center(
@@ -140,24 +158,17 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
                 const SizedBox(height: 50),
                 Text(
                   _notifier.gestureText,
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .titleMedium,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 30),
                 Flexible(
                   child: GestureUnlockView(
                     key: _gestureUnlockView,
-                    size: min(MediaQuery
-                        .sizeOf(context)
-                        .width, 400),
+                    size: min(MediaQuery.sizeOf(context).width, 400),
                     padding: 60,
                     roundSpace: 40,
                     defaultColor: Colors.grey.withOpacity(0.5),
-                    selectedColor: Theme
-                        .of(context)
-                        .primaryColor,
+                    selectedColor: Theme.of(context).primaryColor,
                     failedColor: Colors.redAccent,
                     disableColor: Colors.grey,
                     solidRadiusRatio: 0.3,
@@ -167,22 +178,15 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
                   ),
                 ),
                 Visibility(
-                  visible: _isUseBiometric,
-                  child: GestureDetector(
+                  visible: _biometricAvailable && _enableBiometric,
+                  child: ItemBuilder.buildRoundButton(
+                    context,
+                    text: ResponsiveUtil.isWindows()
+                        ? S.current.biometricVerifyPin
+                        : S.current.biometric,
                     onTap: () {
                       auth();
                     },
-                    child: ItemBuilder.buildClickItem(
-                      Text(
-                        ResponsiveUtil.isWindows()
-                            ? S.current.biometricVerifyPin
-                            : S.current.biometricVerifyFingerprint,
-                        style: Theme
-                            .of(context)
-                            .textTheme
-                            .titleSmall,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 50),
@@ -203,7 +207,8 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
           if (widget.onSuccess != null) widget.onSuccess!();
           if (widget.jumpToMain) {
             Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
-                ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+                ItemBuilder.buildContextMenuOverlay(
+                    MainScreen(key: mainScreenKey))));
           } else {
             Navigator.of(context).pop();
           }

@@ -66,10 +66,68 @@ Queue autoBackupQueue = Queue();
 
 AppProvider appProvider = AppProvider();
 
+enum AutoLockTime {
+  immediately,
+  after30Seconds,
+  after1Minute,
+  after3Minutes,
+  after5Minutes,
+  after10Minutes;
+
+  int get seconds {
+    switch (this) {
+      case AutoLockTime.immediately:
+        return 0;
+      case AutoLockTime.after30Seconds:
+        return 30;
+      case AutoLockTime.after1Minute:
+        return 60;
+      case AutoLockTime.after3Minutes:
+        return 60 * 3;
+      case AutoLockTime.after5Minutes:
+        return 60 * 5;
+      case AutoLockTime.after10Minutes:
+        return 60 * 10;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case AutoLockTime.immediately:
+        return S.current.immediatelyLock;
+      case AutoLockTime.after30Seconds:
+        return S.current.after30SecondsLock;
+      case AutoLockTime.after1Minute:
+        return S.current.after1MinuteLock;
+      case AutoLockTime.after3Minutes:
+        return S.current.after3MinutesLock;
+      case AutoLockTime.after5Minutes:
+        return S.current.after5MinutesLock;
+      case AutoLockTime.after10Minutes:
+        return S.current.after10MinutesLock;
+      default:
+        return "";
+    }
+  }
+
+  static List<Tuple2<String, AutoLockTime>> options() {
+    return [
+      Tuple2(S.current.immediatelyLock, AutoLockTime.immediately),
+      Tuple2(S.current.after30SecondsLock, AutoLockTime.after30Seconds),
+      Tuple2(S.current.after1MinuteLock, AutoLockTime.after1Minute),
+      Tuple2(S.current.after3MinutesLock, AutoLockTime.after3Minutes),
+      Tuple2(S.current.after5MinutesLock, AutoLockTime.after5Minutes),
+      Tuple2(S.current.after10MinutesLock, AutoLockTime.after10Minutes),
+    ];
+  }
+}
+
 class AppProvider with ChangeNotifier {
   String currentDatabasePassword = "";
 
   String latestVersion = "";
+
+  bool hasJumpToFilePicker = false;
 
   final List<AutoBackupLog> _autoBackupLogs = [];
 
@@ -335,40 +393,16 @@ class AppProvider with ChangeNotifier {
     ];
   }
 
-  int _autoLockTime = HiveUtil.getInt(HiveUtil.autoLockTimeKey);
+  AutoLockTime _autoLockTime = HiveUtil.getAutoLockTime();
 
-  int get autoLockTime => _autoLockTime;
+  AutoLockTime get autoLockTime => _autoLockTime;
 
-  set autoLockTime(int value) {
+  set autoLockTime(AutoLockTime value) {
     if (value != _autoLockTime) {
       _autoLockTime = value;
       notifyListeners();
-      HiveUtil.put(HiveUtil.autoLockTimeKey, value);
+      HiveUtil.setAutoLockTime(value);
     }
-  }
-
-  static String getAutoLockOptionLabel(int time) {
-    switch (time) {
-      case 0:
-        return S.current.immediatelyLock;
-      case 1:
-        return S.current.after1MinuteLock;
-      case 5:
-        return S.current.after5MinutesLock;
-      case 10:
-        return S.current.after10MinutesLock;
-      default:
-        return "";
-    }
-  }
-
-  static List<Tuple2<String, int>> getAutoLockOptions() {
-    return [
-      Tuple2(S.current.immediatelyLock, 0),
-      Tuple2(S.current.after1MinuteLock, 1),
-      Tuple2(S.current.after5MinutesLock, 5),
-      Tuple2(S.current.after10MinutesLock, 10),
-    ];
   }
 
   Brightness? getBrightness() {

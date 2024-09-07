@@ -361,7 +361,7 @@ class Utils {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
     }
-    String currentVersion = (await PackageInfo.fromPlatform()).version;
+    String currentVersion ="0.0.0"?? (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
     String latestVersion = "0.0.0";
     await GithubApi.getReleases("Robert-Stackflow", "CloudOTP")
@@ -395,11 +395,11 @@ class Utils {
             DialogBuilder.showConfirmDialog(
               context,
               renderHtml: true,
+              messageTextAlign: TextAlign.start,
               title: S.current.getNewVersion(latestVersion),
               message: S.current.doesImmediateUpdate +
                   S.current.updateLogAsFollow(
                       "<br/>${Utils.replaceLineBreak(latestReleaseItem.body ?? "")}"),
-              messageTextAlign: TextAlign.start,
               confirmButtonText: S.current.immediatelyDownload,
               cancelButtonText: S.current.updateLater,
               onTapConfirm: () async {
@@ -473,14 +473,10 @@ class Utils {
   }
 
   static localAuth({Function()? onAuthed}) async {
+    if (ResponsiveUtil.isDesktop()) return;
     LocalAuthentication localAuth = LocalAuthentication();
     try {
-      String appName = (await PackageInfo.fromPlatform()).appName;
-      await localAuth
-          .authenticate(
-        localizedReason: ResponsiveUtil.isWindows()
-            ? S.current.biometricReasonWindows(appName)
-            : S.current.biometricReason(appName),
+      await localAuth.authenticate(
         authMessages: [
           androidAuthMessages,
           androidAuthMessages,
@@ -489,9 +485,10 @@ class Utils {
         options: const AuthenticationOptions(
           useErrorDialogs: false,
           stickyAuth: true,
+          biometricOnly: true,
         ),
-      )
-          .then((value) {
+        localizedReason: ' ',
+      ).then((value) {
         if (value) {
           onAuthed?.call();
         }

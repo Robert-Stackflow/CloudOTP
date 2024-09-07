@@ -1,0 +1,63 @@
+group 'design.codeux.biometric_storage'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.8.10'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+android {
+    namespace "design.codeux.biometric_storage"
+    compileSdk 31
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+    defaultConfig {
+        minSdkVersion 23
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'proguard.pro'
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+}
+
+dependencies {
+    def biometric_version = "1.2.0-alpha05"
+
+    api "androidx.core:core-ktx:1.10.1"
+    api "androidx.fragment:fragment-ktx:1.6.1"
+
+    implementation "org.slf4j:slf4j-api:2.0.7"
+    implementation "androidx.biometric:biometric:$biometric_version"
+    implementation "io.github.oshai:kotlin-logging-jvm:5.0.1"
+}

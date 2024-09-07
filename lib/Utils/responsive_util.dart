@@ -42,21 +42,6 @@ class ResponsiveUtil {
     }
   }
 
-  static Future<void> returnToMainScreen(BuildContext context) async {
-    if (ResponsiveUtil.isDesktop()) {
-      desktopNavigatorKey = GlobalKey<NavigatorState>();
-      globalNavigatorState?.pushAndRemoveUntil(
-        RouteUtil.getFadeRoute(const MainScreen(), duration: Duration.zero),
-        (route) => false,
-      );
-    } else {
-      Navigator.pushAndRemoveUntil(
-          context,
-          CupertinoPageRoute(builder: (context) => const MainScreen()),
-          (route) => false);
-    }
-  }
-
   static Future<void> maximizeOrRestore() async {
     if (await windowManager.isMaximized()) {
       windowManager.restore();

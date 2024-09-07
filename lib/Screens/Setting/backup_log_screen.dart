@@ -16,7 +16,12 @@ import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 
 class BackupLogScreen extends StatefulWidget {
-  const BackupLogScreen({super.key});
+  const BackupLogScreen({
+    super.key,
+    this.isOverlay = false,
+  });
+
+  final bool isOverlay;
 
   @override
   BackupLogScreenState createState() => BackupLogScreenState();
@@ -44,7 +49,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveUtil.isLandscape()
+    return widget.isOverlay
         ? _buildDesktopBody()
         : Scaffold(
             appBar: ItemBuilder.buildAppBar(
@@ -57,7 +62,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                     .titleMedium!
                     .apply(fontWeightDelta: 2),
               ),
-              center: true,
+              center: !ResponsiveUtil.isLandscape(),
               leading: Icons.arrow_back_rounded,
               onLeadingTap: () {
                 Navigator.pop(context);
@@ -76,6 +81,11 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                       )
                     : ItemBuilder.buildBlankIconButton(context),
                 const SizedBox(width: 5),
+                if (ResponsiveUtil.isLandscape())
+                  Container(
+                    margin: const EdgeInsets.only(right: 5),
+                    child: ItemBuilder.buildBlankIconButton(context),
+                  ),
               ],
             ),
             body: _buildBody(),
@@ -111,7 +121,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
   clear() {
     appProvider.clearAutoBackupLogs();
     appProvider.autoBackupLoadingStatus = LoadingStatus.none;
-    if (ResponsiveUtil.isLandscape()) {
+    if (widget.isOverlay) {
       context.contextMenuOverlay.hide();
     }
   }
@@ -119,13 +129,13 @@ class BackupLogScreenState extends State<BackupLogScreen> {
   _buildBody() {
     return ListView(
       padding: EdgeInsets.symmetric(
-          horizontal: 10, vertical: ResponsiveUtil.isLandscape() ? 10 : 0),
-      physics: ResponsiveUtil.isLandscape()
+          horizontal: 10, vertical: widget.isOverlay ? 10 : 0),
+      physics: widget.isOverlay
           ? null
           : const BouncingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics()),
       children: [
-        if (ResponsiveUtil.isLandscape())
+        if (widget.isOverlay)
           Row(
             children: [
               const SizedBox(width: 5),
@@ -151,12 +161,13 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                 ),
             ],
           ),
-        if (ResponsiveUtil.isLandscape()) const SizedBox(height: 10),
+        if (widget.isOverlay) const SizedBox(height: 10),
         ...List.generate(
           appProvider.autoBackupLogs.length,
           (index) {
             return BackupLogItem(
               log: appProvider.autoBackupLogs[index],
+              isOverlay: widget.isOverlay,
             );
           },
         ),
@@ -175,7 +186,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                   text: S.current.goToSetBackupPassword,
                   background: Theme.of(context).primaryColor,
                   onTap: () {
-                    if (ResponsiveUtil.isLandscape()) {
+                    if (widget.isOverlay) {
                       context.contextMenuOverlay.hide();
                       RouteUtil.pushDialogRoute(
                           context,
@@ -208,7 +219,9 @@ class BackupLogScreenState extends State<BackupLogScreen> {
 class BackupLogItem extends StatefulWidget {
   final AutoBackupLog log;
 
-  const BackupLogItem({super.key, required this.log});
+  final bool isOverlay;
+
+  const BackupLogItem({super.key, required this.log, required this.isOverlay});
 
   @override
   BackupLogItemState createState() => BackupLogItemState();
@@ -222,7 +235,7 @@ class BackupLogItemState extends State<BackupLogItem> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: ResponsiveUtil.isLandscape()
+        color: widget.isOverlay
             ? MyTheme.getCardBackground(context)
             : Theme.of(context).canvasColor,
         borderRadius: BorderRadius.circular(10),
@@ -236,7 +249,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                 }
               : null,
           child: Container(
-            padding: EdgeInsets.all(ResponsiveUtil.isLandscape() ? 8 : 12),
+            padding: EdgeInsets.all(widget.isOverlay ? 8 : 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -249,7 +262,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                     Text(
                       widget.log.triggerType.label,
                       style: Theme.of(context).textTheme.bodyMedium?.apply(
-                            fontSizeDelta: ResponsiveUtil.isLandscape() ? 0 : 1,
+                            fontSizeDelta: widget.isOverlay ? 0 : 1,
                           ),
                     ),
                     const Spacer(),
@@ -261,7 +274,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                       text: widget.log.lastStatusItem.labelShort,
                       textStyle: Theme.of(context).textTheme.labelSmall?.apply(
                           color: Colors.white,
-                          fontSizeDelta: ResponsiveUtil.isLandscape() ? 0 : 1),
+                          fontSizeDelta: widget.isOverlay ? 0 : 1),
                       background: widget.log.lastStatus.color,
                     ),
                     const SizedBox(width: 5),
@@ -298,7 +311,7 @@ class BackupLogItemState extends State<BackupLogItem> {
       textStyle: Theme.of(context)
           .textTheme
           .labelSmall
-          ?.apply(fontSizeDelta: ResponsiveUtil.isLandscape() ? 0 : 1),
+          ?.apply(fontSizeDelta: widget.isOverlay ? 0 : 1),
       List.generate(
         widget.log.status.length,
         (i) {

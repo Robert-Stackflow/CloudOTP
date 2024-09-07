@@ -137,7 +137,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
                   ItemBuilder.buildDivider(context,
                       horizontal: 10, vertical: 0),
                 if (!widget.onlyShowScanner) _buildOptions(),
-                if (!widget.onlyShowScanner) const SizedBox(height: 20),
+                // if (!widget.onlyShowScanner) const SizedBox(height: 20),
               ],
             ),
           ),

@@ -1,15 +1,17 @@
 import 'dart:math';
 
+import 'package:biometric_storage/biometric_storage.dart';
 import 'package:cloudotp/Resources/theme.dart';
+import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/database_manager.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/biometric_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
@@ -34,27 +36,69 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool _isMaximized = false;
   bool _isStayOnTop = false;
-  bool _biometricAvailable = false;
-  final bool _enableDatabaseBiometric = HiveUtil.getBool(
-      HiveUtil.enableDatabaseBiometricKey,
-      defaultValue: false);
+  bool _isValidated = true;
+  final bool _allowDatabaseBiometric =
+      HiveUtil.getBool(HiveUtil.allowDatabaseBiometricKey, defaultValue: false);
+  String? canAuthenticateResponseString;
+  CanAuthenticateResponse? canAuthenticateResponse;
+
+  bool get _biometricAvailable => canAuthenticateResponse?.isSuccess ?? false;
 
   auth() async {
-    String? password = await BiometricUtil.getDatabasePassword();
-    if (password != null && password.isNotEmpty) {
-      validateAsyncController.controller.text = password;
-      onSubmit();
+    try {
+      canAuthenticateResponse = await BiometricUtil.canAuthenticate();
+      canAuthenticateResponseString =
+          await BiometricUtil.getCanAuthenticateResponseString();
+      if (canAuthenticateResponse == CanAuthenticateResponse.success) {
+        String? password = await BiometricUtil.getDatabasePassword();
+        if (password == null) {
+          setState(() {
+            _isValidated = false;
+            HiveUtil.put(HiveUtil.allowDatabaseBiometricKey, false);
+          });
+          IToast.showTop(S.current.biometricChanged);
+          FocusScope.of(context).requestFocus(_focusNode);
+        }
+        if (password != null && password.isNotEmpty) {
+          validateAsyncController.controller.text = password;
+          onSubmit();
+        }
+      } else {
+        IToast.showTop(canAuthenticateResponseString ?? "");
+      }
+    } catch (e, t) {
+      ILogger.error("Failed to authenticate with biometric", e, t);
+      if (e is AuthException) {
+        switch (e.code) {
+          case AuthExceptionCode.userCanceled:
+            IToast.showTop(S.current.biometricUserCanceled);
+            break;
+          case AuthExceptionCode.timeout:
+            IToast.showTop(S.current.biometricTimeout);
+            break;
+          case AuthExceptionCode.unknown:
+            IToast.showTop(S.current.biometricLockout);
+            break;
+          case AuthExceptionCode.canceled:
+          default:
+            IToast.showTop(S.current.biometricError);
+            break;
+        }
+      } else {
+        IToast.showTop(S.current.biometricError);
+      }
     }
   }
 
   initBiometricAuthentication() async {
-    LocalAuthentication localAuth = LocalAuthentication();
-    bool available = await localAuth.canCheckBiometrics;
-    setState(() {
-      _biometricAvailable = available;
-    });
-    if (_biometricAvailable && _enableDatabaseBiometric) {
+    canAuthenticateResponse = await BiometricUtil.canAuthenticate();
+    canAuthenticateResponseString =
+        await BiometricUtil.getCanAuthenticateResponseString();
+    setState(() {});
+    if (_biometricAvailable && _allowDatabaseBiometric) {
       auth();
+    } else {
+      FocusScope.of(context).requestFocus(_focusNode);
     }
   }
 
@@ -95,9 +139,6 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
     super.initState();
     initBiometricAuthentication();
     windowManager.addListener(this);
-    Future.delayed(const Duration(milliseconds: 200), () {
-      FocusScope.of(context).requestFocus(_focusNode);
-    });
     validateAsyncController = InputValidateAsyncController(
       listen: false,
       validator: (text) async {
@@ -164,7 +205,8 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
     if (isValidAsync) {
       if (DatabaseManager.initialized) {
         Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
-            ItemBuilder.buildContextMenuOverlay(const MainScreen())));
+            ItemBuilder.buildContextMenuOverlay(
+                MainScreen(key: mainScreenKey))));
       }
     } else {
       _focusNode.requestFocus();
@@ -215,33 +257,31 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           ),
         ),
         const SizedBox(height: 30),
-        ItemBuilder.buildRoundButton(
-          context,
-          text: S.current.confirm,
-          fontSizeDelta: 2,
-          background: Theme.of(context).primaryColor,
-          padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
-          onTap: onSubmit,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_biometricAvailable)
+              ItemBuilder.buildRoundButton(
+                context,
+                text: S.current.biometric,
+                fontSizeDelta: 2,
+                disabled: !(_allowDatabaseBiometric && _isValidated),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                onTap: () => auth(),
+              ),
+            if (_biometricAvailable) const SizedBox(width: 10),
+            ItemBuilder.buildRoundButton(
+              context,
+              text: S.current.confirm,
+              fontSizeDelta: 2,
+              background: Theme.of(context).primaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
+              onTap: onSubmit,
+            ),
+          ],
         ),
         const Spacer(),
-        ItemBuilder.buildClickItem(
-          clickable: _biometricAvailable && _enableDatabaseBiometric,
-          GestureDetector(
-            onTap: _biometricAvailable && _enableDatabaseBiometric
-                ? () {
-                    auth();
-                  }
-                : null,
-            child: Text(
-              _biometricAvailable && _enableDatabaseBiometric
-                  ? S.current.biometric
-                  : "",
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: Theme.of(context).textTheme.titleSmall!.fontSize,
-                  ),
-            ),
-          ),
-        ),
       ],
     );
   }

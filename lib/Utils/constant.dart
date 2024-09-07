@@ -1,3 +1,4 @@
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 
@@ -26,6 +27,10 @@ const int defaultHOTPPeriod = 15;
 const String placeholderText = "*";
 const String hotpPlaceholderText = "*";
 
+const bool defaultEnableSafeMode = true;
+
+const windowsKeyPath = r'SOFTWARE\Cloudchewie\CloudOTP';
+
 String shareAppText = S.current.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";
 String feedbackSubject = S.current.feedbackSubject;
@@ -48,7 +53,9 @@ AndroidAuthMessages androidAuthMessages = AndroidAuthMessages(
   goToSettingsButton: S.current.biometricGoToSettingsButton,
   biometricNotRecognized: S.current.biometricNotRecognized,
   goToSettingsDescription: S.current.biometricGoToSettingsDescription,
-  biometricHint: S.current.biometricHint,
+  biometricHint: ResponsiveUtil.isWindows()
+      ? S.current.biometricReasonWindows("CloudOTP")
+      : S.current.biometricReason("CloudOTP"),
   biometricSuccess: S.current.biometricSuccess,
   signInTitle: S.current.biometricSignInTitle,
   deviceCredentialsRequiredTitle:

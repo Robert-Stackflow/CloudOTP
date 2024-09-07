@@ -366,6 +366,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             leadingType: InputItemLeadingType.text,
             leadingText: S.current.tokenSecret,
             tailingType: InputItemTailingType.password,
+            obscureText: _isEditing,
             hint: S.current.tokenSecretHint,
             inputFormatters: [
               RegexInputFormatter.onlyNumberAndLetter,
@@ -389,6 +390,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               leadingText: S.current.tokenPin,
               leadingType: InputItemLeadingType.text,
               tailingType: InputItemTailingType.password,
+              obscureText: _isEditing,
               hint: S.current.tokenPinHint,
               maxLength: _otpToken.tokenType.maxPinLength,
               bottomRadius: true,

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:biometric_storage/biometric_storage.dart';
 import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
@@ -8,6 +9,7 @@ import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_view.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
+import '../../Utils/biometric_util.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
@@ -26,8 +28,8 @@ class PinChangeScreenState extends State<PinChangeScreen> {
   final String? _oldPassword = HiveUtil.getString(HiveUtil.guesturePasswdKey);
   bool _isEditMode = HiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
       HiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
-  late final bool _isUseBiometric =
-      _isEditMode && HiveUtil.getBool(HiveUtil.enableBiometricKey);
+  late final bool _enableBiometric =
+      HiveUtil.getBool(HiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = _isEditMode
       ? GestureNotifier(
           status: GestureStatus.verify,
@@ -38,10 +40,22 @@ class PinChangeScreenState extends State<PinChangeScreen> {
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
   final GlobalKey<GestureUnlockIndicatorState> _indicator = GlobalKey();
 
+  String? canAuthenticateResponseString;
+  CanAuthenticateResponse? canAuthenticateResponse;
+
+  bool get _biometricAvailable => canAuthenticateResponse?.isSuccess ?? false;
+
   @override
   void initState() {
     super.initState();
-    if (_isUseBiometric) {
+    initBiometricAuthentication();
+  }
+
+  initBiometricAuthentication() async {
+    canAuthenticateResponse = await BiometricUtil.canAuthenticate();
+    canAuthenticateResponseString =
+        await BiometricUtil.getCanAuthenticateResponseString();
+    if (_biometricAvailable && _enableBiometric && _isEditMode) {
       auth();
     }
   }
@@ -100,22 +114,16 @@ class PinChangeScreenState extends State<PinChangeScreen> {
                   onCompleted: _gestureComplete,
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  if (_isEditMode && _isUseBiometric) {
+              Visibility(
+                visible: _isEditMode && _biometricAvailable && _enableBiometric,
+                child: ItemBuilder.buildRoundButton(
+                  context,
+                  text: ResponsiveUtil.isWindows()
+                      ? S.current.biometricVerifyPin
+                      : S.current.biometric,
+                  onTap: () {
                     auth();
-                  }
-                },
-                child: ItemBuilder.buildClickItem(
-                  clickable: _isEditMode && _isUseBiometric,
-                  Text(
-                    _isEditMode && _isUseBiometric
-                        ? (ResponsiveUtil.isWindows()
-                            ? S.current.biometricVerifyPin
-                            : S.current.biometricVerifyFingerprint)
-                        : "",
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
+                  },
                 ),
               ),
               const SizedBox(height: 50),

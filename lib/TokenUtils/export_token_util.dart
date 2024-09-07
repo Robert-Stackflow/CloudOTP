@@ -98,7 +98,6 @@ class ExportTokenUtil {
   static Future<Uint8List?> getUint8List({
     String? password,
   }) async {
-    if (!await HiveUtil.canBackup()) return null;
     try {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
       List<OtpToken> tokens = await TokenDao.listTokens();
