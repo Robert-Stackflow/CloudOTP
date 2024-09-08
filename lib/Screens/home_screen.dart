@@ -327,6 +327,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       floatingActionButton:
           ResponsiveUtil.isDesktop() ? null : _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
+      extendBody: true,
     );
   }
 
@@ -675,79 +676,87 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Widget gridView = Selector<AppProvider, bool>(
       selector: (context, provider) => provider.dragToReorder,
       builder: (context, dragToReorder, child) => Selector<AppProvider, bool>(
-        selector: (context, provider) => provider.hideProgressBar,
-        builder: (context, hideProgressBar, child) =>
-            ReorderableGridView.builder(
-          // controller: _scrollController,
-          gridItemsNotifier: gridItemsNotifier,
-          autoScroll: true,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding:
-              const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
-          gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            preferredHeight: layoutType.getHeight(hideProgressBar),
+        selector: (context, provider) => provider.hideBottombarWhenScrolling,
+        builder: (context, hideBottombarWhenScrolling, child) =>
+            Selector<AppProvider, bool>(
+          selector: (context, provider) => provider.hideProgressBar,
+          builder: (context, hideProgressBar, child) =>
+              ReorderableGridView.builder(
+            // controller: _scrollController,
+            gridItemsNotifier: gridItemsNotifier,
+            autoScroll: true,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(
+                left: 10,
+                right: 10,
+                top: 10,
+                bottom:
+                    hideBottombarWhenScrolling || categories.isEmpty ? 10 : 85),
+            gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              preferredHeight: layoutType.getHeight(hideProgressBar),
+            ),
+            dragToReorder: dragToReorder,
+            cacheExtent: 9999,
+            // itemDragEnable: (index) {
+            //   if (tokens[index].pinnedInt == 1) {
+            //     return false;
+            //   }
+            //   return true;
+            // },
+            onReorderStart: (_) {
+              _fabScrollToHideController.hide();
+              _bottombarScrollToHideController.hide();
+            },
+            onReorderEnd: (_, __) {
+              _fabScrollToHideController.show();
+              _bottombarScrollToHideController.show();
+            },
+            onReorder: (int oldIndex, int newIndex) async {
+              final selectedToken = tokens[oldIndex];
+              int pinnedCount = tokens.where((e) => e.pinned).length;
+              if (selectedToken.pinned) {
+                if (newIndex >= pinnedCount) newIndex = pinnedCount - 1;
+              } else {
+                if (newIndex < pinnedCount) newIndex = pinnedCount;
+              }
+              final item = tokens.removeAt(oldIndex);
+              tokens.insert(newIndex, item);
+              for (int i = 0; i < tokens.length; i++) {
+                tokens[i].seq = tokens.length - i;
+              }
+              await TokenDao.updateTokens(tokens, autoBackup: false);
+              changeOrderType(type: OrderType.Default, doPerformSort: false);
+            },
+            proxyDecorator:
+                (Widget child, int index, Animation<double> animation) {
+              return Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(rootContext).shadowColor,
+                      offset: const Offset(0, 4),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ).scale(2)
+                  ],
+                ),
+                child: child,
+              );
+            },
+            itemCount: tokens.length,
+            itemBuilder: (context, index) {
+              return TokenLayout(
+                key: tokenKeyMap.putIfAbsent(
+                    tokens[index].uid, () => GlobalKey()),
+                token: tokens[index],
+                layoutType: layoutType,
+              );
+            },
           ),
-          dragToReorder: dragToReorder,
-          cacheExtent: 9999,
-          // itemDragEnable: (index) {
-          //   if (tokens[index].pinnedInt == 1) {
-          //     return false;
-          //   }
-          //   return true;
-          // },
-          onReorderStart: (_) {
-            _fabScrollToHideController.hide();
-            _bottombarScrollToHideController.hide();
-          },
-          onReorderEnd: (_, __) {
-            _fabScrollToHideController.show();
-            _bottombarScrollToHideController.show();
-          },
-          onReorder: (int oldIndex, int newIndex) async {
-            final selectedToken = tokens[oldIndex];
-            int pinnedCount = tokens.where((e) => e.pinned).length;
-            if (selectedToken.pinned) {
-              if (newIndex >= pinnedCount) newIndex = pinnedCount - 1;
-            } else {
-              if (newIndex < pinnedCount) newIndex = pinnedCount;
-            }
-            final item = tokens.removeAt(oldIndex);
-            tokens.insert(newIndex, item);
-            for (int i = 0; i < tokens.length; i++) {
-              tokens[i].seq = tokens.length - i;
-            }
-            await TokenDao.updateTokens(tokens, autoBackup: false);
-            changeOrderType(type: OrderType.Default, doPerformSort: false);
-          },
-          proxyDecorator:
-              (Widget child, int index, Animation<double> animation) {
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(rootContext).shadowColor,
-                    offset: const Offset(0, 4),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ).scale(2)
-                ],
-              ),
-              child: child,
-            );
-          },
-          itemCount: tokens.length,
-          itemBuilder: (context, index) {
-            return TokenLayout(
-              key:
-                  tokenKeyMap.putIfAbsent(tokens[index].uid, () => GlobalKey()),
-              token: tokens[index],
-              layoutType: layoutType,
-            );
-          },
         ),
       ),
     );

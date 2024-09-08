@@ -74,7 +74,7 @@ class DatabaseManager {
         _currentDbFactory = cipherDbFactory;
         password = await HiveUtil.regeneratePassword();
         appProvider.currentDatabasePassword = password;
-        ILogger.info("Database not exist and new password is $password");
+        ILogger.info("Database not exist and new password is generated");
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }

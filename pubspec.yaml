@@ -1,5 +1,5 @@
 name: cloudotp
-version: 2.4.1+241
+version: 2.4.2+242
 description: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
 publish_to: none
 
@@ -31,7 +31,7 @@ dependencies:
   # 二维码
   image: ^4.2.0 # 图片
   zxing2: ^0.2.3 # 二维码
-  mobile_scanner: ^5.1.1 # 扫码
+  mobile_scanner: ^5.2.2 # 扫码
   pretty_qr_code: ^3.3.0 # 二维码
   screen_capturer:
     path: third-party/screen_capturer_lib/screen_capturer
