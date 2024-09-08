@@ -861,7 +861,7 @@ class MainScreenState extends State<MainScreen>
     _timer = Timer(
       Duration(seconds: appProvider.autoLockTime.seconds),
       () {
-        if (!appProvider.hasJumpToFilePicker && HiveUtil.shouldAutoLock()) {
+        if (!appProvider.preventLock && HiveUtil.shouldAutoLock()) {
           jumpToLock();
         }
       },

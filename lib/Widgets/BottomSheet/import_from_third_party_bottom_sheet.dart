@@ -71,12 +71,33 @@ class ImportFromThirdPartyBottomSheetState
   }
 
   _buildBody({
-    double spacing = 6,
+    double spacing = 8,
+    double horizontalPadding = 10,
   }) {
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 20),
+      padding: EdgeInsets.only(
+          left: horizontalPadding, right: horizontalPadding, bottom: 20),
       children: [
+        _buildItem(
+          asset: AssetUtil.icGoogleauthenticator,
+          title: S.current.importFromGoogleAuthenticator,
+          description: S.current.importFromGoogleAuthenticatorTip,
+          useImport: false,
+          onImport: (path) {
+            if (ResponsiveUtil.isMobile()) {
+              BottomSheetBuilder.showBottomSheet(
+                rootContext,
+                enableDrag: false,
+                responsive: true,
+                    (context) => const AddBottomSheet(onlyShowScanner: true),
+              );
+            } else {
+              IToast.showTop(S.current.importFromGoogleAuthenticatorInMobile);
+            }
+          },
+        ),
+        SizedBox(height: spacing),
         _buildItem(
           asset: AssetUtil.icAegis,
           title: S.current.importFromAegis,
@@ -84,6 +105,27 @@ class ImportFromThirdPartyBottomSheetState
           description: S.current.importFromAegisTip,
           onImport: (path) {
             AegisTokenImporter().importFromPath(path);
+          },
+        ),
+        SizedBox(height: spacing),
+        _buildItem(
+          asset: AssetUtil.ic2Fas,
+          title: S.current.importFrom2FAS,
+          dialogTitle: S.current.importFrom2FASTitle,
+          description: S.current.importFrom2FASTip,
+          allowedExtensions: ['2fas'],
+          onImport: (path) {
+            TwoFASTokenImporter().importFromPath(path);
+          },
+        ),
+        SizedBox(height: spacing),
+        _buildItem(
+          asset: AssetUtil.icBitwarden,
+          title: S.current.importFromBitwarden,
+          dialogTitle: S.current.importFromBitwardenTitle,
+          description: S.current.importFromBitwardenTip,
+          onImport: (path) {
+            BitwardenTokenImporter().importFromPath(path);
           },
         ),
         SizedBox(height: spacing),
@@ -97,6 +139,7 @@ class ImportFromThirdPartyBottomSheetState
             AndOTPTokenImporter().importFromPath(path);
           },
         ),
+        // SizedBox(height: spacing),
         // _buildItem(
         //   asset: AssetUtil.icAuthenticatorplus,
         //   title: S.current.importFromAuthenticatorPlus,
@@ -107,16 +150,6 @@ class ImportFromThirdPartyBottomSheetState
         //     AuthenticatorPlusTokenImporter().importFromPath(path);
         //   },
         // ),
-        SizedBox(height: spacing),
-        _buildItem(
-          asset: AssetUtil.icBitwarden,
-          title: S.current.importFromBitwarden,
-          dialogTitle: S.current.importFromBitwardenTitle,
-          description: S.current.importFromBitwardenTip,
-          onImport: (path) {
-            BitwardenTokenImporter().importFromPath(path);
-          },
-        ),
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetUtil.icEnteauth,
@@ -149,25 +182,6 @@ class ImportFromThirdPartyBottomSheetState
             FreeOTPPlusTokenImporter().importFromPath(path);
           },
         ),
-        SizedBox(height: spacing),
-        _buildItem(
-          asset: AssetUtil.icGoogleauthenticator,
-          title: S.current.importFromGoogleAuthenticator,
-          description: S.current.importFromGoogleAuthenticatorTip,
-          useImport: false,
-          onImport: (path) {
-            if (ResponsiveUtil.isMobile()) {
-              BottomSheetBuilder.showBottomSheet(
-                rootContext,
-                enableDrag: false,
-                responsive: true,
-                (context) => const AddBottomSheet(onlyShowScanner: true),
-              );
-            } else {
-              IToast.showTop(S.current.importFromGoogleAuthenticatorInMobile);
-            }
-          },
-        ),
         // SizedBox(height: spacing),
         // _buildItem(
         //   asset: AssetUtil.icLastpass,
@@ -179,17 +193,6 @@ class ImportFromThirdPartyBottomSheetState
         //     WinauthTokenImporter().importFromPath(path);
         //   },
         // ),
-        SizedBox(height: spacing),
-        _buildItem(
-          asset: AssetUtil.ic2Fas,
-          title: S.current.importFrom2FAS,
-          dialogTitle: S.current.importFrom2FASTitle,
-          description: S.current.importFrom2FASTip,
-          allowedExtensions: ['2fas'],
-          onImport: (path) {
-            TwoFASTokenImporter().importFromPath(path);
-          },
-        ),
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetUtil.icTotpauthenticator,
@@ -224,6 +227,8 @@ class ImportFromThirdPartyBottomSheetState
     List<String> allowedExtensions = const ['json'],
     Function(String)? onImport,
     bool useImport = true,
+    double borderRadius = 12,
+    bool showDivider = false,
   }) {
     final allowedExtensionsInAndroid = ['txt', 'json', 'zip'];
     bool containUnsupportExt = false;
@@ -233,7 +238,7 @@ class ImportFromThirdPartyBottomSheetState
     containUnsupportExt = containUnsupportExt && ResponsiveUtil.isAndroid();
     return Material(
       color: Theme.of(context).canvasColor,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(borderRadius),
       child: InkWell(
         onTap: useImport
             ? () async {
@@ -251,10 +256,20 @@ class ImportFromThirdPartyBottomSheetState
             : () {
                 onImport?.call("");
               },
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(borderRadius),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: showDivider
+                ? Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                      width: 0.5,
+                    ),
+                  )
+                : null,
+          ),
           child: Row(
             children: [
               AssetUtil.load(asset, size: 32),

@@ -41,7 +41,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       appBar: ItemBuilder.buildAppBar(
         context: context,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        leading: Icons.close_rounded,
+        leading: Icons.arrow_back_rounded,
         onLeadingTap: () {
           Navigator.pop(context);
         },
@@ -52,7 +52,6 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
               .titleMedium
               ?.apply(fontWeightDelta: 2),
         ),
-        center: !ResponsiveUtil.isLandscape(),
         actions: [
           ItemBuilder.buildBlankIconButton(context),
           const SizedBox(width: 5),

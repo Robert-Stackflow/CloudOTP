@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter_cloud/dropbox.dart';
 import 'package:flutter_cloud/dropbox_response.dart';
 import 'package:path/path.dart';
@@ -42,7 +43,9 @@ class DropboxCloudService extends CloudService {
   Future<CloudServiceStatus> authenticate() async {
     bool isAuthorized = await dropbox.isConnected();
     if (!isAuthorized) {
+      appProvider.preventLock = true;
       isAuthorized = await dropbox.connect();
+      appProvider.preventLock = false;
     }
     if (isAuthorized) {
       DropboxUserInfo? info = await fetchInfo();

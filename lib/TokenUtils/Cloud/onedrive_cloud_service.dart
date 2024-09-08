@@ -5,6 +5,7 @@ import 'package:flutter_cloud/onedrive_response.dart';
 import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/hive_util.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
@@ -41,7 +42,9 @@ class OneDriveCloudService extends CloudService {
   Future<CloudServiceStatus> authenticate() async {
     bool isAuthorized = await onedrive.isConnected();
     if (!isAuthorized) {
+      appProvider.preventLock = true;
       isAuthorized = await onedrive.connect();
+      appProvider.preventLock = false;
     }
     if (isAuthorized) {
       await fetchInfo();

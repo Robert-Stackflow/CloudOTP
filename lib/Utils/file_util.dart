@@ -64,7 +64,7 @@ class FileUtil {
   }) async {
     FilePickerResult? result;
     try {
-      appProvider.hasJumpToFilePicker = true;
+      appProvider.preventLock = true;
       result = await FilePicker.platform.pickFiles(
         dialogTitle: dialogTitle,
         initialDirectory: initialDirectory,
@@ -83,7 +83,7 @@ class FileUtil {
       ILogger.error("Failed to pick files", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     } finally {
-      appProvider.hasJumpToFilePicker = false;
+      appProvider.preventLock = false;
     }
     return result;
   }
@@ -99,7 +99,7 @@ class FileUtil {
   }) async {
     String? result;
     try {
-      appProvider.hasJumpToFilePicker = true;
+      appProvider.preventLock = true;
       result = await FilePicker.platform.saveFile(
         dialogTitle: dialogTitle,
         initialDirectory: initialDirectory,
@@ -113,7 +113,7 @@ class FileUtil {
       ILogger.error("Failed to save file", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     } finally {
-      appProvider.hasJumpToFilePicker = false;
+      appProvider.preventLock = false;
     }
     return result;
   }
@@ -125,7 +125,7 @@ class FileUtil {
   }) async {
     String? result;
     try {
-      appProvider.hasJumpToFilePicker = true;
+      appProvider.preventLock = true;
       if (Platform.isAndroid) {
         DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
@@ -143,7 +143,7 @@ class FileUtil {
       ILogger.error("Failed to get directory path", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     } finally {
-      appProvider.hasJumpToFilePicker = false;
+      appProvider.preventLock = false;
     }
     return result;
   }
@@ -425,7 +425,7 @@ class FileUtil {
     return resAsset;
   }
 
-  WindowsVersion checkWindowsVersion() {
+  static WindowsVersion checkWindowsVersion() {
     WindowsVersion tmp = WindowsVersion.portable;
 
     final key = calloc<IntPtr>();
@@ -441,8 +441,10 @@ class FileUtil {
 
       if (queryResult == WIN32_ERROR.ERROR_SUCCESS) {
         final currentPath = Platform.resolvedExecutable;
-        final installPath = installPathPtr.cast<Utf16>().toDartString();
-        ILogger.info("Get install path: $installPath and current path: $currentPath");
+        final installPath =
+            "${installPathPtr.cast<Utf16>().toDartString()}\\CloudOTP.exe";
+        ILogger.info(
+            "Get install path: $installPath and current path: $currentPath");
         tmp = installPath == currentPath
             ? WindowsVersion.installed
             : WindowsVersion.portable;
@@ -458,7 +460,7 @@ class FileUtil {
   }
 
   static ReleaseAsset getWindowsAsset(String latestVersion, ReleaseItem item) {
-    final windowsVersion = FileUtil().checkWindowsVersion();
+    final windowsVersion = FileUtil.checkWindowsVersion();
     if (windowsVersion == WindowsVersion.installed) {
       return getWindowsInstallerAsset(latestVersion, item);
     } else {

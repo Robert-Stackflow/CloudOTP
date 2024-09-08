@@ -69,7 +69,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               .titleMedium
               ?.apply(fontWeightDelta: 2),
         ),
-        center: !ResponsiveUtil.isLandscape(),
         actions: ResponsiveUtil.isLandscape()
             ? []
             : [
@@ -86,7 +85,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
   _buildBody() {
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       children: [
         ItemBuilder.buildCaptionItem(context: context, title: S.current.import),
         ItemBuilder.buildEntryItem(

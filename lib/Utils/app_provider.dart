@@ -127,7 +127,7 @@ class AppProvider with ChangeNotifier {
 
   String latestVersion = "";
 
-  bool hasJumpToFilePicker = false;
+  bool preventLock = false;
 
   final List<AutoBackupLog> _autoBackupLogs = [];
 

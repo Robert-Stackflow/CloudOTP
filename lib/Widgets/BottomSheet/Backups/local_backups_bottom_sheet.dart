@@ -1,4 +1,3 @@
-import '../../../Utils/ilogger.dart';
 import 'dart:io';
 
 import 'package:cloudotp/Utils/cache_util.dart';
@@ -10,6 +9,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
 import '../../../TokenUtils/export_token_util.dart';
+import '../../../Utils/ilogger.dart';
 import '../../../Utils/utils.dart';
 import '../../../generated/l10n.dart';
 
@@ -27,13 +27,17 @@ class LocalBackupsBottomSheet extends StatefulWidget {
 
 class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
   List<FileSystemEntity> files = const [];
+  List<FileSystemEntity> defaultPathBackupFiles = const [];
 
   @override
   void initState() {
     ExportTokenUtil.getLocalBackups().then((value) {
       setState(() {
-        files = value;
+        files = value[0];
+        defaultPathBackupFiles = value[1];
         files.sort(
+            (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+        defaultPathBackupFiles.sort(
             (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       });
     });
@@ -77,7 +81,8 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(files.length),
+        S.current
+            .cloudBackupFiles(files.length + defaultPathBackupFiles.length),
         style:
             Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
@@ -88,12 +93,17 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
     return ListView.builder(
       shrinkWrap: true,
       padding: EdgeInsets.zero,
-      itemBuilder: (context, index) => _buildItem(files[index]),
-      itemCount: files.length,
+      itemBuilder: (context, index) => _buildItem(
+        index < files.length
+            ? files[index]
+            : defaultPathBackupFiles[index - files.length],
+        index >= files.length,
+      ),
+      itemCount: files.length + defaultPathBackupFiles.length,
     );
   }
 
-  _buildItem(FileSystemEntity file) {
+  _buildItem(FileSystemEntity file, bool isDefaultPath) {
     String size = CacheUtil.renderSize(file.statSync().size.toDouble(),
         fractionDigits: 0);
     String time =
@@ -124,7 +134,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
-                      "$time    $size",
+                      "$time    $size${isDefaultPath ? "    ${S.current.fromInternalBackupPath}" : ""}",
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -152,7 +162,8 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                     });
                     IToast.showTop(S.current.deleteSuccess);
                   } catch (e, t) {
-                    ILogger.error("Failed to delete backup file from local", e, t);
+                    ILogger.error(
+                        "Failed to delete backup file from local", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

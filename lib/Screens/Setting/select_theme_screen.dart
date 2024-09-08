@@ -33,7 +33,6 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
-              const SizedBox(height: 10),
               ItemBuilder.buildCaptionItem(
                   context: context, title: S.current.lightTheme),
               ItemBuilder.buildContainerItem(

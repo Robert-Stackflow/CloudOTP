@@ -116,7 +116,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
 
   _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       alignment: Alignment.center,
       child: Column(
         children: [
@@ -129,7 +129,9 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
           if (Utils.isNotEmpty(widget.message))
             Text(
               widget.message,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.apply(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
             ),
         ],
       ),

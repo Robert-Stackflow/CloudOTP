@@ -4,6 +4,7 @@ import 'package:flutter_cloud/googledrive.dart';
 import 'package:flutter_cloud/googledrive_response.dart';
 
 import '../../Models/cloud_service_config.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/hive_util.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
@@ -42,7 +43,9 @@ class GoogleDriveCloudService extends CloudService {
   Future<CloudServiceStatus> authenticate() async {
     bool isAuthorized = await googledrive.isConnected();
     if (!isAuthorized) {
+      appProvider.preventLock = true;
       isAuthorized = await googledrive.connect();
+      appProvider.preventLock = false;
     }
     if (isAuthorized) {
       await fetchInfo();

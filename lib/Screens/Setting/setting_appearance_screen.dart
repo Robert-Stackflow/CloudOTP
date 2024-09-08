@@ -111,7 +111,6 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
 
   _apperanceSettings() {
     return [
-      const SizedBox(height: 10),
       Selector<AppProvider, ActiveThemeMode>(
         selector: (context, appProvider) => appProvider.themeMode,
         builder: (context, themeMode, child) => ItemBuilder.buildEntryItem(

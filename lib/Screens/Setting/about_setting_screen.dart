@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloudotp/Screens/Setting/egg_screen.dart';
 import 'package:cloudotp/Screens/Setting/update_log_screen.dart';
+import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
@@ -48,18 +50,24 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
   final ShakeAnimationController _shakeAnimationController =
       ShakeAnimationController();
 
+  String versionDetail = "";
+
   @override
   void initState() {
     super.initState();
     getAppInfo();
   }
 
-  void getAppInfo() {
-    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
-      setState(() {
-        appName = packageInfo.appName;
-      });
-    });
+  Future<void> getAppInfo() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    appName = packageInfo.appName;
+    versionDetail =
+        "${ResponsiveUtil.platformName} ${packageInfo.version}+${packageInfo.buildNumber}";
+    if (Platform.isWindows) {
+      WindowsVersion version = FileUtil.checkWindowsVersion();
+      if (version == WindowsVersion.portable) versionDetail += " Portable";
+    }
+    setState(() {});
   }
 
   diaplayCelebrate() {
@@ -160,10 +168,15 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
               alignment: Alignment.center,
               child: Text(
                 appName,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 3),
+              alignment: Alignment.center,
+              child: Text(
+                versionDetail,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
             Container(

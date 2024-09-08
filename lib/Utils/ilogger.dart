@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 import 'package:cloudotp/Utils/file_util.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
@@ -120,7 +121,7 @@ class FileOutput extends LogOutput {
   static int maxLogSize = 10 * 1024 * 1024; // 10MB
   static int maxLogFileCount = 10; // 10 files
   static RegExp logFilNameRegExp =
-  RegExp(r'CloudOTP_(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.log');
+      RegExp(r'CloudOTP_(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.log');
   static RegExp errorLogFilNameRegExp = RegExp(r'error\.log');
 
   @override
@@ -143,9 +144,9 @@ class FileOutput extends LogOutput {
     files = files.whereType<File>().toList();
     files = files
         .where((element) =>
-    (logFilNameRegExp.hasMatch(element.path) ||
-        errorLogFilNameRegExp.hasMatch(element.path)) &&
-        element.path.endsWith('.log'))
+            (logFilNameRegExp.hasMatch(element.path) ||
+                errorLogFilNameRegExp.hasMatch(element.path)) &&
+            element.path.endsWith('.log'))
         .toList();
     files.sort((a, b) => a.path.compareTo(b.path));
     return files as List<File>;
@@ -155,7 +156,7 @@ class FileOutput extends LogOutput {
     if (!(await haveLogs())) return null;
     List<File> logs = await getLogs();
     List<int>? ints;
-    ints = await compute((_) {
+    ints = await compute((deviceDescription) async {
       Archive archive = Archive();
       for (File file in logs) {
         if (file.existsSync()) {
@@ -165,9 +166,11 @@ class FileOutput extends LogOutput {
               file.readAsBytesSync()));
         }
       }
+      archive.addFile(ArchiveFile(
+          'info.txt', deviceDescription.length, deviceDescription.codeUnits));
       ZipEncoder encoder = ZipEncoder();
       return encoder.encode(archive);
-    }, null);
+    }, ResponsiveUtil.deviceDescription);
     return ints != null ? Uint8List.fromList(ints) : null;
   }
 
@@ -201,7 +204,7 @@ class FileOutput extends LogOutput {
       }
     }
     String formattedDate =
-    DateFormat('yyyy-MM-dd_HH-mm-ss').format(DateTime.now());
+        DateFormat('yyyy-MM-dd_HH-mm-ss').format(DateTime.now());
     return File('${logDir.path}/CloudOTP_$formattedDate.log');
   }
 

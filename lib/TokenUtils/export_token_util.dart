@@ -448,8 +448,8 @@ class ExportTokenUtil {
     return (await getLocalBackups()).length;
   }
 
-  static Future<List<FileSystemEntity>> getLocalBackups() async {
-    String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+  static Future<List<FileSystemEntity>> getLocalBackupsByPath(
+      String backupPath) async {
     Directory directory = Directory(backupPath);
     if (!directory.existsSync()) {
       return [];
@@ -464,10 +464,23 @@ class ExportTokenUtil {
     return backups;
   }
 
+  static Future<List<List<FileSystemEntity>>> getLocalBackups() async {
+    String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+    String defaultBackupPath = await FileUtil.getBackupDir();
+    if (backupPath == defaultBackupPath) {
+      return [await getLocalBackupsByPath(backupPath), []];
+    } else {
+      return [
+        await getLocalBackupsByPath(backupPath),
+        await getLocalBackupsByPath(defaultBackupPath)
+      ];
+    }
+  }
+
   static Future<void> deleteOldBackup() async {
     int maxBackupCount = HiveUtil.getMaxBackupsCount();
     if (maxBackupCount == 0) return;
-    List<FileSystemEntity> backups = await getLocalBackups();
+    List<FileSystemEntity> backups = (await getLocalBackups())[0];
     backups.sort((a, b) {
       return a.statSync().modified.compareTo(b.statSync().modified);
     });

@@ -1693,8 +1693,9 @@ class ItemBuilder {
       maxLines: 1,
       // overflow: TextOverflow.ellipsis,
     );
+    Color fBackground = background ?? Theme.of(context).cardColor;
     return Material(
-      color: background ?? Theme.of(context).cardColor,
+      color: fBackground.withAlpha(fBackground.alpha ~/ (disabled ? 1.5 : 1)),
       borderRadius: BorderRadius.circular(radius),
       child: InkWell(
         onTap: onTap != null && !disabled

@@ -62,7 +62,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                     .titleMedium!
                     .apply(fontWeightDelta: 2),
               ),
-              center: !ResponsiveUtil.isLandscape(),
+              center: canBackup && appProvider.autoBackupLogs.isNotEmpty,
               leading: Icons.arrow_back_rounded,
               onLeadingTap: () {
                 Navigator.pop(context);

@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
@@ -91,31 +90,44 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
     return Container(
       color: Colors.transparent,
       child: Scaffold(
-        appBar: ResponsiveUtil.isLandscape()
-            ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.backupSetting,
+        appBar: ItemBuilder.buildAppBar(
+          context: context,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          leading: Icons.arrow_back_rounded,
+          onLeadingTap: () {
+            Navigator.pop(context);
+          },
+          title: Text(
+            S.current.backupSetting,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.apply(fontWeightDelta: 2),
+          ),
+          actions: [
+            if (canImmediateBackup)
+              ItemBuilder.buildIconButton(
                 context: context,
-                transparent: true,
-              )
-            : ItemBuilder.buildAppBar(
-                context: context,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                leading: Icons.arrow_back_rounded,
-                onLeadingTap: () {
-                  Navigator.pop(context);
-                },
-                title: Text(
-                  S.current.backupSetting,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontWeightDelta: 2),
+                icon: Icon(
+                  Icons.history_rounded,
+                  color: Theme.of(context).iconTheme.color,
                 ),
-                actions: [
-                  ItemBuilder.buildBlankIconButton(context),
-                  const SizedBox(width: 5),
-                ],
+                onTap: () {
+                  RouteUtil.pushDialogRoute(
+                    context,
+                    const BackupLogScreen(),
+                    overrideDialogNavigatorKey: GlobalKey(),
+                  );
+                },
               ),
+            const SizedBox(width: 5),
+            if (ResponsiveUtil.isLandscape())
+              Container(
+                margin: const EdgeInsets.only(right: 5),
+                child: ItemBuilder.buildBlankIconButton(context),
+              ),
+          ],
+        ),
         body: EasyRefresh(
           child: ListView(
             physics: const BouncingScrollPhysics(),
@@ -152,22 +164,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
 
   getBackupsCount() async {
     int currentLocalBackupsCount = await ExportTokenUtil.getBackupsCount();
-    late int currentCloudBackupsCount;
-    if (!_enableCloudBackup ||
-        !validConfigs.isNotEmpty ||
-        _cloudServiceConfig == null) {
-      currentCloudBackupsCount = 0;
-    } else {
-      WebDavCloudService webDavCloudService =
-          WebDavCloudService(_cloudServiceConfig!);
-      try {
-        currentCloudBackupsCount = await webDavCloudService.getBackupsCount();
-      } catch (e, t) {
-        ILogger.error("Failed to get cloud backup count", e, t);
-        currentCloudBackupsCount = 0;
-      }
-    }
-    return [currentLocalBackupsCount, currentCloudBackupsCount];
+    return [currentLocalBackupsCount];
   }
 
   deleteOldBackups(int maxBackupsCount) async {
@@ -278,23 +275,6 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         child: ItemBuilder.buildEntryItem(
           context: context,
           bottomRadius: true,
-          title: S.current.backupLogs,
-          onTap: () async {
-            RouteUtil.pushDialogRoute(
-              context,
-              const BackupLogScreen(),
-              overrideDialogNavigatorKey: GlobalKey(),
-            );
-          },
-        ),
-      ),
-      if (canImmediateBackup) const SizedBox(height: 10),
-      Visibility(
-        visible: canImmediateBackup,
-        child: ItemBuilder.buildEntryItem(
-          context: context,
-          topRadius: true,
-          bottomRadius: true,
           title: S.current.maxBackupCount,
           description: S.current.maxBackupCountTip,
           tip: _maxBackupsCount.toString(),
@@ -318,7 +298,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 title: S.current.maxBackupCount,
                 text: _maxBackupsCount.toString(),
                 message:
-                    '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0], counts[1])}',
+                    '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0])}',
                 hint: S.current.inputMaxBackupCount,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 preventPop: true,
@@ -353,8 +333,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                     DialogBuilder.showConfirmDialog(
                       context,
                       title: S.current.maxBackupCountWarning,
-                      message: S.current
-                          .maxBackupCountWarningMessage(counts[0], counts[1]),
+                      message:
+                          S.current.maxBackupCountWarningMessage(counts[0]),
                       onTapConfirm: () {
                         onValid();
                       },

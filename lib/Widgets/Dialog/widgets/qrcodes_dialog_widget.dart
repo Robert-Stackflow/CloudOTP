@@ -58,7 +58,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
               ? const EdgeInsets.all(24)
               : EdgeInsets.zero,
           decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
+            color: MyTheme.getCardBackground(context),
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
                 bottom: ResponsiveUtil.isWideLandscape()
@@ -125,19 +125,19 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                         },
                         decoration: PrettyQrDecoration(
                           // shape: PrettyQrSmoothSymbol(
-                            // roundFactor: 1,
-                            // color: PrettyQrBrush.gradient(
-                            //   gradient: LinearGradient(
-                            //     begin: Alignment.topCenter,
-                            //     end: Alignment.bottomCenter,
-                            //     colors: [
-                            //       Theme.of(context).primaryColor,
-                            //       Colors.blue[200]!,
-                            //       Colors.teal[200]!,
-                            //       Colors.red[200]!,
-                            //     ],
-                            //   ),
-                            // ),
+                          // roundFactor: 1,
+                          // color: PrettyQrBrush.gradient(
+                          //   gradient: LinearGradient(
+                          //     begin: Alignment.topCenter,
+                          //     end: Alignment.bottomCenter,
+                          //     colors: [
+                          //       Theme.of(context).primaryColor,
+                          //       Colors.blue[200]!,
+                          //       Colors.teal[200]!,
+                          //       Colors.red[200]!,
+                          //     ],
+                          //   ),
+                          // ),
                           // ),
                           image:
                               widget.asset != null && widget.asset!.isNotEmpty
@@ -170,7 +170,11 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                           ItemBuilder.buildRoundButton(
                             context,
                             fontSizeDelta: 2,
-                            icon: const Icon(Icons.arrow_back_rounded),
+                            disabled: currentPage <= 0,
+                            icon: Icon(
+                              Icons.arrow_back_rounded,
+                              color: currentPage <= 0 ? Colors.grey : null,
+                            ),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 31, vertical: 8),
                             onTap: currentPage <= 0
