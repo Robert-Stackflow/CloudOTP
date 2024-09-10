@@ -3,10 +3,9 @@ name: Build and Release CloudOTP Application
 on:
   push:
     tags:
-      - 'V*.*.*'  # 仅在 push tags 时触发工作流
+      - 'V*.*.*'
 
 jobs:
-  # Android 构建任务
   android-build:
     runs-on: ubuntu-latest
     steps:
@@ -28,7 +27,6 @@ jobs:
     - name: Build split ABI APKs
       run: flutter build apk --release --split-per-abi
 
-    # 上传构建的 APK 到 Release
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
@@ -90,7 +88,8 @@ jobs:
     - name: Set up Flutter on Windows
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: 'stable'
+        channel: stable
+        flutter-version: 3.24.0
 
     - name: Install dependencies on Windows
       run: flutter pub get
@@ -112,6 +111,11 @@ jobs:
         zip -r ../../../CloudOTP-${{ github.ref_name }}.zip .
 
     - name: Run Inno Setup
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
+      with:
+        path: tools/CloudOTP.iss
+        output-dir: build/windows/runner/Release/
+        output-filename: CloudOTP-${{ github.ref_name }}.exe
       run: |
         "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" tools/CloudOTP.iss
       env:
