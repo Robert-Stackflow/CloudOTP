@@ -3,7 +3,7 @@ name: Build and Release CloudOTP Application
 on:
   push:
     tags:
-      - 'v*.*.*'  # 仅在 push tags 时触发工作流
+      - 'V*.*.*'  # 仅在 push tags 时触发工作流
 
 jobs:
   # Android 构建任务
@@ -16,7 +16,8 @@ jobs:
     - name: Set up Flutter on Ubuntu
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: 'stable'
+        channel: stable
+        flutter-version: 3.24.0
 
     - name: Install dependencies on Ubuntu
       run: flutter pub get
