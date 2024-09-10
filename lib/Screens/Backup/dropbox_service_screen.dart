@@ -227,7 +227,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
               try {
                 ping();
               } catch (e, t) {
-                ILogger.error("Failed to connect to dropbox", e, t);
+                ILogger.error("CloudOTP","Failed to connect to dropbox", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -292,7 +292,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                   IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
-                ILogger.error("Failed to pull file from dropbox", e, t);
+                ILogger.error("CloudOTP","Failed to pull file from dropbox", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.cloudPullFailed);
               }

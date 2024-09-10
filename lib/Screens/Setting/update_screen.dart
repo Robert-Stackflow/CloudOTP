@@ -152,7 +152,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                   if (ResponsiveUtil.isWindows()) {
                     asset = FileUtil.getWindowsAsset(
                         latestVersion, latestReleaseItem);
-                    ILogger.info("Windows asset: $asset");
+                    ILogger.info("CloudOTP","Windows asset: $asset");
                   }
                   String url = asset.pkgsDownloadUrl;
                   var appDocDir = await getDownloadsDirectory();
@@ -174,7 +174,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                         downloadState == DownloadState.normal;
                       });
                     } catch (e, t) {
-                      ILogger.error("Failed to install", e, t);
+                      ILogger.error("CloudOTP","Failed to install", e, t);
                       if (e is ShellException) {
                         if (e.result?.exitCode == 2) {
                           IToast.showTop(S.current.installCanceled);
@@ -235,7 +235,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     }
                   }
                 } catch (e, t) {
-                  ILogger.error("Failed to download", e, t);
+                  ILogger.error("CloudOTP","Failed to download", e, t);
                   IToast.showTop(S.current.downloadFailed);
                   downloadState == DownloadState.normal;
                 }

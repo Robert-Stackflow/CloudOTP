@@ -208,7 +208,7 @@ class OTP {
 
   static void _showHOTPWarning(BlockHashBase mac) {
     if (mac == sha256 || mac == sha512) {
-      ILogger.warn(
+      ILogger.warn("OTP",
           'Using non-SHA1 hashing with HOTP is not part of the RFC for HOTP and may cause incompatibilities between different library implementatiions. This library attempts to match behavior with other libraries as best it can.');
     }
   }

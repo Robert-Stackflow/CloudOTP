@@ -414,7 +414,7 @@ class OneDrive with ChangeNotifier {
         body: jsonEncode({
           "name": remotePath.replaceAll("/", ""),
           "folder": {},
-          "@microsoft.graph.conflictBehavior": "rename",
+          "@microsoft.graph.conflictBehavior": "replace",
         }),
       );
 

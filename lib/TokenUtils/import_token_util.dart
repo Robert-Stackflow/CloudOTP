@@ -214,7 +214,7 @@ class ImportTokenUtil {
         IToast.showTop(S.current.noQrCode);
       }
     } catch (e, t) {
-      ILogger.error("Failed to analyze image", e, t);
+      ILogger.error("CloudOTP","Failed to analyze image", e, t);
       if (e.runtimeType == NotFoundException) {
         IToast.showTop(S.current.noQrCode);
       } else {
@@ -260,7 +260,7 @@ class ImportTokenUtil {
         );
       }
     } catch (e, t) {
-      ILogger.error("Failed to import uri file from $filePath", e, t);
+      ILogger.error("CloudOTP","Failed to import uri file from $filePath", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {
@@ -303,7 +303,7 @@ class ImportTokenUtil {
         return true;
       }
     } catch (e, t) {
-      ILogger.error("Failed to import old encrypt file from $filePath", e, t);
+      ILogger.error("CloudOTP","Failed to import old encrypt file from $filePath", e, t);
       IToast.showTop(S.current.importFailed);
       return false;
     } finally {
@@ -394,7 +394,7 @@ class ImportTokenUtil {
         return true;
       }
     } catch (e, t) {
-      ILogger.error("Failed to import encrypt file from $filePath", e, t);
+      ILogger.error("CloudOTP","Failed to import encrypt file from $filePath", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
         if (e is InvalidPasswordOrDataCorruptedException) {
@@ -426,7 +426,7 @@ class ImportTokenUtil {
       await importUint8List(content, password: password);
       return true;
     } catch (e, t) {
-      ILogger.error("Failed to import backup file", e, t);
+      ILogger.error("CloudOTP","Failed to import backup file", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
         if (e is InvalidPasswordOrDataCorruptedException) {

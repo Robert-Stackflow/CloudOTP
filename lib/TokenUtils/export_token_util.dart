@@ -117,7 +117,7 @@ class ExportTokenUtil {
         return encryptedData;
       }, null);
     } catch (e, t) {
-      ILogger.error("Failed to export data to Uint8List", e, t);
+      ILogger.error("CloudOTP","Failed to export data to Uint8List", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       }
@@ -147,7 +147,7 @@ class ExportTokenUtil {
         IToast.showTop(S.current.exportSuccess);
       }
     } catch (e, t) {
-      ILogger.error("Failed to export data to encrypt file", e, t);
+      ILogger.error("CloudOTP","Failed to export data to encrypt file", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       } else {
@@ -272,7 +272,7 @@ class ExportTokenUtil {
             await ExportTokenUtil.deleteOldBackup();
             log.addStatus(AutoBackupStatus.saveSuccess);
           } catch (e, t) {
-            ILogger.error("Failed to local backup", e, t);
+            ILogger.error("CloudOTP","Failed to local backup", e, t);
             if (e is PathAccessException) {
               noPermission = true;
             }
@@ -310,7 +310,7 @@ class ExportTokenUtil {
                       type: cloudService.type);
                 }
               } catch (e, t) {
-                ILogger.error("Failed to cloud backup to $cloudService}", e, t);
+                ILogger.error("CloudOTP","Failed to cloud backup to $cloudService}", e, t);
                 log.addStatus(AutoBackupStatus.uploadFailed,
                     type: cloudService.type);
               }
@@ -335,7 +335,7 @@ class ExportTokenUtil {
         }
       }
     } catch (e, t) {
-      ILogger.error("Failed to auto backup", e, t);
+      ILogger.error("CloudOTP","Failed to auto backup", e, t);
       if (e is BackupBaseException) {
         log.addStatus(AutoBackupStatus.encryptFailed);
         if (showToast) IToast.showTop(e.intlMessage);
@@ -377,7 +377,7 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(S.current.backupSuccess);
       }
     } catch (e, t) {
-      ILogger.error("Failed to backup encrypt file to local", e, t);
+      ILogger.error("CloudOTP","Failed to backup encrypt file to local", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
@@ -433,7 +433,7 @@ class ExportTokenUtil {
         }
       }
     } catch (e, t) {
-      ILogger.error("Failed to backup encrypt file to cloud $config", e, t);
+      ILogger.error("CloudOTP","Failed to backup encrypt file to cloud $config", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
@@ -533,7 +533,7 @@ class ExportTokenUtil {
           .toList();
       return [tokenQrcodes, passCount];
     } catch (e, t) {
-      ILogger.error(
+      ILogger.error("CloudOTP",
           "Failed to export data to google authenticator qrcodes", e, t);
       return null;
     } finally {
@@ -607,7 +607,7 @@ class ExportTokenUtil {
       }
       return qrcodes;
     } catch (e, t) {
-      ILogger.error("Failed to export data to qrcodes", e, t);
+      ILogger.error("CloudOTP","Failed to export data to qrcodes", e, t);
       return null;
     } finally {
       if (showLoading) {

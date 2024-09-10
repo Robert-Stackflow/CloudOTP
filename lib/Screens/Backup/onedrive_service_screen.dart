@@ -184,6 +184,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     return ItemBuilder.buildRadioItem(
       context: context,
       title: S.current.enable + S.current.cloudTypeOneDrive,
+      description: S.current.cloudTypeOneDriveTip,
       topRadius: true,
       bottomRadius: true,
       value: _oneDriveCloudServiceConfig?.enabled ?? false,
@@ -247,7 +248,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
               try {
                 ping();
               } catch (e, t) {
-                ILogger.error("Failed to connect to onedrive", e, t);
+                ILogger.error("CloudOTP","Failed to connect to onedrive", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -312,7 +313,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                   IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
-                ILogger.error("Failed to pull from onedrive", e, t);
+                ILogger.error("CloudOTP","Failed to pull from onedrive", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.cloudPullFailed);
               }

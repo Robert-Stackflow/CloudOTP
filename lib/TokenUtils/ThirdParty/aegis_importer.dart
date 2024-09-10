@@ -524,7 +524,7 @@ class AegisTokenImporter implements BaseTokenImporter {
         }
       }
     } catch (e, t) {
-      ILogger.error("Failed to import from 2FAS", e, t);
+      ILogger.error("CloudOTP","Failed to import from 2FAS", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

@@ -36,8 +36,9 @@ class ILogger {
     ),
   ];
 
-  static void log(Level level, String message,
+  static void log(Level level, String tag, String message,
       [Object? error, StackTrace? stackTrace]) {
+    message = tag.isNotEmpty ? "[$tag] $message" : message;
     for (var logger in _loggers) {
       switch (level) {
         case Level.error:
@@ -91,28 +92,34 @@ class ILogger {
     }
   }
 
-  static void error(String message, [Object? error, StackTrace? stackTrace]) {
-    log(Level.error, message, error, stackTrace);
+  static void error(String tag, String message,
+      [Object? error, StackTrace? stackTrace]) {
+    log(Level.error, tag, message, error, stackTrace);
   }
 
-  static void warn(String message, [Object? error, StackTrace? stackTrace]) {
-    log(Level.warning, message, error, stackTrace);
+  static void warn(String tag, String message,
+      [Object? error, StackTrace? stackTrace]) {
+    log(Level.warning, tag, message, error, stackTrace);
   }
 
-  static void debug(String message, [Object? error, StackTrace? stackTrace]) {
-    log(Level.debug, message, error, stackTrace);
+  static void debug(String tag, String message,
+      [Object? error, StackTrace? stackTrace]) {
+    log(Level.debug, tag, message, error, stackTrace);
   }
 
-  static void info(String message, [Object? error, StackTrace? stackTrace]) {
-    log(Level.info, message, error, stackTrace);
+  static void info(String tag, String message,
+      [Object? error, StackTrace? stackTrace]) {
+    log(Level.info, tag, message, error, stackTrace);
   }
 
-  static void trace(String message, [Object? error, StackTrace? stackTrace]) {
-    log(Level.trace, message, error, stackTrace);
+  static void trace(String tag, String message,
+      [Object? error, StackTrace? stackTrace]) {
+    log(Level.trace, tag, message, error, stackTrace);
   }
 
-  static void fatal(String message, [Object? error, StackTrace? stackTrace]) {
-    log(Level.fatal, message, error, stackTrace);
+  static void fatal(String tag, String message,
+      [Object? error, StackTrace? stackTrace]) {
+    log(Level.fatal, tag, message, error, stackTrace);
   }
 }
 

@@ -63,7 +63,7 @@ class OtpTokenParser {
         return token == null ? [] : [token];
       }
     } catch (e, t) {
-      ILogger.error("Failed to parse uri $line", e, t);
+      ILogger.error("CloudOTP","Failed to parse uri $line", e, t);
       return [];
     }
   }

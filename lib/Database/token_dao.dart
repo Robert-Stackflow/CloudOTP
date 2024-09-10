@@ -212,7 +212,7 @@ class TokenDao {
       );
       return OtpToken.fromMap(maps[0]);
     } catch (e, t) {
-      ILogger.error(
+      ILogger.error("CloudOTP",
           "Failed to get token by id $id and serachKey $searchKey", e, t);
       return null;
     }
@@ -231,7 +231,7 @@ class TokenDao {
       );
       return maps.isNotEmpty ? OtpToken.fromMap(maps[0]) : null;
     } catch (e, t) {
-      ILogger.error(
+      ILogger.error("CloudOTP",
           "Failed to get token by uid $uid and searchKey $searchKey", e, t);
       return null;
     }

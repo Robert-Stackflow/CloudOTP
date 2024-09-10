@@ -67,7 +67,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
         IToast.showTop(canAuthenticateResponseString ?? "");
       }
     } catch (e, t) {
-      ILogger.error("Failed to authenticate with biometric", e, t);
+      ILogger.error("CloudOTP","Failed to authenticate with biometric", e, t);
       if (e is AuthException) {
         switch (e.code) {
           case AuthExceptionCode.userCanceled:
@@ -149,7 +149,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
               return null;
             }
           } catch (e, t) {
-            ILogger.error(
+            ILogger.error("CloudOTP",
                 "Failed to decrypt database with wrong password", e, t);
             return S.current.encryptDatabasePasswordWrong;
           }

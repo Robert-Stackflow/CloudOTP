@@ -234,6 +234,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               tailingType: InputItemTailingType.password,
               disabled: currentConfig.connected,
               hint: S.current.s3AccessKeyHint,
+              obscureText: currentConfig.connected,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetter,
               ],
@@ -253,6 +254,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               tailingType: InputItemTailingType.password,
               disabled: currentConfig.connected,
               hint: S.current.s3SecretKeyHint,
+              obscureText: currentConfig.connected,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetter,
               ],
@@ -296,7 +298,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                   _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
                   ping();
                 } catch (e, t) {
-                  ILogger.error("Failed to connect to S3 cloud", e, t);
+                  ILogger.error("CloudOTP","Failed to connect to S3 cloud", e, t);
                   IToast.show(S.current.cloudConnectionError);
                 }
               }
@@ -361,7 +363,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                   IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
-                ILogger.error("Failed to pull from S3 cloud", e, t);
+                ILogger.error("CloudOTP","Failed to pull from S3 cloud", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.cloudPullFailed);
               }

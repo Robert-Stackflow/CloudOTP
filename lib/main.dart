@@ -221,7 +221,7 @@ class MyApp extends StatelessWidget {
               try {
                 return Localizations.localeOf(context);
               } catch (e, t) {
-                ILogger.error(
+                ILogger.error("CloudOTP",
                     "Failed to get locale by Localizations.localeOf(context)",
                     e,
                     t);

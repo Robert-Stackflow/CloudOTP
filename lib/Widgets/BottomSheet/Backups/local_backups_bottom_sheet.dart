@@ -162,7 +162,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                     });
                     IToast.showTop(S.current.deleteSuccess);
                   } catch (e, t) {
-                    ILogger.error(
+                    ILogger.error("CloudOTP",
                         "Failed to delete backup file from local", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }

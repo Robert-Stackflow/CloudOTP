@@ -218,7 +218,7 @@ class HiveUtil {
       List<String> list = size.split(",");
       return Size(double.parse(list[0]), double.parse(list[1]));
     } catch (e, t) {
-      ILogger.error("Failed to get window size", e, t);
+      ILogger.error("CloudOTP","Failed to get window size", e, t);
       return defaultWindowSize;
     }
   }
@@ -237,7 +237,7 @@ class HiveUtil {
       List<String> list = position.split(",");
       return Offset(double.parse(list[0]), double.parse(list[1]));
     } catch (e, t) {
-      ILogger.error("Failed to get window position", e, t);
+      ILogger.error("CloudOTP","Failed to get window position", e, t);
       return Offset.zero;
     }
   }

@@ -148,7 +148,7 @@ class OneDriveBackupsBottomSheetState
                     });
                     IToast.showTop(S.current.deleteSuccess);
                   } catch (e, t) {
-                    ILogger.error("Failed to delete file from webdav", e, t);
+                    ILogger.error("CloudOTP","Failed to delete file from webdav", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

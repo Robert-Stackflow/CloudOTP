@@ -69,7 +69,7 @@ class CheckTokenUtil {
     try {
       base32.decode(str.toUpperCase());
     } catch (e, t) {
-      ILogger.error("Failed to decode base32 from $str", e, t);
+      ILogger.error("CloudOTP","Failed to decode base32 from $str", e, t);
       return false;
     }
     return true;
@@ -79,7 +79,7 @@ class CheckTokenUtil {
     try {
       int.parse(str);
     } catch (e, t) {
-      ILogger.error("Failed to parse int from interval $str", e, t);
+      ILogger.error("CloudOTP","Failed to parse int from interval $str", e, t);
       return false;
     }
     return true;

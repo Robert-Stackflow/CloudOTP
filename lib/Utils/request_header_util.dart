@@ -19,7 +19,7 @@ class RequestHeaderUtil {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       await deviceInfo.androidInfo.then((value) => androidInfo = value);
     } catch (e, t) {
-      ILogger.error("Failed to get android info", e, t);
+      ILogger.error("CloudOTP","Failed to get android info", e, t);
       androidInfo = null;
     }
   }

@@ -31,7 +31,7 @@ class TokenImageUtil {
       await rootBundle.loadString(path);
       return true;
     } catch (e, t) {
-      ILogger.error("Failed to load asset $path", e, t);
+      ILogger.error("CloudOTP","Failed to load asset $path", e, t);
       return false;
     }
   }

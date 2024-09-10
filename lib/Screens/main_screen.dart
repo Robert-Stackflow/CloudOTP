@@ -145,7 +145,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onProtocolUrlReceived(String url) {
-    ILogger.info("Protocol url received", url);
+    ILogger.info("CloudOTP","Protocol url received", url);
   }
 
   Future<void> fetchReleases() async {
@@ -546,7 +546,7 @@ class MainScreenState extends State<MainScreen>
         doDismissLoading: true,
       );
     } catch (e, t) {
-      ILogger.error("Failed to capture and analyze image", e, t);
+      ILogger.error("CloudOTP","Failed to capture and analyze image", e, t);
       if (e is PlatformException) {
         if (reCaptureWhenFailed) capture(mode, reCaptureWhenFailed: false);
       }

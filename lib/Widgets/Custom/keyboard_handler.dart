@@ -175,7 +175,7 @@ class LoggingShortcutManager extends ShortcutManager {
     LogicalKeySet? keysPressed,
   }) {
     final KeyEventResult result = super.handleKeypress(context, event);
-    // ILogger.info('handleKeyPress($event, $keysPressed) result: $result');
+    // ILogger.info("CloudOTP",'handleKeyPress($event, $keysPressed) result: $result');
     return result;
   }
 }

@@ -143,7 +143,7 @@ class Utils {
       try {
         return int.parse(value);
       } catch (e, t) {
-        ILogger.error("Failed to parse int from $value", e, t);
+        ILogger.error("CloudOTP","Failed to parse int from $value", e, t);
         return 0;
       }
     } else {
@@ -332,7 +332,7 @@ class Utils {
       }
       return 0;
     } catch (e, t) {
-      ILogger.error("Failed to compare version between $a and $b", e, t);
+      ILogger.error("CloudOTP","Failed to compare version between $a and $b", e, t);
       return a.compareTo(b);
     }
   }
@@ -385,7 +385,7 @@ class Utils {
       }
       onGetLatestRelease?.call(latestVersion, latestReleaseItem!);
       Utils.initTray();
-      ILogger.info(
+      ILogger.info("CloudOTP",
           "Current version: $currentVersion, Latest version: $latestVersion");
       if (compareVersion(latestVersion, currentVersion) > 0) {
         onUpdate?.call(latestVersion, latestReleaseItem!);
@@ -406,7 +406,7 @@ class Utils {
                 if (ResponsiveUtil.isAndroid()) {
                   ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
                       latestVersion, latestReleaseItem!);
-                  ILogger.info("Get android asset: $androidAssset");
+                  ILogger.info("CloudOTP","Get android asset: $androidAssset");
                   FileUtil.downloadAndUpdate(
                     context,
                     androidAssset.pkgsDownloadUrl,
@@ -494,7 +494,7 @@ class Utils {
         }
       });
     } on PlatformException catch (e, t) {
-      ILogger.error("Failed to local authenticate by PlatformException", e, t);
+      ILogger.error("CloudOTP","Failed to local authenticate by PlatformException", e, t);
       if (e.code == auth_error.notAvailable) {
         IToast.showTop(S.current.biometricNotAvailable);
       } else if (e.code == auth_error.notEnrolled) {
@@ -507,7 +507,7 @@ class Utils {
         IToast.showTop(S.current.biometricOtherReason(e));
       }
     } catch (e, t) {
-      ILogger.error("Failed to local authenticate", e, t);
+      ILogger.error("CloudOTP","Failed to local authenticate", e, t);
     }
   }
 

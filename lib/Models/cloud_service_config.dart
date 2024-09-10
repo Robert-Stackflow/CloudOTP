@@ -213,7 +213,7 @@ class CloudServiceConfig {
       'total_size': totalSize,
       'remaining_size': remainingSize,
       'used_size': usedSize,
-      "email": email,
+      "email": email ?? "",
     };
   }
 

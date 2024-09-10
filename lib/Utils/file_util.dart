@@ -80,7 +80,7 @@ class FileUtil {
         readSequential: readSequential,
       );
     } catch (e, t) {
-      ILogger.error("Failed to pick files", e, t);
+      ILogger.error("CloudOTP", "Failed to pick files", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     } finally {
       appProvider.preventLock = false;
@@ -110,7 +110,7 @@ class FileUtil {
         fileName: fileName,
       );
     } catch (e, t) {
-      ILogger.error("Failed to save file", e, t);
+      ILogger.error("CloudOTP", "Failed to save file", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     } finally {
       appProvider.preventLock = false;
@@ -129,7 +129,6 @@ class FileUtil {
       if (Platform.isAndroid) {
         DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        ILogger.debug(androidInfo.version.sdkInt.toString());
         if (androidInfo.version.sdkInt >= 30) {
           return await getDirectoryBySAF();
         }
@@ -140,7 +139,7 @@ class FileUtil {
         lockParentWindow: lockParentWindow,
       );
     } catch (e, t) {
-      ILogger.error("Failed to get directory path", e, t);
+      ILogger.error("CloudOTP", "Failed to get directory path", e, t);
       IToast.showTop(S.current.pleaseGrantFilePermission);
     } finally {
       appProvider.preventLock = false;
@@ -178,7 +177,7 @@ class FileUtil {
             IToast.showTop(S.current.exportFailed);
           }
         } catch (e, t) {
-          ILogger.error("Failed to zip logs", e, t);
+          ILogger.error("CloudOTP", "Failed to zip logs", e, t);
           IToast.showTop(S.current.exportFailed);
         } finally {
           if (showLoading) {
@@ -209,7 +208,7 @@ class FileUtil {
           IToast.showTop(S.current.exportSuccess);
         }
       } catch (e, t) {
-        ILogger.error("Failed to zip logs", e, t);
+        ILogger.error("CloudOTP", "Failed to zip logs", e, t);
         IToast.showTop(S.current.exportFailed);
       } finally {
         if (showLoading) {
@@ -357,7 +356,7 @@ class FileUtil {
           }
         });
       } catch (e, t) {
-        ILogger.error("Failed to download apk", e, t);
+        ILogger.error("CloudOTP", "Failed to download apk", e, t);
         NotificationUtil.closeNotification(0);
         NotificationUtil.sendInfoNotification(
           2,
@@ -443,7 +442,7 @@ class FileUtil {
         final currentPath = Platform.resolvedExecutable;
         final installPath =
             "${installPathPtr.cast<Utf16>().toDartString()}\\CloudOTP.exe";
-        ILogger.info(
+        ILogger.info("CloudOTP",
             "Get install path: $installPath and current path: $currentPath");
         tmp = installPath == currentPath
             ? WindowsVersion.installed

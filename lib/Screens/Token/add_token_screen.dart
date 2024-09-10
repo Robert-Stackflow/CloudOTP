@@ -223,7 +223,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             _otpToken.uid, unselectedCategoryUids);
         success = true;
       } catch (e, t) {
-        ILogger.error("Failed to save token", e, t);
+        ILogger.error("CloudOTP","Failed to save token", e, t);
         IToast.showTop(S.current.saveFailed);
       } finally {
         if (!_isEditing) {

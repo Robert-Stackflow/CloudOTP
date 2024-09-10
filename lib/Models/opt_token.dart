@@ -583,7 +583,7 @@ class OtpToken {
     try {
       remark = jsonDecode(cloudOtpParameters.remark);
     } catch (e, t) {
-      ILogger.error("Failed to decode remark from ${cloudOtpParameters.remark}", e, t);
+      ILogger.error("CloudOTP","Failed to decode remark from ${cloudOtpParameters.remark}", e, t);
       remark = {};
     }
     return OtpToken(
