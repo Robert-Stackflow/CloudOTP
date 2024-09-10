@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=CloudOTP
+GenericName=Password Manager
+Comment=An awesome two-factor authenticator which supports cloud backup.
+Exec=CloudOTP
+Icon=com.cloudchewie.cloudotp
+Categories=Utility;
+Terminal=false

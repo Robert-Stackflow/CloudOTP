@@ -1,149 +1,231 @@
-name: Build and Release CloudOTP Application
+name: Build & Release
 
+# Trigger on push to master branch or with a tag
 on:
   push:
+    branches:
+      - '**'
     tags:
-      - 'V*.*.*'
+      - 'V*'
+
+# If previous workflow is still running, we push again, we will cancel the previous workflow
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
-  android-build:
+  Build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: Android
+            os: ubuntu-latest
+            artifact_name: release-Android
+            artifact_path: build/app/outputs/apk/release/*.apk
+          - target: Windows
+            os: windows-latest
+            artifact_name: release-Windows
+            artifact_path: build/windows/*.zip
+          - target: Linux
+            os: ubuntu-latest
+            artifact_name: release-Linux
+            artifact_path: build/linux/*.deb
+          - target: iOS
+            os: macos-latest
+            cache_pod_key: ios-pods
+            cache_pod_path: ios/Pods
+            cache_pod_restore_keys_hash_file: ios/Podfile.lock
+            artifact_name: release-iOS
+            artifact_path: build/**/*.ipa
+          - target: macOS
+            os: macos-latest
+            cache_pod_key: macos-pods
+            cache_pod_path: macos/Pods
+            cache_pod_restore_keys_hash_file: macos/Podfile.lock
+            artifact_name: release-macOS
+            artifact_path: /Users/runner/work/CloudOTP/CloudOTP/*.dmg
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    runs-on: ${{ matrix.os }}
+    env:
+      FLUTTER_VERSION: 3.24.0
+    steps:
+      # Checkout branch
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Add Android keystore
+      - name: Setup Android keystore
+        if: matrix.target == 'Android'
+        run: |
+          echo "${{ secrets.ENCODED_KEYSTORE }}" | base64 -di > android/app/upload-keystore.jks
+          echo "${{ secrets.KEY_PROPERTIES }}" > android/key.properties
+
+      # Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2.12.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      # Cache Pod
+      - name: Cache Pod
+        if: matrix.cache_pod_key != null
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.cache_pod_key }}
+          path: ${{ matrix.cache_pod_path }}
+          restore-keys: ${{ matrix.cache_key }}-${{ hashFiles(matrix.cache_pod_restore_keys_hash_file)}}
+
+      # Setup JDK
+      - name: Setup JDK 17 (Android)
+        if: matrix.target == 'Android'
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      # Xcodebuild
+      - name: Build Xcode
+        if: matrix.os == 'macos-latest'
+        run: xcodebuild -resolvePackageDependencies -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release
+
+      # Flutter Pub Get
+      - name: Flutter Pub Get
+        run: |
+          git config --global core.longpaths true
+          flutter pub get
+          dart run intl_utils:generate
+
+      # Get app version
+      - name: Get app version
+        id: get_version
+        shell: bash
+        run: |
+          echo "::set-output name=version::$(head -n 2 pubspec.yaml | tail -n 1 | cut -d ' ' -f 2)"
+
+      # Build Android .apk
+      - name: Build Android
+        if: matrix.target == 'Android'
+        run: |
+          flutter build apk --release --split-per-abi
+          cd build/app/outputs/apk/release
+          mv app-arm64-v8a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-arm64-v8a.apk
+          mv app-armeabi-v7a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-armeabi-v7a.apk
+          mv app-x86_64-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-x86_64.apk
+
+      # Build iOS .ipa
+      - name: Build iOS
+        if: matrix.target == 'ios'
+        run: |
+          cd ios
+          pod update
+          cd ..
+          flutter build ios --release --no-codesign
+          sh thin-payload.sh build/ios/iphoneos/*.app
+          cd build
+          mkdir -p Payload
+          mv ios/iphoneos/*.app Payload
+          zip -9 CloudOTP-${{ steps.get_version.outputs.version }}-ios.ipa -r Payload
+
+      # Build macOS .dmg
+      - name: Build macOS
+        if: matrix.target == 'macOS'
+        run: |
+          cd macos
+          pod update
+          cd ..
+          flutter build macos --release
+          brew install create-dmg
+          create-dmg --volname CloudOTP-${{ steps.get_version.outputs.version }}-macos --window-pos 200 120 --window-size 800 450 --icon-size 100 --app-drop-link 600 185 CloudOTP-${version}.dmg build/macos/Build/Products/Release/cloudtop.app
+
+      # Build Windows .zip
+      - name: Build Windows
+        if: matrix.target == 'Windows'
+        run: |
+          flutter build windows --release
+          $DestDir = "build\windows\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64"
+          $SrcDir = "build\windows\x64\runner\Release"
+          New-Item -Path $DestDir -ItemType Directory
+          Copy-Item $SrcDir\* -Recurse $DestDir
+          Copy-Item -Filter *.dll -Path windows\* -Destination $DestDir -Force
+          Compress-Archive $DestDir build\windows\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.zip
+
+      # Build Linux .deb
+      - name: Build Linux
+        if: matrix.target == 'Linux'
+        run: |
+          # Prepare build depends
+          sudo apt-get update -y
+          sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libayatana-appindicator3-dev keybinder-3.0 libsecret-1-0
+          
+          # Compile
+          flutter config --enable-linux-desktop
+          flutter build linux --release
+
+          # Debian package
+          mkdir -p build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
+          cd build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
+          mkdir -p opt/CloudOTP
+          mkdir -p usr/share/applications
+          mkdir -p usr/share/icons/hicolor/scalable/apps
+          cp -r ../x64/release/bundle/* opt/CloudOTP
+          cp -r ../../../assets/linux/DEBIAN .
+          chmod 0755 DEBIAN/postinst
+          chmod 0755 DEBIAN/postrm
+
+          cat>DEBIAN/control<<EOF
+          Maintainer: pugaizai <i@pugai.life>
+          Package: CloudOTP
+          Version: ${{ steps.get_version.outputs.version }}
+          Section: x11
+          Priority: optional
+          Architecture: amd64
+          Essential: no
+          Installed-Size: 34648
+          Description: An awesome two-factor authenticator which supports cloud backup.
+          Homepage: https://github.com/MCDFsteve/CloudOTP
+          Depends: libayatana-appindicator3,
+                   keybinder-3.0,
+                   libsecret-1-0
+          EOF
+
+          cp ../../../assets/linux/com.cloudchewie.cloudotp.desktop usr/share/applications
+          cp ../../../assets/logo.svg usr/share/icons/hicolor/scalable/apps/com.cloudchewie.cloudotp.svg
+
+          cd ..
+          dpkg-deb --build --root-owner-group CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
+
+      # Upload Artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_path }}
+  Publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    name: Publish
+    needs: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Clone repository
-      uses: actions/checkout@v4
-
-    - name: Set up Flutter on Ubuntu
-      uses: subosito/flutter-action@v2
-      with:
-        channel: stable
-        flutter-version: 3.24.0
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y ninja-build libgtk-3-dev
-        sudo apt-get install libayatana-appindicator3-dev keybinder-3.0 libsecret-1-0
-
-    - name: Install dependencies on Ubuntu
-      run: |
-        flutter doctor -v
-        flutter pub get
-        dart run intl_utils:generate
-
-    - name: Install OpenJDK 17
-      run: |
-        sudo apt-get update && sudo apt-get install openjdk-17-jdk
-        sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
-        sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
-        java -version
-
-    - name: Build universal APK
-      run: flutter build apk --release
-
-    - name: Build split ABI APKs
-      run: flutter build apk --release --split-per-abi
-
-    - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-
-    - name: Upload universal APK to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/app/outputs/flutter-apk/app-release.apk
-        asset_name: CloudOTP-${{ github.ref_name }}.apk
-        asset_content_type: application/vnd.android.package-archive
-
-    - name: Upload arm64-v8a APK to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-        asset_name: CloudOTP-${{ github.ref_name }}-arm64-v8a.apk
-        asset_content_type: application/vnd.android.package-archive
-
-    - name: Upload armeabi-v7a APK to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-        asset_name: CloudOTP-${{ github.ref_name }}-armeabi-v7a.apk
-        asset_content_type: application/vnd.android.package-archive
-
-    - name: Upload x86_64 APK to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/app/outputs/flutter-apk/app-x86_64-release.apk
-        asset_name: CloudOTP-${{ github.ref_name }}-x86_64.apk
-        asset_content_type: application/vnd.android.package-archive
-
-  windows-build:
-    runs-on: windows-latest
-    steps:
-    - name: Clone repository
-      uses: actions/checkout@v4
-
-    - name: Set up Flutter on Windows
-      uses: subosito/flutter-action@v2
-      with:
-        channel: stable
-        flutter-version: 3.24.0
-
-    - name: Install dependencies on Windows
-      run: |
-        flutter doctor -v
-        flutter pub get
-        dart run intl_utils:generate
-
-    - name: Build Windows executable
-      run: flutter build windows --release
-
-    - name: Copy DLL files
-      run: |
-        cp tools/dll/* build/windows/runner/Release/
-
-    - name: Zip Windows release
-      run: |
-        cd build/windows/runner/Release
-        zip -r ../../../CloudOTP-${{ github.ref_name }}.zip .
-
-    - name: Run Inno Setup
-      uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
-      with:
-        path: tools/CloudOTP.iss
-        options: /O ./ /F CloudOTP-${{ github.ref_name }}.exe
-
-    - name: Upload Windows ZIP to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/CloudOTP-${{ github.ref_name }}.zip
-        asset_name: CloudOTP-${{ github.ref_name }}.zip
-        asset_content_type: application/zip
-
-    - name: Upload Windows installer to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: tools/Output/CloudOTP-${{ github.ref_name }}.exe
-        asset_name: CloudOTP-${{ github.ref_name }}.exe
-        asset_content_type: application/vnd.microsoft.portable-executable
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Make tmp dir
+        run: mkdir /tmp/artifacts
+      - name: Download all Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: /tmp/artifacts
+      - name: List all Artifacts
+        run: ls -R /tmp/artifacts
+      - name: Upload to release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          allowUpdates: true
+          artifacts: /tmp/artifacts/release-Android/*.apk,/tmp/artifacts/release-iOS/*.ipa,/tmp/artifacts/release-macOS/*.dmg,/tmp/artifacts/release-Windows/*.zip,/tmp/artifacts/release-Linux/*.deb
+          artifactErrorsFailBuild: true
+          replacesArtifacts: true
