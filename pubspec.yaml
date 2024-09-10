@@ -61,7 +61,7 @@ dependencies:
   html: ^0.15.0
   uuid: ^4.4.2 # UUID
   logger: ^2.4.0 # 日志
-  hashlib: ^1.19.2 # Hash
+  hashlib: 1.19.2 # Hash
   pointycastle: ^3.9.1 # 加密
   protobuf: ^3.1.0 # Protobuf
   protoc_plugin: ^21.1.2  # Protobuf
