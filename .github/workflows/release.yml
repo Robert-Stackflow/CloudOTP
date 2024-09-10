@@ -193,7 +193,8 @@ jobs:
           Depends: libayatana-appindicator3,
                    keybinder-3.0,
                    libsecret-1-0,
-                   libnotify-bin
+                   libnotify-bin,
+                   libsqlcipher1
           EOF
 
           cp ../../../assets/linux/com.cloudchewie.cloudotp.desktop usr/share/applications
