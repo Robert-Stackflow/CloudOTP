@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-ln -sf /opt/CloudOTP/cloudotp /usr/bin/cloudotp
-chmod +x /usr/bin/cloudotp
+ln -sf /opt/CloudOTP/CloudOTP /usr/bin/CloudOTP
+chmod +x /usr/bin/CloudOTP
 update-mime-database /usr/share/mime || true
 update-desktop-database /usr/share/applications || true
 exit 0
