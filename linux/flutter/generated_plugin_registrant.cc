@@ -8,6 +8,7 @@
 
 #include <biometric_storage/biometric_storage_plugin.h>
 #include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
+#include <handy_window/handy_window_plugin.h>
 #include <hotkey_manager_linux/hotkey_manager_linux_plugin.h>
 #include <isar_flutter_libs/isar_flutter_libs_plugin.h>
 #include <local_notifier/local_notifier_plugin.h>
@@ -26,6 +27,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) flutter_secure_storage_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterSecureStorageLinuxPlugin");
   flutter_secure_storage_linux_plugin_register_with_registrar(flutter_secure_storage_linux_registrar);
+  g_autoptr(FlPluginRegistrar) handy_window_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "HandyWindowPlugin");
+  handy_window_plugin_register_with_registrar(handy_window_registrar);
   g_autoptr(FlPluginRegistrar) hotkey_manager_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "HotkeyManagerLinuxPlugin");
   hotkey_manager_linux_plugin_register_with_registrar(hotkey_manager_linux_registrar);

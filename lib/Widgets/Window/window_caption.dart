@@ -17,6 +17,9 @@ class _MoveWindow extends StatelessWidget {
         onPanStart: (details) {
           windowManager.startDragging();
         },
+        onSecondaryTapDown: (details){
+          windowManager.popUpWindowMenu();
+        },
         onDoubleTap: onDoubleTap ?? () => ResponsiveUtil.maximizeOrRestore(),
         child: child ?? Container());
   }

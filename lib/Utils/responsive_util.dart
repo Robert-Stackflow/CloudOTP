@@ -85,8 +85,10 @@ class ResponsiveUtil {
 
   static Future<void> maximizeOrRestore() async {
     if (await windowManager.isMaximized()) {
+      ILogger.debug("maximizeOrRestore", "restore");
       windowManager.restore();
     } else {
+      ILogger.debug("maximizeOrRestore", "maximize");
       windowManager.maximize();
     }
   }
