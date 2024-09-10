@@ -2423,24 +2423,7 @@ class ItemBuilder {
           children: [
             ...leftWidgets,
             if (showAppName) ...[
-              const SizedBox(width: 4),
-              // IgnorePointer(
-              //   child: ClipRRect(
-              //     borderRadius: BorderRadius.circular(10),
-              //     clipBehavior: Clip.antiAlias,
-              //     child: Container(
-              //       width: 24,
-              //       height: 24,
-              //       decoration: const BoxDecoration(
-              //         image: DecorationImage(
-              //           image: AssetImage('assets/logo-transparent.png'),
-              //           fit: BoxFit.contain,
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              // ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Text(
                 S.current.appName,
                 style: Theme.of(context).textTheme.titleSmall?.apply(

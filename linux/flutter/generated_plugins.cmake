@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   biometric_storage
   flutter_secure_storage_linux
+  handy_window
   hotkey_manager_linux
   isar_flutter_libs
   local_notifier

@@ -585,7 +585,7 @@ class Utils {
     );
     var packageInfo = await PackageInfo.fromPlatform();
     bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
-    if(ResponsiveUtil.isWindows()) await trayManager.setToolTip(packageInfo.appName);
+    if(!ResponsiveUtil.isLinux()) await trayManager.setToolTip(packageInfo.appName);
     Menu menu = Menu(
       items: [
         MenuItem(
@@ -603,7 +603,7 @@ class Utils {
           key: TrayKey.lockApp.key,
           label: S.current.lockAppTray,
         ),
-        ...await getTokenMenuItems(),
+        // ...await getTokenMenuItems(),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.setting.key,

@@ -83,6 +83,7 @@ dependencies:
   # 平台适配
   saf:
     path: third-party/saf
+  handy_window: ^0.4.0
   native_device_orientation: ^2.0.3 # 设备方向
   process_run: ^1.0.0+1 # 运行
   restart_app: ^1.2.1 # 重启APP

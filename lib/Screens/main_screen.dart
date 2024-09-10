@@ -31,6 +31,7 @@ import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:path/path.dart' as path;
 
 import '../Resources/colors.dart';
 import '../TokenUtils/import_token_util.dart';
@@ -145,7 +146,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onProtocolUrlReceived(String url) {
-    ILogger.info("CloudOTP","Protocol url received", url);
+    ILogger.info("CloudOTP", "Protocol url received", url);
   }
 
   Future<void> fetchReleases() async {
@@ -171,10 +172,12 @@ class MainScreenState extends State<MainScreen>
     _oldOrientation = MediaQuery.of(rootContext).orientation;
     trayManager.addListener(this);
     windowManager.addListener(this);
-    if (ResponsiveUtil.isDesktop()) protocolHandler.addListener(this);
     super.initState();
     if (ResponsiveUtil.isDesktop()) {
       Utils.initTray();
+      if (!ResponsiveUtil.isLinux()) {
+        protocolHandler.addListener(this);
+      }
     }
     WidgetsBinding.instance.addObserver(this);
     HiveUtil.showCloudEntry().then((value) {
@@ -504,7 +507,7 @@ class MainScreenState extends State<MainScreen>
       Directory directory = Directory(await FileUtil.getScreenshotDir());
       String imageName =
           'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-      String imagePath = '${directory.path}\\$imageName';
+      String imagePath = path.join(directory.path, imageName);
       CapturedData? capturedData = await screenCapturer.capture(
         mode: mode,
         copyToClipboard: true,
@@ -546,7 +549,7 @@ class MainScreenState extends State<MainScreen>
         doDismissLoading: true,
       );
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to capture and analyze image", e, t);
+      ILogger.error("CloudOTP", "Failed to capture and analyze image", e, t);
       if (e is PlatformException) {
         if (reCaptureWhenFailed) capture(mode, reCaptureWhenFailed: false);
       }
@@ -901,6 +904,9 @@ class MainScreenState extends State<MainScreen>
     windowManager.show();
     windowManager.focus();
     windowManager.restore();
+    if (ResponsiveUtil.isLinux()) {
+      trayManager.popUpContextMenu();
+    }
   }
 
   @override
