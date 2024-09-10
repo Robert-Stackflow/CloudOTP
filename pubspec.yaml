@@ -94,7 +94,6 @@ dependencies:
   flutter_displaymode: ^0.6.0 # 设置刷新率
   flutter_local_notifications: ^17.2.1+2 # 本地通知
   flutter_resizable_container: ^2.0.0 # 可调整大小的容器
-  desktop_webview_window: ^0.2.3 # Webview窗口
   flutter_windowmanager: ^0.2.0
   move_to_background: ^1.0.2 # 移动到后台
   launch_at_startup: ^0.3.1 # 开机启动

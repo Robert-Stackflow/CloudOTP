@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  desktop_webview_window
   flutter_secure_storage_windows
   hotkey_manager_windows
   isar_flutter_libs

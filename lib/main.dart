@@ -10,7 +10,6 @@ import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/request_header_util.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:desktop_webview_window/desktop_webview_window.dart';
 import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -47,17 +46,7 @@ Future<void> main(List<String> args) async {
 }
 
 Future<void> runMyApp(List<String> args) async {
-  if (ResponsiveUtil.isDesktop() && runWebViewTitleBarWidget(args)) {
-    return;
-  }
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  // if (ResponsiveUtil.isWindows()) {
-  //   await WindowsSingleInstance.ensureSingleInstance(
-  //     args,
-  //     kWindowSingleInstanceName,
-  //     onSecondWindow: (args) {},
-  //   );
-  // }
   await initApp(widgetsBinding);
   late Widget home;
   if (!DatabaseManager.initialized) {
