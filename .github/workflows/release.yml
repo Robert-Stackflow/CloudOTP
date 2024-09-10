@@ -12,6 +12,13 @@ jobs:
     - name: Clone repository
       uses: actions/checkout@v4
 
+    - name: Install OpenJDK 17
+      run: |
+        sudo apt-get update && sudo apt-get install openjdk-17-jdk
+        sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+        sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+        java -version
+
     - name: Set up Flutter on Ubuntu
       uses: subosito/flutter-action@v2
       with:
@@ -19,7 +26,10 @@ jobs:
         flutter-version: 3.24.0
 
     - name: Install dependencies on Ubuntu
-      run: flutter pub get
+      run: |
+        flutter doctor -v
+        flutter pub get
+        dart run intl_utils:generate
 
     - name: Build universal APK
       run: flutter build apk --release
@@ -78,7 +88,6 @@ jobs:
         asset_name: CloudOTP-${{ github.ref_name }}-x86_64.apk
         asset_content_type: application/vnd.android.package-archive
 
-  # Windows 构建任务
   windows-build:
     runs-on: windows-latest
     steps:
@@ -92,14 +101,13 @@ jobs:
         flutter-version: 3.24.0
 
     - name: Install dependencies on Windows
-      run: flutter pub get
+      run: |
+        flutter doctor -v
+        flutter pub get
+        dart run intl_utils:generate
 
     - name: Build Windows executable
       run: flutter build windows --release
-
-    - name: Install Inno Setup
-      run: |
-        choco install innosetup
 
     - name: Copy DLL files
       run: |
@@ -114,7 +122,7 @@ jobs:
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
       with:
         path: tools/CloudOTP.iss
-        options: /O build/windows/runner/Release/ /F CloudOTP-${{ github.ref_name }}.exe
+        options: /O ./ /F CloudOTP-${{ github.ref_name }}.exe
 
     - name: Upload Windows ZIP to Release
       uses: actions/upload-release-asset@v1
