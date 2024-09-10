@@ -585,7 +585,7 @@ class Utils {
     );
     var packageInfo = await PackageInfo.fromPlatform();
     bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
-    await trayManager.setToolTip(packageInfo.appName);
+    if(ResponsiveUtil.isWindows()) await trayManager.setToolTip(packageInfo.appName);
     Menu menu = Menu(
       items: [
         MenuItem(

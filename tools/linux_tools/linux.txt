@@ -1,0 +1,1 @@
+sudo apt-get install libayatana-appindicator3-dev keybinder-3.0 libsecret-1-0
