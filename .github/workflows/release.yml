@@ -33,20 +33,20 @@ jobs:
             artifact_path: |
               build/linux/*.deb
               build/linux/*.tar.gz
-          # - target: iOS
-          #   os: macos-latest
-          #   cache_pod_key: ios-pods
-          #   cache_pod_path: ios/Pods
-          #   cache_pod_restore_keys_hash_file: ios/Podfile.lock
-          #   artifact_name: release-iOS
-          #   artifact_path: build/**/*.ipa
-          # - target: macOS
-          #   os: macos-latest
-          #   cache_pod_key: macos-pods
-          #   cache_pod_path: macos/Pods
-          #   cache_pod_restore_keys_hash_file: macos/Podfile.lock
-          #   artifact_name: release-macOS
-          #   artifact_path: /Users/runner/work/CloudOTP/CloudOTP/*.dmg
+          - target: iOS
+            os: macos-latest
+            cache_pod_key: ios-pods
+            cache_pod_path: ios/Pods
+            cache_pod_restore_keys_hash_file: ios/Podfile.lock
+            artifact_name: release-iOS
+            artifact_path: build/**/*.ipa
+          - target: MacOS
+            os: macos-latest
+            cache_pod_key: macos-pods
+            cache_pod_path: macos/Pods
+            cache_pod_restore_keys_hash_file: macos/Podfile.lock
+            artifact_name: release-MacOS
+            artifact_path: /Users/runner/work/CloudOTP/CloudOTP/*.dmg
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     runs-on: ${{ matrix.os }}
@@ -72,14 +72,14 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # # Cache Pod
-      # - name: Cache Pod
-      #   if: matrix.cache_pod_key != null
-      #   uses: actions/cache@v3
-      #   with:
-      #     key: ${{ matrix.cache_pod_key }}
-      #     path: ${{ matrix.cache_pod_path }}
-      #     restore-keys: ${{ matrix.cache_key }}-${{ hashFiles(matrix.cache_pod_restore_keys_hash_file)}}
+      # Cache Pod
+      - name: Cache Pod
+        if: matrix.cache_pod_key != null
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.cache_pod_key }}
+          path: ${{ matrix.cache_pod_path }}
+          restore-keys: ${{ matrix.cache_key }}-${{ hashFiles(matrix.cache_pod_restore_keys_hash_file)}}
 
       # Setup JDK
       - name: Setup JDK 17 (Android)
@@ -90,10 +90,10 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      # # Xcodebuild
-      # - name: Build Xcode
-      #   if: matrix.os == 'macos-latest'
-      #   run: xcodebuild -resolvePackageDependencies -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release
+      # Xcodebuild
+      - name: Build Xcode
+        if: matrix.os == 'macos-latest'
+        run: xcodebuild -resolvePackageDependencies -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release
 
       # Flutter Pub Get
       - name: Flutter Pub Get
@@ -120,30 +120,30 @@ jobs:
           mv app-armeabi-v7a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-armeabi-v7a.apk
           mv app-x86_64-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-x86_64.apk
 
-      # # Build iOS .ipa
-      # - name: Build iOS
-      #   if: matrix.target == 'ios'
-      #   run: |
-      #     cd ios
-      #     pod update
-      #     cd ..
-      #     flutter build ios --release --no-codesign
-      #     sh thin-payload.sh build/ios/iphoneos/*.app
-      #     cd build
-      #     mkdir -p Payload
-      #     mv ios/iphoneos/*.app Payload
-      #     zip -9 CloudOTP-${{ steps.get_version.outputs.version }}-ios.ipa -r Payload
+      # Build iOS .ipa
+      - name: Build iOS
+        if: matrix.target == 'iOS'
+        run: |
+          cd ios
+          pod update
+          cd ..
+          flutter build ios --release --no-codesign
+          sh thin-payload.sh build/ios/iphoneos/*.app
+          cd build
+          mkdir -p Payload
+          mv ios/iphoneos/*.app Payload
+          zip -9 CloudOTP-${{ steps.get_version.outputs.version }}-ios.ipa -r Payload
 
-      # # Build macOS .dmg
-      # - name: Build macOS
-      #   if: matrix.target == 'macOS'
-      #   run: |
-      #     cd macos
-      #     pod update
-      #     cd ..
-      #     flutter build macos --release
-      #     brew install create-dmg
-      #     create-dmg --volname CloudOTP-${{ steps.get_version.outputs.version }}-macos --window-pos 200 120 --window-size 800 450 --icon-size 100 --app-drop-link 600 185 CloudOTP-${version}.dmg build/macos/Build/Products/Release/cloudtop.app
+      # Build MacOS .dmg
+      - name: Build MacOS
+        if: matrix.target == 'MacOS'
+        run: |
+          cd macos
+          pod update
+          cd ..
+          flutter build macos --release
+          brew install create-dmg
+          create-dmg --volname CloudOTP-${{ steps.get_version.outputs.version }}-macos --window-pos 200 120 --window-size 800 450 --icon-size 100 --app-drop-link 600 185 CloudOTP-${version}.dmg build/macos/Build/Products/Release/cloudtop.app
 
       # Build Windows .zip
       - name: Build Windows
@@ -236,6 +236,8 @@ jobs:
           artifacts: |
             /tmp/artifacts/release-Android/*.apk
             /tmp/artifacts/release-Windows/*.zip
+            /tmp/artifacts/release-MacOS/*.dmg
+            /tmp/artifacts/release-iOS/*.ipa
             /tmp/artifacts/release-Linux/*.deb
             /tmp/artifacts/release-Linux/*.tar.gz
           artifactErrorsFailBuild: true
