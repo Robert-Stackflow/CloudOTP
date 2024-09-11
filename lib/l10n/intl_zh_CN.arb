@@ -667,6 +667,7 @@
   "scanFromRegionCapture": "区域截图识别",
   "scanFromWindowCapture": "窗口截图识别",
   "captureFailed": "截图失败",
+  "captureFailedNoProcess": "截图失败，未找到截图进程{process}，请安装后重试",
   "parseQrCodeWrong": "解析失败",
   "copyTokenUri": "复制URI",
   "alreadyCopiedNextCode": "已复制下一个令牌到剪贴板",

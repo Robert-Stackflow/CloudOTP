@@ -106,9 +106,22 @@ class MainScreenState extends State<MainScreen>
   }
 
   @override
+  Future<void> onWindowResize() async {
+    super.onWindowResize();
+    windowManager.setMinimumSize(minimumSize);
+    HiveUtil.setWindowSize(await windowManager.getSize());
+  }
+
+  @override
   Future<void> onWindowResized() async {
     super.onWindowResized();
     HiveUtil.setWindowSize(await windowManager.getSize());
+  }
+
+  @override
+  Future<void> onWindowMove() async {
+    super.onWindowMove();
+    HiveUtil.setWindowPosition(await windowManager.getPosition());
   }
 
   @override
@@ -127,6 +140,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onWindowMaximize() {
+    windowManager.setMinimumSize(minimumSize);
     setState(() {
       _isMaximized = true;
     });
@@ -134,6 +148,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onWindowUnmaximize() {
+    windowManager.setMinimumSize(minimumSize);
     setState(() {
       _isMaximized = false;
     });
@@ -170,22 +185,18 @@ class MainScreenState extends State<MainScreen>
   @override
   void initState() {
     _oldOrientation = MediaQuery.of(rootContext).orientation;
-    trayManager.addListener(this);
-    windowManager.addListener(this);
     super.initState();
-    if (ResponsiveUtil.isDesktop()) {
-      Utils.initTray();
-      if (!ResponsiveUtil.isLinux()) {
-        protocolHandler.addListener(this);
-      }
+    if (ResponsiveUtil.isDesktop() && !ResponsiveUtil.isLinux()) {
+      protocolHandler.addListener(this);
     }
+    windowManager.addListener(this);
     WidgetsBinding.instance.addObserver(this);
     HiveUtil.showCloudEntry().then((value) {
       appProvider.canShowCloudBackupButton = value;
     });
     fetchReleases();
     darkModeController = AnimationController(vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       darkModeWidget = LottieUtil.load(
         LottieUtil.sunLight,
         size: 25,
@@ -195,6 +206,13 @@ class MainScreenState extends State<MainScreen>
       if (HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey,
           defaultValue: false)) {
         searchFocusNode.requestFocus();
+      }
+      if (ResponsiveUtil.isDesktop()) {
+        await Utils.initTray();
+        trayManager.addListener(this);
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          await Utils.initTray();
+        });
       }
     });
     initGlobalConfig();
@@ -552,6 +570,13 @@ class MainScreenState extends State<MainScreen>
       ILogger.error("CloudOTP", "Failed to capture and analyze image", e, t);
       if (e is PlatformException) {
         if (reCaptureWhenFailed) capture(mode, reCaptureWhenFailed: false);
+      } else if (e is ProcessException) {
+        windowManager.restore();
+        if (ResponsiveUtil.isLinux()) {
+          LinuxOSType osType = ResponsiveUtil.getLinuxOSType();
+          IToast.showTop(
+              S.current.captureFailedNoProcess(osType.captureProcessName));
+        }
       }
     }
   }
@@ -901,12 +926,8 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onTrayIconMouseDown() {
-    windowManager.show();
-    windowManager.focus();
-    windowManager.restore();
-    if (ResponsiveUtil.isLinux()) {
-      trayManager.popUpContextMenu();
-    }
+    Utils.displayApp();
+    trayManager.popUpContextMenu();
   }
 
   @override
@@ -951,8 +972,8 @@ class MainScreenState extends State<MainScreen>
       UriUtil.launchUrlUri(context, officialWebsite);
     } else if (Utils.isNotEmpty(menuItem.key) &&
         menuItem.key!.startsWith(TrayKey.copyTokenCode.key)) {
-      int id = int.parse(menuItem.key!.split('-').last);
-      OtpToken? token = await TokenDao.getTokenById(id);
+      String uid = menuItem.key!.split('_').last;
+      OtpToken? token = await TokenDao.getTokenByUid(uid);
       if (token != null) {
         double currentProgress = token.period == 0
             ? 0

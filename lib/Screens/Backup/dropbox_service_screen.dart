@@ -12,6 +12,7 @@ import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/ilogger.dart';
+import '../../Utils/responsive_util.dart';
 import '../../Widgets/BottomSheet/Backups/dropbox_backups_bottom_sheet.dart';
 import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
@@ -105,7 +106,9 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return inited
+    return ResponsiveUtil.isLinux()
+        ? _buildUnsupportBody()
+        :inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
             context,
@@ -114,6 +117,19 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             mainAxisAlignment: MainAxisAlignment.start,
             topPadding: 100,
           );
+  }
+
+  _buildUnsupportBody() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 100),
+          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeDropbox)),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
   }
 
   ping({

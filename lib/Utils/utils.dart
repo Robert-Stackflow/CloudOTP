@@ -143,7 +143,7 @@ class Utils {
       try {
         return int.parse(value);
       } catch (e, t) {
-        ILogger.error("CloudOTP","Failed to parse int from $value", e, t);
+        ILogger.error("CloudOTP", "Failed to parse int from $value", e, t);
         return 0;
       }
     } else {
@@ -332,7 +332,8 @@ class Utils {
       }
       return 0;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to compare version between $a and $b", e, t);
+      ILogger.error(
+          "CloudOTP", "Failed to compare version between $a and $b", e, t);
       return a.compareTo(b);
     }
   }
@@ -340,7 +341,7 @@ class Utils {
   static displayApp() {
     windowManager.show();
     windowManager.focus();
-    windowManager.restore();
+    // windowManager.restore();
   }
 
   static getDownloadUrl(String version, String name) {
@@ -406,7 +407,7 @@ class Utils {
                 if (ResponsiveUtil.isAndroid()) {
                   ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
                       latestVersion, latestReleaseItem!);
-                  ILogger.info("CloudOTP","Get android asset: $androidAssset");
+                  ILogger.info("CloudOTP", "Get android asset: $androidAssset");
                   FileUtil.downloadAndUpdate(
                     context,
                     androidAssset.pkgsDownloadUrl,
@@ -494,7 +495,8 @@ class Utils {
         }
       });
     } on PlatformException catch (e, t) {
-      ILogger.error("CloudOTP","Failed to local authenticate by PlatformException", e, t);
+      ILogger.error("CloudOTP",
+          "Failed to local authenticate by PlatformException", e, t);
       if (e.code == auth_error.notAvailable) {
         IToast.showTop(S.current.biometricNotAvailable);
       } else if (e.code == auth_error.notEnrolled) {
@@ -507,7 +509,7 @@ class Utils {
         IToast.showTop(S.current.biometricOtherReason(e));
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to local authenticate", e, t);
+      ILogger.error("CloudOTP", "Failed to local authenticate", e, t);
     }
   }
 
@@ -515,11 +517,7 @@ class Utils {
     return DateFormat("yyyy-MM-dd-HH-mm-ss").format(dateTime);
   }
 
-  static void removeTray() {
-    trayManager.destroy();
-  }
-
-  static Future<List<MenuItem>> getTokenMenuItems() async {
+  static Future<List<MenuItem>> getTrayTokenMenuItems() async {
     List<TokenCategory> categories =
         DatabaseManager.initialized ? await CategoryDao.listCategories() : [];
     List<OtpToken> tokens =
@@ -541,7 +539,7 @@ class Utils {
             items: tokens
                 .map(
                   (e) => MenuItem(
-                    key: "${TrayKey.copyTokenCode.key}-${e.id.toString()}",
+                    key: "${TrayKey.copyTokenCode.key}_${e.uid}",
                     label: e.issuer,
                   ),
                 )
@@ -550,13 +548,13 @@ class Utils {
         ),
         ...haveTokenCategories.map(
           (category) => MenuItem.submenu(
-            key: "${TrayKey.copyTokenCode.key}-category-${category.id}",
+            key: "${TrayKey.copyTokenCode.key}_category_${category.uid}",
             label: category.title,
             submenu: Menu(
               items: category.tokens
                   .map(
                     (e) => MenuItem(
-                      key: "${TrayKey.copyTokenCode.key}-${e.id.toString()}",
+                      key: "${TrayKey.copyTokenCode.key}_${e.uid}",
                       label: e.issuer,
                     ),
                   )
@@ -570,12 +568,15 @@ class Utils {
     }
   }
 
+  static Future<void> removeTray() async {
+    await trayManager.destroy();
+  }
+
   static Future<void> initTray() async {
-    if (!ResponsiveUtil.isDesktop()) {
-      return;
-    }
+    if (!ResponsiveUtil.isDesktop()) return;
+    await trayManager.destroy();
     if (!HiveUtil.getBool(HiveUtil.showTrayKey)) {
-      trayManager.destroy();
+      await trayManager.destroy();
       return;
     }
     await trayManager.setIcon(
@@ -585,7 +586,9 @@ class Utils {
     );
     var packageInfo = await PackageInfo.fromPlatform();
     bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
-    if(!ResponsiveUtil.isLinux()) await trayManager.setToolTip(packageInfo.appName);
+    if (!ResponsiveUtil.isLinux()) {
+      await trayManager.setToolTip(packageInfo.appName);
+    }
     Menu menu = Menu(
       items: [
         MenuItem(
@@ -603,7 +606,7 @@ class Utils {
           key: TrayKey.lockApp.key,
           label: S.current.lockAppTray,
         ),
-        // ...await getTokenMenuItems(),
+        ...await getTrayTokenMenuItems(),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.setting.key,
