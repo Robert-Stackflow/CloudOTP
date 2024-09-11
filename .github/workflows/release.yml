@@ -164,7 +164,7 @@ jobs:
         run: |
           # Prepare build depends
           sudo apt-get update -y
-          sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libayatana-appindicator3-dev keybinder-3.0 libsecret-1-0 libnotify-dev libsqlcipher-dev
+          sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libnotify-dev libsqlcipher-dev
           
           # Compile
           flutter config --enable-linux-desktop
@@ -192,11 +192,11 @@ jobs:
           Installed-Size: 34648
           Description: An awesome two-factor authenticator which supports cloud backup.
           Homepage: https://github.com/Robert-Stackflow/CloudOTP
-          Depends: libayatana-appindicator3,
-                   keybinder-3.0,
+          Depends: libayatana-appindicator3-1,
+                   gir1.2-keybinder-3.0,
                    libsecret-1-0,
-                   libnotify-bin,
-                   libsqlcipher1
+                   gir1.2-notify-0.7,
+                   sqlcipher
           EOF
 
           cp ../../../assets/linux/com.cloudchewie.cloudotp.desktop usr/share/applications
