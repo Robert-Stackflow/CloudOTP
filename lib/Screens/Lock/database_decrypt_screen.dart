@@ -103,17 +103,10 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   }
 
   @override
-  void onWindowMaximize() {
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    setState(() {
-      _isMaximized = false;
-    });
+  Future<void> onWindowResize() async {
+    super.onWindowResize();
+    windowManager.setMinimumSize(minimumSize);
+    HiveUtil.setWindowSize(await windowManager.getSize());
   }
 
   @override
@@ -123,9 +116,31 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   }
 
   @override
+  Future<void> onWindowMove() async {
+    super.onWindowMove();
+    HiveUtil.setWindowPosition(await windowManager.getPosition());
+  }
+
+  @override
   Future<void> onWindowMoved() async {
     super.onWindowMoved();
     HiveUtil.setWindowPosition(await windowManager.getPosition());
+  }
+
+  @override
+  void onWindowMaximize() {
+    windowManager.setMinimumSize(minimumSize);
+    setState(() {
+      _isMaximized = true;
+    });
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    windowManager.setMinimumSize(minimumSize);
+    setState(() {
+      _isMaximized = false;
+    });
   }
 
   @override

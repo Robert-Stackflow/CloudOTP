@@ -65,11 +65,14 @@ class IToast {
     Function(int)? onClickAction,
   }) {
     if (!ResponsiveUtil.isDesktop()) return null;
+    var nActions =
+        actions.map((e) => LocalNotificationAction(text: e)).toList();
     LocalNotification notification = LocalNotification(
+      identifier: Utils.generateUid(),
       title: title,
       subtitle: subTitle,
       body: body,
-      actions: actions.map((e) => LocalNotificationAction(text: e)).toList(),
+      actions: nActions,
     );
     notification.onShow = () {};
     notification.onClose = (closeReason) {

@@ -11,6 +11,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../Resources/theme.dart';
 import '../../Utils/biometric_util.dart';
+import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Widgets/Item/item_builder.dart';
@@ -53,17 +54,10 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
   bool get _biometricAvailable => canAuthenticateResponse?.isSuccess ?? false;
 
   @override
-  void onWindowMaximize() {
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    setState(() {
-      _isMaximized = false;
-    });
+  Future<void> onWindowResize() async {
+    super.onWindowResize();
+    windowManager.setMinimumSize(minimumSize);
+    HiveUtil.setWindowSize(await windowManager.getSize());
   }
 
   @override
@@ -73,9 +67,31 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
   }
 
   @override
+  Future<void> onWindowMove() async {
+    super.onWindowMove();
+    HiveUtil.setWindowPosition(await windowManager.getPosition());
+  }
+
+  @override
   Future<void> onWindowMoved() async {
     super.onWindowMoved();
     HiveUtil.setWindowPosition(await windowManager.getPosition());
+  }
+
+  @override
+  void onWindowMaximize() {
+    windowManager.setMinimumSize(minimumSize);
+    setState(() {
+      _isMaximized = true;
+    });
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    windowManager.setMinimumSize(minimumSize);
+    setState(() {
+      _isMaximized = false;
+    });
   }
 
   @override

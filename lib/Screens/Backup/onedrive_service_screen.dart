@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/itoast.dart';
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
@@ -111,15 +112,17 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return inited
-        ? _buildBody()
-        : ItemBuilder.buildLoadingDialog(
-            context,
-            background: Colors.transparent,
-            text: S.current.cloudConnecting,
-            mainAxisAlignment: MainAxisAlignment.start,
-            topPadding: 100,
-          );
+    return ResponsiveUtil.isLinux()
+        ? _buildUnsupportBody()
+        : inited
+            ? _buildBody()
+            : ItemBuilder.buildLoadingDialog(
+                context,
+                background: Colors.transparent,
+                text: S.current.cloudConnecting,
+                mainAxisAlignment: MainAxisAlignment.start,
+                topPadding: 100,
+              );
   }
 
   _buildUnsupportBody() {
@@ -248,7 +251,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
               try {
                 ping();
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to connect to onedrive", e, t);
+                ILogger.error(
+                    "CloudOTP", "Failed to connect to onedrive", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -313,7 +317,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                   IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to pull from onedrive", e, t);
+                ILogger.error("CloudOTP", "Failed to pull from onedrive", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.cloudPullFailed);
               }

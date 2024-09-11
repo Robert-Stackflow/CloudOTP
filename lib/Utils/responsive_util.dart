@@ -1,14 +1,28 @@
 import 'dart:io';
 
-import 'package:cloudotp/Utils/ilogger.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:restart_app/restart_app.dart';
+import 'package:shell_executor/shell_executor.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app_provider.dart';
+
+enum LinuxOSType {
+  Gnome,
+  KDE;
+
+  String get captureProcessName {
+    switch (this) {
+      case LinuxOSType.Gnome:
+        return "gnome-screenshot";
+      case LinuxOSType.KDE:
+        return "spectacle";
+    }
+  }
+}
 
 class ResponsiveUtil {
   static String deviceName = "";
@@ -85,10 +99,8 @@ class ResponsiveUtil {
 
   static Future<void> maximizeOrRestore() async {
     if (await windowManager.isMaximized()) {
-      ILogger.debug("maximizeOrRestore", "restore");
-      windowManager.restore();
+      windowManager.unmaximize();
     } else {
-      ILogger.debug("maximizeOrRestore", "maximize");
       windowManager.maximize();
     }
   }
@@ -173,5 +185,23 @@ class ResponsiveUtil {
     return isWeb() ||
         isDesktop() ||
         (useAppProvider && appProvider.enableLandscapeInTablet && isTablet());
+  }
+
+  static LinuxOSType getLinuxOSType() {
+    if (Platform.isLinux) {
+      bool? isKdeDesktop;
+      try {
+        final result = ShellExecutor.global.execSync('pgrep', ['plasmashell']);
+        isKdeDesktop = result.exitCode == 0;
+      } catch (_) {
+        isKdeDesktop = false;
+      }
+      if (isKdeDesktop) {
+        return LinuxOSType.KDE;
+      } else {
+        return LinuxOSType.Gnome;
+      }
+    }
+    return LinuxOSType.Gnome;
   }
 }
