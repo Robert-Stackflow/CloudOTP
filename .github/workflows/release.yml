@@ -99,6 +99,7 @@ jobs:
       - name: Flutter Pub Get
         run: |
           git config --global core.longpaths true
+          flutter doctor -v
           flutter pub get
           dart run intl_utils:generate
 
@@ -232,6 +233,10 @@ jobs:
         with:
           tag: ${{ github.ref_name }}
           allowUpdates: true
-          artifacts: /tmp/artifacts/release-Android/*.apk,/tmp/artifacts/release-Windows/*.zip,/tmp/artifacts/release-Linux/*.deb,/tmp/artifacts/release-Linux/*.tar.gz
+          artifacts: |
+            /tmp/artifacts/release-Android/*.apk
+            /tmp/artifacts/release-Windows/*.zip
+            /tmp/artifacts/release-Linux/*.deb
+            /tmp/artifacts/release-Linux/*.tar.gz
           artifactErrorsFailBuild: true
           replacesArtifacts: true
