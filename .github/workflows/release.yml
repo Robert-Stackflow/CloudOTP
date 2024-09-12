@@ -130,7 +130,7 @@ jobs:
           pod update
           cd ..
           flutter build ios --release --no-codesign
-          sh tools/ios_tools/thin-payload.sh build/ios/iphoneos/*.app
+          sh tools/ios_tools/thin_payload.sh build/ios/iphoneos/*.app
           cd build
           mkdir -p Payload
           mv ios/iphoneos/*.app Payload
