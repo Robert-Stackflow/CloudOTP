@@ -1,13 +1,19 @@
 import 'dart:io';
 
+import 'package:cloudotp/Utils/ilogger.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CacheUtil {
   static Future<String> loadCache() async {
-    Directory tempDir = await getTemporaryDirectory();
-    double value = await _getTotalSizeOfFilesInDir(tempDir);
-    tempDir.list(followLinks: false, recursive: true).listen((file) {});
-    return renderSize(value);
+    try {
+      Directory tempDir = await getTemporaryDirectory();
+      double value = await _getTotalSizeOfFilesInDir(tempDir);
+      tempDir.list(followLinks: false, recursive: true).listen((file) {});
+      return renderSize(value);
+    } catch (e, t) {
+      ILogger.error("CloudOTP", "Failed to load cache", e, t);
+      return "0M";
+    }
   }
 
   static Future<double> _getTotalSizeOfFilesInDir(
@@ -28,13 +34,17 @@ class CacheUtil {
   }
 
   static Future<void> delDir(FileSystemEntity file) async {
-    if (file is Directory) {
-      final List<FileSystemEntity> children = file.listSync();
-      for (final FileSystemEntity child in children) {
-        await delDir(child);
+    try {
+      if (file is Directory) {
+        final List<FileSystemEntity> children = file.listSync();
+        for (final FileSystemEntity child in children) {
+          await delDir(child);
+        }
       }
+      await file.delete();
+    } catch (e, t) {
+      ILogger.error("CloudOTP", "Failed to clear cache", e, t);
     }
-    await file.delete();
   }
 
   static renderSize(

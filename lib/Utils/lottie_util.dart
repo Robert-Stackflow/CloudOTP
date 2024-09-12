@@ -1,3 +1,4 @@
+import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
@@ -29,6 +30,8 @@ class LottieUtil {
         controller: controller,
         alignment: Alignment.bottomCenter,
         addRepaintBoundary: true,
+        renderCache:
+            ResponsiveUtil.isIOS() ? RenderCache.drawingCommands : null,
         onLoaded: (composition) {
           if (controller != null) {
             controller.duration = composition.duration;

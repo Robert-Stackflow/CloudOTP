@@ -90,15 +90,13 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   await BiometricUtil.initStorage();
   await TokenImageUtil.loadBrandLogos();
   ResponsiveUtil.init();
-  if (ResponsiveUtil.isMobile()) {
+  if (ResponsiveUtil.isAndroid()) {
     await initDisplayMode();
-    if (ResponsiveUtil.isAndroid()) {
-      await RequestHeaderUtil.initAndroidInfo();
-      SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark);
-      SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
-    }
+    await RequestHeaderUtil.initAndroidInfo();
+    SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark);
+    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   }
   if (ResponsiveUtil.isDesktop()) {
     await initWindow();
@@ -210,7 +208,8 @@ class MyApp extends StatelessWidget {
               try {
                 return Localizations.localeOf(context);
               } catch (e, t) {
-                ILogger.error("CloudOTP",
+                ILogger.error(
+                    "CloudOTP",
                     "Failed to get locale by Localizations.localeOf(context)",
                     e,
                     t);
