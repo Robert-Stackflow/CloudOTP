@@ -26,7 +26,9 @@ jobs:
           - target: Windows
             os: windows-latest
             artifact_name: release-Windows
-            artifact_path: build/windows/*.zip
+            artifact_path: |
+              build/windows/*.zip
+              build/windows/installer/*.exe
           - target: Linux
             os: ubuntu-latest
             artifact_name: release-Linux
@@ -158,6 +160,16 @@ jobs:
           Copy-Item -Filter *.dll -Path tools\windows_dll\* -Destination $DestDir -Force
           Copy-Item -Filter *.dll -Path windows\* -Destination $DestDir -Force
           Compress-Archive $DestDir build\windows\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.zip
+          
+          (Get-Content tools/windows_tools/CloudOTP.iss) -replace '#define MyAppVersion ".*"', '#define MyAppVersion "${{ steps.get_version.outputs.version }}"' | Set-Content tools/windows_tools/CloudOTP.iss
+
+      # Build Windows .exe
+      - name: Build Windows Installer
+        if: matrix.target == 'Windows'
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: tools/windows_tools/CloudOTP.iss
+          options: /O build/windows/installer /F CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.exe
 
       # Build Linux .deb
       - name: Build Linux
