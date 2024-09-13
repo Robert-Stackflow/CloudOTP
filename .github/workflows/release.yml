@@ -144,8 +144,7 @@ jobs:
           pod update
           cd ..
           flutter build macos --release
-          brew install create-dmg
-          create-dmg --volname CloudOTP-${{ steps.get_version.outputs.version }}-macos --window-pos 200 120 --window-size 800 450 --icon-size 100 --app-drop-link 600 185 CloudOTP-${{ steps.get_version.outputs.version }}-macos.dmg build/macos/Build/Products/Release/cloudtop.app
+          hdiutil create -format UDZO -srcfolder build/macos/Build/Products/Release/cloudotp.app -volname CloudOTP-${{ steps.get_version.outputs.version }}-macos CloudOTP-${{ steps.get_version.outputs.version }}-macos.dmg
 
       # Build Windows .zip
       - name: Build Windows
