@@ -169,7 +169,6 @@ jobs:
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
         with:
           path: "tools/windows_tools/CloudOTP.iss"
-          options: /F CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.exe
 
       # Build Linux .deb
       - name: Build Linux

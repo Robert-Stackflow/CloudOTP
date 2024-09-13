@@ -675,5 +675,6 @@
   "deleteToken": "Delete token",
   "deleteTokenTitle": "Delete token {issuer}",
   "deleteTokenMessage": "Do you want to delete the token {issuer}? ",
-  "deleteTokenSuccess": "The token {issuer} has been deleted"
+  "deleteTokenSuccess": "The token {issuer} has been deleted",
+  "licenseDetail": "Open source under {license} license"
 }

@@ -195,6 +195,14 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
               ),
             ),
             Container(
+              margin: const EdgeInsets.only(top: 3),
+              alignment: Alignment.center,
+              child: Text(
+                S.current.licenseDetail(appLicense),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            Container(
               margin: const EdgeInsets.all(10),
               child: ScrollConfiguration(
                 behavior: NoShadowScrollBehavior(),

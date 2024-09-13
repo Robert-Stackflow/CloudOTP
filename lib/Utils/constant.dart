@@ -46,6 +46,8 @@ const bool defaultEnableSafeMode = true;
 
 const windowsKeyPath = r'SOFTWARE\Cloudchewie\CloudOTP';
 
+const appLicense = "GPL-3.0";
+
 String shareAppText = S.current.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";
 String feedbackSubject = S.current.feedbackSubject;

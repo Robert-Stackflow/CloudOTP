@@ -674,5 +674,6 @@
   "deleteToken": "删除令牌",
   "deleteTokenTitle": "删除令牌「{issuer}」",
   "deleteTokenMessage": "是否删除令牌「{issuer}」？",
-  "deleteTokenSuccess": "已删除令牌「{issuer}」"
+  "deleteTokenSuccess": "已删除令牌「{issuer}」",
+  "licenseDetail": "根据{license}许可证开源"
 }
