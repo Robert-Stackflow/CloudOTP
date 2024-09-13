@@ -927,7 +927,6 @@ class MainScreenState extends State<MainScreen>
   @override
   void onTrayIconMouseDown() {
     Utils.displayApp();
-    trayManager.popUpContextMenu();
   }
 
   @override

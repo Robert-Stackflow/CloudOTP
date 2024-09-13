@@ -22,11 +22,13 @@ jobs:
           - target: Android
             os: ubuntu-latest
             artifact_name: release-Android
-            artifact_path: build/app/outputs/apk/release/*.apk
+            artifact_path: build/app/outputs/flutter-apk/*.apk
           - target: Windows
             os: windows-latest
             artifact_name: release-Windows
-            artifact_path: build/windows/*.zip
+            artifact_path: |
+              build/windows/*.zip
+              build/windows/installer/*.exe
           - target: Linux
             os: ubuntu-latest
             artifact_name: release-Linux
@@ -116,7 +118,7 @@ jobs:
         run: |
           flutter build apk --release
           flutter build apk --release --split-per-abi
-          cd build/app/outputs/apk/release
+          cd build/app/outputs/flutter-apk
           mv app-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-universal.apk
           mv app-arm64-v8a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-arm64-v8a.apk
           mv app-armeabi-v7a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-armeabi-v7a.apk
@@ -144,8 +146,7 @@ jobs:
           pod update
           cd ..
           flutter build macos --release
-          brew install create-dmg
-          create-dmg --volname CloudOTP-${{ steps.get_version.outputs.version }}-macos --window-pos 200 120 --window-size 800 450 --icon-size 100 --app-drop-link 600 185 CloudOTP-${{ steps.get_version.outputs.version }}-macos.dmg build/macos/Build/Products/Release/cloudtop.app
+          hdiutil create -format UDZO -srcfolder build/macos/Build/Products/Release/cloudotp.app -volname CloudOTP-${{ steps.get_version.outputs.version }}-macos CloudOTP-${{ steps.get_version.outputs.version }}-macos.dmg
 
       # Build Windows .zip
       - name: Build Windows
@@ -159,6 +160,16 @@ jobs:
           Copy-Item -Filter *.dll -Path tools\windows_dll\* -Destination $DestDir -Force
           Copy-Item -Filter *.dll -Path windows\* -Destination $DestDir -Force
           Compress-Archive $DestDir build\windows\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.zip
+          
+          (Get-Content tools/windows_tools/CloudOTP.iss) -replace '#define MyAppVersion ".*"', '#define MyAppVersion "${{ steps.get_version.outputs.version }}"' | Set-Content tools/windows_tools/CloudOTP.iss
+
+      # Build Windows .exe
+      - name: Build Windows Installer
+        if: matrix.target == 'Windows'
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: "tools/windows_tools/CloudOTP.iss"
+          options: /F CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.exe
 
       # Build Linux .deb
       - name: Build Linux
