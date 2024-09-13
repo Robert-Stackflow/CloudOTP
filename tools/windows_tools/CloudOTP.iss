@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "CloudOTP"
-#define MyAppVersion "2.4.3"
+#define MyAppVersion "2.4.2"
 #define MyAppPublisher "Cloudchewie"
 #define MyAppURL "https://apps.cloudchewie.com/cloudotp"
 #define MyAppExeName "CloudOTP.exe"
@@ -33,7 +33,7 @@ DisableProgramGroupPage=yes
 LicenseFile=..\..\LICENSE
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequiredOverridesAllowed=commandline
-OutputDir=..\..\build\windows\installer
+OutputDir=..\..\build\windows\outputs
 OutputBaseFilename={#MyAppName}-{#MyAppVersion}-windows-x86_64
 SetupIconFile=..\..\assets\logo-transparent.ico
 Compression=lzma

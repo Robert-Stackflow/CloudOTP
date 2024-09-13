@@ -27,8 +27,8 @@ jobs:
             os: windows-latest
             artifact_name: release-Windows
             artifact_path: |
-              build/windows/*.zip
-              build/windows/installer/*.exe
+              build/windows/outputs/*.zip
+              build/windows/outputs/*.exe
           - target: Linux
             os: ubuntu-latest
             artifact_name: release-Linux
@@ -153,7 +153,7 @@ jobs:
         if: matrix.target == 'Windows'
         run: |
           flutter build windows --release
-          $DestDir = "build\windows\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64"
+          $DestDir = "build\windows\outputs\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64"
           $SrcDir = "build\windows\x64\runner\Release"
           New-Item -Path $DestDir -ItemType Directory
           Copy-Item $SrcDir\* -Recurse $DestDir
@@ -168,7 +168,7 @@ jobs:
         if: matrix.target == 'Windows'
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
         with:
-          path: "tools/windows_tools/CloudOTP.iss"
+          path: tools/windows_tools/CloudOTP.iss
 
       # Build Linux .deb
       - name: Build Linux
@@ -250,6 +250,7 @@ jobs:
           artifacts: |
             /tmp/artifacts/release-Android/*.apk
             /tmp/artifacts/release-Windows/*.zip
+            /tmp/artifacts/release-Windows/*.exe
             /tmp/artifacts/release-MacOS/*.dmg
             /tmp/artifacts/release-iOS/*.ipa
             /tmp/artifacts/release-Linux/*.deb
