@@ -78,7 +78,6 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
               ? null
               : ItemBuilder.buildSimpleAppBar(
                   transparent: true,
-                  leading: Icons.close_rounded,
                   context: context,
                 ),
           body: EasyRefresh(

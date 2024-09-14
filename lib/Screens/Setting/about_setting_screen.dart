@@ -119,7 +119,6 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
           ? null
           : ItemBuilder.buildSimpleAppBar(
               transparent: true,
-              leading: Icons.close_rounded,
               context: context,
             ),
       body: EasyRefresh(

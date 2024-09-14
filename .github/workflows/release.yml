@@ -198,7 +198,7 @@ jobs:
           cp ../../../tools/linux_tools/com.cloudchewie.cloudotp.desktop usr/share/applications
           cp ../../../assets/logo-transparent.svg usr/share/icons/hicolor/scalable/apps/com.cloudchewie.cloudotp.svg
 
-          sed -i "s/Version: .*/Version: ${{ steps.get_version.outputs.version }}/g" DEBIAN/control
+          sed -i "/^Version: /s/Version: .*/Version: ${{ steps.get_version.outputs.version }}/" DEBIAN/control
 
           cd ..
           dpkg-deb --build --root-owner-group CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
