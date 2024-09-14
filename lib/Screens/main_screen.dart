@@ -190,11 +190,11 @@ class MainScreenState extends State<MainScreen>
 
   focusSearch() {
     searchFocusNode.requestFocus();
-    searchFocusNode.addListener(() {
-      if (!searchFocusNode.hasFocus) {
-        keyboardHandlerState?.focus();
-      }
-    });
+    // searchFocusNode.addListener(() {
+    //   if (!searchFocusNode.hasFocus) {
+    //     keyboardHandlerState?.focus();
+    //   }
+    // });
   }
 
   @override
@@ -206,6 +206,7 @@ class MainScreenState extends State<MainScreen>
     }
     windowManager.addListener(this);
     WidgetsBinding.instance.addObserver(this);
+    keyboardHandlerState?.focus();
     HiveUtil.showCloudEntry().then((value) {
       appProvider.canShowCloudBackupButton = value;
     });

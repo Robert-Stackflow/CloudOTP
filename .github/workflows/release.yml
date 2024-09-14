@@ -191,30 +191,14 @@ jobs:
           mkdir -p usr/share/applications
           mkdir -p usr/share/icons/hicolor/scalable/apps
           cp -r ../x64/release/bundle/* opt/CloudOTP
-          cp -r ../../../assets/linux/DEBIAN .
+          cp -r ../../../tools/linux_tools/DEBIAN .
           chmod 0755 DEBIAN/postinst
           chmod 0755 DEBIAN/postrm
+          
+          cp ../../../tools/linux/com.cloudchewie.cloudotp.desktop usr/share/applications
+          cp ../../../assets/logo-transparent.svg usr/share/icons/hicolor/scalable/apps/com.cloudchewie.cloudotp.svg
 
-          cat>DEBIAN/control<<EOF
-          Maintainer: Cloudchewie <yutuan.victory@gmail.com>
-          Package: CloudOTP
-          Version: ${{ steps.get_version.outputs.version }}
-          Section: x11
-          Priority: optional
-          Architecture: amd64
-          Essential: no
-          Installed-Size: 34648
-          Description: An awesome two-factor authenticator which supports cloud backup.
-          Homepage: https://github.com/Robert-Stackflow/CloudOTP
-          Depends: libayatana-appindicator3-1,
-                   gir1.2-keybinder-3.0,
-                   libsecret-1-0,
-                   gir1.2-notify-0.7,
-                   sqlcipher
-          EOF
-
-          cp ../../../assets/linux/com.cloudchewie.cloudotp.desktop usr/share/applications
-          cp ../../../assets/logo.svg usr/share/icons/hicolor/scalable/apps/com.cloudchewie.cloudotp.svg
+          sed -i "s/Version: .*/Version: ${{ steps.get_version.outputs.version }}/g" DEBIAN/control
 
           cd ..
           dpkg-deb --build --root-owner-group CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64

@@ -118,7 +118,7 @@ final defaultCloudOTPShortcuts = [
   ),
   CloudOTPShortcut.all(
     key: HotKey(
-      key: LogicalKeyboardKey.keyP,
+      key: LogicalKeyboardKey.keyS,
       modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
     ).singleActivator,
     intent: const SettingIntent(),
@@ -126,8 +126,7 @@ final defaultCloudOTPShortcuts = [
   ),
   CloudOTPShortcut.all(
     key: HotKey(
-      key: LogicalKeyboardKey.keyS,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      key: LogicalKeyboardKey.slash,
     ).singleActivator,
     intent: const SearchIntent(),
     labelProvider: (s) => s.searchToken,
@@ -140,13 +139,13 @@ final defaultCloudOTPShortcuts = [
     intent: const LockIntent(),
     labelProvider: (s) => s.lock,
   ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.escape,
-    ).singleActivator,
-    intent: const EscapeIntent(),
-    labelProvider: (s) => s.escape,
-  ),
+  // CloudOTPShortcut.all(
+  //   key: HotKey(
+  //     key: LogicalKeyboardKey.escape,
+  //   ).singleActivator,
+  //   intent: const EscapeIntent(),
+  //   labelProvider: (s) => s.escape,
+  // ),
   CloudOTPShortcut.all(
     key: HotKey(
       key: LogicalKeyboardKey.f1,

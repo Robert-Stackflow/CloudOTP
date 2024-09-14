@@ -93,7 +93,7 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
           await fetchReleases();
         },
         child: ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
           itemBuilder: (context, index) => _buildItem(releaseItems[index]),
           itemCount: releaseItems.length,
         ),
