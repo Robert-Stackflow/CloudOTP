@@ -1,12 +1,14 @@
-Maintainer: Robert-Stackflow <yutuan.victory@gmail.com>
 Version: 2.4.3
-Section: utils
+Source:com.github.Robert-Stackflow.CloudOTP
+Section: x11
 Priority: optional
+Maintainer: Robert-Stackflow <yutuan.victory@gmail.com>
 Standards-Version: 4.5.0
 Essential: no
 Homepage: https://github.com/Robert-Stackflow/CloudOTP
 Package: CloudOTP
 Architecture: amd64
+Depends: ${misc:Depends}, ${shlibs:Depends}, libayatana-appindicator3-1, gir1.2-keybinder-3.0, libsecret-1-0, gir1.2-notify-0.7, sqlcipher
 Description: An awesome two-factor authenticator which supports cloud backup.
   - Reconstructed based on Flutter architecture, supports Android and Windows
   - Support TOTP, HOTP, MOTP, Steam, Yandex
@@ -17,8 +19,3 @@ Description: An awesome two-factor authenticator which supports cloud backup.
   - Supports import/export of encrypted files and URI lists
   - Supports importing data from Aegis, andOTP, Bitwarden, EntAuth, FreeOTP+, Google Authenticator, 2FAS, TOTP Authenticator, Winauth
   - Supports database encryption and gesture password
-Depends: libayatana-appindicator3-1,
-       gir1.2-keybinder-3.0,
-       libsecret-1-0,
-       gir1.2-notify-0.7,
-       sqlcipher
