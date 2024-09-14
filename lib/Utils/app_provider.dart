@@ -144,6 +144,8 @@ class AppProvider with ChangeNotifier {
 
   bool preventLock = false;
 
+  bool shownShortcutHelp = false;
+
   final List<AutoBackupLog> _autoBackupLogs = [];
 
   List<AutoBackupLog> get autoBackupLogs => _autoBackupLogs;

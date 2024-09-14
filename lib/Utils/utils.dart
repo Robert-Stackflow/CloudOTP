@@ -28,6 +28,8 @@ import 'package:cloudotp/Screens/Setting/update_screen.dart';
 import 'package:cloudotp/Utils/enums.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:cloudotp/Utils/route_util.dart';
+import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +47,11 @@ import 'package:uuid/uuid.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../Api/github_api.dart';
+import '../Screens/Setting/about_setting_screen.dart';
+import '../Screens/Setting/setting_navigation_screen.dart';
+import '../Screens/Setting/setting_safe_screen.dart';
+import '../TokenUtils/code_generator.dart';
+import '../Widgets/Custom/keymap_widget.dart';
 import '../Widgets/Dialog/custom_dialog.dart';
 import '../Widgets/Dialog/dialog_builder.dart';
 import '../generated/l10n.dart';
@@ -416,7 +423,9 @@ class Utils {
               message: S.current.doesImmediateUpdate +
                   S.current.updateLogAsFollow(
                       "<br/>${Utils.replaceLineBreak(latestReleaseItem.body ?? "")}"),
-              confirmButtonText: S.current.immediatelyDownload,
+              confirmButtonText: ResponsiveUtil.isAndroid()
+                  ? S.current.immediatelyDownload
+                  : S.current.goToUpdate,
               cancelButtonText: S.current.updateLater,
               onTapConfirm: () async {
                 if (ResponsiveUtil.isAndroid()) {
@@ -612,6 +621,10 @@ class Utils {
               ? S.current.getNewVersion(appProvider.latestVersion)
               : S.current.checkUpdates,
         ),
+        MenuItem(
+          key: TrayKey.shortcutHelp.key,
+          label: S.current.shortcutHelp,
+        ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.displayApp.key,
@@ -653,5 +666,172 @@ class Utils {
       ],
     );
     await trayManager.setContextMenu(menu);
+  }
+
+  static Future<void> initSimpleTray() async {
+    if (!ResponsiveUtil.isDesktop()) return;
+    await trayManager.destroy();
+    if (!HiveUtil.getBool(HiveUtil.showTrayKey)) {
+      await trayManager.destroy();
+      return;
+    }
+    await trayManager.setIcon(
+      ResponsiveUtil.isWindows()
+          ? 'assets/logo-transparent.ico'
+          : 'assets/logo-transparent.png',
+    );
+    var packageInfo = await PackageInfo.fromPlatform();
+    bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
+    if (!ResponsiveUtil.isLinux()) {
+      await trayManager.setToolTip(packageInfo.appName);
+    }
+    Menu menu = Menu(
+      items: [
+        MenuItem(
+          key: TrayKey.displayApp.key,
+          label: S.current.displayAppTray,
+        ),
+        MenuItem.separator(),
+        MenuItem(
+          key: TrayKey.officialWebsite.key,
+          label: S.current.officialWebsiteTray,
+        ),
+        MenuItem(
+          key: TrayKey.githubRepository.key,
+          label: S.current.repoTray,
+        ),
+        MenuItem.separator(),
+        MenuItem.checkbox(
+          checked: lauchAtStartup,
+          key: TrayKey.launchAtStartup.key,
+          label: S.current.launchAtStartup,
+        ),
+        MenuItem.separator(),
+        MenuItem(
+          key: TrayKey.exitApp.key,
+          label: S.current.exitAppTray,
+        ),
+      ],
+    );
+    await trayManager.setContextMenu(menu);
+  }
+
+  static showHelp(BuildContext context) {
+    if (appProvider.shownShortcutHelp) return;
+    appProvider.shownShortcutHelp = true;
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) {
+        return KeyboardWidget(
+          bindings: defaultCloudOTPShortcuts,
+          callbackOnHide: () {
+            appProvider.shownShortcutHelp = false;
+            entry.remove();
+          },
+          title: Text(
+            S.current.shortcut,
+            style: Theme.of(rootContext).textTheme.titleLarge,
+          ),
+        );
+      },
+    );
+    Overlay.of(context).insert(entry);
+    return null;
+  }
+
+  static processTrayMenuItemClick(
+    BuildContext context,
+    MenuItem menuItem, [
+    bool isSimple = false,
+  ]) async {
+    if (menuItem.key == TrayKey.displayApp.key) {
+      Utils.displayApp();
+    } else if (menuItem.key == TrayKey.shortcutHelp.key) {
+      Utils.displayApp();
+      Utils.showHelp(context);
+    } else if (menuItem.key == TrayKey.lockApp.key) {
+      if (HiveUtil.canLock()) {
+        mainScreenState?.jumpToLock();
+      } else {
+        IToast.showDesktopNotification(
+          S.current.noGestureLock,
+          body: S.current.noGestureLockTip,
+          actions: [S.current.cancel, S.current.goToSetGestureLock],
+          onClick: () {
+            Utils.displayApp();
+            RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+          },
+          onClickAction: (index) {
+            if (index == 1) {
+              Utils.displayApp();
+              RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+            }
+          },
+        );
+      }
+    } else if (menuItem.key == TrayKey.setting.key) {
+      Utils.displayApp();
+      RouteUtil.pushDialogRoute(context, const SettingNavigationScreen());
+    } else if (menuItem.key == TrayKey.about.key) {
+      Utils.displayApp();
+      RouteUtil.pushDialogRoute(context, const AboutSettingScreen());
+    } else if (menuItem.key == TrayKey.officialWebsite.key) {
+      UriUtil.launchUrlUri(context, officialWebsite);
+    } else if (Utils.isNotEmpty(menuItem.key) &&
+        menuItem.key!.startsWith(TrayKey.copyTokenCode.key)) {
+      String uid = menuItem.key!.split('_').last;
+      OtpToken? token = await TokenDao.getTokenByUid(uid);
+      if (token != null) {
+        double currentProgress = token.period == 0
+            ? 0
+            : (token.period * 1000 -
+                    (DateTime.now().millisecondsSinceEpoch %
+                        (token.period * 1000))) /
+                (token.period * 1000);
+        if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
+            currentProgress < autoCopyNextCodeProgressThrehold) {
+          Utils.copy(context, CodeGenerator.getNextCode(token),
+              toastText: S.current.alreadyCopiedNextCode);
+          TokenDao.incTokenCopyTimes(token);
+          IToast.showDesktopNotification(
+            S.current.alreadyCopiedNextCode,
+            body: CodeGenerator.getNextCode(token),
+          );
+        } else {
+          Utils.copy(context, CodeGenerator.getCurrentCode(token));
+          TokenDao.incTokenCopyTimes(token);
+          IToast.showDesktopNotification(
+            S.current.copySuccess,
+            body: CodeGenerator.getCurrentCode(token),
+          );
+        }
+      }
+    } else if (menuItem.key == TrayKey.githubRepository.key) {
+      UriUtil.launchUrlUri(context, repoUrl);
+    } else if (menuItem.key == TrayKey.checkUpdates.key) {
+      Utils.getReleases(
+        context: context,
+        showLoading: false,
+        showUpdateDialog: true,
+        showNoUpdateToast: false,
+        showDesktopNotification: true,
+      );
+    } else if (menuItem.key == TrayKey.launchAtStartup.key) {
+      menuItem.checked = !(menuItem.checked == true);
+      HiveUtil.put(HiveUtil.launchAtStartupKey, menuItem.checked);
+      generalSettingScreenState?.refreshLauchAtStartup();
+      if (menuItem.checked == true) {
+        await LaunchAtStartup.instance.enable();
+      } else {
+        await LaunchAtStartup.instance.disable();
+      }
+      if (isSimple) {
+        Utils.initSimpleTray();
+      } else {
+        Utils.initTray();
+      }
+    } else if (menuItem.key == TrayKey.exitApp.key) {
+      windowManager.close();
+    }
   }
 }

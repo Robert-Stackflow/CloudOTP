@@ -245,7 +245,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
               obscureText: currentConfig.connected,
               hint: S.current.webDavPasswordHint,
               inputFormatters: [
-                RegexInputFormatter.onlyNumberAndLetter,
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
               validator: (text) {
                 if (text.isEmpty) {

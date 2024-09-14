@@ -15,6 +15,7 @@
 
 import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
+import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +24,6 @@ import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/category_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/shortcuts_util.dart';
@@ -58,23 +58,7 @@ class KeyboardHandlerState extends State<KeyboardHandler> {
     return {
       KeyboardShortcutHelpIntent: CallbackAction(
         onInvoke: (_) {
-          late OverlayEntry entry;
-          entry = OverlayEntry(
-            builder: (context) {
-              return KeyboardWidget(
-                bindings: defaultCloudOTPShortcuts,
-                callbackOnHide: () {
-                  entry.remove();
-                },
-                title: Text(
-                  S.current.shortcut,
-                  style: Theme.of(rootContext).textTheme.titleLarge,
-                ),
-              );
-            },
-          );
-          Overlay.of(context).insert(entry);
-          return null;
+          return Utils.showHelp(context);
         },
       ),
       LockIntent: CallbackAction(

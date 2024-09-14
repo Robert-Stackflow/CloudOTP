@@ -224,7 +224,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 return null;
               },
               inputFormatters: [
-                RegexInputFormatter.onlyNumberAndLetter,
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
               onConfirm: (text) async {},
               onValidConfirm: (text) async {

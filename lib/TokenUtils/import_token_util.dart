@@ -362,7 +362,7 @@ class ImportTokenUtil {
         message: S.current.inputImportPasswordTip,
         hint: S.current.inputImportPasswordHint,
         inputFormatters: [
-          RegexInputFormatter.onlyNumberAndLetter,
+          RegexInputFormatter.onlyNumberAndLetterAndSymbol,
         ],
         tailingType: InputItemTailingType.password,
         onValidConfirm: (password) async {},
@@ -591,7 +591,7 @@ class ImportTokenUtil {
           message: S.current.inputImportPasswordTip,
           hint: S.current.inputImportPasswordHint,
           inputFormatters: [
-            RegexInputFormatter.onlyNumberAndLetter,
+            RegexInputFormatter.onlyNumberAndLetterAndSymbol,
           ],
           tailingType: InputItemTailingType.password,
           onValidConfirm: (password) async {},

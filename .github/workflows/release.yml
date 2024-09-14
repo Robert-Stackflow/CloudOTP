@@ -159,7 +159,7 @@ jobs:
           Copy-Item $SrcDir\* -Recurse $DestDir
           Copy-Item -Filter *.dll -Path tools\windows_dll\* -Destination $DestDir -Force
           Copy-Item -Filter *.dll -Path windows\* -Destination $DestDir -Force
-          Compress-Archive $DestDir build\windows\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.zip
+          Compress-Archive $DestDir build\windows\outputs\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.zip
           
           (Get-Content tools/windows_tools/CloudOTP.iss) -replace '#define MyAppVersion ".*"', '#define MyAppVersion "${{ steps.get_version.outputs.version }}"' | Set-Content tools/windows_tools/CloudOTP.iss
 
@@ -195,7 +195,7 @@ jobs:
           chmod 0755 DEBIAN/postinst
           chmod 0755 DEBIAN/postrm
           
-          cp ../../../tools/linux/com.cloudchewie.cloudotp.desktop usr/share/applications
+          cp ../../../tools/linux_tools/com.cloudchewie.cloudotp.desktop usr/share/applications
           cp ../../../assets/logo-transparent.svg usr/share/icons/hicolor/scalable/apps/com.cloudchewie.cloudotp.svg
 
           sed -i "s/Version: .*/Version: ${{ steps.get_version.outputs.version }}/g" DEBIAN/control

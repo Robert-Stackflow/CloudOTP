@@ -251,7 +251,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               hint: S.current.s3AccessKeyHint,
               obscureText: currentConfig.connected,
               inputFormatters: [
-                RegexInputFormatter.onlyNumberAndLetter,
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
               validator: (text) {
                 if (text.isEmpty) {
@@ -271,7 +271,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               hint: S.current.s3SecretKeyHint,
               obscureText: currentConfig.connected,
               inputFormatters: [
-                RegexInputFormatter.onlyNumberAndLetter,
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
               validator: (text) {
                 if (text.isEmpty) {

@@ -384,7 +384,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             obscureText: _isEditing,
             hint: S.current.tokenSecretHint,
             inputFormatters: [
-              RegexInputFormatter.onlyNumberAndLetter,
+              RegexInputFormatter.onlyNumberAndLetterAndSymbol,
             ],
             bottomRadius: !isMotp,
             validator: (text) {

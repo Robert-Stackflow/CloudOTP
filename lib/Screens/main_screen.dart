@@ -17,20 +17,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloudotp/Database/database_manager.dart';
-import 'package:cloudotp/Database/token_dao.dart';
-import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
-import 'package:cloudotp/TokenUtils/code_generator.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
 import 'package:cloudotp/Utils/constant.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Window/window_caption.dart';
@@ -39,14 +35,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:move_to_background/move_to_background.dart';
+import 'package:path/path.dart' as path;
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:path/path.dart' as path;
 
 import '../Resources/colors.dart';
 import '../TokenUtils/import_token_util.dart';
@@ -69,7 +64,6 @@ import '../generated/l10n.dart';
 import 'Backup/cloud_service_screen.dart';
 import 'Lock/pin_verify_screen.dart';
 import 'Setting/backup_log_screen.dart';
-import 'Setting/setting_safe_screen.dart';
 import 'Token/category_screen.dart';
 
 const borderColor = Color(0xFF805306);
@@ -206,7 +200,6 @@ class MainScreenState extends State<MainScreen>
     }
     windowManager.addListener(this);
     WidgetsBinding.instance.addObserver(this);
-    keyboardHandlerState?.focus();
     HiveUtil.showCloudEntry().then((value) {
       appProvider.canShowCloudBackupButton = value;
     });
@@ -226,9 +219,7 @@ class MainScreenState extends State<MainScreen>
       if (ResponsiveUtil.isDesktop()) {
         await Utils.initTray();
         trayManager.addListener(this);
-        Future.delayed(const Duration(milliseconds: 500), () async {
-          await Utils.initTray();
-        });
+        keyboardHandlerState?.focus();
       }
     });
     initGlobalConfig();
@@ -955,88 +946,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
-    if (menuItem.key == TrayKey.displayApp.key) {
-      Utils.displayApp();
-    } else if (menuItem.key == TrayKey.lockApp.key) {
-      if (HiveUtil.canLock()) {
-        jumpToLock();
-      } else {
-        IToast.showDesktopNotification(
-          S.current.noGestureLock,
-          body: S.current.noGestureLockTip,
-          actions: [S.current.cancel, S.current.goToSetGestureLock],
-          onClick: () {
-            Utils.displayApp();
-            RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
-          },
-          onClickAction: (index) {
-            if (index == 1) {
-              Utils.displayApp();
-              RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
-            }
-          },
-        );
-      }
-    } else if (menuItem.key == TrayKey.setting.key) {
-      Utils.displayApp();
-      RouteUtil.pushDialogRoute(context, const SettingNavigationScreen());
-    } else if (menuItem.key == TrayKey.about.key) {
-      Utils.displayApp();
-      RouteUtil.pushDialogRoute(context, const AboutSettingScreen());
-    } else if (menuItem.key == TrayKey.officialWebsite.key) {
-      UriUtil.launchUrlUri(context, officialWebsite);
-    } else if (Utils.isNotEmpty(menuItem.key) &&
-        menuItem.key!.startsWith(TrayKey.copyTokenCode.key)) {
-      String uid = menuItem.key!.split('_').last;
-      OtpToken? token = await TokenDao.getTokenByUid(uid);
-      if (token != null) {
-        double currentProgress = token.period == 0
-            ? 0
-            : (token.period * 1000 -
-                    (DateTime.now().millisecondsSinceEpoch %
-                        (token.period * 1000))) /
-                (token.period * 1000);
-        if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
-            currentProgress < autoCopyNextCodeProgressThrehold) {
-          Utils.copy(context, CodeGenerator.getNextCode(token),
-              toastText: S.current.alreadyCopiedNextCode);
-          TokenDao.incTokenCopyTimes(token);
-          IToast.showDesktopNotification(
-            S.current.alreadyCopiedNextCode,
-            body: CodeGenerator.getNextCode(token),
-          );
-        } else {
-          Utils.copy(context, CodeGenerator.getCurrentCode(token));
-          TokenDao.incTokenCopyTimes(token);
-          IToast.showDesktopNotification(
-            S.current.copySuccess,
-            body: CodeGenerator.getCurrentCode(token),
-          );
-        }
-      }
-    } else if (menuItem.key == TrayKey.githubRepository.key) {
-      UriUtil.launchUrlUri(context, repoUrl);
-    } else if (menuItem.key == TrayKey.checkUpdates.key) {
-      Utils.getReleases(
-        context: context,
-        showLoading: false,
-        showUpdateDialog: true,
-        showNoUpdateToast: false,
-        showDesktopNotification: true,
-      );
-    } else if (menuItem.key == TrayKey.launchAtStartup.key) {
-      menuItem.checked = !(menuItem.checked == true);
-      HiveUtil.put(HiveUtil.launchAtStartupKey, menuItem.checked);
-      generalSettingScreenState?.refreshLauchAtStartup();
-      if (menuItem.checked == true) {
-        await LaunchAtStartup.instance.enable();
-      } else {
-        await LaunchAtStartup.instance.disable();
-      }
-      Utils.initTray();
-    } else if (menuItem.key == TrayKey.exitApp.key) {
-      windowManager.close();
-    }
+    Utils.processTrayMenuItemClick(context, menuItem, false);
   }
 
   @override

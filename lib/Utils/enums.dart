@@ -79,6 +79,7 @@ enum TrayKey {
   about("about"),
   launchAtStartup("launchAtStartup"),
   checkUpdates("checkUpdates"),
+  shortcutHelp("shortcutHelp"),
   exitApp("exitApp");
 
   final String key;

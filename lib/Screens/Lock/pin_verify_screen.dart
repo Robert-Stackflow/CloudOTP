@@ -22,6 +22,7 @@ import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
 import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_view.dart';
 import 'package:flutter/material.dart';
+import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Resources/theme.dart';
@@ -54,7 +55,8 @@ class PinVerifyScreen extends StatefulWidget {
   PinVerifyScreenState createState() => PinVerifyScreenState();
 }
 
-class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
+class PinVerifyScreenState extends State<PinVerifyScreen>
+    with WindowListener, TrayListener {
   final String? _password = HiveUtil.getString(HiveUtil.guesturePasswdKey);
   late final bool _enableBiometric =
       HiveUtil.getBool(HiveUtil.enableBiometricKey);
@@ -112,13 +114,16 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
   @override
   void dispose() {
     super.dispose();
+    trayManager.removeListener(this);
     windowManager.removeListener(this);
   }
 
   @override
   void initState() {
+    if (widget.jumpToMain) trayManager.addListener(this);
     windowManager.addListener(this);
     super.initState();
+    Utils.initSimpleTray();
     initBiometricAuthentication();
   }
 
@@ -259,5 +264,23 @@ class PinVerifyScreenState extends State<PinVerifyScreen> with WindowListener {
       case GestureStatus.createFailed:
         break;
     }
+  }
+
+  @override
+  void onTrayIconMouseDown() {
+    Utils.displayApp();
+  }
+
+  @override
+  void onTrayIconRightMouseDown() {
+    trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayIconRightMouseUp() {}
+
+  @override
+  Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
+    Utils.processTrayMenuItemClick(context, menuItem, true);
   }
 }

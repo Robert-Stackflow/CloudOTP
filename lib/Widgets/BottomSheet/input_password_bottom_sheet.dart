@@ -98,7 +98,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                         return null;
                       },
                       inputFormatters: [
-                        RegexInputFormatter.onlyNumberAndLetter,
+                        RegexInputFormatter.onlyNumberAndLetterAndSymbol,
                       ],
                     ),
                   ),
@@ -115,7 +115,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                         return null;
                       },
                       inputFormatters: [
-                        RegexInputFormatter.onlyNumberAndLetter,
+                        RegexInputFormatter.onlyNumberAndLetterAndSymbol,
                       ],
                     ),
                   ),

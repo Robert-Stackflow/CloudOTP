@@ -167,7 +167,15 @@ class _UpdateScreenState extends State<UpdateScreen>
                   if (ResponsiveUtil.isWindows()) {
                     asset = FileUtil.getWindowsAsset(
                         latestVersion, latestReleaseItem);
-                    ILogger.info("CloudOTP","Windows asset: $asset");
+                    ILogger.info("CloudOTP", "Windows asset: $asset");
+                  } else if (ResponsiveUtil.isLinux()) {
+                    asset = FileUtil.getLinuxDebianAsset(
+                        latestVersion, latestReleaseItem);
+                    ILogger.info("CloudOTP", "Linux asset: $asset");
+                  } else if (ResponsiveUtil.isMacOS()) {
+                    asset = FileUtil.getMacosDmgAsset(
+                        latestVersion, latestReleaseItem);
+                    ILogger.info("CloudOTP", "Macos asset: $asset");
                   }
                   String url = asset.pkgsDownloadUrl;
                   var appDocDir = await getDownloadsDirectory();
@@ -189,7 +197,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                         downloadState == DownloadState.normal;
                       });
                     } catch (e, t) {
-                      ILogger.error("CloudOTP","Failed to install", e, t);
+                      ILogger.error("CloudOTP", "Failed to install", e, t);
                       if (e is ShellException) {
                         if (e.result?.exitCode == 2) {
                           IToast.showTop(S.current.installCanceled);
@@ -250,7 +258,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     }
                   }
                 } catch (e, t) {
-                  ILogger.error("CloudOTP","Failed to download", e, t);
+                  ILogger.error("CloudOTP", "Failed to download", e, t);
                   IToast.showTop(S.current.downloadFailed);
                   downloadState == DownloadState.normal;
                 }

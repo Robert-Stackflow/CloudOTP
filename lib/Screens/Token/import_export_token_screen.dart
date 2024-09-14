@@ -233,7 +233,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                       hint: S.current.setExportPasswordHint,
                       tailingType: InputItemTailingType.password,
                       inputFormatters: [
-                        RegexInputFormatter.onlyNumberAndLetter,
+                        RegexInputFormatter.onlyNumberAndLetterAndSymbol,
                       ],
                       validator: (value) {
                         if (value.isEmpty) {
@@ -264,7 +264,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                     hint: S.current.setExportPasswordHint,
                     tailingType: InputItemTailingType.password,
                     inputFormatters: [
-                      RegexInputFormatter.onlyNumberAndLetter,
+                      RegexInputFormatter.onlyNumberAndLetterAndSymbol,
                     ],
                     validator: (value) {
                       if (value.isEmpty) {

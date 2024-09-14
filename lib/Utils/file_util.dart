@@ -418,7 +418,9 @@ class FileUtil {
             element.name.endsWith(".apk"))
         .toList();
     ReleaseAsset generalAsset = assets.firstWhere(
-        (element) => element.name == "CloudOTP-$latestVersion.apk",
+        (element) =>
+            element.name == "CloudOTP-$latestVersion.apk" ||
+            element.name == "CloudOTP-$latestVersion-android-universal.apk",
         orElse: () => assets.first);
     try {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -496,6 +498,40 @@ class FileUtil {
     var asset = item.assets.firstWhere((element) =>
         element.contentType == "application/x-msdownload" &&
         element.name.endsWith(".exe"));
+    asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
+    return asset;
+  }
+
+  static ReleaseAsset getLinuxDebianAsset(
+      String latestVersion, ReleaseItem item) {
+    var asset = item.assets.firstWhere((element) =>
+        element.contentType == "application/vnd.debian.binary-package" &&
+        element.name.endsWith(".deb"));
+    asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
+    return asset;
+  }
+
+  static ReleaseAsset getLinuxTarGzAsset(
+      String latestVersion, ReleaseItem item) {
+    var asset = item.assets.firstWhere((element) =>
+        element.contentType == "application/gzip" &&
+        element.name.endsWith(".tar.gz"));
+    asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
+    return asset;
+  }
+
+  static ReleaseAsset getIosIpaAsset(String latestVersion, ReleaseItem item) {
+    var asset = item.assets.firstWhere((element) =>
+        element.contentType == "application/octet-stream" &&
+        element.name.endsWith(".ipa"));
+    asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
+    return asset;
+  }
+
+  static ReleaseAsset getMacosDmgAsset(String latestVersion, ReleaseItem item) {
+    var asset = item.assets.firstWhere((element) =>
+        element.contentType == "application/x-apple-diskimage" &&
+        element.name.endsWith(".dmg"));
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
   }

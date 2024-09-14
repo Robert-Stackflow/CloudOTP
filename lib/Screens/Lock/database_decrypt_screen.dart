@@ -23,6 +23,7 @@ import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
 import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/database_manager.dart';
@@ -33,6 +34,7 @@ import '../../Utils/hive_util.dart';
 import '../../Utils/ilogger.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/uri_util.dart';
+import '../../Utils/utils.dart';
 import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 import '../main_screen.dart';
@@ -45,7 +47,7 @@ class DatabaseDecryptScreen extends StatefulWidget {
 }
 
 class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
-    with WindowListener {
+    with WindowListener,TrayListener {
   final FocusNode _focusNode = FocusNode();
   late InputValidateAsyncController validateAsyncController;
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -161,6 +163,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   @override
   void dispose() {
     super.dispose();
+    trayManager.removeListener(this);
     windowManager.removeListener(this);
   }
 
@@ -168,7 +171,9 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   void initState() {
     super.initState();
     initBiometricAuthentication();
+    trayManager.addListener(this);
     windowManager.addListener(this);
+    Utils.initSimpleTray();
     validateAsyncController = InputValidateAsyncController(
       listen: false,
       validator: (text) async {
@@ -281,7 +286,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
               topRadius: true,
               bottomRadius: true,
               inputFormatters: [
-                RegexInputFormatter.onlyNumberAndLetter,
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
             ),
           ),
@@ -352,5 +357,23 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
         ),
       ],
     );
+  }
+
+  @override
+  void onTrayIconMouseDown() {
+    Utils.displayApp();
+  }
+
+  @override
+  void onTrayIconRightMouseDown() {
+    trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayIconRightMouseUp() {}
+
+  @override
+  Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
+    Utils.processTrayMenuItemClick(context, menuItem, true);
   }
 }
