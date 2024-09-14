@@ -487,7 +487,9 @@ class FileUtil {
   static ReleaseAsset getWindowsPortableAsset(
       String latestVersion, ReleaseItem item) {
     var asset = item.assets.firstWhere((element) =>
-        element.contentType == "application/x-zip-compressed" &&
+        (element.contentType == "application/x-zip-compressed" ||
+            element.contentType == "application/zip") &&
+        element.name.contains("windows") &&
         element.name.endsWith(".zip"));
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
@@ -496,7 +498,8 @@ class FileUtil {
   static ReleaseAsset getWindowsInstallerAsset(
       String latestVersion, ReleaseItem item) {
     var asset = item.assets.firstWhere((element) =>
-        element.contentType == "application/x-msdownload" &&
+        (element.contentType == "application/x-msdownload" ||
+            element.contentType == "application/x-msdos-program") &&
         element.name.endsWith(".exe"));
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
@@ -505,7 +508,8 @@ class FileUtil {
   static ReleaseAsset getLinuxDebianAsset(
       String latestVersion, ReleaseItem item) {
     var asset = item.assets.firstWhere((element) =>
-        element.contentType == "application/vnd.debian.binary-package" &&
+        (element.contentType == "application/vnd.debian.binary-package" ||
+            element.contentType == "application/x-debian-package") &&
         element.name.endsWith(".deb"));
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
@@ -522,7 +526,8 @@ class FileUtil {
 
   static ReleaseAsset getIosIpaAsset(String latestVersion, ReleaseItem item) {
     var asset = item.assets.firstWhere((element) =>
-        element.contentType == "application/octet-stream" &&
+        (element.contentType == "application/octet-stream" ||
+            element.contentType == "text/plain") &&
         element.name.endsWith(".ipa"));
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;

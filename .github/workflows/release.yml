@@ -241,6 +241,13 @@ jobs:
           mv /tmp/artifacts/release-Linux/*.deb /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.tar.gz /tmp/artifacts/final/
           ls -R /tmp/artifacts/final
+          
+          for file in *; do
+            if [ -f "$file" ]; then
+              sha1sum "$file" | awk '{ print $1 }' > "$file.sha1"
+            fi
+          done
+
       - name: Upload to S3
         uses: Robert-Stackflow/upload-s3-action@master
         with:
