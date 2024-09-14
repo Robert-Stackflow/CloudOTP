@@ -75,7 +75,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   Future<void> getAppInfo() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    appName = packageInfo.appName;
+    appName =
+        packageInfo.appName != "CloudOTP" ? "CloudOTP" : packageInfo.appName;
     versionDetail =
         "${ResponsiveUtil.platformName} ${packageInfo.version}+${packageInfo.buildNumber}";
     if (Platform.isWindows) {

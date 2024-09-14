@@ -5,7 +5,6 @@ Priority: optional
 Standards-Version: 4.5.0
 Essential: no
 Homepage: https://github.com/Robert-Stackflow/CloudOTP
-
 Package: CloudOTP
 Architecture: amd64
 Description: An awesome two-factor authenticator which supports cloud backup.
