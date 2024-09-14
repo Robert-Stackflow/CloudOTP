@@ -219,6 +219,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Get app version
+        id: get_version
+        shell: bash
+        run: |
+          echo "version=$(head -n 2 pubspec.yaml | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)" >> $GITHUB_OUTPUT
       - name: Make tmp dir
         run: mkdir /tmp/artifacts
       - name: Download all Artifacts
@@ -237,7 +242,7 @@ jobs:
           mv /tmp/artifacts/release-Linux/*.tar.gz /tmp/artifacts/final/
           ls -R /tmp/artifacts/final
       - name: Upload to S3
-        uses: shallwefootball/s3-upload-action@master
+        uses: Robert-Stackflow/upload-s3-action@master
         with:
           endpoint: ${{ secrets.AWS_ENDPOINT }}
           aws_key_id: ${{ secrets.AWS_KEY_ID }}
