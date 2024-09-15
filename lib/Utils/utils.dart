@@ -15,6 +15,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloudotp/Database/category_dao.dart';
@@ -603,11 +604,17 @@ class Utils {
       await trayManager.destroy();
       return;
     }
-    await trayManager.setIcon(
-      ResponsiveUtil.isWindows()
-          ? 'assets/logo-transparent.ico'
-          : 'assets/logo-transparent.png',
-    );
+
+    // Ensure tray icon display in linux sandboxed environments
+    if (Platform.environment.containsKey('FLATPAK_ID') ||
+        Platform.environment.containsKey('SNAP')) {
+      await trayManager.setIcon('com.cloudchewie.cloudotp');
+    } else if (ResponsiveUtil.isWindows()) {
+      await trayManager.setIcon('assets/logo-transparent.ico');
+    } else {
+      await trayManager.setIcon('assets/logo-transparent.png');
+    }
+
     var packageInfo = await PackageInfo.fromPlatform();
     bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
     if (!ResponsiveUtil.isLinux()) {
@@ -675,11 +682,17 @@ class Utils {
       await trayManager.destroy();
       return;
     }
-    await trayManager.setIcon(
-      ResponsiveUtil.isWindows()
-          ? 'assets/logo-transparent.ico'
-          : 'assets/logo-transparent.png',
-    );
+
+    // Ensure tray icon display in linux sandboxed environments
+    if (Platform.environment.containsKey('FLATPAK_ID') ||
+        Platform.environment.containsKey('SNAP')) {
+      await trayManager.setIcon('com.cloudchewie.cloudotp');
+    } else if (ResponsiveUtil.isWindows()) {
+      await trayManager.setIcon('assets/logo-transparent.ico');
+    } else {
+      await trayManager.setIcon('assets/logo-transparent.png');
+    }
+
     var packageInfo = await PackageInfo.fromPlatform();
     bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
     if (!ResponsiveUtil.isLinux()) {
