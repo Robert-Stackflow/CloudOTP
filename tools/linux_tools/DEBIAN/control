@@ -8,7 +8,7 @@ Essential: no
 Homepage: https://github.com/Robert-Stackflow/CloudOTP
 Package: CloudOTP
 Architecture: amd64
-Depends: libayatana-appindicator3-1, gir1.2-keybinder-3.0, libsecret-1-0, gir1.2-notify-0.7, sqlcipher
+Depends: libayatana-appindicator3-1, gir1.2-keybinder-3.0, libsecret-1-0, gir1.2-notify-0.7, libsqlcipher-dev
 Description: An awesome two-factor authenticator which supports cloud backup.
   - Reconstructed based on Flutter architecture, supports Android and Windows
   - Support TOTP, HOTP, MOTP, Steam, Yandex
