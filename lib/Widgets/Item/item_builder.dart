@@ -1143,9 +1143,10 @@ class ItemBuilder {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AutoSizeText(
             themeColorData.intlName,
             style: Theme.of(context).textTheme.bodySmall,
+            maxLines: 1,
           ),
         ],
       ),
@@ -1273,12 +1274,13 @@ class ItemBuilder {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AutoSizeText(
             font.intlFontName,
             style: Theme.of(context).textTheme.bodySmall?.apply(
                   fontFamily: font.fontFamily,
                 ),
             textAlign: TextAlign.center,
+            maxLines: 1,
           ),
         ],
       ),

@@ -216,6 +216,8 @@ class MyApp extends StatelessWidget {
           locale: appProvider.locale,
           supportedLocales: S.delegate.supportedLocales,
           localeResolutionCallback: (locale, supportedLocales) {
+            ILogger.debug("CloudOTP",
+                "Locale: $locale, Supported: $supportedLocales, appProvider.locale: ${appProvider.locale}");
             if (appProvider.locale != null) {
               return appProvider.locale;
             } else if (locale != null && supportedLocales.contains(locale)) {
