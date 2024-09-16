@@ -76,7 +76,7 @@ class IndexedListView extends StatefulWidget {
 
   /// See [ListView.separated]
   IndexedListView.separated({
-    Key? key,
+    super.key,
     required this.controller,
     required IndexedWidgetBuilderOrNull itemBuilder,
     required IndexedWidgetBuilderOrNull separatorBuilder,
@@ -121,8 +121,7 @@ class IndexedListView extends StatefulWidget {
           },
           addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: addRepaintBoundaries,
-        ),
-        super(key: key);
+        );
 
   static Widget defaultEmptyItemBuilder(BuildContext context, int index) =>
       const SizedBox(width: 5, height: 5);

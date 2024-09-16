@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:screen_capturer_platform_interface/screen_capturer_platform_interface.dart';
 import 'package:win32/win32.dart';

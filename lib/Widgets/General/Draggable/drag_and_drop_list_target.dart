@@ -31,7 +31,7 @@ class DragAndDropListTarget extends StatefulWidget {
   final OnDropOnLastTarget onDropOnLastTarget;
   final double lastListTargetSize;
 
-  DragAndDropListTarget(
+  const DragAndDropListTarget(
       {this.child,
       required this.parameters,
       required this.onDropOnLastTarget,

@@ -15,7 +15,6 @@
 
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/services.dart';
 
 import './ilogger.dart';
 
