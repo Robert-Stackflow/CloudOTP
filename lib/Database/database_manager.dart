@@ -82,14 +82,15 @@ class DatabaseManager {
         } else {
           isDatabaseEncrypted = true;
           _currentDbFactory = cipherDbFactory;
-          ILogger.info("CloudOTP","Database is an encrypted SQLite database.");
+          ILogger.info("CloudOTP", "Database is an encrypted SQLite database.");
         }
       } else {
         isDatabaseEncrypted = true;
         _currentDbFactory = cipherDbFactory;
         password = await HiveUtil.regeneratePassword();
         appProvider.currentDatabasePassword = password;
-        ILogger.info("CloudOTP","Database not exist and new password is generated");
+        ILogger.info(
+            "CloudOTP", "Database not exist and new password is generated");
         await HiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }
@@ -114,7 +115,7 @@ class DatabaseManager {
       if (isDatabaseEncrypted) {
         List<Map<String, Object?>> res =
             await _database!.rawQuery("PRAGMA rekey='$password'");
-        ILogger.info("CloudOTP","Change database password result is $res");
+        ILogger.info("CloudOTP", "Change database password result is $res");
         if (res.isNotEmpty) {
           appProvider.currentDatabasePassword = password;
           return true;
@@ -127,7 +128,7 @@ class DatabaseManager {
           await _database!.rawQuery("DETACH DATABASE tmp");
           return true;
         } catch (e) {
-          ILogger.error("CloudOTP","Failed to change database password", e);
+          ILogger.error("CloudOTP", "Failed to change database password", e);
           return false;
         }
       }
@@ -144,7 +145,8 @@ class DatabaseManager {
         ILogger.info("CloudOTP",
             "Configure database with cipher successfully. Result is $res");
       } else {
-        ILogger.error("CloudOTP",
+        ILogger.error(
+          "CloudOTP",
           "Failed to configure database with cipher, perhaps the sqlcipher dynamic library was not loaded.",
           res,
         );

@@ -17,7 +17,9 @@ mixin ContextMenuStateMixin<T extends StatefulWidget> on State<T> {
 
   /// Receives a list of buttons, and should wrap them with some container and layout widget (col/row).
   /// Defaults to a [ContextMenuCard] which is just a column with a background.
-  ContextMenuCardBuilder get cardBuilder => overlay.cardBuilder ?? (_, children) => ContextMenuCard(children: children);
+  ContextMenuCardBuilder get cardBuilder =>
+      overlay.cardBuilder ??
+      (_, children) => ContextMenuCard(children: children);
 
   /// Passed a config and (optional) style, should return a single button.
   /// Defaults to [ContextMenuButton]
@@ -29,5 +31,6 @@ mixin ContextMenuStateMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Builds divider to separate sections in the menu
-  Widget buildDivider() => overlay.dividerBuilder?.call(context) ?? ContextMenuDivider();
+  Widget buildDivider() =>
+      overlay.dividerBuilder?.call(context) ?? ContextMenuDivider();
 }

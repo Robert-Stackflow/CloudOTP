@@ -200,8 +200,8 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
               //     'password': text,
               //   },
               // );
-              var res = await decrypt(text, backup.kdfParams, backup.encryptedData,
-                  backup.encryptedNonce);
+              var res = await decrypt(text, backup.kdfParams,
+                  backup.encryptedData, backup.encryptedNonce);
               if (res[0] == DecryptResult.success) {
                 List<OtpToken> tokens =
                     await ImportTokenUtil.importText(res[1], showToast: false);
@@ -249,7 +249,7 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to import from 2FAS", e, t);
+      ILogger.error("CloudOTP", "Failed to import from 2FAS", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

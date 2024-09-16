@@ -28,7 +28,8 @@ class WebdavXml {
   static List<XmlElement> findElements(XmlElement element, String tag) =>
       element.findElements(tag, namespace: '*').toList();
 
-  static List<WebDavFileInfo> toFiles(String path, String xmlStr, {skipSelf = true}) {
+  static List<WebDavFileInfo> toFiles(String path, String xmlStr,
+      {skipSelf = true}) {
     var files = <WebDavFileInfo>[];
     var xmlDocument = XmlDocument.parse(xmlStr);
     List<XmlElement> list = findAllElements(xmlDocument, 'response');
@@ -36,7 +37,8 @@ class WebdavXml {
     list.forEach((element) {
       // name
       final hrefElements = findElements(element, 'href');
-      String href = hrefElements.isNotEmpty ? hrefElements.single.innerText : '';
+      String href =
+          hrefElements.isNotEmpty ? hrefElements.single.innerText : '';
 
       // propstats
       var props = findElements(element, 'propstat');
@@ -64,8 +66,9 @@ class WebdavXml {
 
             // mimeType
             final mimeTypeElements = findElements(prop, 'getcontenttype');
-            String mimeType =
-                mimeTypeElements.isNotEmpty ? mimeTypeElements.single.innerText : '';
+            String mimeType = mimeTypeElements.isNotEmpty
+                ? mimeTypeElements.single.innerText
+                : '';
 
             // size
             int size = 0;

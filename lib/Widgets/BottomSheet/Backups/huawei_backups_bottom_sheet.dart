@@ -168,7 +168,8 @@ class HuaweiCloudBackupsBottomSheetState
                       IToast.showTop(S.current.deleteFailed);
                     }
                   } catch (e, t) {
-                    ILogger.error("CloudOTP","Failed to delete file from huawei cloud", e, t);
+                    ILogger.error("CloudOTP",
+                        "Failed to delete file from huawei cloud", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

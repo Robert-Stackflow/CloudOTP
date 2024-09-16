@@ -60,19 +60,22 @@ class BiometricUtil {
     if (response != CanAuthenticateResponse.success) {
       switch (response) {
         case CanAuthenticateResponse.errorHwUnavailable:
-          ILogger.info("BiometricStorage","Biometric hardware is not available");
+          ILogger.info(
+              "BiometricStorage", "Biometric hardware is not available");
           break;
         case CanAuthenticateResponse.errorNoBiometricEnrolled:
-          ILogger.info("BiometricStorage","No biometric enrolled on this device");
+          ILogger.info(
+              "BiometricStorage", "No biometric enrolled on this device");
           break;
         case CanAuthenticateResponse.errorNoHardware:
-          ILogger.info("BiometricStorage","No biometric hardware on this device");
+          ILogger.info(
+              "BiometricStorage", "No biometric hardware on this device");
           break;
         case CanAuthenticateResponse.errorPasscodeNotSet:
-          ILogger.info("BiometricStorage","No passcode set on this device");
+          ILogger.info("BiometricStorage", "No passcode set on this device");
           break;
         default:
-          ILogger.info("BiometricStorage","Unknown error");
+          ILogger.info("BiometricStorage", "Unknown error");
           break;
       }
     }
@@ -137,7 +140,7 @@ class BiometricUtil {
       );
       return true;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to save database password: $e\n$t");
+      ILogger.error("CloudOTP", "Failed to save database password: $e\n$t");
       if (e is AuthException) {
         switch (e.code) {
           case AuthExceptionCode.userCanceled:
@@ -166,7 +169,7 @@ class BiometricUtil {
     try {
       await databasePassswordStorage!.delete();
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to delete database password: $e\n$t");
+      ILogger.error("CloudOTP", "Failed to delete database password: $e\n$t");
     }
   }
 }

@@ -173,7 +173,7 @@ class CustomFont {
       return CustomFont(
           fontName: fontName, fontFamily: fontFamily, fontUrl: fileName);
     } catch (e) {
-      ILogger.error("CloudOTP","Failed to copy font file", e);
+      ILogger.error("CloudOTP", "Failed to copy font file", e);
       return null;
     }
   }

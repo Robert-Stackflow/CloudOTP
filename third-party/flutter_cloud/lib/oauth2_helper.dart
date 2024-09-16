@@ -25,7 +25,7 @@ class OAuth2Helper {
         .replaceAll("=", '');
   }
 
-  static String generateCodeChanllenge(String codeVerifier){
+  static String generateCodeChanllenge(String codeVerifier) {
     return myBase64Encode(sha256.string(codeVerifier).bytes);
   }
 

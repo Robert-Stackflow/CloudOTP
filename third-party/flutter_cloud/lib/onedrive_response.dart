@@ -38,7 +38,7 @@ class OneDriveResponse {
             response.statusCode == 201 ||
             response.statusCode == 204,
         status = ResponseStatus.values.firstWhere(
-                (element) => element.code == response.statusCode,
+            (element) => element.code == response.statusCode,
             orElse: () => ResponseStatus.success);
 
   @override
@@ -120,8 +120,10 @@ class OneDriveFileInfo {
       id: json['id'],
       name: json['name'],
       size: json['size'] ?? 0,
-      createdDateTime: DateTime.parse(json['createdDateTime']).millisecondsSinceEpoch,
-      lastModifiedDateTime: DateTime.parse(json['lastModifiedDateTime']).millisecondsSinceEpoch,
+      createdDateTime:
+          DateTime.parse(json['createdDateTime']).millisecondsSinceEpoch,
+      lastModifiedDateTime:
+          DateTime.parse(json['lastModifiedDateTime']).millisecondsSinceEpoch,
       description: json['description'] ?? "",
       fileMimeType: json['file'] != null ? json['file']['mimeType'] ?? "" : "",
     );

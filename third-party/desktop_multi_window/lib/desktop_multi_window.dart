@@ -46,7 +46,8 @@ class DesktopMultiWindow {
   /// method.
   ///
   /// [targetWindowId] which window you want to invoke the method.
-  static Future<dynamic> invokeMethod(int targetWindowId, String method, [dynamic arguments]) {
+  static Future<dynamic> invokeMethod(int targetWindowId, String method,
+      [dynamic arguments]) {
     return windowEventChannel.invokeMethod(method, <String, dynamic>{
       'targetWindowId': targetWindowId,
       'arguments': arguments,
@@ -59,7 +60,8 @@ class DesktopMultiWindow {
   /// for example: you can not receive the method call which target window isn't
   /// main window in main window isolate.
   ///
-  static void setMethodHandler(Future<dynamic> Function(MethodCall call, int fromWindowId)? handler) {
+  static void setMethodHandler(
+      Future<dynamic> Function(MethodCall call, int fromWindowId)? handler) {
     if (handler == null) {
       windowEventChannel.setMethodCallHandler(null);
       return;
@@ -68,7 +70,8 @@ class DesktopMultiWindow {
       if (call.method != 'onEvent') {
         final fromWindowId = call.arguments['fromWindowId'] as int;
         final arguments = call.arguments['arguments'];
-        final result = await handler(MethodCall(call.method, arguments), fromWindowId);
+        final result =
+            await handler(MethodCall(call.method, arguments), fromWindowId);
         return result;
       } else {
         // window event
@@ -80,8 +83,13 @@ class DesktopMultiWindow {
   /// Get all sub window id.
   static Future<List<int>> getAllSubWindowIds() async {
     try {
-      final result = await miltiWindowChannel.invokeMethod<List<dynamic>>('getAllSubWindowIds');
-      final ids = result?.map<int>((id) => id.toInt()).where((id) => id != 0).toList() ?? [];
+      final result = await miltiWindowChannel
+          .invokeMethod<List<dynamic>>('getAllSubWindowIds');
+      final ids = result
+              ?.map<int>((id) => id.toInt())
+              .where((id) => id != 0)
+              .toList() ??
+          [];
       assert(ids.every((id) => id > 0), 'id must be greater than 0');
       return ids;
     } catch (e) {
@@ -90,7 +98,8 @@ class DesktopMultiWindow {
     }
   }
 
-  static final ObserverList<MultiWindowListener> _listeners = ObserverList<MultiWindowListener>();
+  static final ObserverList<MultiWindowListener> _listeners =
+      ObserverList<MultiWindowListener>();
 
   static Future<void> _windowMethodCallHandler(MethodCall call) async {
     for (final MultiWindowListener listener in listeners) {
@@ -122,7 +131,8 @@ class DesktopMultiWindow {
   }
 
   static List<MultiWindowListener> get listeners {
-    final List<MultiWindowListener> localListeners = List<MultiWindowListener>.from(_listeners);
+    final List<MultiWindowListener> localListeners =
+        List<MultiWindowListener>.from(_listeners);
     return localListeners;
   }
 

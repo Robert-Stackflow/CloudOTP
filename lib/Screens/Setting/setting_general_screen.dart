@@ -214,7 +214,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
                 await getLogSize();
                 IToast.showTop(S.current.clearLogSuccess);
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to clear logs", e, t);
+                ILogger.error("CloudOTP", "Failed to clear logs", e, t);
                 IToast.showTop(S.current.clearLogFailed);
               } finally {
                 CustomLoadingDialog.dismissLoading();

@@ -123,15 +123,15 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
-        :inited
-        ? _buildBody()
-        : ItemBuilder.buildLoadingDialog(
-            context,
-            background: Colors.transparent,
-            text: S.current.cloudConnecting,
-            mainAxisAlignment: MainAxisAlignment.start,
-            topPadding: 100,
-          );
+        : inited
+            ? _buildBody()
+            : ItemBuilder.buildLoadingDialog(
+                context,
+                background: Colors.transparent,
+                text: S.current.cloudConnecting,
+                mainAxisAlignment: MainAxisAlignment.start,
+                topPadding: 100,
+              );
   }
 
   _buildUnsupportBody() {
@@ -258,7 +258,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
               try {
                 ping();
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to connect to dropbox", e, t);
+                ILogger.error("CloudOTP", "Failed to connect to dropbox", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -323,7 +323,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                   IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to pull file from dropbox", e, t);
+                ILogger.error(
+                    "CloudOTP", "Failed to pull file from dropbox", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.cloudPullFailed);
               }

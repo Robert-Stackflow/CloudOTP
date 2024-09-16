@@ -518,7 +518,7 @@ class BitwardenTokenImporter implements BaseTokenImporter {
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to import from Bitwarden", e, t);
+      ILogger.error("CloudOTP", "Failed to import from Bitwarden", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

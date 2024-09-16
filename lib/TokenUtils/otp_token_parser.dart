@@ -38,16 +38,14 @@ class OtpTokenParser {
       labelAndIssuer = token.account;
     }
     String uriText =
-        "otpauth://${token.tokenType.authority}/$labelAndIssuer?secret=${token
-        .secret}&algorithm=${token.algorithm.label}&digits=${token.digits
-        .digit}&period=${token.period}";
+        "otpauth://${token.tokenType.authority}/$labelAndIssuer?secret=${token.secret}&algorithm=${token.algorithm.label}&digits=${token.digits.digit}&period=${token.period}";
     switch (token.tokenType) {
       case OtpTokenType.HOTP:
         uriText += "&counter=${token.counter + 1}";
         break;
       case OtpTokenType.MOTP:
         uriText +=
-        "motp://$labelAndIssuer?secret=${token.secret}&pin=${token.pin}";
+            "motp://$labelAndIssuer?secret=${token.secret}&pin=${token.pin}";
       case OtpTokenType.Yandex:
         uriText += "&pin=${token.pin}";
       case OtpTokenType.TOTP:
@@ -78,7 +76,7 @@ class OtpTokenParser {
         return token == null ? [] : [token];
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to parse uri $line", e, t);
+      ILogger.error("CloudOTP", "Failed to parse uri $line", e, t);
       return [];
     }
   }
@@ -232,7 +230,7 @@ class OtpTokenParser {
       rawData = rawData.padRight(nextFactor, '=');
     }
     OtpMigrationPayload payload =
-    OtpMigrationPayload.fromBuffer(base64Decode(rawData));
+        OtpMigrationPayload.fromBuffer(base64Decode(rawData));
     List<OtpToken> tokens = [];
     for (var param in payload.otpParameters) {
       OtpToken? token = OtpToken.fromOtpMigrationParameters(param);
@@ -254,7 +252,7 @@ class OtpTokenParser {
       rawData = rawData.padRight(nextFactor, '=');
     }
     CloudOtpTokenPayload payload =
-    CloudOtpTokenPayload.fromBuffer(base64Decode(rawData));
+        CloudOtpTokenPayload.fromBuffer(base64Decode(rawData));
     List<OtpToken> tokens = [];
     for (var param in payload.tokenParameters) {
       OtpToken token = OtpToken.fromCloudOtpParameters(param);
@@ -276,7 +274,7 @@ class OtpTokenParser {
       rawData = rawData.padRight(nextFactor, '=');
     }
     TokenCategoryPayload payload =
-    TokenCategoryPayload.fromBuffer(base64Decode(rawData));
+        TokenCategoryPayload.fromBuffer(base64Decode(rawData));
     List<TokenCategory> categories = [];
     for (var param in payload.categoryParameters) {
       TokenCategory category = TokenCategory.fromCategoryParameters(param);
@@ -322,9 +320,9 @@ class OtpAuthMigrationData {
     String username = reader.readString();
     String issuer = reader.readString();
     OtpAuthMigrationDataAlgorithm algorithm =
-    OtpAuthMigrationDataAlgorithm.values[reader.readInt32()];
+        OtpAuthMigrationDataAlgorithm.values[reader.readInt32()];
     OtpAuthMigrationDataType type =
-    OtpAuthMigrationDataType.values[reader.readInt32()];
+        OtpAuthMigrationDataType.values[reader.readInt32()];
     int counter = reader.readInt32();
     return OtpAuthMigrationData(
       secret: secret,

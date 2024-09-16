@@ -108,7 +108,8 @@ class WindowControllerMainImpl extends WindowController {
 
   @override
   Future<void> setFullscreen(bool fullscreen) {
-    return _channel.invokeMethod('setFullscreen', <String, dynamic>{'windowId': _id, 'fullscreen': fullscreen});
+    return _channel.invokeMethod('setFullscreen',
+        <String, dynamic>{'windowId': _id, 'fullscreen': fullscreen});
   }
 
   @override
@@ -143,7 +144,8 @@ class WindowControllerMainImpl extends WindowController {
 
   @override
   Future<void> showTitleBar(bool show) {
-    return _channel.invokeMethod('showTitleBar', <String, dynamic>{'windowId': _id, 'show': show});
+    return _channel.invokeMethod(
+        'showTitleBar', <String, dynamic>{'windowId': _id, 'show': show});
   }
 
   @override
@@ -176,7 +178,10 @@ class WindowControllerMainImpl extends WindowController {
 
   @override
   Future<void> setPreventClose(bool setPreventClose) async {
-    final Map<String, dynamic> arguments = {'setPreventClose': setPreventClose, 'windowId': _id};
+    final Map<String, dynamic> arguments = {
+      'setPreventClose': setPreventClose,
+      'windowId': _id
+    };
     await _channel.invokeMethod('setPreventClose', arguments);
   }
 
@@ -189,6 +194,7 @@ class WindowControllerMainImpl extends WindowController {
   @override
   Future<bool> isFullScreen() async {
     final Map<String, dynamic> arguments = {'windowId': _id};
-    return await _channel.invokeMethod<bool>('isFullScreen', arguments) ?? false;
+    return await _channel.invokeMethod<bool>('isFullScreen', arguments) ??
+        false;
   }
 }

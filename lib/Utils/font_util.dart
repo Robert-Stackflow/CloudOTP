@@ -60,7 +60,7 @@ class FontUtil {
           await loader.load();
           return true;
         } catch (e, t) {
-          ILogger.error("CloudOTP","Failed to load font asset", e, t);
+          ILogger.error("CloudOTP", "Failed to load font asset", e, t);
           return false;
         }
       case _FontSource.file:
@@ -72,7 +72,7 @@ class FontUtil {
           );
           return true;
         } catch (e, t) {
-          ILogger.error("CloudOTP","Failed to load font file", e, t);
+          ILogger.error("CloudOTP", "Failed to load font file", e, t);
           return false;
         }
       case _FontSource.url:
@@ -87,7 +87,7 @@ class FontUtil {
           );
           return true;
         } catch (e, t) {
-          ILogger.error("CloudOTP","Failed to download font", e, t);
+          ILogger.error("CloudOTP", "Failed to download font", e, t);
           return false;
         }
     }
@@ -144,7 +144,7 @@ Future<Uint8List> downloadBytes(
     bytes.addAll(chunk);
 
     if (response.contentLength == null) {
-      ILogger.info("CloudOTP",'Download font: ${bytes.length} bytes');
+      ILogger.info("CloudOTP", 'Download font: ${bytes.length} bytes');
     } else {
       final percent = (bytes.length / response.contentLength!);
       onReceiveProgress?.call(percent);

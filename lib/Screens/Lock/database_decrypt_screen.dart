@@ -47,7 +47,7 @@ class DatabaseDecryptScreen extends StatefulWidget {
 }
 
 class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
-    with WindowListener,TrayListener {
+    with WindowListener, TrayListener {
   final FocusNode _focusNode = FocusNode();
   late InputValidateAsyncController validateAsyncController;
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -84,7 +84,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
         IToast.showTop(canAuthenticateResponseString ?? "");
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to authenticate with biometric", e, t);
+      ILogger.error("CloudOTP", "Failed to authenticate with biometric", e, t);
       if (e is AuthException) {
         switch (e.code) {
           case AuthExceptionCode.userCanceled:

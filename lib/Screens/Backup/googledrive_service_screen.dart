@@ -243,7 +243,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
               try {
                 ping();
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to connect to google drive", e, t);
+                ILogger.error(
+                    "CloudOTP", "Failed to connect to google drive", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -308,7 +309,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                   IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to pull from google drive", e, t);
+                ILogger.error(
+                    "CloudOTP", "Failed to pull from google drive", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.cloudPullFailed);
               }

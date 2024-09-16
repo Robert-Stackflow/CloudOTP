@@ -71,7 +71,7 @@ class Slot {
   factory Slot.fromJson(Map<String, dynamic> json) {
     return Slot(
       type: SlotType
-          .values[(json['type'] as int).clamp(0, SlotType.values.length-1)],
+          .values[(json['type'] as int).clamp(0, SlotType.values.length - 1)],
       uuid: json['uuid'],
       key: json['key'],
       keyParams: KeyParams.fromJson(json['key_params']),
@@ -539,7 +539,7 @@ class AegisTokenImporter implements BaseTokenImporter {
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to import from 2FAS", e, t);
+      ILogger.error("CloudOTP", "Failed to import from 2FAS", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

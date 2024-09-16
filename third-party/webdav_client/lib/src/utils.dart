@@ -86,7 +86,7 @@ String ltrim(String str, [String? chars]) {
 }
 
 String rtrim(String str, [String? chars]) {
-  var pattern = chars != null ? RegExp('[$chars]+\$') :RegExp(r'\s+$');
+  var pattern = chars != null ? RegExp('[$chars]+\$') : RegExp(r'\s+$');
   return str.replaceAll(pattern, '');
 }
 
