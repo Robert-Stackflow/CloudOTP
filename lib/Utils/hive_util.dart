@@ -121,6 +121,8 @@ class HiveUtil {
 
   //System
   static const String firstLoginKey = "firstLogin";
+  static const String haveMigratedToSupportDirectoryKey =
+      "haveMigratedToSupportDirectory";
 
   static initConfig() async {
     await HiveUtil.put(HiveUtil.inappWebviewKey, true);

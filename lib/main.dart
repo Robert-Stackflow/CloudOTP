@@ -85,6 +85,7 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  await FileUtil.migrationDataToSupportDirectory();
   Hive.defaultDirectory = await FileUtil.getHiveDir();
   if (HiveUtil.isFirstLogin()) {
     await HiveUtil.initConfig();

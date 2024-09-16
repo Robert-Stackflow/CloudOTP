@@ -13,13 +13,13 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import '../../Utils/ilogger.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
+import '../../Utils/ilogger.dart';
 import './backup_encrypt_interface.dart';
 import 'backup.dart';
 

@@ -30,6 +30,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:install_plugin/install_plugin.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -232,11 +233,73 @@ class FileUtil {
     }
   }
 
+  static Future<bool> isDirectoryEmpty(Directory directory) async {
+    if (!await directory.exists()) {
+      return true;
+    }
+    return directory.listSync().isEmpty;
+  }
+
+  static Future<void> copyDirectoryTo(
+      Directory oldDir, Directory newDir) async {
+    //将oldDir的内容拷贝到newDir，考虑子文件夹嵌套的情况
+    if (!await oldDir.exists()) {
+      return;
+    }
+    if (!await newDir.exists()) {
+      await newDir.create(recursive: true);
+    }
+    List<FileSystemEntity> files = oldDir.listSync();
+    if (files.isNotEmpty) {
+      for (var file in files) {
+        if (file is File) {
+          String fileName = FileUtil.getFileNameWithExtension(file.path);
+          await file.copy(join(newDir.path, fileName));
+        } else if (file is Directory) {
+          String dirName = FileUtil.getFileNameWithExtension(file.path);
+          Directory newSubDir = Directory(join(newDir.path, dirName));
+          await copyDirectoryTo(file, newSubDir);
+        }
+      }
+    }
+  }
+
+  static Future<void> migrationDataToSupportDirectory() async {
+    try {
+      String newPath = await getApplicationDir();
+      Directory oldDir = Directory(await getOldApplicationDir());
+      Directory newDir = Directory(newPath);
+      if (await isDirectoryEmpty(newDir)) {
+        ILogger.info(
+            "CloudOTP", "Start to migrate data from old application directory");
+        await copyDirectoryTo(oldDir, newDir);
+        await oldDir.delete(recursive: true);
+      }
+    } catch (e, t) {
+      ILogger.error("CloudOTP",
+          "Failed to migrate data from old application directory", e, t);
+    }
+  }
+
   static Future<String> getApplicationDir() async {
     var path = (await getApplicationSupportDirectory()).path;
     if (kDebugMode) {
       path += "-Debug";
     }
+    Directory directory = Directory(path);
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return path;
+  }
+
+  static Future<String> getOldApplicationDir() async {
+    final dir = await getApplicationDocumentsDirectory();
+    var appName = (await PackageInfo.fromPlatform()).appName;
+    if (kDebugMode) {
+      appName += "-Debug";
+    }
+    String path = join(dir.path, appName);
     Directory directory = Directory(path);
     if (!await directory.exists()) {
       await directory.create(recursive: true);

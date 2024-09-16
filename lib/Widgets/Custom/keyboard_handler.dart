@@ -28,7 +28,6 @@ import '../../Utils/itoast.dart';
 import '../../Utils/route_util.dart';
 import '../../Utils/shortcuts_util.dart';
 import '../../generated/l10n.dart';
-import 'keymap_widget.dart';
 
 class KeyboardHandler extends StatefulWidget {
   const KeyboardHandler({

@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/ilogger.dart';
 import '../../Utils/itoast.dart';
 import '../../Utils/responsive_util.dart';
 import '../../Utils/route_util.dart';
@@ -334,29 +335,34 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 },
                 onConfirm: (text) async {},
                 onValidConfirm: (text) async {
-                  int count = int.parse(text);
-                  onValid() {
-                    HiveUtil.put(HiveUtil.maxBackupsCountKey, count);
-                    setState(() {
-                      _maxBackupsCount = count;
-                    });
-                    deleteOldBackups(count);
-                    validateAsyncController.doPop?.call();
-                  }
+                  try {
+                    int count = int.parse(text);
+                    onValid() {
+                      HiveUtil.put(HiveUtil.maxBackupsCountKey, count);
+                      setState(() {
+                        _maxBackupsCount = count;
+                      });
+                      deleteOldBackups(count);
+                      validateAsyncController.doPop?.call();
+                    }
 
-                  if (count > 0 && (counts[0] > count || counts[1] > count)) {
-                    DialogBuilder.showConfirmDialog(
-                      context,
-                      title: S.current.maxBackupCountWarning,
-                      message:
-                          S.current.maxBackupCountWarningMessage(counts[0]),
-                      onTapConfirm: () {
-                        onValid();
-                      },
-                      onTapCancel: () {},
-                    );
-                  } else {
-                    onValid();
+                    if (count > 0 && (counts[0] > count)) {
+                      DialogBuilder.showConfirmDialog(
+                        context,
+                        title: S.current.maxBackupCountWarning,
+                        message:
+                            S.current.maxBackupCountWarningMessage(counts[0]),
+                        onTapConfirm: () {
+                          onValid();
+                        },
+                        onTapCancel: () {},
+                      );
+                    } else {
+                      onValid();
+                    }
+                  } catch (e, t) {
+                    ILogger.error(
+                        "CloudOTP", "Failed to change backups count", e, t);
                   }
                 },
               ),
