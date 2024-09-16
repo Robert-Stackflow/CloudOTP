@@ -18,7 +18,6 @@ import 'dart:typed_data';
 import 'package:hashlib/hashlib.dart';
 
 import '../../Utils/Base32/base32.dart';
-import '../../Utils/ilogger.dart';
 
 /// [SteamTOTP] generates 5-character alphanumeric Steam TOTP codes.
 /// Possible characters can be found in [SteamTOTP.steamChars].

@@ -20,7 +20,6 @@ import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
-import '../../generated/l10n.dart';
 import './backup_encrypt_interface.dart';
 import 'backup.dart';
 

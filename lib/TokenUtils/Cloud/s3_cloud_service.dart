@@ -17,7 +17,6 @@ import 'dart:typed_data';
 
 import 'package:cloudotp/Models/s3_cloud_file_info.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:path/path.dart';
 import 'package:s3_storage/models.dart';
 import 'package:s3_storage/s3_storage.dart';
 
