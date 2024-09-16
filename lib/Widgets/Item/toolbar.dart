@@ -84,12 +84,12 @@ class CupertinoToolbar extends StatelessWidget {
     for (int i = 0; i < items.length; i += 1) {
       children.add(CupertinoButton(
           padding: EdgeInsets.zero,
+          onPressed: items[i].onPressed,
           child: Icon(
             items[i].icon,
             // color: CupertinoColors.systemBlue,
             semanticLabel: items[i].semanticLabel,
-          ),
-          onPressed: items[i].onPressed));
+          )));
     }
     return children;
   }

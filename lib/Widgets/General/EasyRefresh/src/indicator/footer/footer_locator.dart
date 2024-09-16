@@ -76,9 +76,9 @@ class FooterLocator extends StatelessWidget {
               : footerWidget;
         }
         return _FooterLocatorRenderWidget(
-          child: footerWidget,
           isSliver: _isSliver,
           paintExtent: paintExtent,
+          child: footerWidget,
         );
       },
     );

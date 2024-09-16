@@ -31,15 +31,15 @@ import '../utils/photo_view_utils.dart';
 import 'photo_view_gesture_detector.dart';
 import 'photo_view_hit_corners.dart';
 
-const _defaultDecoration = const BoxDecoration(
-  color: const Color.fromRGBO(0, 0, 0, 1.0),
+const _defaultDecoration = BoxDecoration(
+  color: Color.fromRGBO(0, 0, 0, 1.0),
 );
 
 /// Internal widget in which controls all animations lifecycle, core responses
 /// to user gestures, updates to  the controller state and mounts the entire PhotoView Layout
 class PhotoViewCore extends StatefulWidget {
   const PhotoViewCore({
-    Key? key,
+    super.key,
     required this.imageProvider,
     required this.backgroundDecoration,
     required this.semanticLabel,
@@ -60,11 +60,10 @@ class PhotoViewCore extends StatefulWidget {
     required this.disableGestures,
     required this.enablePanAlways,
     required this.strictScale,
-  })  : customChild = null,
-        super(key: key);
+  }) : customChild = null;
 
   const PhotoViewCore.customChild({
-    Key? key,
+    super.key,
     required this.customChild,
     required this.backgroundDecoration,
     this.heroAttributes,
@@ -85,8 +84,7 @@ class PhotoViewCore extends StatefulWidget {
     required this.strictScale,
   })  : imageProvider = null,
         semanticLabel = null,
-        gaplessPlayback = false,
-        super(key: key);
+        gaplessPlayback = false;
 
   final Decoration? backgroundDecoration;
   final ImageProvider? imageProvider;
@@ -356,14 +354,14 @@ class PhotoViewCoreState extends State<PhotoViewCore>
               constraints: widget.tightMode
                   ? BoxConstraints.tight(scaleBoundaries.childSize * scale)
                   : null,
+              decoration: widget.backgroundDecoration ?? _defaultDecoration,
               child: Center(
                 child: Transform(
-                  child: customChildLayout,
                   transform: matrix,
                   alignment: basePosition,
+                  child: customChildLayout,
                 ),
               ),
-              decoration: widget.backgroundDecoration ?? _defaultDecoration,
             );
 
             if (widget.disableGestures) {
