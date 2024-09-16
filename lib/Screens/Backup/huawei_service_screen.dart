@@ -235,7 +235,8 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
               try {
                 ping();
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to connect to huawei cloud", e, t);
+                ILogger.error(
+                    "CloudOTP", "Failed to connect to huawei cloud", e, t);
                 IToast.show(S.current.cloudConnectionError);
               }
             },
@@ -300,7 +301,8 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
                   IToast.show(S.current.cloudNoBackupFile);
                 }
               } catch (e, t) {
-                ILogger.error("CloudOTP","Failed to pull from huawei cloud", e, t);
+                ILogger.error(
+                    "CloudOTP", "Failed to pull from huawei cloud", e, t);
                 CustomLoadingDialog.dismissLoading();
                 IToast.show(S.current.cloudPullFailed);
               }

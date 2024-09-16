@@ -403,7 +403,6 @@ class OneDrive with ChangeNotifier {
     String remotePath, {
     bool isAppFolder = false,
   }) async {
-
     try {
       final url = Uri.parse(
           "$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}/children");

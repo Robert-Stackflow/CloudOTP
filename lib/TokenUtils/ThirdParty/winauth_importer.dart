@@ -170,7 +170,7 @@ class WinauthTokenImporter implements BaseTokenImporter {
         );
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to import from Winauth", e, t);
+      ILogger.error("CloudOTP", "Failed to import from Winauth", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

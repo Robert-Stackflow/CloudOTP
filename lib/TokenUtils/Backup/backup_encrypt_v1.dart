@@ -100,7 +100,11 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
     try {
       unencryptedData = cipher.process(encryptedData);
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to decrypt data (InvalidPasswordOrDataCorruptedException)", e, t);
+      ILogger.error(
+          "CloudOTP",
+          "Failed to decrypt data (InvalidPasswordOrDataCorruptedException)",
+          e,
+          t);
       throw InvalidPasswordOrDataCorruptedException();
     }
 
@@ -121,7 +125,8 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
       }
       return true;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to decrypt (FileNotBackupException)", e, t);
+      ILogger.error(
+          "CloudOTP", "Failed to decrypt (FileNotBackupException)", e, t);
       throw FileNotBackupException();
     }
   }

@@ -74,7 +74,7 @@ class S3CloudService extends CloudService {
         return CloudServiceStatus.success;
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to authenticate s3", e, t);
+      ILogger.error("CloudOTP", "Failed to authenticate s3", e, t);
       return CloudServiceStatus.unknownError;
     }
   }
@@ -85,7 +85,7 @@ class S3CloudService extends CloudService {
       bool connected = await s3Storage.bucketExists(bucket);
       return connected;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to connect to s3 cloud", e, t);
+      ILogger.error("CloudOTP", "Failed to connect to s3 cloud", e, t);
       return false;
     }
   }
@@ -99,7 +99,8 @@ class S3CloudService extends CloudService {
       );
       return true;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to delete backup file $path from s3 cloud", e, t);
+      ILogger.error(
+          "CloudOTP", "Failed to delete backup file $path from s3 cloud", e, t);
       return false;
     }
   }
@@ -119,7 +120,8 @@ class S3CloudService extends CloudService {
       }
       return true;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to delete old backups from s3 cloud", e, t);
+      ILogger.error(
+          "CloudOTP", "Failed to delete old backups from s3 cloud", e, t);
       return false;
     }
   }
@@ -136,7 +138,7 @@ class S3CloudService extends CloudService {
       );
       return await response.toBytes();
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to download from s3 cloud", e, t);
+      ILogger.error("CloudOTP", "Failed to download from s3 cloud", e, t);
       return null;
     }
   }
@@ -176,7 +178,7 @@ class S3CloudService extends CloudService {
           .toList();
       return files;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to list file from s3 cloud", e, t);
+      ILogger.error("CloudOTP", "Failed to list file from s3 cloud", e, t);
       return null;
     }
   }
@@ -191,15 +193,15 @@ class S3CloudService extends CloudService {
     Function(int p1, int p2)? onProgress,
   }) async {
     try {
-      String response = await s3Storage.putObject(
-          bucket, "$_s3CloudPath/$fileName", Stream.value(fileData),
-          onProgress: (bytes) {
+      String response = await s3Storage
+          .putObject(bucket, "$_s3CloudPath/$fileName", Stream.value(fileData),
+              onProgress: (bytes) {
         onProgress?.call(bytes, fileData.length);
       });
       deleteOldBackup();
       return response.isNotEmpty;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to upload file to s3 cloud", e, t);
+      ILogger.error("CloudOTP", "Failed to upload file to s3 cloud", e, t);
       return false;
     }
   }

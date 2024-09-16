@@ -44,7 +44,7 @@ class PhoenixFooter extends Footer {
   @override
   Widget build(BuildContext context, IndicatorState state) {
     assert(state.axis == Axis.vertical,
-    'PhoenixFooter does not support horizontal scrolling.');
+        'PhoenixFooter does not support horizontal scrolling.');
     return _PhoenixIndicator(
       key: key,
       state: state,

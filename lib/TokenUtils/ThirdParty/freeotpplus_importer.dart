@@ -138,7 +138,7 @@ class FreeOTPPlusTokenImporter implements BaseTokenImporter {
           FreeOTPPlusToken freeOTPPlusToken = FreeOTPPlusToken.fromJson(token);
           freeOTPPlusTokens.add(freeOTPPlusToken);
         } catch (e, t) {
-          ILogger.error("CloudOTP","Failed to parse token: $token", e, t);
+          ILogger.error("CloudOTP", "Failed to parse token: $token", e, t);
         }
       }
     }
@@ -167,7 +167,7 @@ class FreeOTPPlusTokenImporter implements BaseTokenImporter {
         await import(json);
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to import from FreeOTPPlus", e, t);
+      ILogger.error("CloudOTP", "Failed to import from FreeOTPPlus", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

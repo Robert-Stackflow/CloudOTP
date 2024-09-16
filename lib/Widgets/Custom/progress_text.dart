@@ -87,7 +87,7 @@ class ProgressText extends StatelessWidget {
       children: spans,
       style: Theme.of(mContext).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            fontSize: fontSize!+30.0,
+            fontSize: fontSize! + 30.0,
             // letterSpacing: 5,
           ),
     );
@@ -103,4 +103,3 @@ class ProgressText extends StatelessWidget {
     ).createShader(const Rect.fromLTWH(0, 0, 50, 0));
   }
 }
-

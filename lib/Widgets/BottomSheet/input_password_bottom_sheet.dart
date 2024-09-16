@@ -145,8 +145,8 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
             Text(
               widget.message,
               style: Theme.of(context).textTheme.bodyMedium?.apply(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
             ),
         ],
       ),

@@ -33,7 +33,8 @@ class Client {
   // methods--------------------------------
 
   /// Set the public request headers
-  void setHeaders(Map<String, dynamic> headers) => wdDio.options.headers = headers;
+  void setHeaders(Map<String, dynamic> headers) =>
+      wdDio.options.headers = headers;
 
   /// Set the connection server timeout time in milliseconds.
   void setConnectTimeout(int timeout) =>
@@ -72,7 +73,8 @@ class Client {
   }
 
   /// Read a single files properties
-  Future<WebDavFileInfo> readProps(String path, [CancelToken? cancelToken]) async {
+  Future<WebDavFileInfo> readProps(String path,
+      [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
     var resp = await wdDio.wdPropfind(this, path, true, fileXmlStr,
         cancelToken: cancelToken);

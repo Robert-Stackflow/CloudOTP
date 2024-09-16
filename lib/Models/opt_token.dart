@@ -445,7 +445,7 @@ class OtpToken {
   int lastCopyTimeStamp;
   String pin;
   String description;
-  List<String> tags=[];
+  List<String> tags = [];
 
   int get pinnedInt => pinned ? 1 : 0;
 
@@ -598,7 +598,8 @@ class OtpToken {
     try {
       remark = jsonDecode(cloudOtpParameters.remark);
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to decode remark from ${cloudOtpParameters.remark}", e, t);
+      ILogger.error("CloudOTP",
+          "Failed to decode remark from ${cloudOtpParameters.remark}", e, t);
       remark = {};
     }
     return OtpToken(
