@@ -85,7 +85,7 @@ class SubWindowDragToResizeArea extends StatelessWidget {
   final List<SubWindowResizeEdge>? enableResizeEdges;
 
   const SubWindowDragToResizeArea({
-    Key? key,
+    super.key,
     required this.windowId,
     required this.child,
     this.resizeEdgeColor = Colors.transparent,
@@ -93,7 +93,7 @@ class SubWindowDragToResizeArea extends StatelessWidget {
     this.resizeEdgeMargin = EdgeInsets.zero,
     this.enableResizeEdges,
     this.childPadding = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -246,7 +246,7 @@ class _ImageWrapperState extends State<ImageWrapper> {
 
 class CustomChildWrapper extends StatelessWidget {
   const CustomChildWrapper({
-    Key? key,
+    super.key,
     this.child,
     required this.childSize,
     required this.backgroundDecoration,
@@ -270,7 +270,7 @@ class CustomChildWrapper extends StatelessWidget {
     required this.disableGestures,
     required this.enablePanAlways,
     required this.strictScale,
-  }) : super(key: key);
+  });
 
   final Widget? child;
   final Size? childSize;

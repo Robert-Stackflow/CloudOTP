@@ -1142,7 +1142,7 @@ class _MyBottomNavigationBarState extends State<MyBottomNavigationBar>
         elevation: widget.elevation ?? bottomTheme.elevation ?? 8.0,
         color: backgroundColor,
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: 0),
+          constraints: const BoxConstraints(minHeight: 0),
           child: CustomPaint(
             painter: _RadialPainter(
               circles: _circles.toList(),
