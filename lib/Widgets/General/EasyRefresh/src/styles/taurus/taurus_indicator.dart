@@ -294,8 +294,8 @@ class _TaurusIndicatorState extends State<_TaurusIndicator>
                           final value = _disappearAnimationController.value;
                           airplaneTop =
                               (_actualTriggerOffset + _airplaneHeight * 2) /
-                                  2 *
-                                  (1 - value) -
+                                      2 *
+                                      (1 - value) -
                                   _airplaneHeight / 2 * 3;
                           airplaneLeft = (width - _airplaneWidth) / 2 +
                               (width / 2 + _airplaneWidth * 3) * value;
@@ -319,7 +319,7 @@ class _TaurusIndicatorState extends State<_TaurusIndicator>
                     Positioned(
                       top: centerCloudTop,
                       bottom:
-                      centerCloudBottom == null ? null : -centerCloudBottom,
+                          centerCloudBottom == null ? null : -centerCloudBottom,
                       child: PathsPaint(
                         paths: _cloudPaths,
                         colors: _cloudColors,
@@ -350,8 +350,7 @@ class _WindPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0x50ffffff);
+    final paint = Paint()..color = const Color(0x50ffffff);
     final path = Path();
     for (final offset in offsets) {
       path.addRect(Rect.fromPoints(
@@ -368,10 +367,10 @@ class _WindPainter extends CustomPainter {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is _WindPainter &&
-              runtimeType == other.runtimeType &&
-              width == other.width &&
-              offsets == other.offsets;
+      other is _WindPainter &&
+          runtimeType == other.runtimeType &&
+          width == other.width &&
+          offsets == other.offsets;
 
   @override
   int get hashCode => width.hashCode ^ offsets.hashCode;

@@ -5,8 +5,8 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 
 import 'adapter/adapter_stub.dart'
-if (dart.library.io) 'adapter/adapter_mobile.dart'
-if (dart.library.js) 'adapter/adapter_web.dart';
+    if (dart.library.io) 'adapter/adapter_mobile.dart'
+    if (dart.library.js) 'adapter/adapter_web.dart';
 
 import 'auth.dart';
 import 'client.dart';

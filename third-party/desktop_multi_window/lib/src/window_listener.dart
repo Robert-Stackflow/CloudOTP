@@ -13,7 +13,6 @@ const kWindowEventEnterFullScreen = 'enter-full-screen';
 const kWindowEventLeaveFullScreen = 'leave-full-screen';
 
 abstract class MultiWindowListener {
-
   /// Emitted when the window is going to be closed.
   void onWindowClose() {}
 

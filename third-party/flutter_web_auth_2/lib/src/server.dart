@@ -53,6 +53,7 @@ class FlutterWebAuth2ProtocolPlugin extends FlutterWebAuth2Platform {
   }) async {
     _callbackUrl = callbackUrl;
     protocolHandler.addListener(_protocolListener);
+
     ///Block the thread until the _handleUriCallback method is actively called
     _completer = Completer<String>();
 

@@ -297,8 +297,7 @@ class _BallPaint extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color;
+    final paint = Paint()..color = color;
     final width = size.width;
     final height = size.height;
     final path = Path();
@@ -316,11 +315,11 @@ class _BallPaint extends CustomPainter {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is _BallPaint &&
-              runtimeType == other.runtimeType &&
-              color == other.color &&
-              ballCenterY == other.ballCenterY &&
-              reboundOffset == other.reboundOffset;
+      other is _BallPaint &&
+          runtimeType == other.runtimeType &&
+          color == other.color &&
+          ballCenterY == other.ballCenterY &&
+          reboundOffset == other.reboundOffset;
 
   @override
   int get hashCode =>
@@ -345,8 +344,7 @@ class _BallTailPaint extends CustomPainter {
     if (reboundOffset - ballCenterY < _kBallRadius) {
       return;
     }
-    final paint = Paint()
-      ..color = color;
+    final paint = Paint()..color = color;
     final width = size.width;
     final bottom = reboundOffset;
     final startY = ballCenterY + _kBallRadius * scale / 2;
@@ -371,12 +369,12 @@ class _BallTailPaint extends CustomPainter {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is _BallTailPaint &&
-              runtimeType == other.runtimeType &&
-              color == other.color &&
-              ballCenterY == other.ballCenterY &&
-              scale == other.scale &&
-              reboundOffset == other.reboundOffset;
+      other is _BallTailPaint &&
+          runtimeType == other.runtimeType &&
+          color == other.color &&
+          ballCenterY == other.ballCenterY &&
+          scale == other.scale &&
+          reboundOffset == other.reboundOffset;
 
   @override
   int get hashCode =>
@@ -397,8 +395,7 @@ class _BallDropPaint extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color;
+    final paint = Paint()..color = color;
     final height = size.height;
     final width = size.width;
     Path path = Path();
@@ -442,10 +439,10 @@ class _BallDropPaint extends CustomPainter {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is _BallDropPaint &&
-              runtimeType == other.runtimeType &&
-              color == other.color &&
-              ballCenterY == other.ballCenterY;
+      other is _BallDropPaint &&
+          runtimeType == other.runtimeType &&
+          color == other.color &&
+          ballCenterY == other.ballCenterY;
 
   @override
   int get hashCode => color.hashCode ^ ballCenterY.hashCode;

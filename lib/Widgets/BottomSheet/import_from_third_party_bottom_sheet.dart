@@ -105,7 +105,7 @@ class ImportFromThirdPartyBottomSheetState
                 rootContext,
                 enableDrag: false,
                 responsive: true,
-                    (context) => const AddBottomSheet(onlyShowScanner: true),
+                (context) => const AddBottomSheet(onlyShowScanner: true),
               );
             } else {
               IToast.showTop(S.current.importFromGoogleAuthenticatorInMobile);

@@ -52,7 +52,7 @@ class UriUtil {
         Clipboard.setData(ClipboardData(text: email));
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to launch email app", e, t);
+      ILogger.error("CloudOTP", "Failed to launch email app", e, t);
       IToast.showTop(S.current.noEmailClient);
     }
     return true;
@@ -109,7 +109,7 @@ class UriUtil {
       }
       return false;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to process url", e, t);
+      ILogger.error("CloudOTP", "Failed to process url", e, t);
       if (!quiet) await CustomLoadingDialog.dismissLoading();
       if (!quiet) Share.share(url);
       return false;

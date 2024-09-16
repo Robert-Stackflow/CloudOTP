@@ -405,7 +405,6 @@ class Dropbox with ChangeNotifier {
         body: bytes,
       );
 
-
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         onProgress?.call(1, 1);
         debugPrint("# Dropbox -> Upload successfully");
@@ -414,7 +413,8 @@ class Dropbox with ChangeNotifier {
           message: "Upload finished.",
         );
       } else {
-        debugPrint("# Dropbox -> Upload failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        debugPrint(
+            "# Dropbox -> Upload failed: ${resp.statusCode}\n# Body: ${resp.body}");
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Upload failed.",

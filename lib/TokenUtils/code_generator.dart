@@ -64,7 +64,8 @@ class CodeGenerator {
           break;
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to get current code from token $token", e, t);
+      ILogger.error(
+          "CloudOTP", "Failed to get current code from token $token", e, t);
       code = "ERROR";
     }
     return code;
@@ -113,7 +114,8 @@ class CodeGenerator {
           break;
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to get next code from token $token", e, t);
+      ILogger.error(
+          "CloudOTP", "Failed to get next code from token $token", e, t);
       code = "ERROR";
     }
     return code;

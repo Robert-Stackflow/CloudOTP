@@ -12,7 +12,8 @@ abstract class ScreenCapturerPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static ScreenCapturerPlatform _instance = MethodChannelScreenCapturer() as ScreenCapturerPlatform;
+  static ScreenCapturerPlatform _instance =
+      MethodChannelScreenCapturer() as ScreenCapturerPlatform;
 
   /// The default instance of [ScreenCapturerPlatform] to use.
   ///

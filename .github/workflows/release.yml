@@ -51,6 +51,7 @@ jobs:
             artifact_path: /Users/runner/work/CloudOTP/CloudOTP/*.dmg
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+      date: ${{ steps.get_version.outputs.date}}
     runs-on: ${{ matrix.os }}
     env:
       FLUTTER_VERSION: 3.24.0
@@ -111,6 +112,7 @@ jobs:
         shell: bash
         run: |
           echo "version=$(head -n 2 pubspec.yaml | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)" >> $GITHUB_OUTPUT
+          echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
       # Build Android .apk
       - name: Build Android
@@ -188,6 +190,7 @@ jobs:
           mkdir -p build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
           cd build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
           mkdir -p opt/CloudOTP
+          mkdir -p usr/share/metainfo
           mkdir -p usr/share/applications
           mkdir -p usr/share/icons/hicolor/scalable/apps
           cp -r ../x64/release/bundle/* opt/CloudOTP
@@ -195,6 +198,8 @@ jobs:
           chmod 0755 DEBIAN/postinst
           chmod 0755 DEBIAN/postrm
           
+          sed -i '51i\    <release version="${{ steps.get_version.outputs.version }}" date="${{ steps.get_version.outputs.date }}">' ../../../tools/linux_tools/com.cloudchewie.cloudotp.metainfo.xml
+          cp ../../../tools/linux_tools/com.cloudchewie.cloudotp.metainfo.xml usr/share/metainfo
           cp ../../../tools/linux_tools/com.cloudchewie.cloudotp.desktop usr/share/applications
           cp ../../../assets/logo-transparent.svg usr/share/icons/hicolor/scalable/apps/com.cloudchewie.cloudotp.svg
 

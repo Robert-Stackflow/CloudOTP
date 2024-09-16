@@ -162,7 +162,8 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
                     });
                     IToast.showTop(S.current.deleteSuccess);
                   } catch (e, t) {
-                    ILogger.error("CloudOTP","Failed to delete file from s3 cloud", e, t);
+                    ILogger.error("CloudOTP",
+                        "Failed to delete file from s3 cloud", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

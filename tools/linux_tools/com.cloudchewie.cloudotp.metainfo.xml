@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>com.cloudchewie.cloudotp</id>
+  <launchable type="desktop-id">com.cloudchewie.cloudotp.desktop</launchable>
+  <name>CloudOTP</name>
+  <developer_name>Robert-Stackflow</developer_name>
+  <summary>Two-Factor Authenticator</summary>
+  <summary xml:lang="zh_CN">双因素验证器</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <url type="homepage">https://github.com/Robert-Stackflow/CloudOTP</url>
+  <url type="bugtracker">https://github.com/Robert-Stackflow/CloudOTP/issues</url>
+  <description>
+    <p>Note: Screenshot feature is temporarily unavailable in the flatpak version</p>
+    <p xml:lang="zh_CN">注意：截屏功能在 Flatpak 版本中暂时无法使用</p>
+    <p>An awesome two-factor authenticator based on flutter, supports cloud backup.</p>
+    <p xml:lang="zh_CN">支持云备份的基于 Flutter 的双因素验证器。 </p>
+    <p>Highlights: </p>
+    <p xml:lang="zh_CN">亮点：</p>
+    <ul>
+      <li>Support TOTP, HOTP, MOTP, Steam, Yandex</li>
+      <li xml:lang="zh_CN">支持TOTP、HOTP、MOTP、Steam、Yandex</li>
+      <li>Supports scanning QR code to add, identify pictures, and manually enter keys</li>
+      <li xml:lang="zh_CN">支持扫码添加、识别图片、手动输入密钥</li>
+      <li>Supports custom icons and categories, supports sorting and multiple token layouts(Simple, Compact, List, Spotlight)</li>
+      <li xml:lang="zh_CN">支持自定义图标和分类、支持排序和多种令牌布局（简洁、紧凑、列表、聚焦）</li>
+      <li>Supports dark mode, multiple languages, and multiple themes</li>
+      <li xml:lang="zh_CN">支持暗黑模式、多语言和多种主题</li>
+      <li>Supports local backup and automatic backup, supports WebDav, Onedrive, Dropbox, S3 storage and other cloud backup methods</li>
+      <li xml:lang="zh_CN">支持本地备份和自动备份、支持WebDav、Onedrive、Dropbox、S3存储和其他云备份方式</li>
+      <li>Supports import/export of encrypted files and URI lists</li>
+      <li xml:lang="zh_CN">支持导入/导出加密文件和URI列表</li>
+      <li>Supports importing data from Aegis, andOTP, Bitwarden, EntAuth, FreeOTP+, Google Authenticator, 2FAS, TOTP Authenticator, Winauth</li>
+      <li xml:lang="zh_CN">支持从Aegis、andOTP、Bitwarden、EntAuth、FreeOTP+、Google Authenticator、2FAS、TOTP Authenticator、Winauth导入数据</li>
+      <li>Supports database encryption and gesture password</li>
+      <li xml:lang="zh_CN">支持数据库加密和手势密码</li>
+    </ul>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Home</caption>
+      <image type="source">https://apps.cloudchewie.com/assets/desktop_1.Bzxetk0a.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <caption>Edit</caption>
+      <image type="source">https://apps.cloudchewie.com/assets/desktop_2.CAdcFEB3.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+      <description></description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+  <update_contact>i@pugai.life</update_contact>
+</component>

@@ -162,7 +162,8 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
                     });
                     IToast.showTop(S.current.deleteSuccess);
                   } catch (e, t) {
-                    ILogger.error("CloudOTP","Failed to delete backup file from dropbox", e, t);
+                    ILogger.error("CloudOTP",
+                        "Failed to delete backup file from dropbox", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();

@@ -39,7 +39,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
   bool clipToCopy = HiveUtil.getBool(HiveUtil.clickToCopyKey);
   bool autoCopyNextCode = HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey);
   bool autoDisplayNextCode = HiveUtil.getBool(HiveUtil.autoDisplayNextCodeKey);
-  bool autoFocusSearchBar = HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey,defaultValue: false);
+  bool autoFocusSearchBar =
+      HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey, defaultValue: false);
   bool autoMinimizeAfterClickToCopy = HiveUtil.getBool(
       HiveUtil.autoMinimizeAfterClickToCopyKey,
       defaultValue: false);

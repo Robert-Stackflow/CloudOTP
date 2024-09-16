@@ -57,7 +57,8 @@ class BackupEncryptionOld implements BackupEncryptInterface {
       base64.decode(utf8.decode(data));
       return true;
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to decrypt from wrong format data", e, t);
+      ILogger.error(
+          "CloudOTP", "Failed to decrypt from wrong format data", e, t);
       return false;
     }
   }
@@ -120,7 +121,7 @@ class AESStringCipher {
       final decryptedData = cipher.process(encryptedData);
       return utf8.decode(decryptedData);
     } catch (e, t) {
-      ILogger.error("CloudOTP","Failed to decrypt data", e, t);
+      ILogger.error("CloudOTP", "Failed to decrypt data", e, t);
     }
     return "";
   }

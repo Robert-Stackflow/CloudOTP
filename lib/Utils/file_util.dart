@@ -234,12 +234,10 @@ class FileUtil {
   }
 
   static Future<String> getApplicationDir() async {
-    final dir = await getApplicationDocumentsDirectory();
-    var appName = (await PackageInfo.fromPlatform()).appName;
+    var path = (await getApplicationSupportDirectory()).path;
     if (kDebugMode) {
-      appName += "-Debug";
+      path += "-Debug";
     }
-    String path = join(dir.path, appName);
     Directory directory = Directory(path);
     if (!await directory.exists()) {
       await directory.create(recursive: true);
