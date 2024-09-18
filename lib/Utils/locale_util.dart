@@ -43,6 +43,7 @@ class LocaleUtil with ChangeNotifier {
         return t;
       }
     }
+    //用户协议支持语言
     return null;
   }
 

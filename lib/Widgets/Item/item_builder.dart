@@ -887,6 +887,7 @@ class ItemBuilder {
       }
       bool isCheckbox = config.type == ContextMenuButtonConfigType.checkbox;
       bool showCheck = isCheckbox && config.checked;
+      var bodyMedium = Theme.of(context).textTheme.bodyMedium;
       Widget checkIcon = Row(
         children: [
           Opacity(
@@ -922,12 +923,14 @@ class ItemBuilder {
                   if (isCheckbox) checkIcon,
                   if (config.icon != null) config.icon!,
                   if (config.icon != null) const SizedBox(width: 8),
-                  Text(
-                    config.label,
-                    style: Theme.of(context).textTheme.bodyMedium?.apply(
-                          fontSizeDelta: ResponsiveUtil.isMobile() ? 2 : 0,
-                          color: config.textColor,
-                        ),
+                  Expanded(
+                    child: Text(
+                      config.label,
+                      style: bodyMedium?.apply(
+                        fontSizeDelta: ResponsiveUtil.isMobile() ? 2 : 0,
+                        color: config.textColor,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1194,7 +1197,7 @@ class ItemBuilder {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 AutoSizeText(
-                                  "AaBbCcDd",
+                                  S.current.fontItemCaptionLatin,
                                   style: textTheme.titleMedium?.apply(
                                     fontFamily: font.fontFamily,
                                     letterSpacingDelta: 1,
@@ -1202,7 +1205,7 @@ class ItemBuilder {
                                   maxLines: 1,
                                 ),
                                 AutoSizeText(
-                                  "AaBbCcDd",
+                                  S.current.fontItemCaptionLatin,
                                   style: textTheme.titleLarge?.apply(
                                     fontFamily: font.fontFamily,
                                     letterSpacingDelta: 1,
@@ -1210,7 +1213,7 @@ class ItemBuilder {
                                   maxLines: 1,
                                 ),
                                 AutoSizeText(
-                                  "你好世界",
+                                  S.current.fontItemCaptionNonLatin,
                                   style: textTheme.titleMedium?.apply(
                                     fontFamily: font.fontFamily,
                                     letterSpacingDelta: 1,
@@ -1218,7 +1221,7 @@ class ItemBuilder {
                                   maxLines: 1,
                                 ),
                                 AutoSizeText(
-                                  "你好世界",
+                                  S.current.fontItemCaptionNonLatin,
                                   style: textTheme.titleLarge?.apply(
                                     fontFamily: font.fontFamily,
                                     letterSpacingDelta: 1,
@@ -1227,7 +1230,7 @@ class ItemBuilder {
                                 ),
                               ],
                             )
-                          : Text(
+                          : AutoSizeText(
                               S.current.fontNotExist,
                               style: textTheme.titleLarge?.apply(
                                 fontFamily: font.fontFamily,

@@ -263,7 +263,7 @@ jobs:
           source_dir: /tmp/artifacts/final
           destination_dir: CloudOTP/${{ steps.get_version.outputs.version }}
       - name: Upload to release
-        uses: ncipollo/release-action@v1
+        uses: Robert-Stackflow/release-action@master
         with:
           tag: ${{ github.ref_name }}
           allowUpdates: true

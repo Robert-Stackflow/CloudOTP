@@ -103,7 +103,6 @@ class _SelectFontScreenState extends State<SelectFontScreen>
         onChanged: (_) {
           _currentFont = CustomFont.defaultFonts[index];
           appProvider.currentFont = _currentFont;
-          setState(() {});
           CustomFont.loadFont(context, _currentFont, autoRestartApp: false);
         },
       ),
@@ -122,7 +121,6 @@ class _SelectFontScreenState extends State<SelectFontScreen>
         onChanged: (_) {
           _currentFont = customFonts[index];
           appProvider.currentFont = _currentFont;
-          setState(() {});
           CustomFont.loadFont(context, customFonts[index],
               autoRestartApp: false);
         },

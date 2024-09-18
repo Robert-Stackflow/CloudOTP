@@ -79,6 +79,8 @@
   "blueIron": "藍鐵",
   "primaryColor": "主色調",
   "fontFamily": "字體",
+  "fontItemCaptionLatin": "AaBbCc",
+  "fontItemCaptionNonLatin": "你好世界",
   "chooseFontFamily": "選擇字體",
   "defaultFontFamily": "內建字體",
   "customFontFamily": "自訂字體",

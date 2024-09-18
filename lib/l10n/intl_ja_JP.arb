@@ -79,6 +79,8 @@
   "blueIron": "ブルーアイアン",
   "primaryColor": "主要な色",
   "fontFamily": "フォント",
+  "fontItemCaptionLatin": "AaBbCc",
+  "fontItemCaptionNonLatin": "こんにちは世界",
   "chooseFontFamily": "フォントを選択",
   "defaultFontFamily": "内蔵フォント",
   "customFontFamily": "カスタムフォント",

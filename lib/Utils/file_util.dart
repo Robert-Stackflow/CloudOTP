@@ -240,41 +240,72 @@ class FileUtil {
     return directory.listSync().isEmpty;
   }
 
+  static Future<void> backupDirectory(Directory directory) async {
+    if (await isDirectoryEmpty(directory)) {
+      return;
+    }
+    Directory backupDir = Directory("${directory.path}-bak");
+    await copyDirectoryTo(directory, backupDir, false);
+  }
+
   static Future<void> copyDirectoryTo(
-      Directory oldDir, Directory newDir) async {
-    //将oldDir的内容拷贝到newDir，考虑子文件夹嵌套的情况
+    Directory oldDir,
+    Directory newDir, [
+    bool backup = true,
+  ]) async {
+    ILogger.info(
+        "CloudOTP", "Copy directory from ${oldDir.path} to ${newDir.path}");
     if (!await oldDir.exists()) {
       return;
     }
     if (!await newDir.exists()) {
       await newDir.create(recursive: true);
     }
+    if (backup) await backupDirectory(newDir);
     List<FileSystemEntity> files = oldDir.listSync();
     if (files.isNotEmpty) {
       for (var file in files) {
         if (file is File) {
           String fileName = FileUtil.getFileNameWithExtension(file.path);
           await file.copy(join(newDir.path, fileName));
+          ILogger.info(
+              "CloudOTP", "Copy file from ${file.path} to ${newDir.path}");
         } else if (file is Directory) {
           String dirName = FileUtil.getFileNameWithExtension(file.path);
           Directory newSubDir = Directory(join(newDir.path, dirName));
-          await copyDirectoryTo(file, newSubDir);
+          await copyDirectoryTo(file, newSubDir, backup);
         }
       }
     }
   }
 
+  static Future<void> deleteDirectory(Directory directory) async {
+    if (!await directory.exists()) {
+      return;
+    }
+    List<FileSystemEntity> files = directory.listSync();
+    if (files.isNotEmpty) {
+      for (var file in files) {
+        if (file is File) {
+          await file.delete();
+        } else if (file is Directory) {
+          await deleteDirectory(file);
+        }
+      }
+    }
+    await directory.delete();
+  }
+
   static Future<void> migrationDataToSupportDirectory() async {
     try {
-      String newPath = await getApplicationDir();
+      ILogger.info("CloudOTP",
+          "New application directory: ${await getApplicationDir()}, Old application directory: ${await getOldApplicationDir()}");
       Directory oldDir = Directory(await getOldApplicationDir());
-      Directory newDir = Directory(newPath);
-      if (await isDirectoryEmpty(newDir)) {
-        ILogger.info(
-            "CloudOTP", "Start to migrate data from old application directory");
-        await copyDirectoryTo(oldDir, newDir);
-        await oldDir.delete(recursive: true);
-      }
+      Directory newDir = Directory(await getApplicationDir());
+      ILogger.info(
+          "CloudOTP", "Start to migrate data from old application directory");
+      await copyDirectoryTo(oldDir, newDir);
+      await deleteDirectory(oldDir);
     } catch (e, t) {
       ILogger.error("CloudOTP",
           "Failed to migrate data from old application directory", e, t);
@@ -282,6 +313,7 @@ class FileUtil {
   }
 
   static Future<String> getApplicationDir() async {
+    // return getOldApplicationDir();
     var path = (await getApplicationSupportDirectory()).path;
     if (kDebugMode) {
       path += "-Debug";
@@ -472,26 +504,29 @@ class FileUtil {
   static Future<ReleaseAsset> getAndroidAsset(
       String latestVersion, ReleaseItem item) async {
     ReleaseAsset? resAsset;
-    List<ReleaseAsset> assets = item.assets
-        .where((element) =>
-            element.contentType == "application/vnd.android.package-archive" &&
-            element.name.endsWith(".apk"))
-        .toList();
-    ReleaseAsset generalAsset = assets.firstWhere(
-        (element) =>
-            element.name == "CloudOTP-$latestVersion.apk" ||
-            element.name == "CloudOTP-$latestVersion-android-universal.apk",
-        orElse: () => assets.first);
+    List<ReleaseAsset> assets = item.assets.where((element) {
+      return ["application/vnd.android.package-archive", "raw"]
+              .contains(element.contentType) &&
+          element.name.endsWith(".apk");
+    }).toList();
+    ReleaseAsset generalAsset = assets.firstWhere((element) {
+      return [
+        'CloudOTP-$latestVersion.apk',
+        'CloudOTP-$latestVersion-android-universal.apk'
+      ].contains(element.name);
+    }, orElse: () => assets.first);
     try {
-      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      AndroidDeviceInfo androidInfo = await DeviceInfoPlugin().androidInfo;
       List<String> supportedAbis =
           androidInfo.supportedAbis.map((e) => e.toLowerCase()).toList();
       for (var asset in assets) {
         String abi =
             asset.name.split("CloudOTP-$latestVersion-").last.split(".").first;
-        if (supportedAbis.contains(abi.toLowerCase())) {
-          resAsset = asset;
+        for (var supportedAbi in supportedAbis) {
+          if (abi.toLowerCase().contains(supportedAbi)) {
+            resAsset = asset;
+            break;
+          }
         }
       }
     } finally {}
@@ -546,57 +581,73 @@ class FileUtil {
 
   static ReleaseAsset getWindowsPortableAsset(
       String latestVersion, ReleaseItem item) {
-    var asset = item.assets.firstWhere((element) =>
-        (element.contentType == "application/x-zip-compressed" ||
-            element.contentType == "application/zip") &&
-        element.name.contains("windows") &&
-        element.name.endsWith(".zip"));
+    var asset = item.assets.firstWhere((element) {
+      return ["application/x-msdownload", "application/x-msdos-program", "raw"]
+              .contains(element.contentType) &&
+          element.name.contains("windows") &&
+          element.name.endsWith(".zip");
+    });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
   }
 
   static ReleaseAsset getWindowsInstallerAsset(
       String latestVersion, ReleaseItem item) {
-    var asset = item.assets.firstWhere((element) =>
-        (element.contentType == "application/x-msdownload" ||
-            element.contentType == "application/x-msdos-program") &&
-        element.name.endsWith(".exe"));
+    var asset = item.assets.firstWhere((element) {
+      return ["application/x-msdownload", "application/x-msdos-program", "raw"]
+              .contains(element.contentType) &&
+          element.name.contains("windows") &&
+          element.name.endsWith(".exe");
+    });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
   }
 
   static ReleaseAsset getLinuxDebianAsset(
       String latestVersion, ReleaseItem item) {
-    var asset = item.assets.firstWhere((element) =>
-        (element.contentType == "application/vnd.debian.binary-package" ||
-            element.contentType == "application/x-debian-package") &&
-        element.name.endsWith(".deb"));
+    var asset = item.assets.firstWhere((element) {
+      return [
+            "application/vnd.debian.binary-package",
+            "application/x-debian-package",
+            "raw"
+          ].contains(element.contentType) &&
+          element.name.endsWith(".deb");
+    });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
   }
 
   static ReleaseAsset getLinuxTarGzAsset(
       String latestVersion, ReleaseItem item) {
-    var asset = item.assets.firstWhere((element) =>
-        element.contentType == "application/gzip" &&
-        element.name.endsWith(".tar.gz"));
+    var asset = item.assets.firstWhere((element) {
+      return [
+            "application/gzip",
+            "application/x-gzip",
+            "application/x-tar",
+            "raw"
+          ].contains(element.contentType) &&
+          element.name.endsWith(".tar.gz");
+    });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
   }
 
   static ReleaseAsset getIosIpaAsset(String latestVersion, ReleaseItem item) {
-    var asset = item.assets.firstWhere((element) =>
-        (element.contentType == "application/octet-stream" ||
-            element.contentType == "text/plain") &&
-        element.name.endsWith(".ipa"));
+    var asset = item.assets.firstWhere((element) {
+      return (element.contentType == "application/octet-stream" ||
+              element.contentType == "raw") &&
+          element.name.endsWith(".ipa");
+    });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
   }
 
   static ReleaseAsset getMacosDmgAsset(String latestVersion, ReleaseItem item) {
-    var asset = item.assets.firstWhere((element) =>
-        element.contentType == "application/x-apple-diskimage" &&
-        element.name.endsWith(".dmg"));
+    var asset = item.assets.firstWhere((element) {
+      return (element.contentType == "application/x-apple-diskimage" ||
+              element.contentType == "raw") &&
+          element.name.endsWith(".dmg");
+    });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
     return asset;
   }

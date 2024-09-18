@@ -79,6 +79,8 @@
   "blueIron": "Blue Iron",
   "primaryColor": "Primary Color",
   "fontFamily": "Font",
+  "fontItemCaptionLatin": "AaBbCc",
+  "fontItemCaptionNonLatin": "你好世界",
   "chooseFontFamily": "Choose Font",
   "defaultFontFamily": "Built-in Font",
   "customFontFamily": "Custom Font",
