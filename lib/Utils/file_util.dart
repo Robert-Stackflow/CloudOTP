@@ -237,22 +237,23 @@ class FileUtil {
     if (!await directory.exists()) {
       return true;
     }
-    return directory.listSync().isEmpty;
-  }
-
-  static Future<void> backupDirectory(Directory directory) async {
-    if (await isDirectoryEmpty(directory)) {
-      return;
+    List<FileSystemEntity> files = directory.listSync();
+    List<String> subDirs = [];
+    if (files.isNotEmpty) {
+      for (var file in files) {
+        if (file is Directory) {
+          subDirs.add(file.path);
+        }
+      }
     }
-    Directory backupDir = Directory("${directory.path}-bak");
-    await copyDirectoryTo(directory, backupDir, false);
+    if (subDirs.length == 1 && subDirs.first == join(directory.path, "Logs")) {
+      return true;
+    }
+    return subDirs.isEmpty;
   }
 
   static Future<void> copyDirectoryTo(
-    Directory oldDir,
-    Directory newDir, [
-    bool backup = true,
-  ]) async {
+      Directory oldDir, Directory newDir) async {
     ILogger.info(
         "CloudOTP", "Copy directory from ${oldDir.path} to ${newDir.path}");
     if (!await oldDir.exists()) {
@@ -261,7 +262,6 @@ class FileUtil {
     if (!await newDir.exists()) {
       await newDir.create(recursive: true);
     }
-    if (backup) await backupDirectory(newDir);
     List<FileSystemEntity> files = oldDir.listSync();
     if (files.isNotEmpty) {
       for (var file in files) {
@@ -273,7 +273,7 @@ class FileUtil {
         } else if (file is Directory) {
           String dirName = FileUtil.getFileNameWithExtension(file.path);
           Directory newSubDir = Directory(join(newDir.path, dirName));
-          await copyDirectoryTo(file, newSubDir, backup);
+          await copyDirectoryTo(file, newSubDir);
         }
       }
     }
@@ -281,6 +281,10 @@ class FileUtil {
 
   static Future<void> deleteDirectory(Directory directory) async {
     if (!await directory.exists()) {
+      return;
+    }
+    if (ResponsiveUtil.isWindows()) {
+      await directory.delete(recursive: true);
       return;
     }
     List<FileSystemEntity> files = directory.listSync();
@@ -297,24 +301,31 @@ class FileUtil {
   }
 
   static Future<void> migrationDataToSupportDirectory() async {
+    Directory oldDir = Directory(await getOldApplicationDir());
+    Directory newDir = Directory(await getApplicationDir());
     try {
-      Directory oldDir = Directory(await getOldApplicationDir());
-      Directory newDir = Directory(await getApplicationDir());
       if (oldDir.path == newDir.path) return;
       ILogger.info("CloudOTP",
           "Start to migrate data from old application directory $oldDir to new application directory $newDir");
-      await copyDirectoryTo(oldDir, newDir);
-      await deleteDirectory(oldDir);
+      if (await isDirectoryEmpty(newDir)) await copyDirectoryTo(oldDir, newDir);
     } catch (e, t) {
       ILogger.error("CloudOTP",
           "Failed to migrate data from old application directory", e, t);
     }
+    try {
+      await deleteDirectory(oldDir);
+    } catch (e, t) {
+      ILogger.error(
+          "CloudOTP", "Failed to delete old application directory", e, t);
+    }
+    ILogger.info("CloudOTP",
+        "Finish to migrate data from old application directory $oldDir to new application directory $newDir");
   }
 
   static Future<String> getApplicationDir() async {
-    if (ResponsiveUtil.isAndroid()) {
-      return await getOldApplicationDir();
-    }
+    // if (ResponsiveUtil.isAndroid()) {
+    //   return await getOldApplicationDir();
+    // }
     var path = (await getApplicationSupportDirectory()).path;
     if (kDebugMode) {
       path += "-Debug";
@@ -583,7 +594,7 @@ class FileUtil {
   static ReleaseAsset getWindowsPortableAsset(
       String latestVersion, ReleaseItem item) {
     var asset = item.assets.firstWhere((element) {
-      return ["application/x-msdownload", "application/x-msdos-program", "raw"]
+      return ["application/zip", "application/x-zip-compressed", "raw"]
               .contains(element.contentType) &&
           element.name.contains("windows") &&
           element.name.endsWith(".zip");
@@ -635,8 +646,8 @@ class FileUtil {
 
   static ReleaseAsset getIosIpaAsset(String latestVersion, ReleaseItem item) {
     var asset = item.assets.firstWhere((element) {
-      return (element.contentType == "application/octet-stream" ||
-              element.contentType == "raw") &&
+      return ["application/octet-stream", "raw"]
+              .contains(element.contentType) &&
           element.name.endsWith(".ipa");
     });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
@@ -645,8 +656,8 @@ class FileUtil {
 
   static ReleaseAsset getMacosDmgAsset(String latestVersion, ReleaseItem item) {
     var asset = item.assets.firstWhere((element) {
-      return (element.contentType == "application/x-apple-diskimage" ||
-              element.contentType == "raw") &&
+      return ["application/x-apple-diskimage", "raw"]
+              .contains(element.contentType) &&
           element.name.endsWith(".dmg");
     });
     asset.pkgsDownloadUrl = Utils.getDownloadUrl(latestVersion, asset.name);
