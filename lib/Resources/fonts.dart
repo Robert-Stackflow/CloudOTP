@@ -185,6 +185,7 @@ class CustomFont {
   }
 
   static Future<bool> isFontFileExist(CustomFont font) async {
+    if (font.fontFamily.isEmpty) return true;
     String fileName = font.fontUrl;
     fileName = FileUtil.getFileNameWithExtension(fileName);
     File file = File(join(await FileUtil.getFontDir(), fileName));

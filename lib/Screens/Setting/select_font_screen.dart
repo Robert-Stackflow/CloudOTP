@@ -134,14 +134,12 @@ class _SelectFontScreenState extends State<SelectFontScreen>
               if (customFonts[index] == _currentFont) {
                 _currentFont = CustomFont.Default;
                 appProvider.currentFont = _currentFont;
-                setState(() {});
                 CustomFont.loadFont(context, _currentFont,
                     autoRestartApp: false);
               }
               await CustomFont.deleteFont(customFonts[index]);
               customFonts.removeAt(index);
               HiveUtil.setCustomFonts(customFonts);
-              setState(() {});
             },
           );
         },

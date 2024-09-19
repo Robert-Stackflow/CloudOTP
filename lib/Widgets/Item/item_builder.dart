@@ -1166,7 +1166,7 @@ class ItemBuilder {
     double width = 110,
     double height = 160,
   }) {
-    bool exist = true;
+    int existState = -1;
     TextTheme textTheme = Theme.of(context).textTheme;
     return SizedBox(
       width: width,
@@ -1188,11 +1188,12 @@ class ItemBuilder {
                   height: height - 65,
                   child: FutureBuilder(
                     future: Future<CustomFont>.sync(() async {
-                      exist = await CustomFont.isFontFileExist(font);
+                      existState =
+                          (await CustomFont.isFontFileExist(font)) ? 1 : 0;
                       return font;
                     }),
                     builder: (context, snapshot) {
-                      return exist
+                      return existState == 1
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1231,7 +1232,9 @@ class ItemBuilder {
                               ],
                             )
                           : AutoSizeText(
-                              S.current.fontNotExist,
+                              existState == 0
+                                  ? S.current.fontFileNotExist
+                                  : S.current.fontFileLoading,
                               style: textTheme.titleLarge?.apply(
                                 fontFamily: font.fontFamily,
                                 fontWeightDelta: 0,

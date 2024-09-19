@@ -298,12 +298,11 @@ class FileUtil {
 
   static Future<void> migrationDataToSupportDirectory() async {
     try {
-      ILogger.info("CloudOTP",
-          "New application directory: ${await getApplicationDir()}, Old application directory: ${await getOldApplicationDir()}");
       Directory oldDir = Directory(await getOldApplicationDir());
       Directory newDir = Directory(await getApplicationDir());
-      ILogger.info(
-          "CloudOTP", "Start to migrate data from old application directory");
+      if (oldDir.path == newDir.path) return;
+      ILogger.info("CloudOTP",
+          "Start to migrate data from old application directory $oldDir to new application directory $newDir");
       await copyDirectoryTo(oldDir, newDir);
       await deleteDirectory(oldDir);
     } catch (e, t) {
@@ -313,7 +312,9 @@ class FileUtil {
   }
 
   static Future<String> getApplicationDir() async {
-    // return getOldApplicationDir();
+    if (ResponsiveUtil.isAndroid()) {
+      return await getOldApplicationDir();
+    }
     var path = (await getApplicationSupportDirectory()).path;
     if (kDebugMode) {
       path += "-Debug";
