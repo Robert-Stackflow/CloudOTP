@@ -304,10 +304,12 @@ class FileUtil {
     Directory oldDir = Directory(await getOldApplicationDir());
     Directory newDir = Directory(await getApplicationDir());
     try {
-      if (oldDir.path == newDir.path) return;
+      if (oldDir.path == newDir.path || !(await isDirectoryEmpty(newDir))) {
+        return;
+      }
       ILogger.info("CloudOTP",
           "Start to migrate data from old application directory $oldDir to new application directory $newDir");
-      if (await isDirectoryEmpty(newDir)) await copyDirectoryTo(oldDir, newDir);
+      await copyDirectoryTo(oldDir, newDir);
     } catch (e, t) {
       ILogger.error("CloudOTP",
           "Failed to migrate data from old application directory", e, t);
@@ -320,6 +322,7 @@ class FileUtil {
     }
     ILogger.info("CloudOTP",
         "Finish to migrate data from old application directory $oldDir to new application directory $newDir");
+    await Future.delayed(const Duration(milliseconds: 200));
   }
 
   static Future<String> getApplicationDir() async {

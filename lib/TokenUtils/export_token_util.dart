@@ -275,8 +275,7 @@ class ExportTokenUtil {
         if (canLocalBackup) {
           try {
             log.addStatus(AutoBackupStatus.saving);
-            String backupPath =
-                HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+            String backupPath = await HiveUtil.getBackupPath();
             Directory directory = Directory(backupPath);
             if (!directory.existsSync()) {
               directory.createSync(recursive: true);
@@ -380,7 +379,7 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(S.current.backupFailed);
         return;
       } else {
-        String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+        String backupPath = await HiveUtil.getBackupPath();
         Directory directory = Directory(backupPath);
         if (!directory.existsSync()) {
           directory.createSync(recursive: true);
@@ -482,7 +481,7 @@ class ExportTokenUtil {
   }
 
   static Future<List<List<FileSystemEntity>>> getLocalBackups() async {
-    String backupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+    String backupPath = await HiveUtil.getBackupPath();
     String defaultBackupPath = await FileUtil.getBackupDir();
     if (backupPath == defaultBackupPath) {
       return [await getLocalBackupsByPath(backupPath), []];

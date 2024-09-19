@@ -67,7 +67,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
   bool _enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
   bool _useBackupPasswordToExportImport =
       HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey);
-  String _autoBackupPath = HiveUtil.getString(HiveUtil.backupPathKey) ?? "";
+  late String _autoBackupPath;
   String _autoBackupPassword = "";
   bool _enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
   CloudServiceConfig? _cloudServiceConfig;
@@ -81,6 +81,11 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
     ConfigDao.getConfig().then((config) {
       setState(() {
         _autoBackupPassword = config.backupPassword;
+      });
+    });
+    HiveUtil.getBackupPath().then((path) {
+      setState(() {
+        _autoBackupPath = path;
       });
     });
     loadWebDavConfig();
