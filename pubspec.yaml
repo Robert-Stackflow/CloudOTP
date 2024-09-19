@@ -119,12 +119,17 @@ dev_dependencies:
 
 msix_config:
   display_name: CloudOTP
+  publisher: CN=Cloudchewie
   publisher_display_name: Cloudchewie
   identity_name: com.cloudchewie.cloudotp
-  msix_version: 1.8.0.0
-  logo_path: D:\Repositories\CloudOTP\assets\logo-transparent.ico
-  #  trim_logo: false
-  output_path: D:\Ruida\Downloads
+  msix_version: 2.4.5.0
+  logo_path: assets\logo-transparent.ico
+  trim_logo: false
+  languages: en, ja-jp, zh-cn, zh-tw
+  protocol_activation: cloudotp
+  execution_alias: cloudotp
+  enable_at_startup: true
+  output_path: build\windows\outputs
   output_name: CloudOTP
   build_windows: false
   capabilities: internetClient
