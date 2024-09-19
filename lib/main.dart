@@ -91,6 +91,11 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
     await HiveUtil.initConfig();
     HiveUtil.setFirstLogin();
   }
+  if (haveMigratedToSupportDirectory) {
+    HiveUtil.put(HiveUtil.haveMigratedToSupportDirectoryKey, true);
+  }
+  HiveUtil.put(
+      HiveUtil.oldVersionKey, (await PackageInfo.fromPlatform()).version);
   try {
     await DatabaseManager.initDataBase(
         HiveUtil.getString(HiveUtil.defaultDatabasePasswordKey) ?? "");

@@ -19,6 +19,7 @@ import 'dart:io';
 import 'package:cloudotp/Models/github_response.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/constant.dart';
+import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
@@ -29,6 +30,7 @@ import 'package:ffi/ffi.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import 'package:install_plugin/install_plugin.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
@@ -237,19 +239,20 @@ class FileUtil {
     if (!await directory.exists()) {
       return true;
     }
-    List<FileSystemEntity> files = directory.listSync();
-    List<String> subDirs = [];
-    if (files.isNotEmpty) {
-      for (var file in files) {
-        if (file is Directory) {
-          subDirs.add(file.path);
-        }
-      }
+    return directory.listSync().isEmpty;
+  }
+
+  static Future<void> createBakDir(
+    Directory sourceDir, [
+    Directory? destDir,
+  ]) async {
+    Directory directory = destDir ?? Directory("${sourceDir.path}-bak");
+    if (await directory.exists()) {
+      return;
+    } else {
+      await directory.create(recursive: true);
     }
-    if (subDirs.length == 1 && subDirs.first == join(directory.path, "Logs")) {
-      return true;
-    }
-    return subDirs.isEmpty;
+    await copyDirectoryTo(sourceDir, directory);
   }
 
   static Future<void> copyDirectoryTo(
@@ -283,10 +286,6 @@ class FileUtil {
     if (!await directory.exists()) {
       return;
     }
-    if (ResponsiveUtil.isWindows()) {
-      await directory.delete(recursive: true);
-      return;
-    }
     List<FileSystemEntity> files = directory.listSync();
     if (files.isNotEmpty) {
       for (var file in files) {
@@ -301,15 +300,34 @@ class FileUtil {
   }
 
   static Future<void> migrationDataToSupportDirectory() async {
+    try {
+      Hive.defaultDirectory = await FileUtil.getHiveDir();
+      bool haveMigratedToSupportDirectoryFromHive = HiveUtil.getBool(
+          HiveUtil.haveMigratedToSupportDirectoryKey,
+          defaultValue: false);
+      if (haveMigratedToSupportDirectoryFromHive) {
+        ILogger.info("CloudOTP", "Have migrated data to support directory");
+        return;
+      }
+      Hive.closeAllBoxes();
+    } catch (e, t) {
+      ILogger.error("CloudOTP", "Failed to close all hive boxes", e, t);
+    }
     Directory oldDir = Directory(await getOldApplicationDir());
     Directory newDir = Directory(await getApplicationDir());
     try {
-      if (oldDir.path == newDir.path || !(await isDirectoryEmpty(newDir))) {
+      if (oldDir.path == newDir.path || await isDirectoryEmpty(oldDir)) {
         return;
+      }
+      await createBakDir(oldDir, Directory("${newDir.path}-old-bak"));
+      bool isNewDirEmpty = await isDirectoryEmpty(newDir);
+      if (!isNewDirEmpty) {
+        await createBakDir(newDir);
       }
       ILogger.info("CloudOTP",
           "Start to migrate data from old application directory $oldDir to new application directory $newDir");
       await copyDirectoryTo(oldDir, newDir);
+      haveMigratedToSupportDirectory = true;
     } catch (e, t) {
       ILogger.error("CloudOTP",
           "Failed to migrate data from old application directory", e, t);
@@ -325,10 +343,12 @@ class FileUtil {
     await Future.delayed(const Duration(milliseconds: 200));
   }
 
+  static void showMigrationDialog(BuildContext context) {
+    //TODO
+  }
+
   static Future<String> getApplicationDir() async {
-    // if (ResponsiveUtil.isAndroid()) {
     //   return await getOldApplicationDir();
-    // }
     var path = (await getApplicationSupportDirectory()).path;
     if (kDebugMode) {
       path += "-Debug";

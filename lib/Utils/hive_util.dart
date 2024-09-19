@@ -122,6 +122,7 @@ class HiveUtil {
 
   //System
   static const String firstLoginKey = "firstLogin";
+  static const String oldVersionKey = "oldVersion";
   static const String haveMigratedToSupportDirectoryKey =
       "haveMigratedToSupportDirectory";
 
