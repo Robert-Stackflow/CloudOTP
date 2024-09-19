@@ -157,10 +157,12 @@ jobs:
           flutter build windows --release
           $DestDir = "build\windows\outputs\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64"
           $SrcDir = "build\windows\x64\runner\Release"
+          $dllDir = "tools\windows_dll"
+          
+          Copy-Item -Filter *.dll -Path $dllDir\* -Destination $SrcDir -Force
           New-Item -Path $DestDir -ItemType Directory
           Copy-Item $SrcDir\* -Recurse $DestDir
-          Copy-Item -Filter *.dll -Path tools\windows_dll\* -Destination $DestDir -Force
-          Copy-Item -Filter *.dll -Path windows\* -Destination $DestDir -Force
+          
           Compress-Archive $DestDir build\windows\outputs\CloudOTP-${{ steps.get_version.outputs.version }}-windows-x86_64.zip
           
           (Get-Content tools/windows_tools/CloudOTP.iss) -replace '#define MyAppVersion ".*"', '#define MyAppVersion "${{ steps.get_version.outputs.version }}"' | Set-Content tools/windows_tools/CloudOTP.iss
@@ -245,13 +247,14 @@ jobs:
           mv /tmp/artifacts/release-iOS/*.ipa /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.deb /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.tar.gz /tmp/artifacts/final/
-          ls -R /tmp/artifacts/final
-          
+
+          cd /tmp/artifacts/final
           for file in *; do
             if [ -f "$file" ]; then
               sha1sum "$file" | awk '{ print $1 }' > "$file.sha1"
             fi
           done
+          ls -R /tmp/artifacts/final
 
       - name: Upload to S3
         uses: Robert-Stackflow/upload-s3-action@master
