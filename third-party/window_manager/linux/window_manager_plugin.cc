@@ -170,7 +170,6 @@ static FlMethodResponse* undock(WindowManagerPlugin* self) {
 }
 
 static FlMethodResponse* restore(WindowManagerPlugin* self) {
-    printf("restoreeeeeeeeeeeeeeeeeeeeee\n");
   gtk_window_deiconify(get_window(self));
   gtk_window_present(get_window(self));
   g_autoptr(FlValue) result = fl_value_new_bool(true);

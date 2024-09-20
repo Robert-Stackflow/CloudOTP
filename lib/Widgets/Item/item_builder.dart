@@ -1702,6 +1702,7 @@ class ItemBuilder {
   }) {
     Widget titleWidget = AutoSizeText(
       text ?? "",
+      textAlign: TextAlign.center,
       style: textStyle ??
           Theme.of(context).textTheme.titleSmall?.apply(
                 color: color ??
@@ -1714,7 +1715,6 @@ class ItemBuilder {
                 fontSizeDelta: fontSizeDelta,
               ),
       maxLines: 1,
-      // overflow: TextOverflow.ellipsis,
     );
     Color fBackground = background ?? Theme.of(context).cardColor;
     return Material(
@@ -1753,10 +1753,7 @@ class ItemBuilder {
                 if (icon != null && reversePosition && Utils.isNotEmpty(text))
                   const SizedBox(width: 5),
                 if (icon != null && reversePosition) icon,
-                if (align)
-                  const Spacer(
-                    flex: 1,
-                  ),
+                if (align) const Spacer(flex: 1),
               ],
             ),
           ),

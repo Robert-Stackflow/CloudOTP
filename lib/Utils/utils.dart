@@ -368,7 +368,7 @@ class Utils {
   }
 
   static getDownloadUrl(String version, String name) {
-    return "$downloadUrl/$version/$name";
+    return "$downloadPkgsUrl/$version/$name";
   }
 
   static getReleases({
@@ -379,13 +379,16 @@ class Utils {
     Function(String, ReleaseItem)? onUpdate,
     bool showLoading = false,
     bool showUpdateDialog = true,
-    bool showNoUpdateToast = true,
+    bool showFailedToast = true,
+    bool showLatestToast = true,
     bool showDesktopNotification = false,
+    String? noUpdateToastText,
   }) async {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
     }
-    String currentVersion = (await PackageInfo.fromPlatform()).version;
+    String currentVersion =
+        "0.0.0" ?? (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
     String latestVersion = "0.0.0";
     await GithubApi.getReleases("Robert-Stackflow", "CloudOTP")
@@ -394,7 +397,15 @@ class Utils {
         CustomLoadingDialog.dismissLoading();
       }
       if (releases.isEmpty) {
-        if (showNoUpdateToast) IToast.showTop(S.current.checkUpdatesFailed);
+        if (showFailedToast) {
+          IToast.showTop(noUpdateToastText ?? S.current.checkUpdatesFailed);
+        }
+        if (showDesktopNotification) {
+          IToast.showDesktopNotification(
+            S.current.checkUpdatesFailed,
+            body: S.current.checkUpdatesFailedTip,
+          );
+        }
         return;
       }
       onGetReleases?.call(releases);
@@ -422,7 +433,7 @@ class Utils {
               messageTextAlign: TextAlign.start,
               title: S.current.getNewVersion(latestVersion),
               message: S.current.doesImmediateUpdate +
-                  S.current.updateLogAsFollow(
+                  S.current.changelogAsFollow(
                       "<br/>${Utils.replaceLineBreak(latestReleaseItem.body ?? "")}"),
               confirmButtonText: ResponsiveUtil.isAndroid()
                   ? S.current.immediatelyDownload
@@ -467,7 +478,7 @@ class Utils {
               IToast.showDesktopNotification(
                 S.current.getNewVersion(latestVersion),
                 body: S.current
-                    .updateLogAsFollow("\n${latestReleaseItem.body ?? ""}"),
+                    .changelogAsFollow("\n${latestReleaseItem.body ?? ""}"),
                 actions: [S.current.updateLater, S.current.goToUpdate],
                 onClick: () {
                   showDialog(latestReleaseItem!);
@@ -485,7 +496,7 @@ class Utils {
         }
       } else {
         appProvider.latestVersion = "";
-        if (showNoUpdateToast) {
+        if (showLatestToast) {
           IToast.showTop(S.current.alreadyLatestVersion);
         }
         if (showDesktopNotification) {
@@ -826,7 +837,8 @@ class Utils {
         context: context,
         showLoading: false,
         showUpdateDialog: true,
-        showNoUpdateToast: false,
+        showFailedToast: false,
+        showLatestToast: false,
         showDesktopNotification: true,
       );
     } else if (menuItem.key == TrayKey.launchAtStartup.key) {

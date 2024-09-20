@@ -16,11 +16,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloudotp/Screens/Setting/change_log_screen.dart';
 import 'package:cloudotp/Screens/Setting/egg_screen.dart';
-import 'package:cloudotp/Screens/Setting/update_log_screen.dart';
 import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
+import 'package:cloudotp/Utils/website_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/star_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Custom/no_shadow_scroll_behavior.dart';
@@ -214,12 +215,12 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                     const SizedBox(height: 10),
                     ItemBuilder.buildEntryItem(
                       context: context,
-                      title: S.current.changeLog,
+                      title: S.current.changelog,
                       topRadius: true,
                       showLeading: true,
                       onTap: () {
                         RouteUtil.pushCupertinoRoute(
-                            context, const UpdateLogScreen());
+                            context, const ChangelogScreen());
                       },
                       leading: Icons.merge_type_outlined,
                     ),
@@ -245,9 +246,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                       context: context,
                       title: S.current.privacyPolicy,
                       onTap: () {
-                        Locale locale = Localizations.localeOf(context);
                         UriUtil.launchUrlUri(
-                            context, privacyPolicyUrl + locale.languageCode);
+                            context, WebsiteUtil.getPrivacyPolicyWebsite(context));
                       },
                       showLeading: true,
                       leading: Icons.privacy_tip_outlined,
@@ -256,9 +256,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                       context: context,
                       title: S.current.serviceTerm,
                       onTap: () {
-                        Locale locale = Localizations.localeOf(context);
                         UriUtil.launchUrlUri(
-                            context, serviceTermUrl + locale.languageCode);
+                            context, WebsiteUtil.getServiceTermWebsite(context));
                       },
                       showLeading: true,
                       bottomRadius: true,

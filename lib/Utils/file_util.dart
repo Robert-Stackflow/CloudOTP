@@ -23,6 +23,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
+import 'package:cloudotp/Utils/website_util.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -443,9 +444,6 @@ class FileUtil {
     String? version,
     Function(double)? onReceiveProgress,
   }) async {
-    // await Permission.photos.onDeniedCallback(() {
-    //   IToast.showTop(S.current.pleaseGrantFilePermission);
-    // }).onGrantedCallback(() async {
     bool enableNotification = await Permission.notification.isGranted;
     if (Utils.isNotEmpty(apkUrl)) {
       double progressValue = 0.0;
@@ -499,6 +497,16 @@ class FileUtil {
         });
       } catch (e, t) {
         ILogger.error("CloudOTP", "Failed to download apk", e, t);
+        DialogBuilder.showConfirmDialog(
+          context,
+          title: S.current.downloadFailedAndRetry,
+          message: S.current.downloadFailedAndRetryTip,
+          confirmButtonText: S.current.goToBrowserUpdate,
+          cancelButtonText: S.current.updateLater,
+          onTapConfirm: () {
+            UriUtil.openExternal(WebsiteUtil.getDownloadsWebsite(context));
+          },
+        );
         NotificationUtil.closeNotification(0);
         NotificationUtil.sendInfoNotification(
           2,
@@ -509,19 +517,6 @@ class FileUtil {
     } else {
       UriUtil.openExternal(htmlUrl);
     }
-    // }).onPermanentlyDeniedCallback(() {
-    //   IToast.showTop(S.current.hasRejectedFilePermission);
-    //   UriUtil.openExternal(apkUrl);
-    // }).onRestrictedCallback(() {
-    //   IToast.showTop(S.current.pleaseGrantFilePermission);
-    //   UriUtil.openExternal(apkUrl);
-    // }).onLimitedCallback(() {
-    //   IToast.showTop(S.current.pleaseGrantFilePermission);
-    //   UriUtil.openExternal(apkUrl);
-    // }).onProvisionalCallback(() {
-    //   IToast.showTop(S.current.pleaseGrantFilePermission);
-    //   UriUtil.openExternal(apkUrl);
-    // }).request();
   }
 
   static Future<File> copyAndRenameFile(

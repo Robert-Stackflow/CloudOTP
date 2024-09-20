@@ -52,8 +52,13 @@ String shareAppText = S.current.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";
 String feedbackSubject = S.current.feedbackSubject;
 const String feedbackBody = "";
-const String downloadUrl = "https://pkgs.cloudchewie.com/CloudOTP";
+const List<Locale> websiteSupportLocales = [Locale("en"), Locale("zh", "CN")];
+const String downloadPkgsUrl = "https://pkgs.cloudchewie.com/CloudOTP";
 const String officialWebsite = "https://apps.cloudchewie.com/cloudotp";
+const String defaultDownloadsWebsite =
+    "https://apps.cloudchewie.com/cloudotp/downloads";
+const String downloadsWebsite =
+    "https://apps.cloudchewie.com/{locale}/cloudotp/downloads";
 const String sqlcipherLearnMore =
     "https://apps.cloudchewie.com/cloudotp/sqlcipher/";
 const String telegramLink = "https://t.me/CloudOTP";
@@ -61,9 +66,9 @@ const String repoUrl = "https://github.com/Robert-Stackflow/CloudOTP";
 const String releaseUrl =
     "https://github.com/Robert-Stackflow/CloudOTP/releases";
 const String issueUrl = "https://github.com/Robert-Stackflow/CloudOTP/issues";
-const String privacyPolicyUrl =
+const String privacyPolicyWebsite =
     "https://apps.cloudchewie.com/cloudotp/privacy/";
-const String serviceTermUrl = "https://apps.cloudchewie.com/cloudotp/service/";
+const String serviceTermWebsite = "https://apps.cloudchewie.com/cloudotp/service/";
 
 AndroidAuthMessages androidAuthMessages = AndroidAuthMessages(
   cancelButton: S.current.biometricCancelButton,

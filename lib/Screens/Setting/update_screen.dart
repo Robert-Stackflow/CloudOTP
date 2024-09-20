@@ -23,10 +23,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:process_run/process_run.dart';
 
 import '../../Models/github_response.dart';
+import '../../Utils/constant.dart';
 import '../../Utils/file_util.dart';
 import '../../Utils/ilogger.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
+import '../../Utils/website_util.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 
@@ -118,7 +120,7 @@ class _UpdateScreenState extends State<UpdateScreen>
           children: [
             ItemBuilder.buildHtmlWidget(
               context,
-              S.current.updateLogAsFollow(
+              S.current.changelogAsFollow(
                   "<br/>${Utils.replaceLineBreak(item.body ?? "")}"),
               textStyle: Theme.of(context).textTheme.titleMedium?.apply(
                     fontSizeDelta: 1,
@@ -149,6 +151,18 @@ class _UpdateScreenState extends State<UpdateScreen>
                 } else {
                   dialogNavigatorState?.popPage();
                 }
+              },
+              fontSizeDelta: 2,
+            ),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            height: 45,
+            child: ItemBuilder.buildRoundButton(
+              context,
+              text: S.current.goToBrowserUpdate,
+              onTap: () {
+                UriUtil.openExternal(WebsiteUtil.getDownloadsWebsite(context));
               },
               fontSizeDelta: 2,
             ),

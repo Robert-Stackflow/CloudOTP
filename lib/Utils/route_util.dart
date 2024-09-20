@@ -19,6 +19,7 @@ import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../Widgets/Custom/custom_cupertino_route.dart';
 import '../Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 
 class RouteUtil {
@@ -37,7 +38,7 @@ class RouteUtil {
       return pushFadeRoute(context, page, onThen: onThen);
     } else {
       return Navigator.push(
-              context, CupertinoPageRoute(builder: (context) => page))
+              context, CustomCupertinoPageRoute(builder: (context) => page))
           .then(onThen ?? (_) => {});
     }
   }

@@ -23,16 +23,16 @@ import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 
-class UpdateLogScreen extends StatefulWidget {
-  const UpdateLogScreen({super.key});
+class ChangelogScreen extends StatefulWidget {
+  const ChangelogScreen({super.key});
 
-  static const String routeName = "/setting/updateLog";
+  static const String routeName = "/setting/changelog";
 
   @override
-  State<UpdateLogScreen> createState() => _UpdateLogScreenState();
+  State<ChangelogScreen> createState() => _ChangelogScreenState();
 }
 
-class _UpdateLogScreenState extends State<UpdateLogScreen>
+class _ChangelogScreenState extends State<ChangelogScreen>
     with TickerProviderStateMixin {
   List<ReleaseItem> releaseItems = [];
   final EasyRefreshController _refreshController = EasyRefreshController();
@@ -58,7 +58,8 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
       context: context,
       showLoading: false,
       showUpdateDialog: false,
-      showNoUpdateToast: false,
+      showLatestToast: false,
+      noUpdateToastText: S.current.failedToGetChangelog,
       onGetCurrentVersion: (currentVersion) {
         setState(() {
           this.currentVersion = currentVersion;
@@ -82,7 +83,7 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
     return Scaffold(
       appBar: ItemBuilder.buildSimpleAppBar(
         transparent: true,
-        title: S.current.changeLog,
+        title: S.current.changelog,
         leading: Icons.arrow_back_rounded,
         context: context,
       ),

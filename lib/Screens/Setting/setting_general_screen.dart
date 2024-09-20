@@ -397,7 +397,8 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
       context: context,
       showLoading: showTip,
       showUpdateDialog: showTip,
-      showNoUpdateToast: showTip,
+      showFailedToast: showTip,
+      showLatestToast: showTip,
       onGetCurrentVersion: (currentVersion) {
         if (mounted) {
           setState(() {

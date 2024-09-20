@@ -1,0 +1,2 @@
+sudo apt update
+sudo apt install libegl1-mesa mesa-utils mesa-vulkan-drivers

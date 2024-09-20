@@ -178,7 +178,8 @@ class MainScreenState extends State<MainScreen>
       context: context,
       showLoading: false,
       showUpdateDialog: HiveUtil.getBool(HiveUtil.autoCheckUpdateKey),
-      showNoUpdateToast: false,
+      showFailedToast: false,
+      showLatestToast: false,
     );
   }
 
