@@ -200,7 +200,7 @@ jobs:
           chmod 0755 DEBIAN/postinst
           chmod 0755 DEBIAN/postrm
           
-          sed -i '51i\    <release version="${{ steps.get_version.outputs.version }}" date="${{ steps.get_version.outputs.date }}">' ../../../tools/linux_tools/com.cloudchewie.cloudotp.metainfo.xml
+          sed -i '50i\    <release version="${{ steps.get_version.outputs.version }}" date="${{ steps.get_version.outputs.date }}">' ../../../tools/linux_tools/com.cloudchewie.cloudotp.metainfo.xml
           cp ../../../tools/linux_tools/com.cloudchewie.cloudotp.metainfo.xml usr/share/metainfo
           cp ../../../tools/linux_tools/com.cloudchewie.cloudotp.desktop usr/share/applications
           cp ../../../assets/logo-transparent.svg usr/share/icons/hicolor/scalable/apps/com.cloudchewie.cloudotp.svg
