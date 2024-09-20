@@ -388,7 +388,7 @@ class Utils {
       CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
     }
     String currentVersion =
-        "0.0.0" ?? (await PackageInfo.fromPlatform()).version;
+        (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
     String latestVersion = "0.0.0";
     await GithubApi.getReleases("Robert-Stackflow", "CloudOTP")
