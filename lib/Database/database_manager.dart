@@ -282,7 +282,7 @@ class DatabaseManager {
         }
       }
       if (Platform.isMacOS || Platform.isIOS) {
-        return DynamicLibrary.open('/usr/lib/libsqlcipher.dylib');
+        return DynamicLibrary.process();
       }
       if (Platform.isWindows) {
         lib = DynamicLibrary.open('sqlite_sqlcipher.dll');

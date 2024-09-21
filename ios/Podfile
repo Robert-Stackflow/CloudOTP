@@ -32,6 +32,9 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  pod 'SQLCipher', '~> 4.5'
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
