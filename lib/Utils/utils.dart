@@ -35,6 +35,7 @@ import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -42,6 +43,7 @@ import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:screen_protector/screen_protector.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:uuid/uuid.dart';
@@ -71,6 +73,34 @@ class Utils {
     return RegExp(
             r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
         .hasMatch(uid);
+  }
+
+  static Future<void> setSafeMode(bool enabled) async {
+    if (ResponsiveUtil.isMobile()) {
+      if (enabled) {
+        enableSafeMode();
+      } else {
+        disableSafeMode();
+      }
+    }
+  }
+
+  static Future<void> enableSafeMode() async {
+    await ScreenProtector.preventScreenshotOn();
+    await ScreenProtector.protectDataLeakageOn();
+    await ScreenProtector.protectDataLeakageWithColor(Theme.of(rootContext).scaffoldBackgroundColor);
+    if (ResponsiveUtil.isAndroid()) {
+      FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    }
+  }
+
+  static Future<void> disableSafeMode() async {
+    await ScreenProtector.preventScreenshotOff();
+    await ScreenProtector.protectDataLeakageOff();
+    await ScreenProtector.protectDataLeakageWithColorOff();
+    if (ResponsiveUtil.isAndroid()) {
+      FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    }
   }
 
   static Brightness currentBrightness(BuildContext context) {
@@ -387,8 +417,7 @@ class Utils {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.checkingUpdates);
     }
-    String currentVersion =
-        (await PackageInfo.fromPlatform()).version;
+    String currentVersion = (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
     String latestVersion = "0.0.0";
     await GithubApi.getReleases("Robert-Stackflow", "CloudOTP")

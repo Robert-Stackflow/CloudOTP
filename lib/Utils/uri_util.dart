@@ -48,7 +48,11 @@ class UriUtil {
       );
       if (!await launchUrl(
         emailLaunchUri,
+        mode: LaunchMode.externalApplication,
       )) {
+        if (ResponsiveUtil.isIOS()) {
+          IToast.showTop(S.current.noEmailClient);
+        }
         Clipboard.setData(ClipboardData(text: email));
       }
     } catch (e, t) {
@@ -132,14 +136,14 @@ class UriUtil {
   static Future<void> openExternal(String url) async {
     await launchUrl(
       Uri.parse(url),
-      mode: LaunchMode.externalNonBrowserApplication,
+      mode: LaunchMode.externalApplication,
     );
   }
 
   static Future<void> openExternalUri(Uri uri) async {
     await launchUrl(
       uri,
-      mode: LaunchMode.externalNonBrowserApplication,
+      mode: LaunchMode.externalApplication,
     );
   }
 }

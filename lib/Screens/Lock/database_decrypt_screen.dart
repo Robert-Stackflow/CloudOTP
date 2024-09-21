@@ -197,6 +197,8 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
 
   @override
   Widget build(BuildContext context) {
+    Utils.setSafeMode(HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+        defaultValue: defaultEnableSafeMode));
     return MyScaffold(
       backgroundColor: MyTheme.getBackground(context),
       appBar: ResponsiveUtil.isDesktop()

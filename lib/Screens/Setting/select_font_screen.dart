@@ -22,6 +22,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../Resources/fonts.dart';
+import '../../Utils/responsive_util.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
@@ -45,10 +46,31 @@ class _SelectFontScreenState extends State<SelectFontScreen>
     return Container(
       color: Colors.transparent,
       child: Scaffold(
-        appBar: ItemBuilder.buildSimpleAppBar(
-            title: S.current.chooseFontFamily,
-            context: context,
-            transparent: true),
+        appBar: ResponsiveUtil.isLandscape()
+            ? ItemBuilder.buildSimpleAppBar(
+          title: S.current.chooseFontFamily,
+          context: context,
+          transparent: true,
+        )
+            : ItemBuilder.buildAppBar(
+          context: context,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          leading: Icons.arrow_back_rounded,
+          onLeadingTap: () {
+            Navigator.pop(context);
+          },
+          title: Text(
+            S.current.chooseFontFamily,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.apply(fontWeightDelta: 2),
+          ),
+          actions: [
+            ItemBuilder.buildBlankIconButton(context),
+            const SizedBox(width: 5),
+          ],
+        ),
         body: EasyRefresh(
           child: ListView(
             physics: const BouncingScrollPhysics(),

@@ -95,6 +95,7 @@ dependencies:
   flutter_displaymode: ^0.6.0 # 设置刷新率
   flutter_local_notifications: ^17.2.1+2 # 本地通知
   flutter_resizable_container: ^2.0.0 # 可调整大小的容器
+  screen_protector: ^1.4.2+1
   flutter_windowmanager: ^0.2.0
   move_to_background: ^1.0.2 # 移动到后台
   launch_at_startup: ^0.3.1 # 开机启动
@@ -116,6 +117,7 @@ dev_dependencies:
   json_serializable: ^6.7.1
   msix: ^3.16.7
   sqflite_common_ffi: ^2.3.3
+  flutter_launcher_icons: ^0.13.1
 
 msix_config:
   display_name: CloudOTP
@@ -135,6 +137,18 @@ msix_config:
   capabilities: internetClient
   certificate_path: D:\Repositories\CloudOTP\certificate\cloudotp.pfx
   certificate_password: CLOUDCHEWIEcloudotp@123
+
+flutter_launcher_icons:
+  android: false
+  ios: true
+  image_path: "assets/logo.png"
+  web:
+    generate: false
+  windows:
+    generate: false
+  macos:
+    generate: true
+    image_path: "assets/logo-transparent.png"
 
 flutter_native_splash:
   color: "#FFFFFF"

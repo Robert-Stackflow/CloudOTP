@@ -437,13 +437,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
   onSafeModeTapped() {
     setState(() {
       _enableSafeMode = !_enableSafeMode;
-      if (ResponsiveUtil.isMobile()) {
-        if (_enableSafeMode) {
-          FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-        } else {
-          FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-        }
-      }
+      Utils.setSafeMode(_enableSafeMode);
       HiveUtil.put(HiveUtil.enableSafeModeKey, _enableSafeMode);
     });
   }

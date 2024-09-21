@@ -38,6 +38,7 @@ class CacheUtil {
       return double.parse(length.toString());
     }
     if (file is Directory) {
+      if (!file.existsSync()) return 0;
       final List<FileSystemEntity> children = file.listSync();
       double total = 0;
       for (final FileSystemEntity child in children) {
@@ -50,13 +51,14 @@ class CacheUtil {
 
   static Future<void> delDir(FileSystemEntity file) async {
     try {
+      if (!file.existsSync()) return;
       if (file is Directory) {
         final List<FileSystemEntity> children = file.listSync();
         for (final FileSystemEntity child in children) {
           await delDir(child);
         }
       }
-      await file.delete();
+      if (file.existsSync()) await file.delete();
     } catch (e, t) {
       ILogger.error("CloudOTP", "Failed to clear cache", e, t);
     }

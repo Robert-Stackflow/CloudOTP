@@ -249,14 +249,8 @@ class MainScreenState extends State<MainScreen>
     EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
           indicator: LottieUtil.load(LottieUtil.getLoadingPath(context)),
         );
-    if (ResponsiveUtil.isMobile()) {
-      if (HiveUtil.getBool(HiveUtil.enableSafeModeKey,
-          defaultValue: defaultEnableSafeMode)) {
-        FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      } else {
-        FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-      }
-    }
+    Utils.setSafeMode(HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+        defaultValue: defaultEnableSafeMode));
   }
 
   Future<void> jumpToLock({
@@ -282,6 +276,8 @@ class MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+    Utils.setSafeMode(HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+        defaultValue: defaultEnableSafeMode));
     super.build(context);
     return OrientationBuilder(builder: (ctx, ori) {
       if (ori != _oldOrientation) {

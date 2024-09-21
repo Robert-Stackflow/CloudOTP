@@ -18,6 +18,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:flutter/material.dart';
 
+import '../../Utils/responsive_util.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
@@ -41,8 +42,31 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
     return Container(
       color: Colors.transparent,
       child: Scaffold(
-        appBar: ItemBuilder.buildSimpleAppBar(
-            title: S.current.selectTheme, context: context, transparent: true),
+        appBar: ResponsiveUtil.isLandscape()
+            ? ItemBuilder.buildSimpleAppBar(
+                title: S.current.selectTheme,
+                context: context,
+                transparent: true,
+              )
+            : ItemBuilder.buildAppBar(
+                context: context,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                leading: Icons.arrow_back_rounded,
+                onLeadingTap: () {
+                  Navigator.pop(context);
+                },
+                title: Text(
+                  S.current.selectTheme,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontWeightDelta: 2),
+                ),
+                actions: [
+                  ItemBuilder.buildBlankIconButton(context),
+                  const SizedBox(width: 5),
+                ],
+              ),
         body: EasyRefresh(
           child: ListView(
             physics: const BouncingScrollPhysics(),

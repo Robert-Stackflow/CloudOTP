@@ -155,6 +155,8 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
 
   @override
   Widget build(BuildContext context) {
+    Utils.setSafeMode(HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+        defaultValue: defaultEnableSafeMode));
     return Scaffold(
       backgroundColor: MyTheme.getBackground(context),
       appBar: ResponsiveUtil.isDesktop() && widget.showWindowTitle

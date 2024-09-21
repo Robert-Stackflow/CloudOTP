@@ -191,6 +191,8 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             element.createTimeStamp.compareTo(token.createTimeStamp) > 0);
         break;
     }
+    int pinnedCount = tokens.where((e) => e.pinned).toList().length;
+    calculateInsertIndex += pinnedCount;
     calculateInsertIndex = calculateInsertIndex.clamp(0, tokens.length);
     tokens.insert(calculateInsertIndex, token);
     gridItemsNotifier.notifyItemInserted?.call(calculateInsertIndex, () {

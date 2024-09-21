@@ -17,10 +17,12 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../Models/github_response.dart';
+import '../../Utils/responsive_util.dart';
 import '../../Utils/uri_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
 import '../../Widgets/Item/item_builder.dart';
+import '../../Widgets/Scaffold/my_scaffold.dart';
 import '../../generated/l10n.dart';
 
 class ChangelogScreen extends StatefulWidget {
@@ -80,23 +82,45 @@ class _ChangelogScreenState extends State<ChangelogScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: ItemBuilder.buildSimpleAppBar(
-        transparent: true,
-        title: S.current.changelog,
-        leading: Icons.arrow_back_rounded,
-        context: context,
-      ),
-      body: EasyRefresh(
-        controller: _refreshController,
-        refreshOnStart: true,
-        onRefresh: () async {
-          await fetchReleases();
-        },
-        child: ListView.builder(
-          padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-          itemBuilder: (context, index) => _buildItem(releaseItems[index]),
-          itemCount: releaseItems.length,
+    return Container(
+      color: Colors.transparent,
+      child: MyScaffold(
+        appBar: ResponsiveUtil.isLandscape()
+            ? ItemBuilder.buildSimpleAppBar(
+                title: S.current.changelog,
+                context: context,
+                transparent: true,
+              )
+            : ItemBuilder.buildAppBar(
+                context: context,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                leading: Icons.arrow_back_rounded,
+                onLeadingTap: () {
+                  Navigator.pop(context);
+                },
+                title: Text(
+                  S.current.changelog,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontWeightDelta: 2),
+                ),
+                actions: [
+                  ItemBuilder.buildBlankIconButton(context),
+                  const SizedBox(width: 5),
+                ],
+              ),
+        body: EasyRefresh(
+          controller: _refreshController,
+          refreshOnStart: true,
+          onRefresh: () async {
+            await fetchReleases();
+          },
+          child: ListView.builder(
+            padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+            itemBuilder: (context, index) => _buildItem(releaseItems[index]),
+            itemCount: releaseItems.length,
+          ),
         ),
       ),
     );
