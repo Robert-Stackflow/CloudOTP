@@ -272,7 +272,6 @@ class DatabaseManager {
         } catch (e) {
           if (Platform.isAndroid) {
             final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
-
             final endOfAppId = max(appIdAsBytes.indexOf(0), 0);
             final appId =
                 String.fromCharCodes(appIdAsBytes.sublist(0, endOfAppId));
@@ -282,11 +281,8 @@ class DatabaseManager {
           }
         }
       }
-      if (Platform.isIOS) {
-        lib = DynamicLibrary.process();
-      }
-      if (Platform.isMacOS) {
-        lib = DynamicLibrary.open('/usr/lib/libsqlite3.dylib');
+      if (Platform.isMacOS || Platform.isIOS) {
+        return DynamicLibrary.open('/usr/lib/libsqlcipher.dylib');
       }
       if (Platform.isWindows) {
         lib = DynamicLibrary.open('sqlite_sqlcipher.dll');

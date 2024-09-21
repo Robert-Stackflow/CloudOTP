@@ -19,7 +19,6 @@ import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
 import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:provider/provider.dart';
 
 import '../../Database/database_manager.dart';
@@ -127,7 +126,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
               ..._databaseSettings(),
               ..._gestureSettings(),
               if (_autoLockAvailable) ..._autoLockSettings(),
-              ..._safeModeSettings(),
+              if (ResponsiveUtil.isMobile()) ..._safeModeSettings(),
               const SizedBox(height: 30),
             ],
           ),
