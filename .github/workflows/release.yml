@@ -170,7 +170,7 @@ jobs:
       # Build Windows .exe
       - name: Build Windows Installer
         if: matrix.target == 'Windows'
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.4
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
         with:
           path: tools/windows_tools/CloudOTP.iss
 
