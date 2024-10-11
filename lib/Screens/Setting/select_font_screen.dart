@@ -48,29 +48,29 @@ class _SelectFontScreenState extends State<SelectFontScreen>
       child: Scaffold(
         appBar: ResponsiveUtil.isLandscape()
             ? ItemBuilder.buildSimpleAppBar(
-          title: S.current.chooseFontFamily,
-          context: context,
-          transparent: true,
-        )
+                title: S.current.chooseFontFamily,
+                context: context,
+                transparent: true,
+              )
             : ItemBuilder.buildAppBar(
-          context: context,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          leading: Icons.arrow_back_rounded,
-          onLeadingTap: () {
-            Navigator.pop(context);
-          },
-          title: Text(
-            S.current.chooseFontFamily,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.apply(fontWeightDelta: 2),
-          ),
-          actions: [
-            ItemBuilder.buildBlankIconButton(context),
-            const SizedBox(width: 5),
-          ],
-        ),
+                context: context,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                leading: Icons.arrow_back_rounded,
+                onLeadingTap: () {
+                  Navigator.pop(context);
+                },
+                title: Text(
+                  S.current.chooseFontFamily,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontWeightDelta: 2),
+                ),
+                actions: [
+                  ItemBuilder.buildBlankIconButton(context),
+                  const SizedBox(width: 5),
+                ],
+              ),
         body: EasyRefresh(
           child: ListView(
             physics: const BouncingScrollPhysics(),

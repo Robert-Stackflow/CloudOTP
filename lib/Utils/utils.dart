@@ -88,7 +88,8 @@ class Utils {
   static Future<void> enableSafeMode() async {
     await ScreenProtector.preventScreenshotOn();
     await ScreenProtector.protectDataLeakageOn();
-    await ScreenProtector.protectDataLeakageWithColor(Theme.of(rootContext).scaffoldBackgroundColor);
+    await ScreenProtector.protectDataLeakageWithColor(
+        Theme.of(rootContext).scaffoldBackgroundColor);
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }

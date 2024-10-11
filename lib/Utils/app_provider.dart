@@ -140,7 +140,6 @@ enum AutoLockTime {
 }
 
 class AppProvider with ChangeNotifier {
-
   String currentDatabasePassword = "";
 
   String latestVersion = "";

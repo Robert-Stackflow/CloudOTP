@@ -247,8 +247,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                       context: context,
                       title: S.current.privacyPolicy,
                       onTap: () {
-                        UriUtil.launchUrlUri(
-                            context, WebsiteUtil.getPrivacyPolicyWebsite(context));
+                        UriUtil.launchUrlUri(context,
+                            WebsiteUtil.getPrivacyPolicyWebsite(context));
                       },
                       showLeading: true,
                       leading: Icons.privacy_tip_outlined,
@@ -257,8 +257,8 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
                       context: context,
                       title: S.current.serviceTerm,
                       onTap: () {
-                        UriUtil.launchUrlUri(
-                            context, WebsiteUtil.getServiceTermWebsite(context));
+                        UriUtil.launchUrlUri(context,
+                            WebsiteUtil.getServiceTermWebsite(context));
                       },
                       showLeading: true,
                       bottomRadius: true,

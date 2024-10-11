@@ -30,6 +30,7 @@ import 'package:webdav_client/webdav_client.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
 import '../../Utils/ilogger.dart';
+import '../../Utils/regex_util.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
 import '../../Widgets/Item/input_item.dart';
@@ -98,9 +99,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     inited = true;
     if (mounted) setState(() {});
   }
-
-  RegExp urlRegex = RegExp(
-      r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\://)?(www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}(\:[0-9]{1,5})*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-@]+))*");
 
   initFields() {
     _endpointController.addListener(() {
@@ -214,7 +212,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 if (text.isEmpty) {
                   return S.current.webDavServerCannotBeEmpty;
                 }
-                if (!urlRegex.hasMatch(text)) {
+                if (!RegexUtil.isUrlOrIp(text)) {
                   return S.current.webDavServerInvalid;
                 }
                 return null;

@@ -29,6 +29,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../../Utils/ilogger.dart';
+import '../../Utils/regex_util.dart';
 import '../../Widgets/BottomSheet/Backups/s3_backups_bottom_sheet.dart';
 import '../../Widgets/Dialog/custom_dialog.dart';
 import '../../Widgets/Dialog/dialog_builder.dart';
@@ -99,9 +100,6 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
     inited = true;
     setState(() {});
   }
-
-  RegExp urlRegex = RegExp(
-      r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\://)?(www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}(\:[0-9]{1,5})*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-@]+))*");
 
   initFields() {
     _endpointController.addListener(() {
@@ -220,7 +218,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                 if (text.isEmpty) {
                   return S.current.s3EndpointCannotBeEmpty;
                 }
-                if (!urlRegex.hasMatch(text)) {
+                if (!RegexUtil.isUrlOrIp(text)) {
                   return S.current.s3EndpointInvalid;
                 }
                 return null;

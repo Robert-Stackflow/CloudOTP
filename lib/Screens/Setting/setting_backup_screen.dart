@@ -66,7 +66,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
   bool _enableAutoBackup = HiveUtil.getBool(HiveUtil.enableAutoBackupKey);
   bool _enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
   bool _useBackupPasswordToExportImport =
-  HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey);
+      HiveUtil.getBool(HiveUtil.useBackupPasswordToExportImportKey);
   String _autoBackupPath = "";
   String _autoBackupPassword = "";
   bool _enableCloudBackup = HiveUtil.getBool(HiveUtil.enableCloudBackupKey);
@@ -113,17 +113,14 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
       child: Scaffold(
         appBar: ItemBuilder.buildAppBar(
           context: context,
-          backgroundColor: Theme
-              .of(context)
-              .scaffoldBackgroundColor,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           leading: Icons.arrow_back_rounded,
           onLeadingTap: () {
             Navigator.pop(context);
           },
           title: Text(
             S.current.backupSetting,
-            style: Theme
-                .of(context)
+            style: Theme.of(context)
                 .textTheme
                 .titleMedium
                 ?.apply(fontWeightDelta: 2),
@@ -134,10 +131,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 context: context,
                 icon: Icon(
                   Icons.history_rounded,
-                  color: Theme
-                      .of(context)
-                      .iconTheme
-                      .color,
+                  color: Theme.of(context).iconTheme.color,
                 ),
                 onTap: () {
                   RouteUtil.pushDialogRoute(
@@ -178,12 +172,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
 
   bool get canImmediateBackup =>
       canBackup &&
-          ((canLocalBackup && _enableLocalBackup) ||
-              (canCloudBackup && _enableCloudBackup));
+      ((canLocalBackup && _enableLocalBackup) ||
+          (canCloudBackup && _enableCloudBackup));
 
   loadWebDavConfig() async {
     List<CloudServiceConfig> configs =
-    await CloudServiceConfigDao.getValidConfigs();
+        await CloudServiceConfigDao.getValidConfigs();
     setState(() {
       validConfigs = configs.map((e) => e.type.label).join(", ");
     });
@@ -200,7 +194,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         validConfigs.isNotEmpty &&
         _cloudServiceConfig != null) {
       WebDavCloudService webDavCloudService =
-      WebDavCloudService(_cloudServiceConfig!);
+          WebDavCloudService(_cloudServiceConfig!);
       await webDavCloudService.deleteOldBackup(maxBackupsCount);
     }
   }
@@ -219,38 +213,37 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
             context,
             responsive: true,
             useWideLandscape: true,
-                (context) =>
-                InputBottomSheet(
-                  title: Utils.isNotEmpty(_autoBackupPassword)
-                      ? S.current.editAutoBackupPassword
-                      : S.current.setAutoBackupPassword,
-                  text: _autoBackupPassword,
-                  message: Utils.isNotEmpty(_autoBackupPassword)
-                      ? S.current.editAutoBackupPasswordTip
-                      : S.current.setAutoBackupPasswordTip,
-                  hint: S.current.inputAutoBackupPassword,
-                  tailingType: InputItemTailingType.password,
-                  validator: (text) {
-                    if (text.isEmpty) {
-                      return S.current.autoBackupPasswordCannotBeEmpty;
-                    }
-                    return null;
-                  },
-                  inputFormatters: [
-                    RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-                  ],
-                  onConfirm: (text) async {},
-                  onValidConfirm: (text) async {
-                    IToast.showTop(Utils.isNotEmpty(_autoBackupPassword)
-                        ? S.current.editSuccess
-                        : S.current.setSuccess);
-                    ConfigDao.updateBackupPassword(text);
-                    setState(() {
-                      _autoBackupPassword = text;
-                      appProvider.canShowCloudBackupButton = _enableCloudBackup;
-                    });
-                  },
-                ),
+            (context) => InputBottomSheet(
+              title: Utils.isNotEmpty(_autoBackupPassword)
+                  ? S.current.editAutoBackupPassword
+                  : S.current.setAutoBackupPassword,
+              text: _autoBackupPassword,
+              message: Utils.isNotEmpty(_autoBackupPassword)
+                  ? S.current.editAutoBackupPasswordTip
+                  : S.current.setAutoBackupPasswordTip,
+              hint: S.current.inputAutoBackupPassword,
+              tailingType: InputItemTailingType.password,
+              validator: (text) {
+                if (text.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+              ],
+              onConfirm: (text) async {},
+              onValidConfirm: (text) async {
+                IToast.showTop(Utils.isNotEmpty(_autoBackupPassword)
+                    ? S.current.editSuccess
+                    : S.current.setSuccess);
+                ConfigDao.updateBackupPassword(text);
+                setState(() {
+                  _autoBackupPassword = text;
+                  appProvider.canShowCloudBackupButton = _enableCloudBackup;
+                });
+              },
+            ),
           );
         },
       ),
@@ -264,7 +257,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         onTap: () {
           setState(() {
             _useBackupPasswordToExportImport =
-            !_useBackupPasswordToExportImport;
+                !_useBackupPasswordToExportImport;
             HiveUtil.put(HiveUtil.useBackupPasswordToExportImportKey,
                 _useBackupPasswordToExportImport);
           });
@@ -311,9 +304,9 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
             List<int> counts = await getBackupsCount();
             CustomLoadingDialog.dismissLoading();
             InputValidateAsyncController validateAsyncController =
-            InputValidateAsyncController(
+                InputValidateAsyncController(
               controller:
-              TextEditingController(text: _maxBackupsCount.toString()),
+                  TextEditingController(text: _maxBackupsCount.toString()),
               validator: (text) async {
                 return null;
               },
@@ -322,64 +315,62 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
               context,
               responsive: true,
               useWideLandscape: true,
-                  (context) =>
-                  InputBottomSheet(
-                    title: S.current.maxBackupCount,
-                    text: _maxBackupsCount.toString(),
-                    message:
-                    '${S.current.maxBackupCountTip}\n${S.current
-                        .currentBackupCountTip(counts[0])}',
-                    hint: S.current.inputMaxBackupCount,
-                    inputFormatters: [RegexInputFormatter.onlyNumber],
-                    preventPop: true,
-                    validateAsyncController: validateAsyncController,
-                    validator: (text) {
-                      if (text.isEmpty) {
-                        return S.current.maxBackupCountCannotBeEmpty;
-                      }
-                      int? count = int.tryParse(text);
-                      if (count == null) {
-                        return S.current.maxBackupCountTooLong;
-                      }
-                      if (count > maxBackupCountThrehold) {
-                        return S.current
-                            .maxBackupCountExceed(maxBackupCountThrehold);
-                      }
-                      return null;
-                    },
-                    onConfirm: (text) async {},
-                    onValidConfirm: (text) async {
-                      try {
-                        int count = int.parse(text);
-                        onValid() {
-                          HiveUtil.put(HiveUtil.maxBackupsCountKey, count);
-                          setState(() {
-                            _maxBackupsCount = count;
-                          });
-                          deleteOldBackups(count);
-                          validateAsyncController.doPop?.call();
-                        }
+              (context) => InputBottomSheet(
+                title: S.current.maxBackupCount,
+                text: _maxBackupsCount.toString(),
+                message:
+                    '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0])}',
+                hint: S.current.inputMaxBackupCount,
+                inputFormatters: [RegexInputFormatter.onlyNumber],
+                preventPop: true,
+                validateAsyncController: validateAsyncController,
+                validator: (text) {
+                  if (text.isEmpty) {
+                    return S.current.maxBackupCountCannotBeEmpty;
+                  }
+                  int? count = int.tryParse(text);
+                  if (count == null) {
+                    return S.current.maxBackupCountTooLong;
+                  }
+                  if (count > maxBackupCountThrehold) {
+                    return S.current
+                        .maxBackupCountExceed(maxBackupCountThrehold);
+                  }
+                  return null;
+                },
+                onConfirm: (text) async {},
+                onValidConfirm: (text) async {
+                  try {
+                    int count = int.parse(text);
+                    onValid() {
+                      HiveUtil.put(HiveUtil.maxBackupsCountKey, count);
+                      setState(() {
+                        _maxBackupsCount = count;
+                      });
+                      deleteOldBackups(count);
+                      validateAsyncController.doPop?.call();
+                    }
 
-                        if (count > 0 && (counts[0] > count)) {
-                          DialogBuilder.showConfirmDialog(
-                            context,
-                            title: S.current.maxBackupCountWarning,
-                            message:
+                    if (count > 0 && (counts[0] > count)) {
+                      DialogBuilder.showConfirmDialog(
+                        context,
+                        title: S.current.maxBackupCountWarning,
+                        message:
                             S.current.maxBackupCountWarningMessage(counts[0]),
-                            onTapConfirm: () {
-                              onValid();
-                            },
-                            onTapCancel: () {},
-                          );
-                        } else {
+                        onTapConfirm: () {
                           onValid();
-                        }
-                      } catch (e, t) {
-                        ILogger.error(
-                            "CloudOTP", "Failed to change backups count", e, t);
-                      }
-                    },
-                  ),
+                        },
+                        onTapCancel: () {},
+                      );
+                    } else {
+                      onValid();
+                    }
+                  } catch (e, t) {
+                    ILogger.error(
+                        "CloudOTP", "Failed to change backups count", e, t);
+                  }
+                },
+              ),
             );
           },
         ),
@@ -430,13 +421,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
             BottomSheetBuilder.showBottomSheet(
               context,
               responsive: true,
-                  (dialogContext) =>
-                  LocalBackupsBottomSheet(
-                    onSelected: (selectedFile) async {
-                      ImportTokenUtil.importEncryptFileWrapper(
-                          context, selectedFile.path);
-                    },
-                  ),
+              (dialogContext) => LocalBackupsBottomSheet(
+                onSelected: (selectedFile) async {
+                  ImportTokenUtil.importEncryptFileWrapper(
+                      context, selectedFile.path);
+                },
+              ),
             );
           },
         ),

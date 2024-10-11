@@ -130,7 +130,8 @@ class CustomConfirmDialogWidget extends StatelessWidget {
                     child: ItemBuilder.buildRoundButton(
                       context,
                       fontSizeDelta: 2,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 12),
                       onTap: () {
                         onTapCancel.call();
                         Navigator.pop(context);
@@ -144,7 +145,8 @@ class CustomConfirmDialogWidget extends StatelessWidget {
                     child: ItemBuilder.buildRoundButton(
                       context,
                       color: buttonTextColor ?? Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 12),
                       fontSizeDelta: 2,
                       onTap: () {
                         Navigator.pop(context);
