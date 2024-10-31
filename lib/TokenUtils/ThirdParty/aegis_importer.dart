@@ -139,7 +139,7 @@ class AegisBackupHeader {
           ? (json['slots'] as List).map((e) => Slot.fromJson(e)).toList()
           : [],
       params:
-          json['params'] != null ? KeyParams.fromJson(json['params']) : null,
+      json['params'] != null ? KeyParams.fromJson(json['params']) : null,
     );
   }
 
@@ -168,7 +168,7 @@ class AegisTokenOtp {
     return AegisTokenOtp(
       secret: json['secret'] ?? "",
       digits: json['digits'] ?? 0,
-      algo: json['algo'],
+      algo: json['algo'] ?? "SHA1",
       period: json['period'] ?? 0,
     );
   }
@@ -198,10 +198,10 @@ class AegisToken {
   factory AegisToken.fromJson(Map<String, dynamic> json) {
     return AegisToken(
       name: json['name'],
-      issuer: json['issuer'],
-      type: json['type'],
-      note: json['note'],
-      favorite: json['favorite'],
+      issuer: json['issuer'] ?? "",
+      type: json['type'] ?? "TOTP",
+      note: json['note'] ?? "",
+      favorite: json['favorite'] ?? false,
       info: AegisTokenOtp.fromJson(json['info']),
       groups: json['groups'] != null
           ? (json['groups'] as List).map((e) => e.toString()).toList()
@@ -296,9 +296,9 @@ class AegisDatabase {
   factory AegisDatabase.fromJson(Map<String, dynamic> json) {
     return AegisDatabase(
       entries:
-          (json['entries'] as List).map((e) => AegisToken.fromJson(e)).toList(),
+      (json['entries'] as List).map((e) => AegisToken.fromJson(e)).toList(),
       groups:
-          (json['groups'] as List).map((e) => AegisGroup.fromJson(e)).toList(),
+      (json['groups'] as List).map((e) => AegisGroup.fromJson(e)).toList(),
     );
   }
 
@@ -379,7 +379,7 @@ class AegisTokenImporter implements BaseTokenImporter {
     final macBytes = Uint8List.fromList(hex.decode(backup.header.params!.tag));
 
     final decryptedBytes =
-        decryptAesGcm(masterKey, ivBytes, databaseBytes, macBytes);
+    decryptAesGcm(masterKey, ivBytes, databaseBytes, macBytes);
     final json = utf8.decode(decryptedBytes);
     final database = AegisDatabase.fromJson(jsonDecode(json));
 
@@ -408,11 +408,11 @@ class AegisTokenImporter implements BaseTokenImporter {
   static Uint8List decryptSlot(Slot slot, Uint8List password) {
     final saltBytes = hex.decode(slot.salt);
     final derivedKey = Scrypt(
-            salt: saltBytes,
-            cost: slot.n,
-            blockSize: slot.r,
-            parallelism: slot.p,
-            derivedKeyLength: keyLength)
+        salt: saltBytes,
+        cost: slot.n,
+        blockSize: slot.r,
+        parallelism: slot.p,
+        derivedKeyLength: keyLength)
         .convert(password)
         .bytes;
 
@@ -423,8 +423,8 @@ class AegisTokenImporter implements BaseTokenImporter {
     return decryptAesGcm(derivedKey, ivBytes, keyBytes, macBytes);
   }
 
-  static Uint8List decryptAesGcm(
-      Uint8List key, Uint8List iv, Uint8List data, Uint8List mac) {
+  static Uint8List decryptAesGcm(Uint8List key, Uint8List iv, Uint8List data,
+      Uint8List mac) {
     final cipher = GCMBlockCipher(AESEngine());
     final aeadParams = AEADParameters(KeyParameter(key), 128, iv, Uint8List(0));
     cipher.init(false, aeadParams);
@@ -458,8 +458,7 @@ class AegisTokenImporter implements BaseTokenImporter {
   }
 
   @override
-  Future<void> importFromPath(
-    String path, {
+  Future<void> importFromPath(String path, {
     bool showLoading = true,
   }) async {
     late ProgressDialog dialog;
@@ -478,7 +477,7 @@ class AegisTokenImporter implements BaseTokenImporter {
         if (backup.dbString != null) {
           if (showLoading) dialog.dismiss();
           InputValidateAsyncController validateAsyncController =
-              InputValidateAsyncController(
+          InputValidateAsyncController(
             listen: false,
             validator: (text) async {
               if (text.isEmpty) {
@@ -489,7 +488,7 @@ class AegisTokenImporter implements BaseTokenImporter {
               }
               backup.password = text;
               var res = await compute(
-                (receiveMessage) {
+                    (receiveMessage) {
                   AegisBackup backup = AegisBackup.fromJson(receiveMessage);
                   return decryptBackup(backup);
                 },
@@ -515,24 +514,25 @@ class AegisTokenImporter implements BaseTokenImporter {
             rootContext,
             responsive: true,
             useWideLandscape: true,
-            (context) => InputBottomSheet(
-              validator: (value) {
-                if (value.isEmpty) {
-                  return S.current.autoBackupPasswordCannotBeEmpty;
-                }
-                return null;
-              },
-              checkSyncValidator: false,
-              validateAsyncController: validateAsyncController,
-              title: S.current.inputImportPasswordTitle,
-              message: S.current.inputImportPasswordTip,
-              hint: S.current.inputImportPasswordHint,
-              inputFormatters: [
-                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-              ],
-              tailingType: InputItemTailingType.password,
-              onValidConfirm: (password) async {},
-            ),
+                (context) =>
+                InputBottomSheet(
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return S.current.autoBackupPasswordCannotBeEmpty;
+                    }
+                    return null;
+                  },
+                  checkSyncValidator: false,
+                  validateAsyncController: validateAsyncController,
+                  title: S.current.inputImportPasswordTitle,
+                  message: S.current.inputImportPasswordTip,
+                  hint: S.current.inputImportPasswordHint,
+                  inputFormatters: [
+                    RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+                  ],
+                  tailingType: InputItemTailingType.password,
+                  onValidConfirm: (password) async {},
+                ),
           );
         } else {
           await import(backup);

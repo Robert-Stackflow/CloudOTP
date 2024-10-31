@@ -62,10 +62,10 @@ class TwoFASTokenOtp {
     return TwoFASTokenOtp(
       label: json['label'] ?? "",
       account: json['account'] ?? "",
-      issuer: json['issuer'] ?? json['account'],
+      issuer: json['issuer'] ?? json['account'] ?? "",
       digits: json['digits'] ?? 0,
-      algorithm: json['algorithm'],
-      tokenType: json['tokenType'],
+      algorithm: json['algorithm'] ?? "SHA1",
+      tokenType: json['tokenType'] ?? "TOTP",
       period: json['period'] ?? 0,
     );
   }
@@ -209,14 +209,18 @@ class TwoFASTokenImporter implements BaseTokenImporter {
       for (var service in json['services']) {
         try {
           twoFASTokens.add(TwoFASToken.fromJson(service));
-        } finally {}
+        } catch (e, t) {
+          ILogger.error("CloudOTP", "Failed to import 2FAS token", e, t);
+        }
       }
     }
     if (json.containsKey('groups')) {
       for (var service in json['groups']) {
         try {
           twoFASGroups.add(TwoFASGroup.fromJson(service));
-        } finally {}
+        } catch (e, t) {
+          ILogger.error("CloudOTP", "Failed to import 2FAS token groups", e, t);
+        }
       }
     }
     categories = twoFASGroups.map((e) => e.toTokenCategory()).toList();
@@ -227,8 +231,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
   }
 
   @override
-  Future<void> importFromPath(
-    String path, {
+  Future<void> importFromPath(String path, {
     bool showLoading = true,
   }) async {
     late ProgressDialog dialog;
@@ -246,7 +249,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
         if (json.containsKey('servicesEncrypted')) {
           if (showLoading) dialog.dismiss();
           InputValidateAsyncController validateAsyncController =
-              InputValidateAsyncController(
+          InputValidateAsyncController(
             listen: false,
             validator: (text) async {
               if (text.isEmpty) {
@@ -256,7 +259,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
                 dialog.show(msg: S.current.importing, showProgress: false);
               }
               var res = await compute(
-                (receiveMessage) {
+                    (receiveMessage) {
                   return decryptServices(receiveMessage["servicesEncrypted"],
                       receiveMessage["password"]);
                 },
@@ -286,24 +289,25 @@ class TwoFASTokenImporter implements BaseTokenImporter {
             rootContext,
             responsive: true,
             useWideLandscape: true,
-            (context) => InputBottomSheet(
-              validator: (value) {
-                if (value.isEmpty) {
-                  return S.current.autoBackupPasswordCannotBeEmpty;
-                }
-                return null;
-              },
-              checkSyncValidator: false,
-              validateAsyncController: validateAsyncController,
-              title: S.current.inputImportPasswordTitle,
-              message: S.current.inputImportPasswordTip,
-              hint: S.current.inputImportPasswordHint,
-              inputFormatters: [
-                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-              ],
-              tailingType: InputItemTailingType.password,
-              onValidConfirm: (password) async {},
-            ),
+                (context) =>
+                InputBottomSheet(
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return S.current.autoBackupPasswordCannotBeEmpty;
+                    }
+                    return null;
+                  },
+                  checkSyncValidator: false,
+                  validateAsyncController: validateAsyncController,
+                  title: S.current.inputImportPasswordTitle,
+                  message: S.current.inputImportPasswordTip,
+                  hint: S.current.inputImportPasswordHint,
+                  inputFormatters: [
+                    RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+                  ],
+                  tailingType: InputItemTailingType.password,
+                  onValidConfirm: (password) async {},
+                ),
           );
         } else {
           await import(json);

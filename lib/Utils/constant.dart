@@ -61,7 +61,7 @@ const String downloadsWebsite =
     "https://apps.cloudchewie.com/{locale}/cloudotp/downloads";
 const String sqlcipherLearnMore =
     "https://apps.cloudchewie.com/cloudotp/sqlcipher/";
-const String telegramLink = "https://t.me/CloudOTP";
+const String telegramLink = "https://t.me/CloudOTP_official";
 const String repoUrl = "https://github.com/Robert-Stackflow/CloudOTP";
 const String releaseUrl =
     "https://github.com/Robert-Stackflow/CloudOTP/releases";
