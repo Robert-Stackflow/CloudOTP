@@ -494,7 +494,7 @@ class TokenLayoutState extends State<TokenLayout>
                       Icons.visibility_outlined,
                       size: 20,
                       color: color ??
-                          Theme.of(context).textTheme.bodyMedium?.color,
+                          Theme.of(context).textTheme.labelMedium?.color,
                     ),
                     context: context,
                   ),
@@ -531,7 +531,7 @@ class TokenLayoutState extends State<TokenLayout>
                     Icons.refresh_rounded,
                     size: 20,
                     color:
-                        color ?? Theme.of(context).textTheme.bodyMedium?.color,
+                        color ?? Theme.of(context).textTheme.labelMedium?.color,
                   ),
                   context: context,
                 ),
@@ -801,16 +801,8 @@ class TokenLayoutState extends State<TokenLayout>
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(child: _buildCodeLayout(letterSpacing: 8)),
-                          if (isHOTP)
-                            _buildHOTPRefreshButton(
-                              padding: 4,
-                              color: textTheme.labelSmall?.color,
-                            ),
-                          if (!isHOTP)
-                            _buildEyeButton(
-                              padding: 4,
-                              color: textTheme.labelSmall?.color,
-                            ),
+                          if (isHOTP) _buildHOTPRefreshButton(padding: 4),
+                          if (!isHOTP) _buildEyeButton(padding: 4),
                           ItemBuilder.buildIconButton(
                             context: context,
                             padding: const EdgeInsets.all(4),
