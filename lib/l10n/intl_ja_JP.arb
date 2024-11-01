@@ -124,6 +124,8 @@
   "defaultHideCodeTip": "アプリを開くかトークンを変更すると、デフォルトでコードが隠れます",
   "hideProgressBar": "進捗バーを隠す",
   "hideProgressBarTip": "トークンのカウントダウン進捗バーを隠す",
+  "showEye": "ビューアイコンを表示",
+  "showEyeTip": "表示アイコンが表示されている場合は、表示アイコンをクリックすることによってのみコードを表示できます。表示されていない場合は、トークンをクリックしてコードを表示します",
   "copyTimes": "コピー回数",
   "currentCopyTimes": "現在のコピー回数：{times}",
   "currentCounter": "現在のカウント：{counter}",

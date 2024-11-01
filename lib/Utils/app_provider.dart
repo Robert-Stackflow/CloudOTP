@@ -210,6 +210,17 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _showEye = HiveUtil.getBool(HiveUtil.showEyeKey);
+
+  bool get showEye => _showEye;
+
+  set showEye(bool value) {
+    _showEye = value;
+    HiveUtil.put(HiveUtil.showEyeKey, value);
+    notifyListeners();
+  }
+
+
   bool _enableLandscapeInTablet =
       HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey);
 

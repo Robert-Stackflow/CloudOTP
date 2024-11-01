@@ -70,6 +70,7 @@ class HiveUtil {
   static const String hideProgressBarKey = "hideProgressBar";
   static const String autoHideCodeKey = "autoHideCode";
   static const String defaultHideCodeKey = "defaultHideCode";
+  static const String showEyeKey = "showEye";
 
   //Appearance
   static const String showCloudBackupButtonKey = "showCloudBackupButton";

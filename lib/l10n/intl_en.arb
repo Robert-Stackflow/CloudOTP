@@ -124,6 +124,8 @@
   "defaultHideCodeTip": "Hide the code by default when opening the app or changing the token",
   "hideProgressBar": "Hide Progress Bar",
   "hideProgressBarTip": "Hide the countdown progress bar of the token",
+  "showEye": "Show view icon",
+  "showEyeTip": "When the view icon is displayed, the code can only be displayed by clicking on the view icon; when it is not displayed, click on the token to display the code",
   "copyTimes": "Copy Times",
   "currentCopyTimes": "Current Copy Times: {times}",
   "currentCounter": "Current Count: {counter}",

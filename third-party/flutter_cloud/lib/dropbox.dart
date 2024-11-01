@@ -10,6 +10,7 @@ import 'package:flutter_cloud/status.dart';
 import 'package:flutter_cloud/token_manager.dart';
 import 'package:http/http.dart' as http;
 
+import 'cloud_logger.dart';
 import 'dropbox_response.dart';
 import 'oauth2_helper.dart';
 
@@ -34,6 +35,8 @@ class Dropbox with ChangeNotifier {
   final String scopes;
   final String clientId;
   late final String state;
+
+  static const String TAG = "Dropbox";
 
   Dropbox({
     required this.clientId,
@@ -118,7 +121,7 @@ class Dropbox with ChangeNotifier {
     } on PlatformException {
       return false;
     } catch (err, trace) {
-      debugPrint("# Dropbox -> connect: $err\n$trace");
+      CloudLogger.error(TAG, "Error while connect:", err, trace);
       return false;
     }
   }
@@ -131,10 +134,9 @@ class Dropbox with ChangeNotifier {
         uri,
         headers: {"Authorization": "Bearer $accessToken"},
       );
-      debugPrint(
-          "# Dropbox -> disconnect: revoke access token: ${resp.statusCode}");
+      CloudLogger.infoResponse(TAG, "Revoke access token", resp);
     } catch (err, trace) {
-      debugPrint("# Dropbox -> disconnect: $err\n$trace");
+      CloudLogger.error(TAG, "Error while disconnect:", err, trace);
     } finally {
       await _tokenManager.clearStoredToken();
       notifyListeners();
@@ -197,14 +199,11 @@ class Dropbox with ChangeNotifier {
       final resp = await post(url);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        debugPrint("# Dropbox -> getInfo success: ${jsonDecode(resp.body)}");
-
+        CloudLogger.infoResponse(TAG, "Get info success", resp);
         final usageResp = await post(storageUrl);
 
         if (usageResp.statusCode == 200 || usageResp.statusCode == 201) {
-          debugPrint(
-              "# Dropbox -> getStorageInfo success: ${jsonDecode(usageResp.body)}");
-
+          CloudLogger.infoResponse(TAG, "Get storage info success", usageResp);
           return DropboxResponse.fromResponse(
             response: usageResp,
             userInfo: DropboxUserInfo.fromJson(
@@ -212,23 +211,21 @@ class Dropbox with ChangeNotifier {
             message: "Get Info successfully.",
           );
         } else {
-          debugPrint(
-              "# Dropbox -> getStorageInfo failed: ${usageResp.statusCode} # Body: ${usageResp.body}");
+          CloudLogger.errorResponse(TAG, "Get storage info failed", usageResp);
           return DropboxResponse.fromResponse(
             response: usageResp,
             message: "Error while get storage info.",
           );
         }
       } else {
-        debugPrint(
-            "# Dropbox -> getInfo failed: ${resp.statusCode} # Body: ${resp.body}");
+        CloudLogger.error(TAG, "Get info failed", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Error while get info.",
         );
       }
-    } catch (err) {
-      debugPrint("# Dropbox -> getInfo error: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "Get info error", err, trace);
       return DropboxResponse(message: "Unexpected exception: $err");
     }
   }
@@ -259,22 +256,21 @@ class Dropbox with ChangeNotifier {
           if (item['.tag'] == "folder") continue;
           files.add(DropboxFileInfo.fromJson(item));
         }
-        debugPrint("# Dropbox -> list successfully");
+        CloudLogger.infoResponse(TAG, "List files success", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           files: files,
           message: "List files successfully.",
         );
       } else {
-        debugPrint(
-            "# Dropbox -> list failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "List files failed", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Error while listing files.",
         );
       }
-    } catch (err) {
-      debugPrint("# Dropbox -> list error: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "List files error", err, trace);
       return DropboxResponse(message: "Unexpected exception: $err");
     }
   }
@@ -295,21 +291,20 @@ class Dropbox with ChangeNotifier {
       );
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        debugPrint("# Dropbox -> pull successfully");
+        CloudLogger.infoResponse(TAG, "pull successfully", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Download successfully.",
         );
       } else {
-        debugPrint(
-            "# Dropbox -> pull failed : ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "pull failed", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Error while downloading file.",
         );
       }
-    } catch (err) {
-      debugPrint("# Dropbox -> pull: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "pull error", err, trace);
       return DropboxResponse(message: "Unexpected exception: $err");
     }
   }
@@ -327,21 +322,20 @@ class Dropbox with ChangeNotifier {
       );
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        debugPrint("# Dropbox -> delete successfully");
+        CloudLogger.infoResponse(TAG, "delete successfully", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Delete successfully.",
         );
       } else {
-        debugPrint(
-            "# Dropbox -> delete failed ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "delete failed", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Error while deleting file.",
         );
       }
-    } catch (err) {
-      debugPrint("# Dropbox -> delete error: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "delete error", err, trace);
       return DropboxResponse(message: "Unexpected exception: $err");
     }
   }
@@ -363,21 +357,20 @@ class Dropbox with ChangeNotifier {
       );
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        debugPrint("# Dropbox -> deleteBatch successfully");
+        CloudLogger.infoResponse(TAG, "deleteBatch successfully", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Delete batch successfully.",
         );
       } else {
-        debugPrint(
-            "# Dropbox -> deleteBatch failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "deleteBatch failed", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Error while deleting file.",
         );
       }
-    } catch (err) {
-      debugPrint("# Dropbox -> deleteBatch error: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "deleteBatch error", err, trace);
       return DropboxResponse(message: "Unexpected exception: $err");
     }
   }
@@ -407,40 +400,21 @@ class Dropbox with ChangeNotifier {
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         onProgress?.call(1, 1);
-        debugPrint("# Dropbox -> Upload successfully");
+        CloudLogger.infoResponse(TAG, "Upload successfully", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Upload finished.",
         );
       } else {
-        debugPrint(
-            "# Dropbox -> Upload failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.error(TAG, "Upload failed", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Upload failed.",
         );
       }
-    } catch (err) {
-      debugPrint("# Dropbox -> Upload error: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "Upload error", err, trace);
       return DropboxResponse(message: "Unexpected exception: $err");
     }
   }
-}
-
-class UploadStatus {
-  final int index;
-  final int total;
-  final int start;
-  final int end;
-  final String contentLength;
-  final String range;
-
-  UploadStatus(
-    this.index,
-    this.total,
-    this.start,
-    this.end,
-    this.contentLength,
-    this.range,
-  );
 }

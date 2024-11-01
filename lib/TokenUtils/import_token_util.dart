@@ -100,8 +100,7 @@ class ImportAnalysis {
 }
 
 class ImportTokenUtil {
-  static Future<List<dynamic>> parseRawUri(
-    List<String> rawUris, {
+  static Future<List<dynamic>> parseRawUri(List<String> rawUris, {
     bool autoPopup = true,
     BuildContext? context,
   }) async {
@@ -143,8 +142,7 @@ class ImportTokenUtil {
     return [tokens, categories];
   }
 
-  static Future<List<dynamic>> analyzeImageFile(
-    String filepath, {
+  static Future<List<dynamic>> analyzeImageFile(String filepath, {
     required BuildContext context,
     bool showLoading = true,
   }) async {
@@ -178,17 +176,17 @@ class ImportTokenUtil {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,
-        (context) => TokenOptionBottomSheet(
-          token: res[0].first,
-          isNewToken: true,
-        ),
+            (context) =>
+            TokenOptionBottomSheet(
+              token: res[0].first,
+              isNewToken: true,
+            ),
       );
     }
     return res;
   }
 
-  static Future<List<dynamic>> analyzeImage(
-    Uint8List? imageBytes, {
+  static Future<List<dynamic>> analyzeImage(Uint8List? imageBytes, {
     required BuildContext context,
     bool showLoading = true,
     bool doDismissLoading = false,
@@ -244,17 +242,17 @@ class ImportTokenUtil {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,
-        (context) => TokenOptionBottomSheet(
-          token: tokens.first,
-          isNewToken: true,
-        ),
+            (context) =>
+            TokenOptionBottomSheet(
+              token: tokens.first,
+              isNewToken: true,
+            ),
       );
     }
     return [tokens, categories];
   }
 
-  static importUriFile(
-    String filePath, {
+  static importUriFile(String filePath, {
     bool showLoading = true,
   }) async {
     if (showLoading) {
@@ -285,11 +283,10 @@ class ImportTokenUtil {
     }
   }
 
-  static Future<bool> importOldEncryptFile(
-    String filePath,
-    String password, {
-    bool showLoading = true,
-  }) async {
+  static Future<bool> importOldEncryptFile(String filePath,
+      String password, {
+        bool showLoading = true,
+      }) async {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.importing);
     }
@@ -302,7 +299,7 @@ class ImportTokenUtil {
         List<OtpToken>? tokens = await compute((_) async {
           Uint8List content = file.readAsBytesSync();
           List<OtpToken>? tokens =
-              await BackupEncryptionOld().decrypt(content, password);
+          await BackupEncryptionOld().decrypt(content, password);
           return tokens;
         }, null);
         if (tokens == null) {
@@ -332,7 +329,7 @@ class ImportTokenUtil {
 
   static _showImportPasswordDialog(BuildContext context, String path) {
     InputValidateAsyncController validateAsyncController =
-        InputValidateAsyncController(
+    InputValidateAsyncController(
       controller: TextEditingController(),
       listen: false,
       validator: (text) async {
@@ -351,32 +348,32 @@ class ImportTokenUtil {
       context,
       responsive: true,
       useWideLandscape: true,
-      (context) => InputBottomSheet(
-        validator: (value) {
-          if (value.isEmpty) {
-            return S.current.autoBackupPasswordCannotBeEmpty;
-          }
-          return null;
-        },
-        checkSyncValidator: false,
-        validateAsyncController: validateAsyncController,
-        title: S.current.inputImportPasswordTitle,
-        message: S.current.inputImportPasswordTip,
-        hint: S.current.inputImportPasswordHint,
-        inputFormatters: [
-          RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-        ],
-        tailingType: InputItemTailingType.password,
-        onValidConfirm: (password) async {},
-      ),
+          (context) =>
+          InputBottomSheet(
+            validator: (value) {
+              if (value.isEmpty) {
+                return S.current.autoBackupPasswordCannotBeEmpty;
+              }
+              return null;
+            },
+            checkSyncValidator: false,
+            validateAsyncController: validateAsyncController,
+            title: S.current.inputImportPasswordTitle,
+            message: S.current.inputImportPasswordTip,
+            hint: S.current.inputImportPasswordHint,
+            inputFormatters: [
+              RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+            ],
+            tailingType: InputItemTailingType.password,
+            onValidConfirm: (password) async {},
+          ),
     );
   }
 
-  static importEncryptFileWrapper(
-    BuildContext context,
-    String filePath, {
-    bool showLoading = true,
-  }) async {
+  static importEncryptFileWrapper(BuildContext context,
+      String filePath, {
+        bool showLoading = true,
+      }) async {
     operation() {
       _showImportPasswordDialog(context, filePath);
     }
@@ -390,11 +387,10 @@ class ImportTokenUtil {
     }
   }
 
-  static Future<bool> importEncryptFile(
-    String filePath,
-    String password, {
-    bool showLoading = true,
-  }) async {
+  static Future<bool> importEncryptFile(String filePath,
+      String password, {
+        bool showLoading = true,
+      }) async {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.importing);
     }
@@ -430,8 +426,7 @@ class ImportTokenUtil {
     }
   }
 
-  static Future<bool> importBackupFile(
-    Uint8List content, {
+  static Future<bool> importBackupFile(Uint8List content, {
     String? password,
     bool showLoading = true,
     String? loadingText,
@@ -462,8 +457,7 @@ class ImportTokenUtil {
     }
   }
 
-  static Future<bool> importUint8List(
-    Uint8List content, {
+  static Future<bool> importUint8List(Uint8List content, {
     String? password,
   }) async {
     String tmpPassword = password ?? await ConfigDao.getBackupPassword();
@@ -483,8 +477,7 @@ class ImportTokenUtil {
     return true;
   }
 
-  static Future<List<OtpToken>> importText(
-    String content, {
+  static Future<List<OtpToken>> importText(String content, {
     String emptyTip = "",
     String noTokenToast = "",
     bool showLoading = true,
@@ -523,7 +516,7 @@ class ImportTokenUtil {
     ImportAnalysis analysis = ImportAnalysis();
     for (var line in lines) {
       List<TokenCategory> tmp =
-          await OtpTokenParser.parseCloudOtpauthCategoryMigration(line);
+      await OtpTokenParser.parseCloudOtpauthCategoryMigration(line);
       categories.addAll(tmp);
     }
     analysis.parseCategorySuccess = categories.length;
@@ -532,11 +525,9 @@ class ImportTokenUtil {
     return categories;
   }
 
-  static importFromCloud(
-    BuildContext context,
-    Uint8List? res,
-    ProgressDialog dialog,
-  ) async {
+  static importFromCloud(BuildContext context,
+      Uint8List? res,
+      ProgressDialog dialog,) async {
     dialog.updateMessage(
       msg: S.current.importing,
       showProgress: false,
@@ -553,7 +544,7 @@ class ImportTokenUtil {
     dialog.dismiss();
     if (!success) {
       InputValidateAsyncController validateAsyncController =
-          InputValidateAsyncController(
+      InputValidateAsyncController(
         listen: false,
         validator: (text) async {
           if (text.isEmpty) {
@@ -581,24 +572,25 @@ class ImportTokenUtil {
         context,
         responsive: true,
         useWideLandscape: true,
-        (context) => InputBottomSheet(
-          validator: (value) {
-            if (value.isEmpty) {
-              return S.current.autoBackupPasswordCannotBeEmpty;
-            }
-            return null;
-          },
-          checkSyncValidator: false,
-          validateAsyncController: validateAsyncController,
-          title: S.current.inputImportPasswordTitle,
-          message: S.current.inputImportPasswordTip,
-          hint: S.current.inputImportPasswordHint,
-          inputFormatters: [
-            RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-          ],
-          tailingType: InputItemTailingType.password,
-          onValidConfirm: (password) async {},
-        ),
+            (context) =>
+            InputBottomSheet(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              checkSyncValidator: false,
+              validateAsyncController: validateAsyncController,
+              title: S.current.inputImportPasswordTitle,
+              message: S.current.inputImportPasswordTip,
+              hint: S.current.inputImportPasswordHint,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+              ],
+              tailingType: InputItemTailingType.password,
+              onValidConfirm: (password) async {},
+            ),
       );
     }
   }
@@ -617,22 +609,22 @@ class ImportTokenUtil {
     return uidMap;
   }
 
-  static OtpToken? checkTokenExist(OtpToken token, List<OtpToken> tokenList) {
-    for (OtpToken otpToken in tokenList) {
-      if (otpToken.issuer.trim() == token.issuer.trim() &&
-          otpToken.account.trim() == token.account.trim() &&
-          (otpToken.secret.trim() == token.secret.trim() ||
-              otpToken.secret.trimPadding() == token.secret.trimPadding())) {
+  static OtpToken? checkTokenExist(OtpToken toCheckToken,
+      List<OtpToken> checkList) {
+    for (OtpToken otpToken in checkList) {
+      if (otpToken.issuer.trim() == toCheckToken.issuer.trim() &&
+          otpToken.account.trim() == toCheckToken.account.trim() &&
+          (otpToken.secret.trim() == toCheckToken.secret.trim() ||
+              otpToken.secret.trimPadding() ==
+                  toCheckToken.secret.trimPadding())) {
         return otpToken;
       }
     }
     return null;
   }
 
-  static bool checkCategoryExist(
-    TokenCategory category,
-    List<TokenCategory> categoryList,
-  ) {
+  static bool checkCategoryExist(TokenCategory category,
+      List<TokenCategory> categoryList,) {
     for (TokenCategory tokenCategory in categoryList) {
       if (tokenCategory.uid == category.uid &&
           tokenCategory.title != category.title) {
@@ -646,10 +638,10 @@ class ImportTokenUtil {
   }
 
   static Future<ImportAnalysis> mergeTokensAndCategories(
-    List<OtpToken> tokenList,
-    List<TokenCategory> categoryList, {
-    bool performInsert = true,
-  }) async {
+      List<OtpToken> tokenList,
+      List<TokenCategory> categoryList, {
+        bool performInsert = true,
+      }) async {
     ImportAnalysis analysis = ImportAnalysis();
     analysis.importSuccess = await mergeTokens(tokenList);
     Map<String, String> uidMap = await getAlreadyExistUid(tokenList);
@@ -660,30 +652,34 @@ class ImportTokenUtil {
     return analysis;
   }
 
-  static Future<int> mergeTokens(
-    List<OtpToken> tokenList, {
+  static Future<int> mergeTokens(List<OtpToken> toMergeTokenList, {
     bool performInsert = true,
   }) async {
     List<OtpToken> already = await TokenDao.listTokens();
-    List<OtpToken> newTokenList = [];
-    for (OtpToken otpToken in tokenList) {
-      if (otpToken.issuer.isEmpty) otpToken.issuer = otpToken.account;
-      otpToken.imagePath = TokenImageUtil.matchBrandLogo(otpToken) ?? "";
-      OtpToken? alreadyToken = checkTokenExist(otpToken, already);
-      if (alreadyToken == null &&
-          checkTokenExist(otpToken, newTokenList) == null) {
-        newTokenList.add(otpToken);
+    List<OtpToken> finalMergeTokenList = [];
+    for (OtpToken toMergeToken in toMergeTokenList) {
+      if (toMergeToken.issuer.isEmpty) {
+        toMergeToken.issuer = toMergeToken.account;
       }
+      toMergeToken.imagePath =
+          TokenImageUtil.matchBrandLogo(toMergeToken) ?? "";
+      OtpToken? alreadyToken = checkTokenExist(toMergeToken, already);
+      if (alreadyToken == null &&
+          checkTokenExist(toMergeToken, finalMergeTokenList) == null) {
+        finalMergeTokenList.add(toMergeToken);
+      } else {}
+    }
+    for (var token in finalMergeTokenList) {
+      if (token.uid.isEmpty) token.uid = Utils.generateUid();
     }
     if (performInsert) {
-      await TokenDao.insertTokens(newTokenList);
+      await TokenDao.insertTokens(finalMergeTokenList);
       homeScreenState?.refresh();
     }
-    return newTokenList.length;
+    return finalMergeTokenList.length;
   }
 
-  static Future<int> mergeCategories(
-    List<TokenCategory> categoryList, {
+  static Future<int> mergeCategories(List<TokenCategory> categoryList, {
     bool performInsert = true,
   }) async {
     Map<String, int> categoryCount = {};
@@ -691,7 +687,7 @@ class ImportTokenUtil {
       if (categoryCount.containsKey(category.title)) {
         categoryCount[category.title] = categoryCount[category.title]! + 1;
         category.title =
-            "${category.title}(${categoryCount[category.title]! - 1})";
+        "${category.title}(${categoryCount[category.title]! - 1})";
       } else {
         categoryCount[category.title] = 1;
       }

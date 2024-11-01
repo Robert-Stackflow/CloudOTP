@@ -112,7 +112,7 @@ class ILogger {
     log(Level.error, tag, message, error, stackTrace);
   }
 
-  static void warn(String tag, String message,
+  static void warning(String tag, String message,
       [Object? error, StackTrace? stackTrace]) {
     log(Level.warning, tag, message, error, stackTrace);
   }

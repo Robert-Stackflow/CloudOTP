@@ -10,6 +10,7 @@ import 'package:flutter_cloud/status.dart';
 import 'package:flutter_cloud/token_manager.dart';
 import 'package:http/http.dart' as http;
 
+import 'cloud_logger.dart';
 import 'oauth2_helper.dart';
 import 'onedrive_response.dart';
 
@@ -37,6 +38,8 @@ class OneDrive with ChangeNotifier {
   final String clientId;
 
   late final String state;
+
+  static const String TAG = "Ondrive";
 
   OneDrive({
     required this.clientId,
@@ -117,8 +120,8 @@ class OneDrive with ChangeNotifier {
       }
     } on PlatformException {
       return false;
-    } catch (err) {
-      debugPrint("# OneDrive -> connect error: $err");
+    } catch (e, t) {
+      CloudLogger.error(TAG, "# OneDrive -> connect error", e, t);
       return false;
     }
   }
@@ -200,23 +203,23 @@ class OneDrive with ChangeNotifier {
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         OneDriveUserInfo userInfo =
             OneDriveUserInfo.fromJson(jsonDecode(resp.body));
-        debugPrint("# OneDrive -> get info successfully: $userInfo");
+        CloudLogger.infoResponse(
+            TAG, "# OneDrive -> get info successfully: $userInfo", resp);
         return OneDriveResponse.fromResponse(
           response: resp,
           userInfo: userInfo,
           message: "Get Info successfully.",
         );
       } else {
-        debugPrint(
-            "# OneDrive -> get info failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "# OneDrive -> get info failed: ", resp);
         return OneDriveResponse.fromResponse(
           response: resp,
           message: "Error while get info.",
         );
       }
-    } catch (err) {
-      debugPrint("# OneDrive -> getInfo error: $err");
-      return OneDriveResponse(message: "Unexpected exception: $err");
+    } catch (e, t) {
+      CloudLogger.error(TAG, "# OneDrive -> getInfo error", e, t);
+      return OneDriveResponse(message: "Unexpected exception: $e");
     }
   }
 
@@ -238,23 +241,23 @@ class OneDrive with ChangeNotifier {
         for (var item in body['value']) {
           files.add(OneDriveFileInfo.fromJson(item));
         }
-        debugPrint("# OneDrive -> list successfully");
+        CloudLogger.infoResponse(
+            TAG, "# OneDrive -> list successfully: $files", resp);
         return OneDriveResponse.fromResponse(
           response: resp,
           files: files,
           message: "List files successfully.",
         );
       } else {
-        debugPrint(
-            "# OneDrive -> list failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "# OneDrive -> list failed: ", resp);
         return OneDriveResponse.fromResponse(
           response: resp,
           message: "Error while listing files.",
         );
       }
-    } catch (err) {
-      debugPrint("# OneDrive -> list: $err");
-      return OneDriveResponse(message: "Unexpected exception: $err");
+    } catch (e, t) {
+      CloudLogger.error(TAG, "# OneDrive -> list error", e, t);
+      return OneDriveResponse(message: "Unexpected exception: $e");
     }
   }
 
@@ -268,21 +271,20 @@ class OneDrive with ChangeNotifier {
       final resp = await get(url);
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        debugPrint("# OneDrive -> pull successfully");
+        CloudLogger.info(TAG, "# OneDrive -> pull successfully");
         return OneDriveResponse.fromResponse(
           response: resp,
           message: "Download successfully.",
         );
       } else {
-        debugPrint(
-            "# OneDrive -> pull failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "# OneDrive -> pull failed", resp);
         return OneDriveResponse.fromResponse(
           response: resp,
           message: "Error while downloading file.",
         );
       }
-    } catch (err) {
-      debugPrint("# OneDrive -> pull: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "# OneDrive -> pull error", err, trace);
       return OneDriveResponse(message: "Unexpected exception: $err");
     }
   }
@@ -299,22 +301,22 @@ class OneDrive with ChangeNotifier {
       if (resp.statusCode == 200 ||
           resp.statusCode == 201 ||
           resp.statusCode == 204) {
-        debugPrint("# OneDrive -> delete successfully");
+        CloudLogger.infoResponse(
+            TAG, "# OneDrive -> delete successfully", resp);
         return OneDriveResponse.fromResponse(
           response: resp,
           message: "Delete successfully.",
         );
       } else {
-        debugPrint(
-            "# OneDrive -> delete failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(TAG, "# OneDrive -> delete failed", resp);
         return OneDriveResponse.fromResponse(
           response: resp,
           message: "Error while deleting file.",
         );
       }
-    } catch (err) {
-      debugPrint("# OneDrive -> delete: $err");
-      return OneDriveResponse(message: "Unexpected exception: $err");
+    } catch (e, t) {
+      CloudLogger.error(TAG, "# OneDrive -> delete error", e, t);
+      return OneDriveResponse(message: "Unexpected exception: $e");
     }
   }
 
@@ -336,8 +338,10 @@ class OneDrive with ChangeNotifier {
 
       var resp = await post(url);
 
-      debugPrint(
-          "# OneDrive -> Upload Create Session: ${DateTime.now().difference(now).inMilliseconds} ms");
+      CloudLogger.infoResponse(
+          TAG,
+          "# OneDrive -> Upload Create Session: ${DateTime.now().difference(now).inMilliseconds} ms",
+          resp);
 
       if (resp.statusCode == 200) {
         final Map<String, dynamic> respJson = jsonDecode(resp.body);
@@ -364,22 +368,24 @@ class OneDrive with ChangeNotifier {
             body: pageData,
           );
 
-          debugPrint(
-              "# OneDrive -> Upload [${pageIndex + 1}/$maxPage]: ${DateTime.now().difference(now).inMilliseconds} ms, start: $start, end: $end, contentLength: $contentLength, range: $range");
+          CloudLogger.infoResponse(
+              TAG,
+              "# OneDrive -> Upload [${pageIndex + 1}/$maxPage]: ${DateTime.now().difference(now).inMilliseconds} ms, start: $start, end: $end, contentLength: $contentLength, range: $range",
+              resp);
 
           if (resp.statusCode == 202) {
             onProgress?.call(pageIndex + 1, maxPage);
             continue;
           } else if (resp.statusCode == 200 || resp.statusCode == 201) {
             onProgress?.call(pageIndex + 1, maxPage);
-            debugPrint("# OneDrive -> Upload finished");
+            CloudLogger.infoResponse(
+                TAG, "# OneDrive -> Upload finished", resp);
             return OneDriveResponse.fromResponse(
               response: resp,
               message: "Upload finished.",
             );
           } else {
-            debugPrint(
-                "# OneDrive -> Upload failed: ${resp.statusCode}\n# Body: ${resp.body}");
+            CloudLogger.errorResponse(TAG, "# OneDrive -> Upload failed", resp);
             return OneDriveResponse.fromResponse(
               response: resp,
               message: "Upload failed.",
@@ -387,8 +393,8 @@ class OneDrive with ChangeNotifier {
           }
         }
       }
-    } catch (err) {
-      debugPrint("# OneDrive -> Upload error: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "# OneDrive -> Upload error", err, trace);
       return OneDriveResponse(message: "Unexpected exception: $err");
     }
 
@@ -418,13 +424,14 @@ class OneDrive with ChangeNotifier {
       );
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        debugPrint("# OneDrive -> create folder success: ${resp.body}");
+        CloudLogger.infoResponse(
+            TAG, "# OneDrive -> create folder success", resp);
       } else {
-        debugPrint(
-            "# OneDrive -> create folder failed: ${resp.statusCode}\n# Body: ${resp.body}");
+        CloudLogger.errorResponse(
+            TAG, "# OneDrive -> create folder failed", resp);
       }
-    } catch (err) {
-      debugPrint("# OneDrive -> create folder: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "# OneDrive -> create folder error", err, trace);
     }
   }
 }

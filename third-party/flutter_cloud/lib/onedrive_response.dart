@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:flutter_cloud/status.dart';
 import 'package:http/http.dart' as http;
 
@@ -127,5 +128,18 @@ class OneDriveFileInfo {
       description: json['description'] ?? "",
       fileMimeType: json['file'] != null ? json['file']['mimeType'] ?? "" : "",
     );
+  }
+
+  @override
+  String toString() {
+    return "OneDriveFileInfo("
+        "id: $id, "
+        "name: $name, "
+        "size: $size, "
+        "createdDateTime: $createdDateTime, "
+        "lastModifiedDateTime: $lastModifiedDateTime, "
+        "description: $description, "
+        "fileMimeType: $fileMimeType"
+        ")";
   }
 }

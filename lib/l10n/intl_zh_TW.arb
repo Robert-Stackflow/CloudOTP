@@ -124,6 +124,8 @@
   "defaultHideCodeTip": "開啟應用程式或變更令牌時，預設隱藏程式碼",
   "hideProgressBar": "隱藏進度列",
   "hideProgressBarTip": "隱藏令牌的倒數進度列",
+  "showEye": "顯示檢視圖示",
+  "showEyeTip": "顯示檢視圖示時只有點擊檢視圖示才能顯示代碼；不顯示時點選令牌即可顯示代碼",
   "copyTimes": "複製次數",
   "currentCopyTimes": "目前複製次數：{times}",
   "currentCounter": "目前計數：{counter}",

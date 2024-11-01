@@ -1,8 +1,9 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+
+import 'cloud_logger.dart';
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
@@ -30,6 +31,7 @@ class DefaultTokenManager extends ITokenManager {
   final String accessTokenKey;
   final String refreshTokenKey;
   final String idTokenKey;
+  static const String TAG = "TokenManager";
 
   DefaultTokenManager({
     required this.tokenEndpoint,
@@ -56,8 +58,8 @@ class DefaultTokenManager extends ITokenManager {
           key: refreshTokenKey, value: body['refresh_token']);
       await secureStorage.write(key: idTokenKey, value: body['id_token'] ?? "");
       return true;
-    } catch (err) {
-      debugPrint("# DefaultTokenManager -> _saveTokenMap: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "Error saving token response", err, trace);
       return false;
     }
   }
@@ -72,8 +74,8 @@ class DefaultTokenManager extends ITokenManager {
         return false;
       }
       return true;
-    } catch (err) {
-      debugPrint("# DefaultTokenManager -> getAccessToken: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "Error checking if authorized", err, trace);
       return false;
     }
   }
@@ -86,8 +88,8 @@ class DefaultTokenManager extends ITokenManager {
         secureStorage.delete(key: accessTokenKey),
         secureStorage.delete(key: refreshTokenKey),
       ]);
-    } catch (err) {
-      debugPrint("# DefaultTokenManager -> clearStoredToken: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "Error clearing stored token", err, trace);
     }
   }
 
@@ -113,8 +115,8 @@ class DefaultTokenManager extends ITokenManager {
       }
 
       return accessToken;
-    } catch (err) {
-      debugPrint("# DefaultTokenManager -> getAccessToken: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "Error getting access token", err, trace);
       return null;
     }
   }
@@ -136,19 +138,17 @@ class DefaultTokenManager extends ITokenManager {
 
       final resp = await http.post(Uri.parse(tokenEndpoint), body: body);
       if (resp.statusCode != 200) {
-        debugPrint(
-            "# DefaultTokenManager -> _refreshToken: ${resp.statusCode}\n# Body: ${resp.body}");
-
+        CloudLogger.errorResponse(TAG, "Error refreshing token", resp);
         await clearStoredToken();
         return null;
       }
 
-      debugPrint("# Refresh token: Success");
+      CloudLogger.infoResponse(TAG, "Refresh token: Success", resp);
       final Map<String, dynamic> tokenMap = jsonDecode(resp.body);
       await saveTokenResp(resp);
       return tokenMap;
-    } catch (err) {
-      debugPrint("# DefaultTokenManager -> _refreshToken: $err");
+    } catch (err, trace) {
+      CloudLogger.error(TAG, "Error refreshing token", err, trace);
       if (err is! http.ClientException) {
         await clearStoredToken();
       }

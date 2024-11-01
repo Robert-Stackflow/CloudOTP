@@ -450,6 +450,61 @@ class TokenLayoutState extends State<TokenLayout>
     );
   }
 
+  _buildVisibleLayout(Function(bool) builder) {
+    return ChangeNotifierProvider.value(
+      value: tokenLayoutNotifier,
+      child: Selector<TokenLayoutNotifier, bool>(
+        selector: (context, tokenLayoutNotifier) =>
+            tokenLayoutNotifier.codeVisiable,
+        builder: (context, codeVisiable, child) => builder(codeVisiable),
+      ),
+    );
+  }
+
+  _buildVisibleLayoutWithEye(Function(bool) builder) {
+    return _buildVisibleLayout(
+      (codeVisiable) => Selector<AppProvider, bool>(
+        selector: (context, provider) => provider.showEye,
+        builder: (context, showEye, child) =>
+            showEye ? builder(codeVisiable) : builder(true),
+      ),
+    );
+  }
+
+  _buildEyeButton({
+    double padding = 8,
+    Color? color,
+  }) {
+    return _buildVisibleLayout(
+      (codeVisiable) {
+        if (codeVisiable) return emptyWidget;
+        return Selector<AppProvider, bool>(
+          selector: (context, provider) => provider.showEye,
+          builder: (context, showEye, child) => showEye
+              ? Container(
+                  child: ItemBuilder.buildIconButton(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      tokenLayoutNotifier.codeVisiable =
+                          !tokenLayoutNotifier.codeVisiable;
+                      setState(() {});
+                    },
+                    padding: EdgeInsets.all(padding),
+                    icon: Icon(
+                      Icons.visibility_outlined,
+                      size: 20,
+                      color: color ??
+                          Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                    context: context,
+                  ),
+                )
+              : emptyWidget,
+        );
+      },
+    );
+  }
+
   _buildHOTPRefreshButton({
     double padding = 8,
     Color? color,
@@ -492,13 +547,10 @@ class TokenLayoutState extends State<TokenLayout>
     AlignmentGeometry alignment = Alignment.centerLeft,
     bool forceNoType = false,
   }) {
-    return ChangeNotifierProvider.value(
-      value: tokenLayoutNotifier,
-      child: Selector<TokenLayoutNotifier, bool>(
-        selector: (context, tokenLayoutNotifier) =>
-            tokenLayoutNotifier.codeVisiable,
-        builder: (context, codeVisiable, child) =>
-            Selector<TokenLayoutNotifier, String>(
+    return _buildVisibleLayout(
+      (codeVisiable) => ChangeNotifierProvider.value(
+        value: tokenLayoutNotifier,
+        child: Selector<TokenLayoutNotifier, String>(
           selector: (context, tokenLayoutNotifier) => tokenLayoutNotifier.code,
           builder: (context, code, child) => Container(
             alignment: alignment,
@@ -552,7 +604,7 @@ class TokenLayoutState extends State<TokenLayout>
           : Container(
               width: 24,
               height: 24,
-              margin: const EdgeInsets.only(left: 8),
+              margin: const EdgeInsets.only(left: 8, right: 4),
               child: Stack(
                 children: [
                   ValueListenableBuilder(
@@ -602,7 +654,9 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _processTap() {
-    tokenLayoutNotifier.codeVisiable = true;
+    if (!appProvider.showEye) {
+      tokenLayoutNotifier.codeVisiable = true;
+    }
     updateCode();
     if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
       if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
@@ -658,6 +712,7 @@ class TokenLayoutState extends State<TokenLayout>
                                 ?.apply(fontWeightDelta: 2),
                           ),
                         ),
+                        if (!isHOTP) _buildEyeButton(padding: 6),
                         if (isHOTP) _buildHOTPRefreshButton(padding: 6),
                       ],
                     ),
@@ -751,6 +806,11 @@ class TokenLayoutState extends State<TokenLayout>
                               padding: 4,
                               color: textTheme.labelSmall?.color,
                             ),
+                          if (!isHOTP)
+                            _buildEyeButton(
+                              padding: 4,
+                              color: textTheme.labelSmall?.color,
+                            ),
                           ItemBuilder.buildIconButton(
                             context: context,
                             padding: const EdgeInsets.all(4),
@@ -761,109 +821,6 @@ class TokenLayoutState extends State<TokenLayout>
                               size: 20,
                             ),
                             onTap: showContextMenu,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Selector<AppProvider, bool>(
-                selector: (context, provider) => provider.hideProgressBar,
-                builder: (context, hideProgressBar, child) =>
-                    _buildLinearProgress(hideProgressBar),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  _buildTileLayout() {
-    return ItemBuilder.buildClickItem(
-      Material(
-        color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.15)
-            : Theme.of(context).canvasColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        clipBehavior: Clip.hardEdge,
-        child: InkWell(
-          onTap: _processTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        ItemBuilder.buildTokenImage(widget.token, size: 36),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                widget.token.issuer,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.apply(fontWeightDelta: 2),
-                              ),
-                              Text(
-                                widget.token.account,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isHOTP) _buildHOTPRefreshButton(),
-                        ItemBuilder.buildIconButton(
-                            context: context,
-                            icon: Icon(Icons.edit_rounded,
-                                color: Theme.of(context).iconTheme.color,
-                                size: 20),
-                            onTap: _processEdit),
-                        ItemBuilder.buildIconButton(
-                            context: context,
-                            icon: Icon(Icons.qr_code_rounded,
-                                color: Theme.of(context).iconTheme.color,
-                                size: 20),
-                            onTap: _processViewQrCode),
-                        ItemBuilder.buildIconButton(
-                          context: context,
-                          icon: Icon(Icons.more_vert_rounded,
-                              color: Theme.of(context).iconTheme.color,
-                              size: 20),
-                          onTap: showContextMenu,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Container(
-                      constraints:
-                          const BoxConstraints(minHeight: 60, maxHeight: 60),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              _buildCodeLayout(fontSize: 28, letterSpacing: 10)
-                            ],
                           ),
                         ],
                       ),
@@ -943,7 +900,11 @@ class TokenLayoutState extends State<TokenLayout>
                   ),
                 ),
                 const SizedBox(width: 20),
-                isHOTP ? _buildHOTPRefreshButton() : _buildCircleProgress(),
+                if (!isHOTP) _buildEyeButton(),
+                if (isHOTP) _buildHOTPRefreshButton(),
+                if (!isHOTP)
+                  _buildVisibleLayoutWithEye((codeVisible) =>
+                      codeVisible ? _buildCircleProgress() : emptyWidget),
                 const SizedBox(width: 2),
               ],
             ),
@@ -983,7 +944,13 @@ class TokenLayoutState extends State<TokenLayout>
                   ),
                 ),
                 _buildCodeLayout(),
-                if (!isHOTP) _buildCircleProgress(),
+                const SizedBox(width: 4),
+                if (!isHOTP)
+                  _buildEyeButton(
+                      padding: 6, color: Theme.of(context).primaryColor),
+                if (!isHOTP)
+                  _buildVisibleLayoutWithEye((codeVisible) =>
+                      codeVisible ? _buildCircleProgress() : emptyWidget),
                 if (isHOTP)
                   _buildHOTPRefreshButton(
                       padding: 6, color: Theme.of(context).primaryColor),

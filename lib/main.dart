@@ -28,6 +28,7 @@ import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cloud/cloud_logger.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -111,6 +112,7 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   await BiometricUtil.initStorage();
   await TokenImageUtil.loadBrandLogos();
   ResponsiveUtil.init();
+  initCloudLogger();
   if (ResponsiveUtil.isAndroid()) {
     await initDisplayMode();
     await RequestHeaderUtil.initAndroidInfo();
@@ -170,6 +172,27 @@ Future<void> onError(FlutterErrorDetails details) async {
   if (details.stack != null) {
     Zone.current.handleUncaughtError(details.exception, details.stack!);
   }
+}
+
+initCloudLogger() {
+  CloudLogger.logTrace = (tag, message, [e, t]) {
+    ILogger.trace(tag, message, e, t);
+  };
+  CloudLogger.logDebug = (tag, message, [e, t]) {
+    ILogger.debug(tag, message, e, t);
+  };
+  CloudLogger.logInfo = (tag, message, [e, t]) {
+    ILogger.info(tag, message, e, t);
+  };
+  CloudLogger.logWarning = (tag, message, [e, t]) {
+    ILogger.warning(tag, message, e, t);
+  };
+  CloudLogger.logError = (tag, message, [e, t]) {
+    ILogger.error(tag, message, e, t);
+  };
+  CloudLogger.logFatal = (tag, message, [e, t]) {
+    ILogger.fatal(tag, message, e, t);
+  };
 }
 
 class MyApp extends StatelessWidget {

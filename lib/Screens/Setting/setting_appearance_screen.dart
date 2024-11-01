@@ -62,6 +62,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
   final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
   bool hideProgressBar = HiveUtil.getBool(HiveUtil.hideProgressBarKey);
+  bool showEye = HiveUtil.getBool(HiveUtil.showEyeKey);
 
   @override
   void initState() {
@@ -221,6 +222,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       ItemBuilder.buildRadioItem(
         context: context,
         title: S.current.showSortButton,
+        bottomRadius: true,
         value: showSortButton,
         onTap: () {
           setState(() {
@@ -229,16 +231,30 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           });
         },
       ),
+      const SizedBox(height: 10),
       ItemBuilder.buildRadioItem(
         context: context,
+        topRadius: true,
         value: hideProgressBar,
-        bottomRadius: true,
         title: S.current.hideProgressBar,
         description: S.current.hideProgressBarTip,
         onTap: () {
           setState(() {
             hideProgressBar = !hideProgressBar;
             appProvider.hideProgressBar = hideProgressBar;
+          });
+        },
+      ),
+      ItemBuilder.buildRadioItem(
+        context: context,
+        value: showEye,
+        bottomRadius: true,
+        title: S.current.showEye,
+        description: S.current.showEyeTip,
+        onTap: () {
+          setState(() {
+            showEye = !showEye;
+            appProvider.showEye = showEye;
           });
         },
       ),
