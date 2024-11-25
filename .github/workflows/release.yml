@@ -69,7 +69,7 @@ jobs:
 
       # Setup Flutter
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2.16.0
+        uses: subosito/flutter-action@v2.17.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
