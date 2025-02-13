@@ -30,8 +30,14 @@ jobs:
               build/windows/outputs/*.zip
               build/windows/outputs/*.exe
           - target: Linux
-            os: ubuntu-latest
+            os: ubuntu-22.04
             artifact_name: release-Linux
+            artifact_path: |
+              build/linux/*.deb
+              build/linux/*.tar.gz
+          - target: Linux-arm
+            os: ubuntu-22.04-arm
+            artifact_name: release-Linux-arm
             artifact_path: |
               build/linux/*.deb
               build/linux/*.tar.gz
@@ -52,6 +58,7 @@ jobs:
     outputs:
       version: ${{ steps.get_version.outputs.version }}
       date: ${{ steps.get_version.outputs.date}}
+      arch: ${{ steps.get_version.outputs.arch}}
     runs-on: ${{ matrix.os }}
     env:
       FLUTTER_VERSION: 3.24.0
@@ -72,8 +79,7 @@ jobs:
         uses: subosito/flutter-action@v2.18.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-          cache: true
+          channel: 'master'
 
       # Cache Pod
       - name: Cache Pod
@@ -113,6 +119,7 @@ jobs:
         run: |
           echo "version=$(head -n 2 pubspec.yaml | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)" >> $GITHUB_OUTPUT
           echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          echo "arch=${RUNNER_ARCH,,}" >> $GITHUB_OUTPUT
 
       # Build Android .apk
       - name: Build Android
@@ -176,26 +183,20 @@ jobs:
 
       # Build Linux .deb
       - name: Build Linux
-        if: matrix.target == 'Linux'
+        if: matrix.target == 'Linux' || matrix.target == 'Linux-arm'
         run: |
-          # Prepare build depends
-          sudo apt-get update -y
-          sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa
-          sudo apt-get install -y clang cmake ninja-build pkg-config liblzma-dev libgtk-3-dev liblzma-dev libstdc++-12-dev
-          sudo apt-get install -y libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libnotify-dev libsqlcipher-dev
-          
-          # Compile
-          flutter config --enable-linux-desktop
+          sudo apt update -y
+          sudo apt install -y curl git unzip xz-utils zip libglu1-mesa clang cmake ninja-build pkg-config liblzma-dev libgtk-3-dev liblzma-dev libstdc++-12-dev libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libnotify-dev libsqlcipher-dev
           flutter build linux --release
 
           # Debian package
-          mkdir -p build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
-          cd build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
+          mkdir -p build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }}
+          cd build/linux/CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }}
           mkdir -p opt/CloudOTP
           mkdir -p usr/share/metainfo
           mkdir -p usr/share/applications
           mkdir -p usr/share/icons/hicolor/scalable/apps
-          cp -r ../x64/release/bundle/* opt/CloudOTP
+          cp -r ../${{ steps.get_version.outputs.arch }}/release/bundle/* opt/CloudOTP
           cp -r ../../../tools/linux_tools/DEBIAN .
           chmod 0755 DEBIAN/postinst
           chmod 0755 DEBIAN/postrm
@@ -207,9 +208,13 @@ jobs:
 
           sed -i "/^Version: /s/Version: .*/Version: ${{ steps.get_version.outputs.version }}/" DEBIAN/control
 
+          if [ "${{ steps.get_version.outputs.arch }}" = "arm64" ]; then
+              sed -i "/^Architecture: /s/Architecture: .*/Architecture: arm64/" DEBIAN/control
+          fi
+
           cd ..
-          dpkg-deb --build --root-owner-group CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64
-          tar -zcvf CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz -C CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64 .
+          dpkg-deb --build --root-owner-group CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }}
+          tar -zcvf CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz -C CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }} .
 
       # Upload Artifacts
       - name: Upload Artifacts
@@ -247,6 +252,8 @@ jobs:
           mv /tmp/artifacts/release-iOS/*.ipa /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.deb /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.tar.gz /tmp/artifacts/final/
+          mv /tmp/artifacts/release-Linux-arm/*.deb /tmp/artifacts/final/
+          mv /tmp/artifacts/release-Linux-arm/*.tar.gz /tmp/artifacts/final/
 
           cd /tmp/artifacts/final
           for file in *; do
