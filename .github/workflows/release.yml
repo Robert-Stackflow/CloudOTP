@@ -80,6 +80,7 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'master'
+          cache: true
 
       # Cache Pod
       - name: Cache Pod
