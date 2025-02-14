@@ -214,7 +214,7 @@ jobs:
 
           cd ..
           dpkg-deb --build --root-owner-group CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }}
-          tar -zcvf CloudOTP-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz -C CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }} .
+          tar -zcvf CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }}.tar.gz -C CloudOTP-${{ steps.get_version.outputs.version }}-linux-${{ steps.get_version.outputs.arch }} .
 
       # Upload Artifacts
       - name: Upload Artifacts
