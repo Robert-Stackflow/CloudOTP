@@ -168,7 +168,15 @@ Future<void> initDisplayMode() async {
 Future<void> onError(FlutterErrorDetails details) async {
   File errorFile = File(join(await FileUtil.getLogDir(), "error.log"));
   if (!errorFile.existsSync()) errorFile.createSync();
-  errorFile.writeAsStringSync(details.toString(), mode: FileMode.append);
+  final currentTime = DateTime.now().toIso8601String();
+  final errorDetails = [
+    'Time: $currentTime',
+    'Exception: ${details.exception}',
+    'Stack trace:\n${details.stack ?? 'No stack trace available'}',
+    'Library: ${details.library ?? 'Unknown library'}',
+    'Context: ${details.context?.toDescription() ?? 'No context available'}',
+  ].join('\n');
+  errorFile.writeAsStringSync('$errorDetails\n\n', mode: FileMode.append);
   if (details.stack != null) {
     Zone.current.handleUncaughtError(details.exception, details.stack!);
   }
