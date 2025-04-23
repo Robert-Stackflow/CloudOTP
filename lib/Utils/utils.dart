@@ -65,6 +65,22 @@ import 'hive_util.dart';
 import 'itoast.dart';
 
 class Utils {
+  static Map<String, dynamic> parseEndpoint(String endpoint) {
+    final parts = endpoint.split(':');
+    if (parts.length == 2) {
+      return {
+        'host': parts[0],
+        'port': int.tryParse(parts[1]),
+      };
+    } else {
+      return {
+        'host': endpoint,
+        'port': null,
+      };
+    }
+  }
+
+
   static String generateUid() {
     return const Uuid().v4();
   }

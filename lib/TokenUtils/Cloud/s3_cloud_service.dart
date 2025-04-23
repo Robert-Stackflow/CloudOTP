@@ -23,6 +23,7 @@ import 'package:s3_storage/s3_storage.dart';
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/ilogger.dart';
+import '../../Utils/utils.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
 
@@ -55,10 +56,14 @@ class S3CloudService extends CloudService {
 
   @override
   Future<void> init() async {
+    final parsed = Utils.parseEndpoint(endpoint);
+    final host = parsed['host'];
+    final port = parsed['port'];
     s3Storage = S3Storage(
-      endPoint: endpoint,
+      endPoint: host,
       accessKey: accessKey,
       secretKey: secretKey,
+      port: port,
       region: region,
     );
   }
