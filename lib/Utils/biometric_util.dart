@@ -13,11 +13,10 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
-import 'package:cloudotp/Utils/ilogger.dart';
 
 import '../generated/l10n.dart';
-import 'itoast.dart';
 
 extension AvailableBiometric on CanAuthenticateResponse {
   bool get isAvailable =>
@@ -140,7 +139,7 @@ class BiometricUtil {
       );
       return true;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to save database password: $e\n$t");
+      ILogger.error("Failed to save database password: $e\n$t");
       if (e is AuthException) {
         switch (e.code) {
           case AuthExceptionCode.userCanceled:
@@ -169,7 +168,7 @@ class BiometricUtil {
     try {
       await databasePassswordStorage!.delete();
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to delete database password: $e\n$t");
+      ILogger.error("Failed to delete database password: $e\n$t");
     }
   }
 }

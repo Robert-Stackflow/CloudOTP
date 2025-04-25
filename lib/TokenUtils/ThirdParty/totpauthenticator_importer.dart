@@ -20,7 +20,6 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/Base32/base32.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -29,11 +28,7 @@ import 'package:pointycastle/block/aes.dart';
 import 'package:pointycastle/block/modes/cbc.dart';
 import 'package:pointycastle/paddings/pkcs7.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../generated/l10n.dart';
 
 class TotpAuthenticatorAccount {
@@ -148,7 +143,7 @@ class TotpAuthenticatorTokenImporter implements BaseTokenImporter {
     late ProgressDialog dialog;
     if (showLoading) {
       dialog =
-          showProgressDialog(msg: S.current.importing, showProgress: false);
+          showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -193,7 +188,7 @@ class TotpAuthenticatorTokenImporter implements BaseTokenImporter {
           controller: TextEditingController(),
         );
         BottomSheetBuilder.showBottomSheet(
-          rootContext,
+          chewieProvider.rootContext,
           responsive: true,
           useWideLandscape: true,
           (context) => InputBottomSheet(
@@ -211,13 +206,15 @@ class TotpAuthenticatorTokenImporter implements BaseTokenImporter {
             inputFormatters: [
               RegexInputFormatter.onlyNumberAndLetterAndSymbol,
             ],
-            tailingType: InputItemTailingType.password,
+                          tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
             onValidConfirm: (password) async {},
           ),
         );
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to import from 2FAS", e, t);
+      ILogger.error("Failed to import from 2FAS", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

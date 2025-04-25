@@ -19,21 +19,14 @@ import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
-import 'package:cloudotp/Utils/itoast.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/webdav_backups_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/regex_util.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/Dialog/dialog_builder.dart';
-import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
 class WebDavServiceScreen extends StatefulWidget {
@@ -122,7 +115,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
-            context,
+            context: context,
             background: Colors.transparent,
             text: S.current.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -164,7 +157,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     return Column(
       children: [
         if (_configInitialized) _enableInfo(),
-        const SizedBox(height: 10),
         if (_configInitialized) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
@@ -174,29 +166,26 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   }
 
   _enableInfo() {
-    return ItemBuilder.buildRadioItem(
-      context: context,
-      title: S.current.enable + S.current.cloudTypeWebDav,
-      topRadius: true,
-      bottomRadius: true,
-      value: _webDavCloudServiceConfig?.enabled ?? false,
-      onTap: () {
-        setState(() {
-          _webDavCloudServiceConfig!.enabled =
-              !_webDavCloudServiceConfig!.enabled;
-          CloudServiceConfigDao.updateConfigEnabled(
-              _webDavCloudServiceConfig!, _webDavCloudServiceConfig!.enabled);
-        });
-      },
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: CheckboxItem(
+        title: S.current.enable + S.current.cloudTypeWebDav,
+        value: _webDavCloudServiceConfig?.enabled ?? false,
+        onTap: () {
+          setState(() {
+            _webDavCloudServiceConfig!.enabled =
+                !_webDavCloudServiceConfig!.enabled;
+            CloudServiceConfigDao.updateConfigEnabled(
+                _webDavCloudServiceConfig!, _webDavCloudServiceConfig!.enabled);
+          });
+        },
+      ),
     );
   }
 
   _accountInfo() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
-      topRadius: true,
-      bottomRadius: true,
-      padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Form(
         key: formKey,
         child: Column(
@@ -204,9 +193,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,
-              leadingText: S.current.webDavServer,
-              leadingType: InputItemLeadingType.text,
-              topRadius: true,
+              title: S.current.webDavServer,
               disabled: currentConfig.connected,
               validator: (text) {
                 if (text.isEmpty) {
@@ -222,9 +209,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             InputItem(
               controller: _accountController,
               textInputAction: TextInputAction.next,
-              leadingType: InputItemLeadingType.text,
               disabled: currentConfig.connected,
-              leadingText: S.current.webDavUsername,
+              title: S.current.webDavUsername,
               hint: S.current.webDavUsernameHint,
               validator: (text) {
                 if (text.isEmpty) {
@@ -236,11 +222,15 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             InputItem(
               controller: _secretController,
               textInputAction: TextInputAction.next,
-              leadingType: InputItemLeadingType.text,
-              leadingText: S.current.webDavPassword,
-              tailingType: InputItemTailingType.password,
+              title: S.current.webDavPassword,
+              style: InputItemStyle(
+                obscure: currentConfig.connected,
+                bottomRadius: true,
+              ),
+              tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
               disabled: currentConfig.connected,
-              obscureText: currentConfig.connected,
               hint: S.current.webDavPasswordHint,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
@@ -251,7 +241,6 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 }
                 return null;
               },
-              bottomRadius: true,
             ),
           ],
         ),
@@ -260,135 +249,126 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
   }
 
   _loginButton() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            text: S.current.cloudSignin,
-            background: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              if (await isValid()) {
-                await CloudServiceConfigDao.updateConfig(currentConfig);
-                _webDavCloudService =
-                    WebDavCloudService(_webDavCloudServiceConfig!);
-                try {
-                  ping();
-                } catch (e, t) {
-                  ILogger.error(
-                      "CloudOTP", "Failed to connect to webdav", e, t);
-                  IToast.show(S.current.cloudConnectionError);
-                }
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: RoundIconTextButton(
+        text: S.current.cloudSignin,
+        background: Theme.of(context).primaryColor,
+        fontSizeDelta: 2,
+        onPressed: () async {
+          if (await isValid()) {
+            await CloudServiceConfigDao.updateConfig(currentConfig);
+            _webDavCloudService =
+                WebDavCloudService(_webDavCloudServiceConfig!);
+            try {
+              ping();
+            } catch (e, t) {
+              ILogger.error("Failed to connect to webdav", e, t);
+              IToast.show(S.current.cloudConnectionError);
+            }
+          }
+        },
+      ),
     );
   }
 
   _operationButtons() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildFramedButton(
-            context,
-            text: S.current.cloudPullBackup,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            outline: Theme.of(context).primaryColor,
-            color: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
-              try {
-                List<WebDavFileInfo>? files =
-                    await _webDavCloudService!.listBackups();
-                if (files == null) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomOutlinedButton(
+              text: S.current.cloudPullBackup,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              outline: Theme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                try {
+                  List<WebDavFileInfo>? files =
+                      await _webDavCloudService!.listBackups();
+                  if (files == null) {
+                    CustomLoadingDialog.dismissLoading();
+                    IToast.show(S.current.cloudPullFailed);
+                    return;
+                  }
+                  CloudServiceConfigDao.updateLastPullTime(
+                      _webDavCloudServiceConfig!);
+                  CustomLoadingDialog.dismissLoading();
+                  files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
+                  if (files.isNotEmpty) {
+                    BottomSheetBuilder.showBottomSheet(
+                      context,
+                      responsive: true,
+                      (dialogContext) => WebDavBackupsBottomSheet(
+                        files: files,
+                        cloudService: _webDavCloudService!,
+                        onSelected: (selectedFile) async {
+                          var dialog = showProgressDialog(
+                            S.current.cloudPulling,
+                            showProgress: true,
+                          );
+                          Uint8List? res =
+                              await _webDavCloudService!.downloadFile(
+                            selectedFile.name!,
+                            onProgress: (c, t) {
+                              dialog.updateProgress(progress: c / t);
+                            },
+                          );
+                          ImportTokenUtil.importFromCloud(context, res, dialog);
+                        },
+                      ),
+                    );
+                  } else {
+                    IToast.show(S.current.cloudNoBackupFile);
+                  }
+                } catch (e, t) {
+                  ILogger.error("Failed to pull from webdav", e, t);
                   CustomLoadingDialog.dismissLoading();
                   IToast.show(S.current.cloudPullFailed);
-                  return;
                 }
-                CloudServiceConfigDao.updateLastPullTime(
-                    _webDavCloudServiceConfig!);
-                CustomLoadingDialog.dismissLoading();
-                files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
-                if (files.isNotEmpty) {
-                  BottomSheetBuilder.showBottomSheet(
-                    context,
-                    responsive: true,
-                    (dialogContext) => WebDavBackupsBottomSheet(
-                      files: files,
-                      cloudService: _webDavCloudService!,
-                      onSelected: (selectedFile) async {
-                        var dialog = showProgressDialog(
-                          msg: S.current.cloudPulling,
-                          showProgress: true,
-                        );
-                        Uint8List? res =
-                            await _webDavCloudService!.downloadFile(
-                          selectedFile.name!,
-                          onProgress: (c, t) {
-                            dialog.updateProgress(progress: c / t);
-                          },
-                        );
-                        ImportTokenUtil.importFromCloud(context, res, dialog);
-                      },
-                    ),
-                  );
-                } else {
-                  IToast.show(S.current.cloudNoBackupFile);
-                }
-              } catch (e, t) {
-                ILogger.error("CloudOTP", "Failed to pull from webdav", e, t);
-                CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.cloudPullFailed);
-              }
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Theme.of(context).primaryColor,
-            text: S.current.cloudPushBackup,
-            fontSizeDelta: 2,
-            onTap: () async {
-              ExportTokenUtil.backupEncryptToCloud(
-                config: _webDavCloudServiceConfig!,
-                cloudService: _webDavCloudService!,
-              );
-            },
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Theme.of(context).primaryColor,
+              text: S.current.cloudPushBackup,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                ExportTokenUtil.backupEncryptToCloud(
+                  config: _webDavCloudServiceConfig!,
+                  cloudService: _webDavCloudService!,
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Colors.red,
-            text: S.current.cloudLogout,
-            fontSizeDelta: 2,
-            onTap: () async {
-              DialogBuilder.showConfirmDialog(context,
-                  title: S.current.cloudLogout,
-                  message: S.current.cloudLogoutMessage,
-                  onTapConfirm: () async {
-                setState(() {
-                  currentConfig.connected = false;
-                  _webDavCloudService = null;
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Colors.red,
+              text: S.current.cloudLogout,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                DialogBuilder.showConfirmDialog(context,
+                    title: S.current.cloudLogout,
+                    message: S.current.cloudLogoutMessage,
+                    onTapConfirm: () async {
+                  setState(() {
+                    currentConfig.connected = false;
+                    _webDavCloudService = null;
+                  });
                 });
-              });
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-      ],
+        ],
+      ),
     );
   }
 }

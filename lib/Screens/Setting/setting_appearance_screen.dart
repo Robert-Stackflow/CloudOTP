@@ -13,26 +13,25 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Screens/Setting/select_font_screen.dart';
 import 'package:cloudotp/Screens/Setting/select_theme_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../Resources/fonts.dart';
-import '../../Resources/theme_color_data.dart';
 import '../../Utils/app_provider.dart';
-import '../../Utils/enums.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/list_bottom_sheet.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
+import 'base_setting_screen.dart';
 
-class AppearanceSettingScreen extends StatefulWidget {
-  const AppearanceSettingScreen({super.key});
+class AppearanceSettingScreen extends BaseSettingScreen {
+  const AppearanceSettingScreen({
+    super.key,
+    super.padding,
+    super.showTitleBar,
+    super.searchConfig,
+    super.searchText,
+  });
 
   static const String routeName = "/setting/appearance";
 
@@ -43,26 +42,31 @@ class AppearanceSettingScreen extends StatefulWidget {
 
 class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
     with TickerProviderStateMixin {
-  bool _enableLandscapeInTablet =
-      HiveUtil.getBool(HiveUtil.enableLandscapeInTabletKey, defaultValue: true);
-  bool showLayoutButton = HiveUtil.getBool(HiveUtil.showLayoutButtonKey);
-  bool showSortButton = HiveUtil.getBool(HiveUtil.showSortButtonKey);
-  bool showBackupLogButton = HiveUtil.getBool(HiveUtil.showBackupLogButtonKey,
+  bool _enableLandscapeInTablet = ChewieHiveUtil.getBool(
+      CloudOTPHiveUtil.enableLandscapeInTabletKey,
+      defaultValue: true);
+  bool showLayoutButton =
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.showLayoutButtonKey);
+  bool showSortButton =
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.showSortButtonKey);
+  bool showBackupLogButton = ChewieHiveUtil.getBool(
+      CloudOTPHiveUtil.showBackupLogButtonKey,
       defaultValue: ResponsiveUtil.isLandscape());
-  bool showCloudBackupButton = HiveUtil.getBool(
-      HiveUtil.showCloudBackupButtonKey,
+  bool showCloudBackupButton = ChewieHiveUtil.getBool(
+      CloudOTPHiveUtil.showCloudBackupButtonKey,
       defaultValue: ResponsiveUtil.isLandscape());
 
-  bool enableFrostedGlassEffect = HiveUtil.getBool(
-      HiveUtil.enableFrostedGlassEffectKey,
+  bool enableFrostedGlassEffect = ChewieHiveUtil.getBool(
+      CloudOTPHiveUtil.enableFrostedGlassEffectKey,
       defaultValue: false);
   bool hideAppbarWhenScrolling =
-      HiveUtil.getBool(HiveUtil.hideAppbarWhenScrollingKey);
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.hideAppbarWhenScrollingKey);
   bool hideBottombarWhenScrolling =
-      HiveUtil.getBool(HiveUtil.hideBottombarWhenScrollingKey);
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.hideBottombarWhenScrollingKey);
   final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
-  bool hideProgressBar = HiveUtil.getBool(HiveUtil.hideProgressBarKey);
-  bool showEye = HiveUtil.getBool(HiveUtil.showEyeKey);
+  bool hideProgressBar =
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.hideProgressBarKey);
+  bool showEye = ChewieHiveUtil.getBool(CloudOTPHiveUtil.showEyeKey);
 
   @override
   void initState() {
@@ -81,238 +85,217 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
   @override
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      child: Scaffold(
-        appBar: ResponsiveUtil.isLandscape()
-            ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.appearanceSetting,
-                context: context,
-                transparent: true,
-              )
-            : ItemBuilder.buildAppBar(
-                context: context,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                leading: Icons.arrow_back_rounded,
-                onLeadingTap: () {
-                  Navigator.pop(context);
-                },
-                title: Text(
-                  S.current.appearanceSetting,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontWeightDelta: 2),
-                ),
-                actions: [
-                  ItemBuilder.buildBlankIconButton(context),
-                  const SizedBox(width: 5),
-                ],
-              ),
-        body: EasyRefresh(
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            children: [
-              ..._apperanceSettings(),
-              ..._buttonSettings(),
-              if (ResponsiveUtil.isMobile()) ..._mobileSettings(),
-              const SizedBox(height: 30),
-            ],
-          ),
-        ),
-      ),
+    return ItemBuilder.buildSettingScreen(
+      context: context,
+      title: S.current.appearanceSetting,
+      showTitleBar: widget.showTitleBar,
+      showBack: !ResponsiveUtil.isLandscape(),
+      padding: widget.padding,
+      children: [
+        _apperanceSettings(),
+        _buttonSettings(),
+        _tokenLayoutSettings(),
+        if (ResponsiveUtil.isMobile()) _mobileSettings(),
+        const SizedBox(height: 30),
+      ],
     );
   }
 
-  _apperanceSettings() {
-    return [
-      Selector<AppProvider, ActiveThemeMode>(
-        selector: (context, appProvider) => appProvider.themeMode,
-        builder: (context, themeMode, child) => ItemBuilder.buildEntryItem(
-          context: context,
+  Widget _apperanceSettings() {
+    return SearchableCaptionItem(
+      title: S.current.themeSetting,
+      children: [
+        SearchableBuilderWidget(
           title: S.current.themeMode,
-          topRadius: true,
-          tip: AppProvider.getThemeModeLabel(themeMode),
-          onTap: () {
-            BottomSheetBuilder.showListBottomSheet(
-              context,
-              (context) => TileList.fromOptions(
-                AppProvider.getSupportedThemeMode(),
-                (item2) {
-                  appProvider.themeMode = item2;
-                  Navigator.pop(context);
-                },
-                selected: themeMode,
-                context: context,
-                title: S.current.chooseThemeMode,
-                onCloseTap: () => Navigator.pop(context),
+          builder: (_, title, description, searchText, searchConfig) =>
+              Selector<ChewieProvider, ActiveThemeMode>(
+            selector: (context, globalProvider) => globalProvider.themeMode,
+            builder: (context, themeMode, child) =>
+                InlineSelectionItem<SelectionItemModel<ActiveThemeMode>>(
+              hint: S.current.chooseThemeMode,
+              title: title,
+              description: description,
+              searchConfig: searchConfig,
+              searchText: searchText,
+              selections: ChewieProvider.getSupportedThemeMode(),
+              selected: SelectionItemModel(
+                ChewieProvider.getThemeModeLabel(themeMode),
+                themeMode,
               ),
-            );
-          },
-        ),
-      ),
-      Selector<AppProvider, ThemeColorData>(
-        selector: (context, appProvider) => appProvider.lightTheme,
-        builder: (context, lightTheme, child) =>
-            Selector<AppProvider, ThemeColorData>(
-          selector: (context, appProvider) => appProvider.darkTheme,
-          builder: (context, darkTheme, child) => ItemBuilder.buildEntryItem(
-            context: context,
-            title: S.current.selectTheme,
-            tip: "${lightTheme.intlName}/${darkTheme.intlName}",
-            onTap: () {
-              RouteUtil.pushCupertinoRoute(context, const SelectThemeScreen());
-            },
+              onChanged: (SelectionItemModel<ActiveThemeMode>? item) {
+                chewieProvider.themeMode = item!.value;
+              },
+            ),
           ),
         ),
-      ),
-      Selector<AppProvider, CustomFont>(
-        selector: (context, appProvider) => appProvider.currentFont,
-        builder: (context, currentFont, child) => ItemBuilder.buildEntryItem(
-          context: context,
-          title: S.current.chooseFontFamily,
-          tip: currentFont.intlFontName,
-          bottomRadius: true,
-          onTap: () {
-            RouteUtil.pushCupertinoRoute(context, const SelectFontScreen());
-          },
+        SearchableBuilderWidget(
+          title: S.current.selectTheme,
+          builder: (_, title, description, searchText, searchConfig) =>
+              Selector<ChewieProvider, ChewieThemeColorData>(
+            selector: (context, appProvider) => appProvider.lightTheme,
+            builder: (context, lightTheme, child) =>
+                Selector<ChewieProvider, ChewieThemeColorData>(
+              selector: (context, appProvider) => appProvider.darkTheme,
+              builder: (context, darkTheme, child) => EntryItem(
+                tip: "${lightTheme.name}/${darkTheme.name}",
+                title: title,
+                searchConfig: searchConfig,
+                searchText: searchText,
+                description: description,
+                onTap: () {
+                  RouteUtil.pushDialogRoute(context, const SelectThemeScreen());
+                },
+              ),
+            ),
+          ),
         ),
-      ),
-    ];
+        SearchableBuilderWidget(
+          title: S.current.chooseFontFamily,
+          builder: (_, title, description, searchText, searchConfig) =>
+              Selector<ChewieProvider, CustomFont>(
+            selector: (context, appProvider) => appProvider.currentFont,
+            builder: (context, currentFont, child) => EntryItem(
+              tip: currentFont.intlFontName,
+              title: title,
+              searchConfig: searchConfig,
+              searchText: searchText,
+              description: description,
+              onTap: () {
+                RouteUtil.pushDialogRoute(context, const SelectFontScreen());
+              },
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  _buttonSettings() {
-    return [
-      const SizedBox(height: 10),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        topRadius: true,
-        title: S.current.showBackupLogButton,
-        value: showBackupLogButton,
-        onTap: () {
-          setState(() {
-            showBackupLogButton = !showBackupLogButton;
-            appProvider.showBackupLogButton = showBackupLogButton;
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        title: S.current.showCloudBackupButton,
-        value: showCloudBackupButton,
-        onTap: () {
-          setState(() {
-            showCloudBackupButton = !showCloudBackupButton;
-            appProvider.showCloudBackupButton = showCloudBackupButton;
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        title: S.current.showLayoutButton,
-        value: showLayoutButton,
-        onTap: () {
-          setState(() {
-            showLayoutButton = !showLayoutButton;
-            appProvider.showLayoutButton = showLayoutButton;
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        title: S.current.showSortButton,
-        bottomRadius: true,
-        value: showSortButton,
-        onTap: () {
-          setState(() {
-            showSortButton = !showSortButton;
-            appProvider.showSortButton = showSortButton;
-          });
-        },
-      ),
-      const SizedBox(height: 10),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        topRadius: true,
-        value: hideProgressBar,
-        title: S.current.hideProgressBar,
-        description: S.current.hideProgressBarTip,
-        onTap: () {
-          setState(() {
-            hideProgressBar = !hideProgressBar;
-            appProvider.hideProgressBar = hideProgressBar;
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: showEye,
-        bottomRadius: true,
-        title: S.current.showEye,
-        description: S.current.showEyeTip,
-        onTap: () {
-          setState(() {
-            showEye = !showEye;
-            appProvider.showEye = showEye;
-          });
-        },
-      ),
-    ];
-  }
-
-  _mobileSettings() {
-    return [
-      const SizedBox(height: 10),
-      ItemBuilder.buildCaptionItem(
-          context: context, title: S.current.mobileSetting),
-      if (ResponsiveUtil.isLandscapeTablet())
-        ItemBuilder.buildRadioItem(
-          value: _enableLandscapeInTablet,
-          context: context,
-          title: S.current.useDesktopLayoutWhenLandscape,
-          description: S.current.haveToRestartWhenChange,
+  Widget _buttonSettings() {
+    return SearchableCaptionItem(
+      title: "侧边栏设置",
+      children: [
+        CheckboxItem(
+          title: S.current.showBackupLogButton,
+          value: showBackupLogButton,
           onTap: () {
             setState(() {
-              _enableLandscapeInTablet = !_enableLandscapeInTablet;
-              appProvider.enableLandscapeInTablet = _enableLandscapeInTablet;
+              showBackupLogButton = !showBackupLogButton;
+              appProvider.showBackupLogButton = showBackupLogButton;
             });
           },
         ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: enableFrostedGlassEffect,
-        title: S.current.enableFrostedGlassEffect,
-        onTap: () {
-          setState(() {
-            enableFrostedGlassEffect = !enableFrostedGlassEffect;
-            appProvider.enableFrostedGlassEffect = enableFrostedGlassEffect;
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: hideAppbarWhenScrolling,
-        title: S.current.hideAppbarWhenScrolling,
-        onTap: () {
-          setState(() {
-            hideAppbarWhenScrolling = !hideAppbarWhenScrolling;
-            appProvider.hideAppbarWhenScrolling = hideAppbarWhenScrolling;
-          });
-        },
-      ),
-      ItemBuilder.buildRadioItem(
-        context: context,
-        value: hideBottombarWhenScrolling,
-        bottomRadius: true,
-        title: S.current.hideBottombarWhenScrolling,
-        onTap: () {
-          setState(() {
-            hideBottombarWhenScrolling = !hideBottombarWhenScrolling;
-            appProvider.hideBottombarWhenScrolling = hideBottombarWhenScrolling;
-          });
-        },
-      ),
-    ];
+        CheckboxItem(
+          title: S.current.showCloudBackupButton,
+          value: showCloudBackupButton,
+          onTap: () {
+            setState(() {
+              showCloudBackupButton = !showCloudBackupButton;
+              appProvider.showCloudBackupButton = showCloudBackupButton;
+            });
+          },
+        ),
+        CheckboxItem(
+          title: S.current.showLayoutButton,
+          value: showLayoutButton,
+          onTap: () {
+            setState(() {
+              showLayoutButton = !showLayoutButton;
+              appProvider.showLayoutButton = showLayoutButton;
+            });
+          },
+        ),
+        CheckboxItem(
+          title: S.current.showSortButton,
+          value: showSortButton,
+          onTap: () {
+            setState(() {
+              showSortButton = !showSortButton;
+              appProvider.showSortButton = showSortButton;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _tokenLayoutSettings() {
+    return SearchableCaptionItem(
+      title: "令牌项目设置",
+      children: [
+        CheckboxItem(
+          value: hideProgressBar,
+          title: S.current.hideProgressBar,
+          description: S.current.hideProgressBarTip,
+          onTap: () {
+            setState(() {
+              hideProgressBar = !hideProgressBar;
+              appProvider.hideProgressBar = hideProgressBar;
+            });
+          },
+        ),
+        CheckboxItem(
+          value: showEye,
+          title: S.current.showEye,
+          description: S.current.showEyeTip,
+          onTap: () {
+            setState(() {
+              showEye = !showEye;
+              appProvider.showEye = showEye;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _mobileSettings() {
+    return SearchableCaptionItem(
+      title: S.current.mobileSetting,
+      children: [
+        if (ResponsiveUtil.isLandscapeTablet())
+          CheckboxItem(
+            value: _enableLandscapeInTablet,
+            title: S.current.useDesktopLayoutWhenLandscape,
+            description: S.current.haveToRestartWhenChange,
+            onTap: () {
+              setState(() {
+                _enableLandscapeInTablet = !_enableLandscapeInTablet;
+                appProvider.enableLandscapeInTablet = _enableLandscapeInTablet;
+              });
+            },
+          ),
+        CheckboxItem(
+          value: enableFrostedGlassEffect,
+          title: S.current.enableFrostedGlassEffect,
+          onTap: () {
+            setState(() {
+              enableFrostedGlassEffect = !enableFrostedGlassEffect;
+              appProvider.enableFrostedGlassEffect = enableFrostedGlassEffect;
+            });
+          },
+        ),
+        CheckboxItem(
+          value: hideAppbarWhenScrolling,
+          title: S.current.hideAppbarWhenScrolling,
+          onTap: () {
+            setState(() {
+              hideAppbarWhenScrolling = !hideAppbarWhenScrolling;
+              appProvider.hideAppbarWhenScrolling = hideAppbarWhenScrolling;
+            });
+          },
+        ),
+        CheckboxItem(
+          value: hideBottombarWhenScrolling,
+          title: S.current.hideBottombarWhenScrolling,
+          onTap: () {
+            setState(() {
+              hideBottombarWhenScrolling = !hideBottombarWhenScrolling;
+              appProvider.hideBottombarWhenScrolling =
+                  hideBottombarWhenScrolling;
+            });
+          },
+        ),
+      ],
+    );
   }
 }

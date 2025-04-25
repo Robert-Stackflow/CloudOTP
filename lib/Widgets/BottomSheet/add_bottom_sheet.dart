@@ -15,9 +15,8 @@
 
 import 'dart:async';
 
-import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,11 +27,7 @@ import '../../Models/opt_token.dart';
 import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';
 import '../../TokenUtils/import_token_util.dart';
-import '../../Utils/file_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
-import 'bottom_sheet_builder.dart';
 import 'import_from_third_party_bottom_sheet.dart';
 
 class AddBottomSheet extends StatefulWidget {
@@ -91,7 +86,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
     List<Barcode> barcodes = barcodeCapture.barcodes;
     List<String> rawValues = [];
     for (Barcode barcode in barcodes) {
-      if (Utils.isNotEmpty(barcode.rawValue) &&
+      if (barcode.rawValue.notNullOrEmpty &&
           ((addToAlready && !alreadyScanned.contains(barcode.rawValue!)) ||
               !addToAlready)) {
         HapticFeedback.lightImpact();
@@ -149,8 +144,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
                 _buildHeader(),
                 _buildScanner(),
                 if (!widget.onlyShowScanner)
-                  ItemBuilder.buildDivider(context,
-                      horizontal: 10, vertical: 0),
+                  const MyDivider(horizontal: 10, vertical: 0),
                 if (!widget.onlyShowScanner) _buildOptions(),
                 // if (!widget.onlyShowScanner) const SizedBox(height: 20),
               ],
@@ -305,9 +299,8 @@ class AddBottomSheetState extends State<AddBottomSheet>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ItemBuilder.buildEntryItem(
-          context: context,
-          horizontalPadding: 20,
+        EntryItem(
+          paddingHorizontal: 20,
           title: S.current.addTokenByManual,
           showLeading: true,
           showTrailing: false,
@@ -317,9 +310,8 @@ class AddBottomSheetState extends State<AddBottomSheet>
           },
           leading: Icons.add_rounded,
         ),
-        ItemBuilder.buildEntryItem(
-          context: context,
-          horizontalPadding: 20,
+        EntryItem(
+          paddingHorizontal: 20,
           title: S.current.exportImport,
           showLeading: true,
           showTrailing: false,
@@ -329,9 +321,8 @@ class AddBottomSheetState extends State<AddBottomSheet>
           },
           leading: Icons.import_export_rounded,
         ),
-        ItemBuilder.buildEntryItem(
-          context: context,
-          horizontalPadding: 20,
+        EntryItem(
+          paddingHorizontal: 20,
           title: S.current.importFromThirdParty,
           showLeading: true,
           showTrailing: false,
@@ -359,8 +350,7 @@ class AnalyzeImageFromGalleryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ItemBuilder.buildIconButton(
-      context: context,
+    return CircleIconButton(
       padding: const EdgeInsets.all(12),
       background: Colors.black.withOpacity(0.2),
       icon: const Icon(Icons.photo_rounded, color: Colors.white, size: 32),
@@ -408,8 +398,7 @@ class SwitchCameraButton extends StatelessWidget {
                 color: Colors.white, size: 32);
         }
 
-        return ItemBuilder.buildIconButton(
-          context: context,
+        return CircleIconButton(
           padding: const EdgeInsets.all(12),
           background: Colors.black.withOpacity(0.2),
           icon: icon,
@@ -438,8 +427,7 @@ class ToggleFlashlightButton extends StatelessWidget {
 
         switch (state.torchState) {
           case TorchState.auto:
-            return ItemBuilder.buildIconButton(
-              context: context,
+            return CircleIconButton(
               padding: const EdgeInsets.all(12),
               background: Colors.black.withOpacity(0.2),
               icon: const Icon(Icons.flash_auto, color: Colors.white, size: 32),
@@ -448,8 +436,7 @@ class ToggleFlashlightButton extends StatelessWidget {
               },
             );
           case TorchState.off:
-            return ItemBuilder.buildIconButton(
-              context: context,
+            return CircleIconButton(
               padding: const EdgeInsets.all(12),
               background: Colors.black.withOpacity(0.2),
               icon: const Icon(Icons.flash_off, color: Colors.white, size: 32),
@@ -458,8 +445,7 @@ class ToggleFlashlightButton extends StatelessWidget {
               },
             );
           case TorchState.on:
-            return ItemBuilder.buildIconButton(
-              context: context,
+            return CircleIconButton(
               padding: const EdgeInsets.all(12),
               background: Colors.black.withOpacity(0.2),
               icon: const Icon(Icons.flash_on, color: Colors.white, size: 32),
@@ -468,8 +454,7 @@ class ToggleFlashlightButton extends StatelessWidget {
               },
             );
           case TorchState.unavailable:
-            return ItemBuilder.buildIconButton(
-              context: context,
+            return CircleIconButton(
               padding: const EdgeInsets.all(12),
               background: Colors.black.withOpacity(0.2),
               icon: const Icon(Icons.no_flash, color: Colors.grey, size: 32),

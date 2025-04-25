@@ -14,28 +14,21 @@
  */
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/andotp_importer.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/enteauth_importer.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/freeotpplus_importer.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/totpauthenticator_importer.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/winauth_importer.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../TokenUtils/ThirdParty/2fas_importer.dart';
 import '../../TokenUtils/ThirdParty/aegis_importer.dart';
 import '../../TokenUtils/ThirdParty/bitwarden_importer.dart';
-import '../../Utils/app_provider.dart';
-import '../../Utils/file_util.dart';
 import '../../generated/l10n.dart';
-import '../General/EasyRefresh/easy_refresh.dart';
-import '../Item/item_builder.dart';
-import '../Scaffold/my_scaffold.dart';
 import 'add_bottom_sheet.dart';
-import 'bottom_sheet_builder.dart';
 
 class ImportFromThirdPartyBottomSheet extends StatefulWidget {
   const ImportFromThirdPartyBottomSheet({
@@ -52,30 +45,21 @@ class ImportFromThirdPartyBottomSheetState
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
-      appBar: ItemBuilder.buildAppBar(
-        context: context,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        leading: ResponsiveUtil.isLandscape()
-            ? Icons.close_rounded
-            : Icons.arrow_back_rounded,
-        onLeadingTap: () {
+      appBar: ResponsiveAppBar(
+        showBack: !ResponsiveUtil.isLandscape(),
+        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        onTapBack: () {
           if (ResponsiveUtil.isLandscape()) {
-            dialogNavigatorState?.popPage();
+            chewieProvider.dialogNavigatorState?.popPage();
           } else {
             Navigator.pop(context);
           }
         },
-        title: Text(
-          S.current.importFromThirdParty,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.apply(fontWeightDelta: 2),
-        ),
+        title: S.current.importFromThirdParty,
         actions: ResponsiveUtil.isLandscape()
             ? []
             : [
-                ItemBuilder.buildBlankIconButton(context),
+                const BlankIconButton(),
                 const SizedBox(width: 5),
               ],
       ),
@@ -92,17 +76,21 @@ class ImportFromThirdPartyBottomSheetState
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.only(
-          left: horizontalPadding, right: horizontalPadding, bottom: 20),
+        left: horizontalPadding,
+        right: horizontalPadding,
+        bottom: 20,
+        top: 10,
+      ),
       children: [
         _buildItem(
-          asset: AssetUtil.icGoogleauthenticator,
+          asset: AssetFiles.icGoogleauthenticator,
           title: S.current.importFromGoogleAuthenticator,
           description: S.current.importFromGoogleAuthenticatorTip,
           useImport: false,
           onImport: (path) {
             if (ResponsiveUtil.isMobile()) {
               BottomSheetBuilder.showBottomSheet(
-                rootContext,
+                chewieProvider.rootContext,
                 enableDrag: false,
                 responsive: true,
                 (context) => const AddBottomSheet(onlyShowScanner: true),
@@ -114,7 +102,7 @@ class ImportFromThirdPartyBottomSheetState
         ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.icAegis,
+          asset: AssetFiles.icAegis,
           title: S.current.importFromAegis,
           dialogTitle: S.current.importFromAegisTitle,
           description: S.current.importFromAegisTip,
@@ -124,7 +112,7 @@ class ImportFromThirdPartyBottomSheetState
         ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.ic2Fas,
+          asset: AssetFiles.ic2Fas,
           title: S.current.importFrom2FAS,
           dialogTitle: S.current.importFrom2FASTitle,
           description: S.current.importFrom2FASTip,
@@ -135,7 +123,7 @@ class ImportFromThirdPartyBottomSheetState
         ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.icBitwarden,
+          asset: AssetFiles.icBitwarden,
           title: S.current.importFromBitwarden,
           dialogTitle: S.current.importFromBitwardenTitle,
           description: S.current.importFromBitwardenTip,
@@ -145,7 +133,7 @@ class ImportFromThirdPartyBottomSheetState
         ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.icAndotp,
+          asset: AssetFiles.icAndotp,
           title: S.current.importFromAndOTP,
           dialogTitle: S.current.importFromAndOTPTitle,
           description: S.current.importFromAndOTPTip,
@@ -167,7 +155,7 @@ class ImportFromThirdPartyBottomSheetState
         // ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.icEnteauth,
+          asset: AssetFiles.icEnteauth,
           title: S.current.importFromEnteAuth,
           dialogTitle: S.current.importFromEnteAuthTitle,
           description: S.current.importFromEnteAuthTip,
@@ -189,7 +177,7 @@ class ImportFromThirdPartyBottomSheetState
         // ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.icFreeotpplus,
+          asset: AssetFiles.icFreeotpplus,
           title: S.current.importFromFreeOTPPlus,
           dialogTitle: S.current.importFromFreeOTPPlusTitle,
           description: S.current.importFromFreeOTPPlusTip,
@@ -210,7 +198,7 @@ class ImportFromThirdPartyBottomSheetState
         // ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.icTotpauthenticator,
+          asset: AssetFiles.icTotpauthenticator,
           title: S.current.importFromTOTPAuthenticator,
           dialogTitle: S.current.importFromTOTPAuthenticatorTitle,
           description: S.current.importFromTOTPAuthenticatorTip,
@@ -221,7 +209,7 @@ class ImportFromThirdPartyBottomSheetState
         ),
         SizedBox(height: spacing),
         _buildItem(
-          asset: AssetUtil.icWinauth,
+          asset: AssetFiles.icWinauth,
           title: S.current.importFromWinauth,
           dialogTitle: S.current.importFromWinauthTitle,
           description: S.current.importFromWinauthTip,
@@ -287,7 +275,7 @@ class ImportFromThirdPartyBottomSheetState
           ),
           child: Row(
             children: [
-              AssetUtil.load(asset, size: 32),
+              ChewieAssetUtil.load(asset, size: 32),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

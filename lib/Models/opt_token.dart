@@ -16,6 +16,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pbserver.dart';
 import 'package:cloudotp/TokenUtils/token_image_util.dart';
@@ -25,8 +26,6 @@ import '../TokenUtils/Otp/otp.dart';
 import '../TokenUtils/check_token_util.dart';
 import '../Utils/Base32/base32.dart';
 import '../Utils/constant.dart';
-import '../Utils/ilogger.dart';
-import '../Utils/utils.dart';
 import 'Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 
 enum OtpTokenType {
@@ -493,7 +492,7 @@ class OtpToken {
     String? secret,
     String? issuer,
   })  : id = 0,
-        uid = Utils.generateUid(),
+        uid = StringUtil.generateUid(),
         seq = 0,
         issuer = issuer ?? "",
         secret = secret ?? "",
@@ -541,7 +540,7 @@ class OtpToken {
   factory OtpToken.fromMap(Map<String, dynamic> map) {
     return OtpToken(
       id: map['id'],
-      uid: map['uid'] ?? Utils.generateUid(),
+      uid: map['uid'] ?? StringUtil.generateUid(),
       seq: map['seq'],
       issuer: map['issuer'],
       secret: map['secret'],
@@ -598,15 +597,15 @@ class OtpToken {
     try {
       remark = jsonDecode(cloudOtpParameters.remark);
     } catch (e, t) {
-      ILogger.error("CloudOTP",
+      ILogger.error(
           "Failed to decode remark from ${cloudOtpParameters.remark}", e, t);
       remark = {};
     }
     return OtpToken(
       id: 0,
       seq: 0,
-      uid: Utils.isEmpty(cloudOtpParameters.uid)
-          ? Utils.generateUid()
+      uid: cloudOtpParameters.uid.nullOrEmpty
+          ? StringUtil.generateUid()
           : cloudOtpParameters.uid,
       issuer: cloudOtpParameters.issuer,
       secret: utf8.decode(cloudOtpParameters.secret),
@@ -640,7 +639,7 @@ class OtpToken {
     OtpToken token = OtpToken.init();
     token.secret = base32.encode(Uint8List.fromList(param.secret));
     if (!CheckTokenUtil.isSecretBase32(token.secret)) return null;
-    token.issuer = Utils.isEmpty(param.issuer) ? param.account : param.issuer;
+    token.issuer = param.issuer.nullOrEmpty ? param.account : param.issuer;
     token.account = param.account;
     token.algorithm = OtpAlgorithm.fromOtpMigrationAlgorithm(param.algorithm);
     token.digits = OtpDigits.fromOtpMigrationDigitCount(param.digits);

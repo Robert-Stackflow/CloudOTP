@@ -13,15 +13,11 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 
 import '../generated/l10n.dart';
-
-const defaultPhone = "";
-const defaultPassword = "";
-const defaultLofterID = "";
 
 const defaultMaxBackupCount = 100;
 
@@ -29,22 +25,10 @@ const maxBackupCountThrehold = 500;
 
 const maxBytesLength = 1000;
 
-const double kLoadExtentOffset = 1000;
-
-const Widget emptyWidget = SizedBox.shrink();
-
-const defaultWindowSize = Size(1120, 740);
-
-const minimumSize = Size(640, 640);
-
 const double autoCopyNextCodeProgressThrehold = 0.25;
 const int defaultHOTPPeriod = 15;
 const String placeholderText = "*";
 const String hotpPlaceholderText = "*";
-
-const bool defaultEnableSafeMode = true;
-
-const windowsKeyPath = r'SOFTWARE\Cloudchewie\CloudOTP';
 
 const appLicense = "GPL-3.0";
 
@@ -53,8 +37,6 @@ const String feedbackEmail = "2014027378@qq.com";
 String feedbackSubject = S.current.feedbackSubject;
 const String feedbackBody = "";
 const List<Locale> websiteSupportLocales = [Locale("en"), Locale("zh", "CN")];
-const String downloadPkgsUrl = "https://pkgs.cloudchewie.com/CloudOTP";
-const String officialWebsite = "https://apps.cloudchewie.com/cloudotp";
 const String defaultDownloadsWebsite =
     "https://apps.cloudchewie.com/cloudotp/downloads";
 const String downloadsWebsite =
@@ -62,28 +44,10 @@ const String downloadsWebsite =
 const String sqlcipherLearnMore =
     "https://apps.cloudchewie.com/cloudotp/sqlcipher/";
 const String telegramLink = "https://t.me/CloudOTP_official";
-const String repoUrl = "https://github.com/Robert-Stackflow/CloudOTP";
-const String releaseUrl =
-    "https://github.com/Robert-Stackflow/CloudOTP/releases";
-const String issueUrl = "https://github.com/Robert-Stackflow/CloudOTP/issues";
 const String privacyPolicyWebsite =
     "https://apps.cloudchewie.com/cloudotp/privacy/";
 const String serviceTermWebsite =
     "https://apps.cloudchewie.com/cloudotp/service/";
-
-AndroidAuthMessages androidAuthMessages = AndroidAuthMessages(
-  cancelButton: S.current.biometricCancelButton,
-  goToSettingsButton: S.current.biometricGoToSettingsButton,
-  biometricNotRecognized: S.current.biometricNotRecognized,
-  goToSettingsDescription: S.current.biometricGoToSettingsDescription,
-  biometricHint: ResponsiveUtil.isWindows()
-      ? S.current.biometricReasonWindows("CloudOTP")
-      : S.current.biometricReason("CloudOTP"),
-  biometricSuccess: S.current.biometricSuccess,
-  signInTitle: S.current.biometricSignInTitle,
-  deviceCredentialsRequiredTitle:
-      S.current.biometricDeviceCredentialsRequiredTitle,
-);
 
 RegExp otpauthMigrationReg =
     RegExp(r"^otpauth-migration://offline\?data=(.*)$");

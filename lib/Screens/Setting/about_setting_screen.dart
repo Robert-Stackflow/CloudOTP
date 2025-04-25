@@ -16,29 +16,17 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloudotp/Screens/Setting/change_log_screen.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Screens/Setting/base_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/egg_screen.dart';
-import 'package:cloudotp/Utils/file_util.dart';
-import 'package:cloudotp/Utils/route_util.dart';
-import 'package:cloudotp/Utils/uri_util.dart';
 import 'package:cloudotp/Utils/website_util.dart';
-import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:cloudotp/Widgets/BottomSheet/star_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Custom/no_shadow_scroll_behavior.dart';
-import 'package:cloudotp/Widgets/Shake/shake_animation_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../Utils/asset_util.dart';
 import '../../Utils/constant.dart';
-import '../../Utils/hive_util.dart';
-import '../../Utils/iprint.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../Widgets/Shake/shake_animation_type.dart';
-import '../../Widgets/Shake/shake_animation_widget.dart';
 import '../../generated/l10n.dart';
 
 const countThreholdLevel1 = 3;
@@ -47,8 +35,14 @@ const countThreholdLevel3 = 12;
 const countThreholdLevel4 = 18;
 const countThreholdLevel5 = 24;
 
-class AboutSettingScreen extends StatefulWidget {
-  const AboutSettingScreen({super.key});
+class AboutSettingScreen extends BaseSettingScreen {
+  const AboutSettingScreen({
+    super.key,
+    super.padding,
+    super.showTitleBar,
+    super.searchConfig,
+    super.searchText,
+  });
 
   static const String routeName = "/setting/about";
 
@@ -60,7 +54,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
     with TickerProviderStateMixin {
   int count = 0;
   late String appName = "";
-  bool inAppBrowser = HiveUtil.getBool(HiveUtil.inappWebviewKey);
+  bool inAppBrowser = ChewieHiveUtil.getBool(ChewieHiveUtil.inappWebviewKey);
 
   Timer? _timer;
   Timer? _hapticTimer;
@@ -76,13 +70,11 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
   }
 
   Future<void> getAppInfo() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    appName =
-        packageInfo.appName != "CloudOTP" ? "CloudOTP" : packageInfo.appName;
+    appName = ResponsiveUtil.appName;
     versionDetail =
-        "${ResponsiveUtil.platformName} ${packageInfo.version}+${packageInfo.buildNumber}";
+        "${ResponsiveUtil.platformName} ${ResponsiveUtil.version}+${ResponsiveUtil.buildNumber}";
     if (Platform.isWindows) {
-      WindowsVersion version = FileUtil.checkWindowsVersion();
+      WindowsVersion version = FileUtil.checkWindowsVersion(windowsKeyPath);
       if (version == WindowsVersion.portable) versionDetail += " Portable";
     }
     setState(() {});
@@ -116,219 +108,208 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: ResponsiveUtil.isLandscape()
-          ? null
-          : ItemBuilder.buildSimpleAppBar(
-              transparent: true,
-              context: context,
-            ),
-      body: EasyRefresh(
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          children: [
-            const SizedBox(height: 20),
-            Center(
-              child: ItemBuilder.buildClickItem(
-                GestureDetector(
-                  onLongPressStart: (details) {
-                    if (_timer != null) _timer!.cancel();
-                    _timer =
-                        Timer.periodic(const Duration(seconds: 1), (timer) {
-                      count = timer.tick;
-                      if (count >= countThreholdLevel4 / 4) {
-                        diaplayCelebrate();
-                      } else if (count >= countThreholdLevel3 / 4) {
-                        setHapticTimer(HapticFeedback.heavyImpact);
-                      } else if (count >= countThreholdLevel2 / 4) {
-                        setHapticTimer(HapticFeedback.mediumImpact);
-                      } else if (count >= countThreholdLevel1 / 4) {
-                        startShake();
-                        setHapticTimer(HapticFeedback.lightImpact);
-                      }
-                      setState(() {});
-                    });
-                  },
-                  onLongPressEnd: (details) {
-                    restore();
-                  },
-                  child: ShakeAnimationWidget(
-                    shakeAnimationController: _shakeAnimationController,
-                    shakeAnimationType: ShakeAnimationType.RandomShake,
-                    isForward: false,
-                    shakeRange: 0.1,
-                    child: Hero(
-                      tag: "logo-egg",
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Theme.of(context).dividerColor, width: 1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.asset(
-                            'assets/logo.png',
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ),
+    return ItemBuilder.buildSettingScreen(
+      context: context,
+      backgroundColor: Colors.transparent,
+      title: "",
+      showBorder: false,
+      showTitleBar: widget.showTitleBar,
+      showBack: !ResponsiveUtil.isLandscape(),
+      padding: widget.padding,
+      children: [
+        const SizedBox(height: 30),
+        ..._buildLogo(),
+        _buildRepo(),
+        _buildApp(),
+        _buildContact(),
+        const SizedBox(height: 30),
+      ],
+    );
+  }
+
+  _buildLogo() {
+    return [
+      Center(
+        child: ClickableGestureDetector(
+          onLongPressStart: (details) {
+            if (_timer != null) _timer!.cancel();
+            _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+              count = timer.tick;
+              if (count >= countThreholdLevel4 / 4) {
+                diaplayCelebrate();
+              } else if (count >= countThreholdLevel3 / 4) {
+                setHapticTimer(HapticFeedback.heavyImpact);
+              } else if (count >= countThreholdLevel2 / 4) {
+                setHapticTimer(HapticFeedback.mediumImpact);
+              } else if (count >= countThreholdLevel1 / 4) {
+                startShake();
+                setHapticTimer(HapticFeedback.lightImpact);
+              }
+              setState(() {});
+            });
+          },
+          onLongPressEnd: (details) {
+            restore();
+          },
+          child: ShakeAnimationWidget(
+            shakeAnimationController: _shakeAnimationController,
+            shakeAnimationType: ShakeAnimationType.RandomShake,
+            isForward: false,
+            shakeRange: 0.1,
+            child: Hero(
+              tag: "logo-egg",
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                      color: Theme.of(context).dividerColor, width: 1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    AssetFiles.logo,
+                    height: 80,
+                    width: 80,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              alignment: Alignment.center,
-              child: Text(
-                appName,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 3),
-              alignment: Alignment.center,
-              child: Text(
-                versionDetail,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 3),
-              alignment: Alignment.center,
-              child: Text(
-                S.current.licenseDetail(appLicense),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.all(10),
-              child: ScrollConfiguration(
-                behavior: NoShadowScrollBehavior(),
-                child: ListView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  children: [
-                    const SizedBox(height: 10),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.changelog,
-                      topRadius: true,
-                      showLeading: true,
-                      onTap: () {
-                        RouteUtil.pushCupertinoRoute(
-                            context, const ChangelogScreen());
-                      },
-                      leading: Icons.merge_type_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.bugReport,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context, issueUrl);
-                      },
-                      showLeading: true,
-                      leading: Icons.bug_report_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.githubRepo,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context, repoUrl);
-                      },
-                      showLeading: true,
-                      leading: Icons.commit_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.privacyPolicy,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context,
-                            WebsiteUtil.getPrivacyPolicyWebsite(context));
-                      },
-                      showLeading: true,
-                      leading: Icons.privacy_tip_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.serviceTerm,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context,
-                            WebsiteUtil.getServiceTermWebsite(context));
-                      },
-                      showLeading: true,
-                      bottomRadius: true,
-                      leading: Icons.topic_outlined,
-                    ),
-                    const SizedBox(height: 10),
-                    ItemBuilder.buildEntryItem(
-                      topRadius: true,
-                      context: context,
-                      title: S.current.rate,
-                      showLeading: true,
-                      onTap: () {
-                        BottomSheetBuilder.showBottomSheet(
-                          context,
-                          (context) => const StarBottomSheet(),
-                          responsive: true,
-                        );
-                      },
-                      leading: Icons.rate_review_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.shareApp,
-                      showLeading: true,
-                      onTap: () {
-                        Share.share(shareAppText);
-                      },
-                      leading: Icons.share_rounded,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.contact,
-                      onTap: () {
-                        UriUtil.launchEmailUri(
-                          context,
-                          feedbackEmail,
-                          subject: feedbackSubject,
-                          body: feedbackBody,
-                        );
-                      },
-                      showLeading: true,
-                      leading: Icons.contact_support_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.officialWebsite,
-                      onTap: () {
-                        UriUtil.launchUrlUri(context, officialWebsite);
-                      },
-                      showLeading: true,
-                      leading: Icons.language_outlined,
-                    ),
-                    ItemBuilder.buildEntryItem(
-                      context: context,
-                      title: S.current.telegramGroup,
-                      onTap: () {
-                        UriUtil.openExternal(telegramLink);
-                      },
-                      bottomRadius: true,
-                      showLeading: true,
-                      leading: Icons.telegram_outlined,
-                    ),
-                    const SizedBox(height: 10)
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
+      Container(
+        margin: const EdgeInsets.only(top: 8),
+        alignment: Alignment.center,
+        child: Text(
+          appName,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      ),
+      Container(
+        margin: const EdgeInsets.only(top: 3),
+        alignment: Alignment.center,
+        child: Text(
+          versionDetail,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+      Container(
+        margin: const EdgeInsets.only(top: 3),
+        alignment: Alignment.center,
+        child: Text(
+          S.current.licenseDetail(appLicense),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+    ];
+  }
+
+  _buildRepo() {
+    return SearchableCaptionItem(
+      title: "项目仓库",
+      searchConfig: widget.searchConfig,
+      searchText: widget.searchText,
+      children: [
+        EntryItem(
+          title: S.current.changelog,
+          showLeading: true,
+          onTap: () {
+            RouteUtil.pushDialogRoute(context, const UpdateLogScreen());
+          },
+          leading: LucideIcons.scrollText,
+        ),
+        EntryItem(
+          title: S.current.bugReport,
+          onTap: () {
+            UriUtil.launchUrlUri(context, issueUrl);
+          },
+          showLeading: true,
+          leading: LucideIcons.bug,
+          trailing: LucideIcons.externalLink,
+        ),
+        EntryItem(
+          title: S.current.githubRepo,
+          onTap: () {
+            UriUtil.launchUrlUri(context, repoUrl);
+          },
+          showLeading: true,
+          leading: LucideIcons.github,
+          trailing: LucideIcons.externalLink,
+        ),
+      ],
+    );
+  }
+
+  _buildApp() {
+    return SearchableCaptionItem(
+      title: "APP",
+      searchConfig: widget.searchConfig,
+      searchText: widget.searchText,
+      children: [
+        EntryItem(
+          title: S.current.rate,
+          showLeading: true,
+          onTap: () {
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              (context) => const StarBottomSheet(),
+              responsive: true,
+            );
+          },
+          leading: LucideIcons.medal,
+        ),
+        EntryItem(
+          title: S.current.shareApp,
+          showLeading: true,
+          onTap: () {
+            UriUtil.share(shareAppText);
+          },
+          leading: LucideIcons.share2,
+        ),
+        EntryItem(
+          title: S.current.officialWebsite,
+          onTap: () {
+            UriUtil.launchUrlUri(context, officialWebsite);
+          },
+          showLeading: true,
+          leading: LucideIcons.house,
+          trailing: LucideIcons.externalLink,
+        ),
+      ],
+    );
+  }
+
+  _buildContact() {
+    return SearchableCaptionItem(
+      title: "联系",
+      searchConfig: widget.searchConfig,
+      searchText: widget.searchText,
+      children: [
+        EntryItem(
+          title: S.current.contact,
+          onTap: () {
+            UriUtil.launchEmailUri(
+              context,
+              feedbackEmail,
+              subject: feedbackSubject,
+              body: feedbackBody,
+            );
+          },
+          showLeading: true,
+          leading: LucideIcons.contact,
+          trailing: LucideIcons.atSign,
+        ),
+        EntryItem(
+          title: S.current.telegramGroup,
+          onTap: () {
+            UriUtil.openExternal(telegramLink);
+          },
+          showLeading: true,
+          leading: LucideIcons.telescope,
+          trailing: LucideIcons.externalLink,
+        ),
+      ],
     );
   }
 }

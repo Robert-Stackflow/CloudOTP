@@ -13,13 +13,10 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:cloudotp/Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 
-import '../../Utils/responsive_util.dart';
-import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
-import '../Item/item_builder.dart';
 
 class InputPasswordBottomSheet extends StatefulWidget {
   const InputPasswordBottomSheet({
@@ -72,7 +69,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                   bottom: ResponsiveUtil.isWideLandscape()
                       ? const Radius.circular(20)
                       : Radius.zero),
-              color: Theme.of(context).canvasColor,
+              color: ChewieTheme.canvasColor,
             ),
             child: Form(
               key: formKey,
@@ -81,8 +78,8 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  if (Utils.isNotEmpty(widget.title) ||
-                      Utils.isNotEmpty(widget.message))
+                  if (widget.title.notNullOrEmpty ||
+                      widget.message.notNullOrEmpty)
                     _buildHeader(),
                   const SizedBox(height: 8.0),
                   Center(
@@ -90,7 +87,9 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                       controller: _controller,
                       focusNode: _focusNode,
                       textInputAction: TextInputAction.next,
-                      tailingType: InputItemTailingType.password,
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.password,
+                      ),
                       validator: (value) {
                         if (value.isEmpty) {
                           return S.current.encryptDatabasePasswordCannotBeEmpty;
@@ -107,7 +106,9 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                     child: InputItem(
                       controller: _confirmController,
                       textInputAction: TextInputAction.done,
-                      tailingType: InputItemTailingType.password,
+                      tailingConfig: InputItemLeadingTailingConfig(
+                        type: InputItemLeadingTailingType.password,
+                      ),
                       validator: (value) {
                         if (value != _controller.text) {
                           return S.current.encryptDatabasePasswordNotMatch;
@@ -135,13 +136,13 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
       alignment: Alignment.center,
       child: Column(
         children: [
-          if (Utils.isNotEmpty(widget.title))
+          if (widget.title.notNullOrEmpty)
             Text(
               widget.title,
               style: Theme.of(context).textTheme.titleLarge,
             ),
-          if (Utils.isNotEmpty(widget.message)) const SizedBox(height: 8),
-          if (Utils.isNotEmpty(widget.message))
+          if (widget.message.notNullOrEmpty) const SizedBox(height: 8),
+          if (widget.message.notNullOrEmpty)
             Text(
               widget.message,
               style: Theme.of(context).textTheme.bodyMedium?.apply(
@@ -164,10 +165,9 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
           Expanded(
             child: SizedBox(
               height: 45,
-              child: ItemBuilder.buildRoundButton(
-                context,
+              child: RoundIconTextButton(
                 text: S.current.cancel,
-                onTap: () {
+                onPressed: () {
                   widget.onCancel?.call();
                   Navigator.of(context).pop();
                 },
@@ -179,12 +179,11 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
           Expanded(
             child: SizedBox(
               height: 45,
-              child: ItemBuilder.buildRoundButton(
-                context,
+              child: RoundIconTextButton(
                 background: Theme.of(context).primaryColor,
                 color: Colors.white,
                 text: S.current.confirm,
-                onTap: () async {
+                onPressed: () async {
                   bool isValid = formKey.currentState?.validate() ?? false;
                   widget.onConfirm
                       ?.call(_controller.text, _confirmController.text);

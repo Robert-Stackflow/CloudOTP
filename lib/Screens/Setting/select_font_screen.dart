@@ -13,21 +13,14 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/file_util.dart';
-import 'package:cloudotp/Utils/hive_util.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Screens/Setting/base_setting_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-import '../../Resources/fonts.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 
-class SelectFontScreen extends StatefulWidget {
+class SelectFontScreen extends BaseSettingScreen {
   const SelectFontScreen({super.key});
 
   static const String routeName = "/setting/font";
@@ -39,92 +32,64 @@ class SelectFontScreen extends StatefulWidget {
 class _SelectFontScreenState extends State<SelectFontScreen>
     with TickerProviderStateMixin {
   CustomFont _currentFont = CustomFont.getCurrentFont();
-  List<CustomFont> customFonts = HiveUtil.getCustomFonts();
+  List<CustomFont> customFonts = ChewieHiveUtil.getCustomFonts();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      child: Scaffold(
-        appBar: ResponsiveUtil.isLandscape()
-            ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.chooseFontFamily,
-                context: context,
-                transparent: true,
-              )
-            : ItemBuilder.buildAppBar(
-                context: context,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                leading: Icons.arrow_back_rounded,
-                onLeadingTap: () {
-                  Navigator.pop(context);
-                },
-                title: Text(
-                  S.current.chooseFontFamily,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontWeightDelta: 2),
-                ),
-                actions: [
-                  ItemBuilder.buildBlankIconButton(context),
-                  const SizedBox(width: 5),
-                ],
+    return ItemBuilder.buildSettingScreen(
+      context: context,
+      title: S.current.chooseFontFamily,
+      showTitleBar: widget.showTitleBar,
+      showBack: true,
+      padding: widget.padding,
+      onTapBack: () {
+        if (ResponsiveUtil.isLandscape()) {
+          chewieProvider.dialogNavigatorState?.popPage();
+        } else {
+          Navigator.pop(context);
+        }
+      },
+      children: [
+        CaptionItem(
+          title: S.current.defaultFontFamily,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+              child: Wrap(
+                runSpacing: 10,
+                spacing: 10,
+                children: _buildDefaultFontList(),
               ),
-        body: EasyRefresh(
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            children: [
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.defaultFontFamily),
-              ItemBuilder.buildContainerItem(
-                context: context,
-                child: Container(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  child: Wrap(
-                    runSpacing: 10,
-                    spacing: 10,
-                    children: _buildDefaultFontList(),
-                  ),
-                ),
-                bottomRadius: true,
-              ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.customFontFamily),
-              ItemBuilder.buildContainerItem(
-                context: context,
-                child: Container(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  child: Wrap(
-                    runSpacing: 10,
-                    spacing: 10,
-                    children: _buildCustomFontList(),
-                  ),
-                ),
-                bottomRadius: true,
-              ),
-              const SizedBox(height: 30),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
+        CaptionItem(
+          title: S.current.customFontFamily,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+              child: Wrap(
+                runSpacing: 10,
+                spacing: 10,
+                children: _buildCustomFontList(),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 30),
+      ],
     );
   }
 
   List<Widget> _buildDefaultFontList() {
     var list = List<Widget>.generate(
       CustomFont.defaultFonts.length,
-      (index) => ItemBuilder.buildFontItem(
+      (index) => FontItem(
         currentFont: _currentFont,
         font: CustomFont.defaultFonts[index],
-        context: context,
         onChanged: (_) {
           _currentFont = CustomFont.defaultFonts[index];
-          appProvider.currentFont = _currentFont;
+          chewieProvider.currentFont = _currentFont;
           CustomFont.loadFont(context, _currentFont, autoRestartApp: false);
         },
       ),
@@ -135,14 +100,13 @@ class _SelectFontScreenState extends State<SelectFontScreen>
   List<Widget> _buildCustomFontList() {
     var list = List<Widget>.generate(
       customFonts.length,
-      (index) => ItemBuilder.buildFontItem(
+      (index) => FontItem(
         currentFont: _currentFont,
         showDelete: true,
         font: customFonts[index],
-        context: context,
         onChanged: (_) {
           _currentFont = customFonts[index];
-          appProvider.currentFont = _currentFont;
+          chewieProvider.currentFont = _currentFont;
           CustomFont.loadFont(context, customFonts[index],
               autoRestartApp: false);
         },
@@ -155,21 +119,20 @@ class _SelectFontScreenState extends State<SelectFontScreen>
             onTapConfirm: () async {
               if (customFonts[index] == _currentFont) {
                 _currentFont = CustomFont.Default;
-                appProvider.currentFont = _currentFont;
+                chewieProvider.currentFont = _currentFont;
                 CustomFont.loadFont(context, _currentFont,
                     autoRestartApp: false);
               }
               await CustomFont.deleteFont(customFonts[index]);
               customFonts.removeAt(index);
-              HiveUtil.setCustomFonts(customFonts);
+              ChewieHiveUtil.setCustomFonts(customFonts);
             },
           );
         },
       ),
     );
     list.add(
-      ItemBuilder.buildEmptyFontItem(
-        context: context,
+      EmptyFontItem(
         onTap: () async {
           FilePickerResult? result = await FileUtil.pickFiles(
             dialogTitle: S.current.loadFontFamily,
@@ -182,9 +145,9 @@ class _SelectFontScreenState extends State<SelectFontScreen>
                 await CustomFont.copyFont(filePath: result.files.single.path!);
             if (customFont != null) {
               customFonts.add(customFont);
-              HiveUtil.setCustomFonts(customFonts);
+              ChewieHiveUtil.setCustomFonts(customFonts);
               _currentFont = customFont;
-              appProvider.currentFont = _currentFont;
+              chewieProvider.currentFont = _currentFont;
               CustomFont.loadFont(context, _currentFont, autoRestartApp: false);
               setState(() {});
             } else {

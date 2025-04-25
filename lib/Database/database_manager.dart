@@ -18,6 +18,7 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Database/create_table_sql.dart';
@@ -27,14 +28,11 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/file_util.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3/open.dart';
 
 import '../Utils/hive_util.dart';
-import '../Utils/ilogger.dart';
-import '../Utils/utils.dart';
 
 enum EncryptDatabaseStatus { defaultPassword, customPassword }
 
@@ -87,11 +85,11 @@ class DatabaseManager {
       } else {
         isDatabaseEncrypted = true;
         _currentDbFactory = cipherDbFactory;
-        password = await HiveUtil.regeneratePassword();
+        password = await CloudOTPHiveUtil.regeneratePassword();
         appProvider.currentDatabasePassword = password;
         ILogger.info(
             "CloudOTP", "Database not exist and new password is generated");
-        await HiveUtil.setEncryptDatabaseStatus(
+        await CloudOTPHiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }
       _database = await _currentDbFactory.openDatabase(
@@ -128,7 +126,7 @@ class DatabaseManager {
           await _database!.rawQuery("DETACH DATABASE tmp");
           return true;
         } catch (e) {
-          ILogger.error("CloudOTP", "Failed to change database password", e);
+          ILogger.error("Failed to change database password", e);
           return false;
         }
       }
@@ -146,7 +144,6 @@ class DatabaseManager {
             "Configure database with cipher successfully. Result is $res");
       } else {
         ILogger.error(
-          "CloudOTP",
           "Failed to configure database with cipher, perhaps the sqlcipher dynamic library was not loaded.",
           res,
         );
@@ -216,14 +213,14 @@ class DatabaseManager {
     }
     List<OtpToken> tokens = await TokenDao.listTokens(overrideDb: db);
     for (OtpToken token in tokens) {
-      token.uid = Utils.generateUid();
+      token.uid = StringUtil.generateUid();
     }
     await TokenDao.updateTokens(tokens, autoBackup: false, overrideDb: db);
     List<TokenCategory> categories =
         await CategoryDao.listCategories(overrideDb: db);
     List<TokenCategoryBinding> bindings = [];
     for (TokenCategory category in categories) {
-      category.uid = Utils.generateUid();
+      category.uid = StringUtil.generateUid();
       for (int tokenId in category.oldTokenIds) {
         OtpToken token = tokens.where((element) => element.id == tokenId).first;
         bindings.add(TokenCategoryBinding(

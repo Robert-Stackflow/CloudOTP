@@ -13,21 +13,13 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_token_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
-import 'package:cloudotp/Widgets/General/EasyRefresh/easy_refresh.dart';
-import 'package:cloudotp/Widgets/Item/input_item.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:cloudotp/Widgets/Scaffold/my_scaffold.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/category_dao.dart';
 import '../../Models/token_category.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../../generated/l10n.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -62,31 +54,12 @@ class _CategoryScreenState extends State<CategoryScreen>
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
-      appBar: ItemBuilder.buildAppBar(
-        context: context,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        forceShowClose: true,
-        leading: ResponsiveUtil.isLandscape()
-            ? Icons.close_rounded
-            : Icons.arrow_back_rounded,
-        onLeadingTap: () {
-          if (ResponsiveUtil.isWideLandscape()) {
-            globalNavigatorState?.pop();
-          } else {
-            Navigator.pop(context);
-          }
-        },
-        title: Text(
-          S.current.category,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.apply(fontWeightDelta: 2),
-        ),
-        center: true,
+      appBar: ResponsiveAppBar(
+        title: S.current.category,
+        showBack: !ResponsiveUtil.isLandscape(),
+        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
         actions: [
-          ItemBuilder.buildIconButton(
-            context: context,
+          CircleIconButton(
             icon: Icon(Icons.add_rounded,
                 color: Theme.of(context).iconTheme.color),
             onTap: () {
@@ -111,7 +84,9 @@ class _CategoryScreenState extends State<CategoryScreen>
                   title: S.current.addCategory,
                   hint: S.current.inputCategory,
                   validateAsyncController: validateAsyncController,
-                  maxLength: 32,
+                  style: InputItemStyle(
+                    maxLength: 32,
+                  ),
                   onValidConfirm: (text) async {
                     TokenCategory category = TokenCategory.title(title: text);
                     await CategoryDao.insertCategory(category);
@@ -134,12 +109,9 @@ class _CategoryScreenState extends State<CategoryScreen>
     return EasyRefresh(
       child: categories.isEmpty
           ? ListView(
-              padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveUtil.isLandscape() ? 20 : 10,
-                  vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               children: [
-                ItemBuilder.buildEmptyPlaceholder(
-                    context: context, text: S.current.noCategory),
+                EmptyPlaceholder(text: S.current.noCategory),
               ],
             )
           : ReorderableListView.builder(
@@ -147,7 +119,8 @@ class _CategoryScreenState extends State<CategoryScreen>
                 return _buildCategoryItem(categories[index]);
               },
               cacheExtent: 9999,
-              padding: EdgeInsets.only(left: 10, right: 10, bottom: 30),
+              padding: const EdgeInsets.only(
+                  top: 6, left: 12, right: 12, bottom: 30),
               buildDefaultDragHandles: false,
               itemCount: categories.length,
               onReorder: (oldIndex, newIndex) {
@@ -166,14 +139,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                   (Widget child, int index, Animation<double> animation) {
                 return Container(
                   decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(rootContext).shadowColor,
-                        offset: const Offset(0, 4),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                      ).scale(2)
-                    ],
+                    boxShadow: ChewieTheme.defaultBoxShadow,
                   ),
                   child: child,
                 );
@@ -189,15 +155,14 @@ class _CategoryScreenState extends State<CategoryScreen>
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).canvasColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: ChewieDimens.borderRadius8,
         // border: Border.all(color: Theme.of(context).dividerColor, width: 0.5),
       ),
       child: Row(
         children: [
           ReorderableDragStartListener(
             index: categories.indexOf(category),
-            child: ItemBuilder.buildIconButton(
-              context: context,
+            child: CircleIconButton(
               icon: const Icon(Icons.dehaze_rounded, size: 20),
               onTap: () {},
             ),
@@ -209,8 +174,7 @@ class _CategoryScreenState extends State<CategoryScreen>
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
-          ItemBuilder.buildIconButton(
-            context: context,
+          CircleIconButton(
             icon: const Icon(Icons.edit_rounded, size: 20),
             onTap: () {
               InputValidateAsyncController validateAsyncController =
@@ -234,7 +198,9 @@ class _CategoryScreenState extends State<CategoryScreen>
                 (context) => InputBottomSheet(
                   title: S.current.editCategoryName,
                   hint: S.current.inputCategory,
-                  maxLength: 32,
+                  style: InputItemStyle(
+                    maxLength: 32,
+                  ),
                   text: category.title,
                   validateAsyncController: validateAsyncController,
                   onValidConfirm: (text) async {
@@ -248,8 +214,7 @@ class _CategoryScreenState extends State<CategoryScreen>
             },
           ),
           const SizedBox(width: 5),
-          ItemBuilder.buildIconButton(
-            context: context,
+          CircleIconButton(
             icon: const Icon(Icons.checklist_rounded, size: 20),
             onTap: () {
               BottomSheetBuilder.showBottomSheet(
@@ -260,8 +225,7 @@ class _CategoryScreenState extends State<CategoryScreen>
             },
           ),
           const SizedBox(width: 5),
-          ItemBuilder.buildIconButton(
-            context: context,
+          CircleIconButton(
             icon: const Icon(Icons.delete_outline_rounded,
                 size: 20, color: Colors.red),
             onTap: () {

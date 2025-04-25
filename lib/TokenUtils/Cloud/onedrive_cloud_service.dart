@@ -100,7 +100,7 @@ class OneDriveCloudService extends CloudService {
 
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
-    maxCount ??= HiveUtil.getMaxBackupsCount();
+    maxCount ??= CloudOTPHiveUtil.getMaxBackupsCount();
     List<OneDriveFileInfo>? list = await listBackups();
     if (list == null) return false;
     list.sort((a, b) {

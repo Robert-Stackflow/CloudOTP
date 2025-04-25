@@ -30,6 +30,8 @@ class ItemBuilder {
     bool showBack = true,
     Color? backgroundColor,
     double titleLeftMargin = 5,
+    bool showBorder = false,
+    Function()? onTapBack,
   }) {
     return Scaffold(
       appBar: showTitleBar
@@ -38,6 +40,8 @@ class ItemBuilder {
               showBack: showBack,
               title: title,
               backgroundColor: backgroundColor,
+              showBorder: showBorder,
+              onTapBack: onTapBack,
             )
           : null,
       body: EasyRefresh(
@@ -248,6 +252,7 @@ class ItemBuilder {
     double bottomPadding = 100,
     bool forceDark = false,
     Color? background,
+    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.center,
   }) {
     return Center(
       child: ListView(
@@ -257,7 +262,7 @@ class ItemBuilder {
         children: [
           Column(
             mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: mainAxisAlignment,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: topPadding),
@@ -274,32 +279,84 @@ class ItemBuilder {
     );
   }
 
+  static buildGroupTile({
+    required BuildContext context,
+    String title = '',
+    required List<String> buttons,
+    GroupButtonController? controller,
+    EdgeInsets? padding,
+    bool disabled = false,
+    bool enableDeselect = false,
+    bool constraintWidth = true,
+    Function(dynamic value, int index, bool isSelected)? onSelected,
+  }) {
+    return Container(
+      color: Colors.transparent,
+      padding: padding ?? const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (title.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: Text(
+                title,
+                style: ChewieTheme.titleMedium
+                    .apply(fontWeightDelta: 2, fontSizeDelta: -2),
+              ),
+            ),
+          SizedBox(
+            width: MediaQuery.sizeOf(context).width,
+            child: ItemBuilder.buildGroupButtons(
+              buttons: buttons,
+              disabled: disabled,
+              controller: controller,
+              constraintWidth: constraintWidth,
+              radius: 8,
+              enableDeselect: enableDeselect,
+              mainGroupAlignment: MainGroupAlignment.start,
+              onSelected: onSelected,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   static buildGroupButtons({
     required List<String> buttons,
     GroupButtonController? controller,
     bool enableDeselect = false,
+    bool isRadio = true,
+    bool constraintWidth = true,
+    double radius = 8,
     Function(dynamic value, int index, bool isSelected)? onSelected,
+    bool disabled = false,
+    MainGroupAlignment mainGroupAlignment = MainGroupAlignment.start,
   }) {
     return GroupButton(
-      isRadio: true,
+      disabled: disabled,
+      isRadio: isRadio,
       enableDeselect: enableDeselect,
-      options: const GroupButtonOptions(
-        mainGroupAlignment: MainGroupAlignment.start,
+      options: GroupButtonOptions(
+        mainGroupAlignment: mainGroupAlignment,
       ),
       onSelected: onSelected,
       maxSelected: 1,
       controller: controller,
       buttons: buttons,
-      buttonBuilder: (selected, label, context, _, __) {
+      buttonBuilder: (selected, label, context, onTap, __) {
         return SizedBox(
-          width: 80,
+          width: constraintWidth ? 80 : null,
           child: RoundIconTextButton(
             text: label,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            radius: radius,
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
             background: selected ? ChewieTheme.primaryColor : null,
             textStyle: ChewieTheme.titleSmall.apply(
                 fontWeightDelta: 1, color: selected ? Colors.white : null),
-            onPressed: null,
+            onPressed: onTap,
           ),
         );
       },

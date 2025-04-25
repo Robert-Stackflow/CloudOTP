@@ -17,11 +17,7 @@ import 'dart:typed_data';
 
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cloud/onedrive_response.dart';
 
@@ -29,11 +25,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
-import '../../Utils/ilogger.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/Dialog/progress_dialog.dart';
-import '../../Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../generated/l10n.dart';
 
 class OneDriveServiceScreen extends StatefulWidget {
@@ -132,7 +124,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
         : inited
             ? _buildBody()
             : ItemBuilder.buildLoadingDialog(
-                context,
+                context: context,
                 background: Colors.transparent,
                 text: S.current.cloudConnecting,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -186,66 +178,60 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   }
 
   _buildBody() {
-    return Column(
+    return ListView(
       children: [
         if (_configInitialized) _enableInfo(),
-        const SizedBox(height: 10),
         if (_configInitialized && currentConfig.connected) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
         if (_configInitialized && currentConfig.connected) _operationButtons(),
+        const SizedBox(height: 30),
       ],
     );
   }
 
   _enableInfo() {
-    return ItemBuilder.buildRadioItem(
-      context: context,
-      title: S.current.enable + S.current.cloudTypeOneDrive,
-      description: S.current.cloudTypeOneDriveTip,
-      topRadius: true,
-      bottomRadius: true,
-      value: _oneDriveCloudServiceConfig?.enabled ?? false,
-      onTap: () {
-        setState(() {
-          _oneDriveCloudServiceConfig!.enabled =
-              !_oneDriveCloudServiceConfig!.enabled;
-          CloudServiceConfigDao.updateConfigEnabled(
-              _oneDriveCloudServiceConfig!,
-              _oneDriveCloudServiceConfig!.enabled);
-        });
-      },
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: CheckboxItem(
+        title: S.current.enable + S.current.cloudTypeOneDrive,
+        description: S.current.cloudTypeOneDriveTip,
+        value: _oneDriveCloudServiceConfig?.enabled ?? false,
+        onTap: () {
+          setState(() {
+            _oneDriveCloudServiceConfig!.enabled =
+                !_oneDriveCloudServiceConfig!.enabled;
+            CloudServiceConfigDao.updateConfigEnabled(
+                _oneDriveCloudServiceConfig!,
+                _oneDriveCloudServiceConfig!.enabled);
+          });
+        },
+      ),
     );
   }
 
   _accountInfo() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
-      topRadius: true,
-      bottomRadius: true,
-      padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         children: [
           InputItem(
             controller: _accountController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudDisplayName,
+            title: S.current.cloudDisplayName,
           ),
           InputItem(
             controller: _emailController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudEmail,
+            title: S.current.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudSize,
+            title: S.current.cloudSize,
           ),
         ],
       ),
@@ -253,141 +239,128 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
   }
 
   _loginButton() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            text: S.current.cloudSignin,
-            background: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              try {
-                ping();
-              } catch (e, t) {
-                ILogger.error(
-                    "CloudOTP", "Failed to connect to onedrive", e, t);
-                IToast.show(S.current.cloudConnectionError);
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: RoundIconTextButton(
+        text: S.current.cloudSignin,
+        background: Theme.of(context).primaryColor,
+        fontSizeDelta: 2,
+        onPressed: () async {
+          try {
+            ping();
+          } catch (e, t) {
+            ILogger.error("Failed to connect to onedrive", e, t);
+            IToast.show(S.current.cloudConnectionError);
+          }
+        },
+      ),
     );
   }
 
   _operationButtons() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildFramedButton(
-            context,
-            text: S.current.cloudPullBackup,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            outline: Theme.of(context).primaryColor,
-            color: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
-              try {
-                List<OneDriveFileInfo>? files =
-                    await _oneDriveCloudService!.listBackups();
-                if (files == null) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: RoundIconTextButton(
+              text: S.current.cloudPullBackup,
+              color: Theme.of(context).primaryColor,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                try {
+                  List<OneDriveFileInfo>? files =
+                      await _oneDriveCloudService!.listBackups();
+                  if (files == null) {
+                    CustomLoadingDialog.dismissLoading();
+                    IToast.show(S.current.cloudPullFailed);
+                    return;
+                  }
+                  CloudServiceConfigDao.updateLastPullTime(
+                      _oneDriveCloudServiceConfig!);
+                  CustomLoadingDialog.dismissLoading();
+                  files.sort((a, b) =>
+                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                  if (files.isNotEmpty) {
+                    BottomSheetBuilder.showBottomSheet(
+                      context,
+                      responsive: true,
+                      (dialogContext) => OneDriveBackupsBottomSheet(
+                        files: files,
+                        cloudService: _oneDriveCloudService!,
+                        onSelected: (selectedFile) async {
+                          var dialog = showProgressDialog(
+                            S.current.cloudPulling,
+                            showProgress: true,
+                          );
+                          Uint8List? res =
+                              await _oneDriveCloudService!.downloadFile(
+                            selectedFile.id,
+                            onProgress: (c, t) {
+                              dialog.updateProgress(progress: c / t);
+                            },
+                          );
+                          ImportTokenUtil.importFromCloud(context, res, dialog);
+                        },
+                      ),
+                    );
+                  } else {
+                    IToast.show(S.current.cloudNoBackupFile);
+                  }
+                } catch (e, t) {
+                  ILogger.error("Failed to pull from onedrive", e, t);
                   CustomLoadingDialog.dismissLoading();
                   IToast.show(S.current.cloudPullFailed);
-                  return;
                 }
-                CloudServiceConfigDao.updateLastPullTime(
-                    _oneDriveCloudServiceConfig!);
-                CustomLoadingDialog.dismissLoading();
-                files.sort((a, b) =>
-                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                if (files.isNotEmpty) {
-                  BottomSheetBuilder.showBottomSheet(
-                    context,
-                    responsive: true,
-                    (dialogContext) => OneDriveBackupsBottomSheet(
-                      files: files,
-                      cloudService: _oneDriveCloudService!,
-                      onSelected: (selectedFile) async {
-                        var dialog = showProgressDialog(
-                          msg: S.current.cloudPulling,
-                          showProgress: true,
-                        );
-                        Uint8List? res =
-                            await _oneDriveCloudService!.downloadFile(
-                          selectedFile.id,
-                          onProgress: (c, t) {
-                            dialog.updateProgress(progress: c / t);
-                          },
-                        );
-                        ImportTokenUtil.importFromCloud(context, res, dialog);
-                      },
-                    ),
-                  );
-                } else {
-                  IToast.show(S.current.cloudNoBackupFile);
-                }
-              } catch (e, t) {
-                ILogger.error("CloudOTP", "Failed to pull from onedrive", e, t);
-                CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.cloudPullFailed);
-              }
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Theme.of(context).primaryColor,
-            text: S.current.cloudPushBackup,
-            fontSizeDelta: 2,
-            onTap: () async {
-              ExportTokenUtil.backupEncryptToCloud(
-                config: _oneDriveCloudServiceConfig!,
-                cloudService: _oneDriveCloudService!,
-              );
-            },
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              background: Theme.of(context).primaryColor,
+              text: S.current.cloudPushBackup,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                ExportTokenUtil.backupEncryptToCloud(
+                  config: _oneDriveCloudServiceConfig!,
+                  cloudService: _oneDriveCloudService!,
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Colors.red,
-            text: S.current.cloudLogout,
-            fontSizeDelta: 2,
-            onTap: () async {
-              DialogBuilder.showConfirmDialog(context,
-                  title: S.current.cloudLogout,
-                  message: S.current.cloudLogoutMessage,
-                  onTapConfirm: () async {
-                CustomLoadingDialog.showLoading(
-                    title: S.current.cloudLoggingOut);
-                await _oneDriveCloudService!.signOut();
-                setState(() {
-                  _oneDriveCloudServiceConfig!.connected = false;
-                  _oneDriveCloudServiceConfig!.account = "";
-                  _oneDriveCloudServiceConfig!.email = "";
-                  _oneDriveCloudServiceConfig!.totalSize =
-                      _oneDriveCloudServiceConfig!.remainingSize =
-                          _oneDriveCloudServiceConfig!.usedSize = -1;
-                  updateConfig(_oneDriveCloudServiceConfig!);
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              background: Colors.red,
+              text: S.current.cloudLogout,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                DialogBuilder.showConfirmDialog(context,
+                    title: S.current.cloudLogout,
+                    message: S.current.cloudLogoutMessage,
+                    onTapConfirm: () async {
+                  CustomLoadingDialog.showLoading(
+                      title: S.current.cloudLoggingOut);
+                  await _oneDriveCloudService!.signOut();
+                  setState(() {
+                    _oneDriveCloudServiceConfig!.connected = false;
+                    _oneDriveCloudServiceConfig!.account = "";
+                    _oneDriveCloudServiceConfig!.email = "";
+                    _oneDriveCloudServiceConfig!.totalSize =
+                        _oneDriveCloudServiceConfig!.remainingSize =
+                            _oneDriveCloudServiceConfig!.usedSize = -1;
+                    updateConfig(_oneDriveCloudServiceConfig!);
+                  });
+                  CustomLoadingDialog.dismissLoading();
+                  IToast.show(S.current.cloudLogoutSuccess);
                 });
-                CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.cloudLogoutSuccess);
-              });
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-      ],
+        ],
+      ),
     );
   }
 }

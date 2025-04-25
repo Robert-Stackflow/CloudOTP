@@ -17,8 +17,6 @@ import 'dart:typed_data';
 
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cloud/googledrive_response.dart';
 
@@ -26,13 +24,8 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/Dialog/dialog_builder.dart';
-import '../../Widgets/Dialog/progress_dialog.dart';
-import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
 class GoogleDriveServiceScreen extends StatefulWidget {
@@ -123,7 +116,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
-            context,
+            context: context,
             background: Colors.transparent,
             text: S.current.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -164,65 +157,59 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
   }
 
   _buildBody() {
-    return Column(
+    return ListView(
       children: [
         if (_configInitialized) _enableInfo(),
-        const SizedBox(height: 10),
         if (_configInitialized && currentConfig.connected) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
         if (_configInitialized && currentConfig.connected) _operationButtons(),
+        const SizedBox(height: 30),
       ],
     );
   }
 
   _enableInfo() {
-    return ItemBuilder.buildRadioItem(
-      context: context,
-      title: S.current.enable + S.current.cloudTypeGoogleDrive,
-      topRadius: true,
-      bottomRadius: true,
-      value: _googledriveCloudServiceConfig?.enabled ?? false,
-      onTap: () {
-        setState(() {
-          _googledriveCloudServiceConfig!.enabled =
-              !_googledriveCloudServiceConfig!.enabled;
-          CloudServiceConfigDao.updateConfigEnabled(
-              _googledriveCloudServiceConfig!,
-              _googledriveCloudServiceConfig!.enabled);
-        });
-      },
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: CheckboxItem(
+        title: S.current.enable + S.current.cloudTypeGoogleDrive,
+        value: _googledriveCloudServiceConfig?.enabled ?? false,
+        onTap: () {
+          setState(() {
+            _googledriveCloudServiceConfig!.enabled =
+                !_googledriveCloudServiceConfig!.enabled;
+            CloudServiceConfigDao.updateConfigEnabled(
+                _googledriveCloudServiceConfig!,
+                _googledriveCloudServiceConfig!.enabled);
+          });
+        },
+      ),
     );
   }
 
   _accountInfo() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
-      topRadius: true,
-      bottomRadius: true,
-      padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         children: [
           InputItem(
             controller: _accountController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudDisplayName,
+            title: S.current.cloudDisplayName,
           ),
           InputItem(
             controller: _emailController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudEmail,
+            title: S.current.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudSize,
+            title: S.current.cloudSize,
           ),
         ],
       ),
@@ -230,138 +217,128 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
   }
 
   _loginButton() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            text: S.current.cloudSignin,
-            background: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              try {
-                ping();
-              } catch (e, t) {
-                ILogger.error(
-                    "CloudOTP", "Failed to connect to google drive", e, t);
-                IToast.show(S.current.cloudConnectionError);
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: RoundIconTextButton(
+        text: S.current.cloudSignin,
+        background: Theme.of(context).primaryColor,
+        fontSizeDelta: 2,
+        onPressed: () async {
+          try {
+            ping();
+          } catch (e, t) {
+            ILogger.error("Failed to connect to google drive", e, t);
+            IToast.show(S.current.cloudConnectionError);
+          }
+        },
+      ),
     );
   }
 
   _operationButtons() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildFramedButton(
-            context,
-            text: S.current.cloudPullBackup,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            outline: Theme.of(context).primaryColor,
-            color: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
-              try {
-                List<GoogleDriveFileInfo>? files =
-                    await _googledriveCloudService!.listBackups();
-                if (files == null) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomOutlinedButton(
+              text: S.current.cloudPullBackup,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              outline: Theme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                try {
+                  List<GoogleDriveFileInfo>? files =
+                      await _googledriveCloudService!.listBackups();
+                  if (files == null) {
+                    CustomLoadingDialog.dismissLoading();
+                    IToast.show(S.current.cloudPullFailed);
+                    return;
+                  }
+                  CloudServiceConfigDao.updateLastPullTime(
+                      _googledriveCloudServiceConfig!);
+                  CustomLoadingDialog.dismissLoading();
+                  files.sort((a, b) =>
+                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                  if (files.isNotEmpty) {
+                    BottomSheetBuilder.showBottomSheet(
+                      context,
+                      responsive: true,
+                      (dialogContext) => GoogleDriveBackupsBottomSheet(
+                        files: files,
+                        cloudService: _googledriveCloudService!,
+                        onSelected: (selectedFile) async {
+                          var dialog = showProgressDialog(
+                            S.current.cloudPulling,
+                            showProgress: true,
+                          );
+                          Uint8List? res =
+                              await _googledriveCloudService!.downloadFile(
+                            selectedFile.id,
+                            onProgress: (c, t) {
+                              dialog.updateProgress(progress: c / t);
+                            },
+                          );
+                          ImportTokenUtil.importFromCloud(context, res, dialog);
+                        },
+                      ),
+                    );
+                  } else {
+                    IToast.show(S.current.cloudNoBackupFile);
+                  }
+                } catch (e, t) {
+                  ILogger.error("Failed to pull from google drive", e, t);
                   CustomLoadingDialog.dismissLoading();
                   IToast.show(S.current.cloudPullFailed);
-                  return;
                 }
-                CloudServiceConfigDao.updateLastPullTime(
-                    _googledriveCloudServiceConfig!);
-                CustomLoadingDialog.dismissLoading();
-                files.sort((a, b) =>
-                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                if (files.isNotEmpty) {
-                  BottomSheetBuilder.showBottomSheet(
-                    context,
-                    responsive: true,
-                    (dialogContext) => GoogleDriveBackupsBottomSheet(
-                      files: files,
-                      cloudService: _googledriveCloudService!,
-                      onSelected: (selectedFile) async {
-                        var dialog = showProgressDialog(
-                          msg: S.current.cloudPulling,
-                          showProgress: true,
-                        );
-                        Uint8List? res =
-                            await _googledriveCloudService!.downloadFile(
-                          selectedFile.id,
-                          onProgress: (c, t) {
-                            dialog.updateProgress(progress: c / t);
-                          },
-                        );
-                        ImportTokenUtil.importFromCloud(context, res, dialog);
-                      },
-                    ),
-                  );
-                } else {
-                  IToast.show(S.current.cloudNoBackupFile);
-                }
-              } catch (e, t) {
-                ILogger.error(
-                    "CloudOTP", "Failed to pull from google drive", e, t);
-                CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.cloudPullFailed);
-              }
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Theme.of(context).primaryColor,
-            text: S.current.cloudPushBackup,
-            fontSizeDelta: 2,
-            onTap: () async {
-              ExportTokenUtil.backupEncryptToCloud(
-                config: _googledriveCloudServiceConfig!,
-                cloudService: _googledriveCloudService!,
-              );
-            },
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Theme.of(context).primaryColor,
+              text: S.current.cloudPushBackup,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                ExportTokenUtil.backupEncryptToCloud(
+                  config: _googledriveCloudServiceConfig!,
+                  cloudService: _googledriveCloudService!,
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Colors.red,
-            text: S.current.cloudLogout,
-            fontSizeDelta: 2,
-            onTap: () async {
-              DialogBuilder.showConfirmDialog(context,
-                  title: S.current.cloudLogout,
-                  message: S.current.cloudLogoutMessage,
-                  onTapConfirm: () async {
-                await _googledriveCloudService!.signOut();
-                setState(() {
-                  _googledriveCloudServiceConfig!.connected = false;
-                  _googledriveCloudServiceConfig!.account = "";
-                  _googledriveCloudServiceConfig!.email = "";
-                  _googledriveCloudServiceConfig!.totalSize =
-                      _googledriveCloudServiceConfig!.remainingSize =
-                          _googledriveCloudServiceConfig!.usedSize = -1;
-                  updateConfig(_googledriveCloudServiceConfig!);
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Colors.red,
+              text: S.current.cloudLogout,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                DialogBuilder.showConfirmDialog(context,
+                    title: S.current.cloudLogout,
+                    message: S.current.cloudLogoutMessage,
+                    onTapConfirm: () async {
+                  await _googledriveCloudService!.signOut();
+                  setState(() {
+                    _googledriveCloudServiceConfig!.connected = false;
+                    _googledriveCloudServiceConfig!.account = "";
+                    _googledriveCloudServiceConfig!.email = "";
+                    _googledriveCloudServiceConfig!.totalSize =
+                        _googledriveCloudServiceConfig!.remainingSize =
+                            _googledriveCloudServiceConfig!.usedSize = -1;
+                    updateConfig(_googledriveCloudServiceConfig!);
+                  });
                 });
-              });
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-      ],
+        ],
+      ),
     );
   }
 }

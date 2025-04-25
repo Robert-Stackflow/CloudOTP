@@ -50,7 +50,7 @@ class CircleIconButtonState extends State<CircleIconButton> {
   @override
   Widget build(BuildContext context) {
     var res = InkAnimation(
-      color: widget.background ?? ChewieTheme.scaffoldBackgroundColor,
+      color: widget.background ?? Colors.transparent,
       shape: const CircleBorder(),
       clipBehavior: Clip.hardEdge,
       onTap: widget.onTap,

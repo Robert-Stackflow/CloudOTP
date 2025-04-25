@@ -36,7 +36,8 @@ dependencies:
   # 存储/网络
   path:
   logger: ^2.5.0
-  hive: ^2.2.3
+  hive: ^4.0.0-dev.2 # 轻量存储
+  isar_flutter_libs: ^4.0.0-dev.13
   dio: ^5.8.0+1
   cookie_jar: ^4.0.8
   path_provider: ^2.0.12
@@ -80,6 +81,7 @@ dependencies:
   local_notifier: ^0.1.6
   flutter_local_notifications: ^17.2.1+2
   screen_protector: ^1.4.2+1
+  shell_executor: ^0.1.6 # 执行命令
 
 dev_dependencies:
   flutter_test:

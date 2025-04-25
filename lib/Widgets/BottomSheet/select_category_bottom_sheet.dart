@@ -13,11 +13,9 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
@@ -79,6 +77,8 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
     });
   }
 
+  Radius radius = ChewieDimens.radius8;
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -87,12 +87,13 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
             borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(20)
-                    : Radius.zero),
+                top: radius,
+                bottom:
+                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            color: ChewieTheme.scaffoldBackgroundColor,
+            border: ChewieTheme.border,
+            boxShadow: ChewieTheme.defaultBoxShadow,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -134,11 +135,10 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
             controller: controller,
             radius: 8,
           )
-        : ItemBuilder.buildEmptyPlaceholder(
-            context: context,
+        : EmptyPlaceholder(
             text: S.current.noCategory,
-            showButton: true,
-            buttonText: S.current.addCategory,
+            // showButton: true,
+            // buttonText: S.current.addCategory,
             onTap: () {
               HomeScreenState.addCategory(
                 context,
@@ -164,12 +164,11 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
           if (categories.isNotEmpty)
             Expanded(
               flex: 1,
-              child: ItemBuilder.buildRoundButton(
-                context,
+              child: RoundIconTextButton(
                 background: Theme.of(context).primaryColor,
                 text:
                     widget.isEditingToken ? S.current.confirm : S.current.save,
-                onTap: () async {
+                onPressed: () async {
                   List<int> selectedIndexes =
                       controller.selectedIndexes.toList();
                   List<String> allSelectedCategoryUids =

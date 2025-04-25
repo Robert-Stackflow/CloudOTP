@@ -15,46 +15,29 @@
 
 import 'dart:ui';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
-import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
+import 'package:cloudotp/Screens/Setting/mobile_setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Utils/utils.dart';
 import 'package:cloudotp/Widgets/BottomSheet/add_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Custom/marquee_widget.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:move_to_background/move_to_background.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../Database/token_dao.dart';
 import '../Models/token_category.dart';
 import '../Utils/app_provider.dart';
-import '../Utils/asset_util.dart';
-import '../Utils/itoast.dart';
-import '../Utils/route_util.dart';
-import '../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../Widgets/BottomSheet/input_bottom_sheet.dart';
 import '../Widgets/BottomSheet/select_token_bottom_sheet.dart';
-import '../Widgets/Custom/custom_tab_indicator.dart';
-import '../Widgets/Custom/loading_icon.dart';
-import '../Widgets/Dialog/dialog_builder.dart';
-import '../Widgets/Hidable/scroll_to_hide.dart';
-import '../Widgets/Item/input_item.dart';
-import '../Widgets/Scaffold/my_scaffold.dart';
-import '../Widgets/WaterfallFlow/reorderable_grid.dart';
-import '../Widgets/WaterfallFlow/reorderable_grid_view.dart';
-import '../Widgets/WaterfallFlow/sliver_waterfall_flow.dart';
 import '../generated/l10n.dart';
 import 'Token/category_screen.dart';
 import 'Token/token_layout.dart';
@@ -71,9 +54,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  String appName = "";
-  LayoutType layoutType = HiveUtil.getLayoutType();
-  OrderType orderType = HiveUtil.getOrderType();
+  LayoutType layoutType = CloudOTPHiveUtil.getLayoutType();
+  OrderType orderType = CloudOTPHiveUtil.getOrderType();
   List<OtpToken> tokens = [];
   List<TokenCategory> categories = [];
   List<Tab> tabList = [];
@@ -112,7 +94,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     initTab(true);
-    initAppName();
     refresh(true);
     _searchController.addListener(() {
       performSearch(_searchController.text);
@@ -124,18 +105,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (!ResponsiveUtil.isLandscape() &&
-          HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey,
+          ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
               defaultValue: false)) {
         changeSearchBar(true);
       }
-    });
-  }
-
-  initAppName() {
-    PackageInfo.fromPlatform().then((info) {
-      setState(() {
-        appName = info.appName;
-      });
     });
   }
 
@@ -277,7 +250,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   initTab([bool isInit = false]) {
     tabList.clear();
     tabList.add(_buildTab(null));
-    String categoryUid = HiveUtil.getSelectedCategoryId();
+    String categoryUid = CloudOTPHiveUtil.getSelectedCategoryId();
     for (var category in categories) {
       tabList.add(_buildTab(category));
       if (category.uid == categoryUid && isInit) {
@@ -292,43 +265,36 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
-      key: homeScaffoldKey,
       resizeToAvoidBottomInset: false,
       appBar: ResponsiveUtil.isLandscape()
-          ? PreferredSize(
-              preferredSize: const Size.fromHeight(54),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: Row(
-                  children: [
-                    Expanded(child: _buildTabBar()),
-                    if (ResponsiveUtil.isLandscapeTablet())
-                      Container(
-                        constraints:
-                            const BoxConstraints(maxWidth: 300, minWidth: 200),
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        child: ItemBuilder.buildDesktopSearchBar(
-                          context: context,
-                          borderRadius: 8,
-                          bottomMargin: 18,
-                          hintFontSizeDelta: 1,
-                          focusNode: _searchFocusNode,
-                          controller: _searchController,
-                          background: Colors.grey.withAlpha(40),
-                          hintText: S.current.searchToken,
-                          onSubmitted: (text) {
-                            performSearch(text);
-                          },
-                        ),
-                      ),
-                  ],
+          ? ResponsiveAppBar(
+              titleLeftMargin: 10,
+              titleWidget: Container(
+                constraints: const BoxConstraints(maxWidth: 300, minWidth: 200),
+                child: MySearchBar(
+                  borderRadius: 8,
+                  bottomMargin: 18,
+                  focusNode: _searchFocusNode,
+                  controller: _searchController,
+                  background: ChewieTheme.scaffoldBackgroundColor,
+                  hintText: S.current.searchToken,
+                  onSubmitted: (text) {
+                    performSearch(text);
+                  },
                 ),
               ),
             )
           : null,
       body: ResponsiveUtil.isLandscape()
-          ? _buildMainContent()
+          ? Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTabBar(),
+                Expanded(
+                  child: _buildMainContent(),
+                ),
+              ],
+            )
           : PopScope(
               canPop: false,
               onPopInvokedWithResult: (_, __) {
@@ -383,11 +349,11 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   _buildFloatingActionButton() {
-    var button = FloatingActionButton(
+    var button = MyFloatingActionButton(
       heroTag: "Hero-${categories.length}",
       onPressed: () {
         BottomSheetBuilder.showBottomSheet(
-          rootContext,
+          chewieProvider.rootContext,
           enableDrag: false,
           responsive: true,
           (context) => AddBottomSheet(
@@ -404,11 +370,11 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selector: (context, provider) => provider.hideBottombarWhenScrolling,
       builder: (context, hideBottombarWhenScrolling, child) => ScrollToHide(
         enabled: hideBottombarWhenScrolling || categories.isEmpty,
-        scrollController: _scrollController,
+        scrollControllers: [_scrollController],
         controller: _fabScrollToHideController,
         height: kToolbarHeight,
         duration: const Duration(milliseconds: 300),
-        hideDirection: Axis.vertical,
+        hideDirection: AxisDirection.down,
         child: button,
       ),
     );
@@ -419,8 +385,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (provider.showBackupLogButton)
         Container(
           margin: const EdgeInsets.only(right: 5),
-          child: ItemBuilder.buildIconButton(
-            context: context,
+          child: CircleIconButton(
             padding: EdgeInsets.zero,
             icon: Selector<AppProvider, LoadingStatus>(
               selector: (context, appProvider) =>
@@ -439,11 +404,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (provider.canShowCloudBackupButton && provider.showCloudBackupButton)
         Container(
           margin: const EdgeInsets.only(right: 5),
-          child: ItemBuilder.buildIconButton(
-            context: context,
+          child: CircleIconButton(
             icon: Icon(
               Icons.cloud_queue_rounded,
-              color: Theme.of(context).iconTheme.color,
+              color: ChewieTheme.iconColor,
             ),
             onTap: () {
               RouteUtil.pushCupertinoRoute(context, const CloudServiceScreen());
@@ -453,88 +417,58 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (provider.showLayoutButton)
         Container(
           margin: const EdgeInsets.only(right: 5),
-          child: ItemBuilder.buildPopupMenuButton(
+          child: ToolButton(
             context: context,
-            icon: Icon(Icons.dashboard_outlined,
-                color: Theme.of(context).iconTheme.color),
-            itemBuilder: (context) {
-              return ItemBuilder.buildPopupMenuItems(
+            icon: Icons.dashboard_outlined,
+            onPressed: () {
+              BottomSheetBuilder.showGenericContextMenu(
                 context,
                 MainScreenState.buildLayoutContextMenuButtons(),
               );
-            },
-            onSelected: (_) {
-              globalNavigatorState?.pop();
             },
           ),
         ),
       if (provider.showSortButton)
         Container(
           margin: const EdgeInsets.only(right: 5),
-          child: ItemBuilder.buildPopupMenuButton(
+          child: ToolButton(
             context: context,
-            icon: Icon(Icons.sort_rounded,
-                color: Theme.of(context).iconTheme.color),
-            itemBuilder: (context) {
-              return ItemBuilder.buildPopupMenuItems(
+            icon: Icons.sort_rounded,
+            onPressed: () {
+              BottomSheetBuilder.showGenericContextMenu(
                 context,
                 MainScreenState.buildSortContextMenuButtons(),
               );
             },
-            onSelected: (_) {
-              globalNavigatorState?.pop();
-            },
           ),
         ),
-      ItemBuilder.buildPopupMenuButton(
+      ToolButton(
         context: context,
-        icon: Icon(Icons.more_vert_rounded,
-            color: Theme.of(context).iconTheme.color),
-        itemBuilder: (context) {
-          return ItemBuilder.buildPopupMenuItems(
+        icon: Icons.more_vert_rounded,
+        onPressed: () {
+          BottomSheetBuilder.showContextMenu(
             context,
-            GenericContextMenu(
-              buttonConfigs: [
-                ContextMenuButtonConfig(
+            FlutterContextMenu(
+              entries: [
+                FlutterContextMenuItem(
                   S.current.category,
-                  icon: Icon(Icons.category_outlined,
-                      color: Theme.of(context).iconTheme.color),
+                  iconData: Icons.category_outlined,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
                         context, const CategoryScreen());
                   },
                 ),
-                ContextMenuButtonConfig(
+                FlutterContextMenuItem(
                   S.current.setting,
-                  icon: AssetUtil.loadDouble(
-                    context,
-                    AssetUtil.settingLightIcon,
-                    AssetUtil.settingDarkIcon,
-                  ),
+                  iconData: LucideIcons.settings2,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
-                        context, const SettingNavigationScreen());
+                        context, const MobileSettingNavigationScreen());
                   },
                 ),
-                // ContextMenuButtonConfig(
-                //   S.current.cloudType,
-                //   icon: const Icon(Icons.cloud_queue_rounded),
-                //   onPressed: () {
-                //     RouteUtil.pushCupertinoRoute(
-                //         context, const CloudServiceScreen());
-                //   },
-                // ),
-                ContextMenuButtonConfig(
+                FlutterContextMenuItem(
                   S.current.about,
-                  icon: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.asset(
-                      'assets/logo-transparent.png',
-                      height: 24,
-                      width: 24,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
+                  iconData: LucideIcons.info,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
                         context, const AboutSettingScreen());
@@ -553,15 +487,14 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Consumer<AppProvider>(
       builder: (context, provider, child) => ValueListenableBuilder(
         valueListenable: _shownSearchbarNotifier,
-        builder: (context, shownSearchbar, child) =>
-            ItemBuilder.buildSliverAppBar(
+        builder: (context, shownSearchbar, child) => SliverAppBarWrapper(
           context: context,
-          useBackdropFilter: provider.enableFrostedGlassEffect,
-          floating: provider.hideAppbarWhenScrolling,
-          pinned: !provider.hideAppbarWhenScrolling,
-          backgroundColor: Theme.of(context)
-              .scaffoldBackgroundColor
-              .withOpacity(provider.enableFrostedGlassEffect ? 0.2 : 1),
+          // useBackdropFilter: provider.enableFrostedGlassEffect,
+          // floating: provider.hideAppbarWhenScrolling,
+          // pinned: !provider.hideAppbarWhenScrolling,
+          // backgroundColor: Theme.of(context)
+          //     .scaffoldBackgroundColor
+          //     .withOpacity(provider.enableFrostedGlassEffect ? 0.2 : 1),
           title: SizedBox(
             height: kToolbarHeight,
             child: MarqueeWidget(
@@ -577,7 +510,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         }
                       },
                       child: Text(
-                        appName,
+                        ResponsiveUtil.appName,
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium!
@@ -592,8 +525,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       margin: const EdgeInsets.only(right: 24),
                       child: Row(
                         children: [
-                          ItemBuilder.buildIconButton(
-                            context: context,
+                          CircleIconButton(
                             icon: Icon(
                               Icons.arrow_back_rounded,
                               color: Theme.of(context).iconTheme.color,
@@ -609,10 +541,11 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               onSubmit: (text) {
                                 performSearch(text);
                               },
-                              dense: true,
+                              style: InputItemStyle(
+                                backgroundColor: Colors.transparent,
+                              ),
                               focusNode: _searchFocusNode,
                               controller: _searchController,
-                              backgroundColor: Colors.transparent,
                             ),
                           ),
                         ],
@@ -664,11 +597,11 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           );
           return ScrollToHide(
             enabled: hideBottombarWhenScrolling,
-            scrollController: _scrollController,
+            scrollControllers: [_scrollController],
             controller: _bottombarScrollToHideController,
             height: height,
             duration: const Duration(milliseconds: 300),
-            hideDirection: Axis.vertical,
+            hideDirection: AxisDirection.down,
             child: ResponsiveUtil.isLandscapeTablet() || categories.isEmpty
                 ? IgnorePointer(
                     child: Container(
@@ -755,7 +688,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(rootContext).shadowColor,
+                      color: Theme.of(chewieProvider.rootContext).shadowColor,
                       offset: const Offset(0, 4),
                       blurRadius: 10,
                       spreadRadius: 1,
@@ -782,11 +715,11 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? ListView(
             padding: const EdgeInsets.symmetric(vertical: 50),
             children: [
-              ItemBuilder.buildEmptyPlaceholder(
-                  context: context,
-                  text: _searchKey.isEmpty
-                      ? S.current.noToken
-                      : S.current.noTokenContainingSearchKey(_searchKey)),
+              EmptyPlaceholder(
+                text: _searchKey.isEmpty
+                    ? S.current.noToken
+                    : S.current.noTokenContainingSearchKey(_searchKey),
+              ),
             ],
           )
         : gridView;
@@ -808,7 +741,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
       unselectedLabelStyle:
           Theme.of(context).textTheme.titleMedium?.apply(color: Colors.grey),
-      indicator: CustomTabIndicator(
+      indicator: UnderlinedTabIndicator(
         borderColor: Theme.of(context).primaryColor,
       ),
       onTap: (index) {
@@ -819,7 +752,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
         _currentTabIndex = index;
         getTokens();
-        HiveUtil.setSelectedCategoryUid(currentCategoryUid);
+        CloudOTPHiveUtil.setSelectedCategoryUid(currentCategoryUid);
       },
     );
   }
@@ -840,9 +773,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     //     );
     return Tab(
       child: ContextMenuRegion(
-        behavior: ResponsiveUtil.isDesktop()
-            ? const [ContextMenuShowBehavior.secondaryTap]
-            : const [],
         contextMenu: _buildTabContextMenuButtons(category),
         child: GestureDetector(
           onLongPress: () {
@@ -893,7 +823,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       (context) => InputBottomSheet(
         title: S.current.editCategoryName,
         hint: S.current.inputCategory,
-        maxLength: 32,
+        style: InputItemStyle(
+          maxLength: 32,
+        ),
         text: category.title,
         validator: (text) {
           if (text.isEmpty) {
@@ -943,7 +875,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         },
         checkSyncValidator: false,
         validateAsyncController: validateAsyncController,
-        maxLength: 32,
+        style: InputItemStyle(
+          maxLength: 32,
+        ),
         onValidConfirm: (text) async {
           TokenCategory category = TokenCategory.title(title: text);
           await CategoryDao.insertCategory(category);
@@ -957,33 +891,36 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   _buildTabContextMenuButtons(TokenCategory? category) {
     if (category == null) {
-      return GenericContextMenu(
-        buttonConfigs: [
-          ContextMenuButtonConfig(S.current.addCategory, onPressed: () {
-            addCategory(context);
-          }),
+      return FlutterContextMenu(
+        entries: [
+          FlutterContextMenuItem(
+            S.current.addCategory,
+            onPressed: () {
+              addCategory(context);
+            },
+          ),
         ],
       );
     }
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(S.current.editCategoryName, onPressed: () {
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(S.current.editCategoryName, onPressed: () {
           processEditCategory(category);
         }),
-        ContextMenuButtonConfig(S.current.editCategoryTokens, onPressed: () {
+        FlutterContextMenuItem(S.current.editCategoryTokens, onPressed: () {
           BottomSheetBuilder.showBottomSheet(
             context,
             responsive: true,
             (context) => SelectTokenBottomSheet(category: category),
           );
         }),
-        ContextMenuButtonConfig.divider(),
-        ContextMenuButtonConfig(S.current.addCategory, onPressed: () {
+        FlutterContextMenuItem.divider(),
+        FlutterContextMenuItem(S.current.addCategory, onPressed: () {
           addCategory(context);
         }),
-        ContextMenuButtonConfig.warning(
+        FlutterContextMenuItem(
           S.current.deleteCategory,
-          textColor: Colors.red,
+          status: MenuItemStatus.warning,
           onPressed: () {
             DialogBuilder.showConfirmDialog(
               context,
@@ -1022,7 +959,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ? LayoutType.Simple
             : LayoutType.values[layoutType.index + 1];
       }
-      HiveUtil.setLayoutType(layoutType);
+      CloudOTPHiveUtil.setLayoutType(layoutType);
     });
   }
 
@@ -1038,7 +975,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ? OrderType.Default
             : OrderType.values[orderType.index + 1];
       }
-      HiveUtil.setOrderType(orderType);
+      CloudOTPHiveUtil.setOrderType(orderType);
     });
     if (doPerformSort) performSort();
   }
@@ -1135,6 +1072,36 @@ enum LayoutType {
         return 108;
     }
   }
+
+  IconData get icon {
+    switch (this) {
+      case LayoutType.Simple:
+        return LucideIcons.layoutGrid;
+      case LayoutType.Compact:
+        return LucideIcons.layoutDashboard;
+      // case LayoutType.Tile:
+      //   return LucideIcons.grid;
+      case LayoutType.List:
+        return LucideIcons.layoutList;
+      case LayoutType.Spotlight:
+        return LucideIcons.layoutTemplate;
+    }
+  }
+
+  String get title {
+    switch (this) {
+      case LayoutType.Simple:
+        return S.current.simpleLayoutType;
+      case LayoutType.Compact:
+        return S.current.compactLayoutType;
+      // case LayoutType.Tile:
+      //   return S.current.tileLayout;
+      case LayoutType.List:
+        return S.current.listLayoutType;
+      case LayoutType.Spotlight:
+        return S.current.spotlightLayoutType;
+    }
+  }
 }
 
 enum OrderType {
@@ -1170,16 +1137,40 @@ enum OrderType {
         return S.current.createTimeASCOrder;
     }
   }
+
+  IconData get icon {
+    switch (this) {
+      case OrderType.Default:
+        return LucideIcons.arrowUpNarrowWide;
+      case OrderType.AlphabeticalASC:
+        return LucideIcons.arrowDownAZ;
+      case OrderType.AlphabeticalDESC:
+        return LucideIcons.arrowDownZA;
+      case OrderType.CopyTimesDESC:
+        return LucideIcons.arrowDown01;
+      case OrderType.CopyTimesASC:
+        return LucideIcons.arrowDown10;
+      case OrderType.LastCopyTimeDESC:
+        return LucideIcons.clockArrowDown;
+      case OrderType.LastCopyTimeASC:
+        return LucideIcons.clockArrowUp;
+      case OrderType.CreateTimeDESC:
+        return LucideIcons.clockArrowDown;
+      case OrderType.CreateTimeASC:
+        return LucideIcons.clockArrowUp;
+    }
+  }
 }
 
 extension LayoutTypeExtension on int {
   LayoutType get layoutType {
-    return LayoutType.values[Utils.patchEnum(0, LayoutType.values.length)];
+    return LayoutType
+        .values[ChewieUtils.patchEnum(0, LayoutType.values.length)];
   }
 }
 
 extension OrderTypeExtension on int {
   OrderType get orderType {
-    return OrderType.values[Utils.patchEnum(0, OrderType.values.length)];
+    return OrderType.values[ChewieUtils.patchEnum(0, OrderType.values.length)];
   }
 }

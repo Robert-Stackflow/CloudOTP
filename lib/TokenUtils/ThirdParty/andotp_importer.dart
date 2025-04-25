@@ -21,8 +21,6 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/utils.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pointycastle/api.dart';
@@ -33,11 +31,7 @@ import 'package:pointycastle/key_derivators/api.dart';
 import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../generated/l10n.dart';
 
 class AndOTPToken {
@@ -62,12 +56,12 @@ class AndOTPToken {
     required this.counter,
     required this.secret,
     required this.tags,
-  }) : uid = Utils.generateUid();
+  }) : uid = StringUtil.generateUid();
 
   factory AndOTPToken.fromJson(Map<String, dynamic> json) {
     return AndOTPToken(
       account: json['label'] ?? "",
-      issuer: Utils.isNotEmpty(json['issuer']) ? json['issuer'] : json['label'],
+      issuer: json['issuer'].notNullOrEmpty ? json['issuer'] : json['label'],
       digits: json['digits'] ?? 0,
       counter: json['counter'] ?? 0,
       algorithm: json['algorithm'],
@@ -164,7 +158,7 @@ class AndOTPTokenImporter implements BaseTokenImporter {
     Set<String> uniqueTags = andOTPTokens.expand((e) => e.tags).toSet();
     categories = uniqueTags.map((e) {
       return TokenCategory.title(
-        tUid: Utils.generateUid(),
+        tUid: StringUtil.generateUid(),
         title: e,
       );
     }).toList();
@@ -187,7 +181,7 @@ class AndOTPTokenImporter implements BaseTokenImporter {
     late ProgressDialog dialog;
     if (showLoading) {
       dialog =
-          showProgressDialog(msg: S.current.importing, showProgress: false);
+          showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -244,7 +238,7 @@ class AndOTPTokenImporter implements BaseTokenImporter {
             controller: TextEditingController(),
           );
           BottomSheetBuilder.showBottomSheet(
-            rootContext,
+            chewieProvider.rootContext,
             responsive: true,
             useWideLandscape: true,
             (context) => InputBottomSheet(
@@ -262,14 +256,16 @@ class AndOTPTokenImporter implements BaseTokenImporter {
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
-              tailingType: InputItemTailingType.password,
+                            tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
               onValidConfirm: (password) async {},
             ),
           );
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to import from 2FAS", e, t);
+      ILogger.error("Failed to import from 2FAS", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

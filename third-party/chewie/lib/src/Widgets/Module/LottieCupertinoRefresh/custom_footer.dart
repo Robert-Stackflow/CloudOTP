@@ -43,8 +43,8 @@ class LottieCupertinoFooter extends Footer {
     this.radius,
   }) : super(
           frictionFactor: frictionFactor ??
-              (infiniteOffset == null ? kCupertinoFrictionFactor : null),
-          horizontalFrictionFactor: kCupertinoHorizontalFrictionFactor,
+              (infiniteOffset == null ? kCustomCupertinoFrictionFactor : null),
+          horizontalFrictionFactor: kCustomCupertinoHorizontalFrictionFactor,
         );
 
   @override

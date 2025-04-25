@@ -21,7 +21,6 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -30,11 +29,7 @@ import 'package:pointycastle/api.dart';
 import 'package:pointycastle/block/aes.dart';
 import 'package:pointycastle/block/modes/gcm.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../generated/l10n.dart';
 
 enum SlotType {
@@ -139,7 +134,7 @@ class AegisBackupHeader {
           ? (json['slots'] as List).map((e) => Slot.fromJson(e)).toList()
           : [],
       params:
-      json['params'] != null ? KeyParams.fromJson(json['params']) : null,
+          json['params'] != null ? KeyParams.fromJson(json['params']) : null,
     );
   }
 
@@ -296,9 +291,9 @@ class AegisDatabase {
   factory AegisDatabase.fromJson(Map<String, dynamic> json) {
     return AegisDatabase(
       entries:
-      (json['entries'] as List).map((e) => AegisToken.fromJson(e)).toList(),
+          (json['entries'] as List).map((e) => AegisToken.fromJson(e)).toList(),
       groups:
-      (json['groups'] as List).map((e) => AegisGroup.fromJson(e)).toList(),
+          (json['groups'] as List).map((e) => AegisGroup.fromJson(e)).toList(),
     );
   }
 
@@ -379,7 +374,7 @@ class AegisTokenImporter implements BaseTokenImporter {
     final macBytes = Uint8List.fromList(hex.decode(backup.header.params!.tag));
 
     final decryptedBytes =
-    decryptAesGcm(masterKey, ivBytes, databaseBytes, macBytes);
+        decryptAesGcm(masterKey, ivBytes, databaseBytes, macBytes);
     final json = utf8.decode(decryptedBytes);
     final database = AegisDatabase.fromJson(jsonDecode(json));
 
@@ -408,11 +403,11 @@ class AegisTokenImporter implements BaseTokenImporter {
   static Uint8List decryptSlot(Slot slot, Uint8List password) {
     final saltBytes = hex.decode(slot.salt);
     final derivedKey = Scrypt(
-        salt: saltBytes,
-        cost: slot.n,
-        blockSize: slot.r,
-        parallelism: slot.p,
-        derivedKeyLength: keyLength)
+            salt: saltBytes,
+            cost: slot.n,
+            blockSize: slot.r,
+            parallelism: slot.p,
+            derivedKeyLength: keyLength)
         .convert(password)
         .bytes;
 
@@ -423,8 +418,8 @@ class AegisTokenImporter implements BaseTokenImporter {
     return decryptAesGcm(derivedKey, ivBytes, keyBytes, macBytes);
   }
 
-  static Uint8List decryptAesGcm(Uint8List key, Uint8List iv, Uint8List data,
-      Uint8List mac) {
+  static Uint8List decryptAesGcm(
+      Uint8List key, Uint8List iv, Uint8List data, Uint8List mac) {
     final cipher = GCMBlockCipher(AESEngine());
     final aeadParams = AEADParameters(KeyParameter(key), 128, iv, Uint8List(0));
     cipher.init(false, aeadParams);
@@ -458,13 +453,13 @@ class AegisTokenImporter implements BaseTokenImporter {
   }
 
   @override
-  Future<void> importFromPath(String path, {
+  Future<void> importFromPath(
+    String path, {
     bool showLoading = true,
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog =
-          showProgressDialog(msg: S.current.importing, showProgress: false);
+      dialog = showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -477,7 +472,7 @@ class AegisTokenImporter implements BaseTokenImporter {
         if (backup.dbString != null) {
           if (showLoading) dialog.dismiss();
           InputValidateAsyncController validateAsyncController =
-          InputValidateAsyncController(
+              InputValidateAsyncController(
             listen: false,
             validator: (text) async {
               if (text.isEmpty) {
@@ -488,7 +483,7 @@ class AegisTokenImporter implements BaseTokenImporter {
               }
               backup.password = text;
               var res = await compute(
-                    (receiveMessage) {
+                (receiveMessage) {
                   AegisBackup backup = AegisBackup.fromJson(receiveMessage);
                   return decryptBackup(backup);
                 },
@@ -511,35 +506,36 @@ class AegisTokenImporter implements BaseTokenImporter {
             controller: TextEditingController(),
           );
           BottomSheetBuilder.showBottomSheet(
-            rootContext,
+            chewieProvider.rootContext,
             responsive: true,
             useWideLandscape: true,
-                (context) =>
-                InputBottomSheet(
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return S.current.autoBackupPasswordCannotBeEmpty;
-                    }
-                    return null;
-                  },
-                  checkSyncValidator: false,
-                  validateAsyncController: validateAsyncController,
-                  title: S.current.inputImportPasswordTitle,
-                  message: S.current.inputImportPasswordTip,
-                  hint: S.current.inputImportPasswordHint,
-                  inputFormatters: [
-                    RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-                  ],
-                  tailingType: InputItemTailingType.password,
-                  onValidConfirm: (password) async {},
-                ),
+            (context) => InputBottomSheet(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              checkSyncValidator: false,
+              validateAsyncController: validateAsyncController,
+              title: S.current.inputImportPasswordTitle,
+              message: S.current.inputImportPasswordTip,
+              hint: S.current.inputImportPasswordHint,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+              ],
+              tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
+              onValidConfirm: (password) async {},
+            ),
           );
         } else {
           await import(backup);
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to import from 2FAS", e, t);
+      ILogger.error("Failed to import from 2FAS", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

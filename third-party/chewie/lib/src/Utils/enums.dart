@@ -10,6 +10,7 @@ enum InitPhase {
 enum TrayKey {
   displayApp("displayApp"),
   lockApp("lockApp"),
+  copyTokenCode("copyTokenCode"),
   setting("setting"),
   officialWebsite("officialWebsite"),
   githubRepository("githubRepository"),

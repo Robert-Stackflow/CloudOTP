@@ -13,8 +13,7 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
@@ -23,10 +22,7 @@ import '../../Models/opt_token.dart';
 import '../../TokenUtils/token_image_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
-import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
-import '../WaterfallFlow/scroll_view.dart';
-import '../WaterfallFlow/sliver_waterfall_flow.dart';
 
 class SelectIconBottomSheet extends StatefulWidget {
   const SelectIconBottomSheet({
@@ -69,49 +65,51 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
     });
   }
 
+  Radius radius = ChewieDimens.radius8;
+
   @override
   Widget build(BuildContext context) {
-    Widget mainBody = Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
-        minHeight: MediaQuery.of(context).size.height * 0.3,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).canvasColor,
-        borderRadius: BorderRadius.vertical(
-            top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isWideLandscape()
-                ? const Radius.circular(20)
-                : Radius.zero),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          ItemBuilder.buildDesktopSearchBar(
-            controller: searchController,
-            context: context,
-            borderRadius: 8,
-            bottomMargin: 18,
-            focusNode: _focusNode,
-            hintFontSizeDelta: 1,
-            background: Colors.grey.withAlpha(40),
-            hintText: S.current.searchIconName,
-            onSubmitted: (str) {
-              setState(() {
-                icons = TokenImageUtil.matchBrandLogos(str);
-              });
-            },
-          ),
-          const SizedBox(height: 10),
-          Flexible(
-            child: _buildButtons(),
-          ),
-          const SizedBox(height: 10),
-        ],
+    Widget mainBody = Material(
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          minHeight: MediaQuery.of(context).size.height * 0.3,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.vertical(
+              top: radius,
+              bottom: ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+          color: ChewieTheme.scaffoldBackgroundColor,
+          border: ChewieTheme.border,
+          boxShadow: ChewieTheme.defaultBoxShadow,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            MySearchBar(
+              controller: searchController,
+              borderRadius: 8,
+              bottomMargin: 18,
+              focusNode: _focusNode,
+              background: Colors.grey.withAlpha(40),
+              hintText: S.current.searchIconName,
+              onSubmitted: (str) {
+                setState(() {
+                  icons = TokenImageUtil.matchBrandLogos(str);
+                });
+              },
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: _buildButtons(),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
       ),
     );
     return AnimatedPadding(
@@ -131,16 +129,14 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
         mainAxisSpacing: 6,
         crossAxisSpacing: 6,
       ),
-      itemBuilder: (context, index) => ItemBuilder.buildRoundButton(
-        context,
+      itemBuilder: (context, index) => RoundIconTextButton(
         radius: 8,
-        align: true,
         icon: ClipRRect(
           borderRadius: BorderRadius.circular(3),
-          child: AssetUtil.loadBrand(icons[index], width: 20, height: 20),
+          child: AssetFiles.loadBrand(icons[index], width: 20, height: 20),
         ),
         text: icons[index].split(".")[0],
-        onTap: () async {
+        onPressed: () async {
           widget.token.imagePath = icons[index];
           widget.onSelected.call(widget.token.imagePath);
           if (widget.doUpdate) {

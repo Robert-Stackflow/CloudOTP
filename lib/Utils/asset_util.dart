@@ -13,12 +13,12 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/token_image_util.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 
-class AssetUtil {
+class AssetFiles {
+  static const String logo = "assets/logo.png";
   static const String searchDarkIcon = "assets/icon/search_dark.png";
   static const String searchGreyIcon = "assets/icon/search_grey.png";
   static const String searchLightIcon = "assets/icon/search_light.png";
@@ -50,21 +50,6 @@ class AssetUtil {
       "assets/auth/ic_totpauthenticator.png";
   static const String icWinauth = "assets/auth/ic_winauth.png";
 
-  static load(
-    String path, {
-    double size = 24,
-    double? width,
-    double? height,
-    BoxFit? fit,
-  }) {
-    return Image.asset(
-      path,
-      fit: fit,
-      width: width ?? size,
-      height: height ?? size,
-    );
-  }
-
   static getBrandPath(
     String brand, {
     bool forceLight = true,
@@ -85,8 +70,8 @@ class AssetUtil {
     String darkPath = path.replaceAll(".png", "_dark.png");
     bool hasDark = TokenImageUtil.darkBrandLogos.contains(darkPath);
     if (hasDark) {
-      return loadDouble(
-        rootContext,
+      return ChewieAssetUtil.loadDynamic(
+        chewieProvider.rootContext,
         'assets/brand/$path',
         'assets/brand/$darkPath',
         size: size,
@@ -95,7 +80,7 @@ class AssetUtil {
         fit: fit,
       );
     } else {
-      return load(
+      return ChewieAssetUtil.load(
         'assets/brand/$path',
         size: size,
         width: width,
@@ -103,32 +88,5 @@ class AssetUtil {
         fit: fit,
       );
     }
-  }
-
-  static loadDouble(
-    BuildContext context,
-    String light,
-    String dark, {
-    double size = 24,
-    double? width,
-    double? height,
-    BoxFit? fit,
-  }) {
-    return Image.asset(
-      Utils.isDark(context) ? dark : light,
-      fit: fit,
-      width: width ?? size,
-      height: height ?? size,
-    );
-  }
-
-  static loadDecorationImage(
-    String path, {
-    BoxFit? fit,
-  }) {
-    return DecorationImage(
-      image: AssetImage(path),
-      fit: fit,
-    );
   }
 }

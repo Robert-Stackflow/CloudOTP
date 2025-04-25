@@ -210,8 +210,7 @@ class CustomFont {
     CustomFont item, {
     bool autoRestartApp = false,
   }) async {
-    var dialog =
-        showProgressDialog(context, msg: ChewieS.current.alreadyDownload);
+    var dialog = showProgressDialog(ChewieS.current.alreadyDownload);
     await ChewieHiveUtil.put(ChewieHiveUtil.fontFamilyKey, item.fontFamily);
     await downloadFont(
       context: context,

@@ -15,8 +15,8 @@
 
 import 'dart:convert';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
-import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:protobuf/protobuf.dart';
 
@@ -25,14 +25,13 @@ import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/opt_token.dart';
 import '../Models/token_category.dart';
 import '../Utils/constant.dart';
-import '../Utils/ilogger.dart';
 import 'check_token_util.dart';
 import 'token_image_util.dart';
 
 class OtpTokenParser {
   static Uri toUri(OtpToken token) {
     String labelAndIssuer;
-    if (!Utils.isEmpty(token.issuer)) {
+    if (!token.issuer.nullOrEmpty) {
       labelAndIssuer = "${token.issuer}:${token.account}";
     } else {
       labelAndIssuer = token.account;
@@ -76,14 +75,13 @@ class OtpTokenParser {
         return token == null ? [] : [token];
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to parse uri $line", e, t);
+      ILogger.error("Failed to parse uri $line", e, t);
       return [];
     }
   }
 
   static OtpToken? parseOtpauthUri(Uri uri) {
-    if (Utils.isEmpty(uri.path) ||
-        Utils.isEmpty(uri.authority) ||
+    if (uri.path.nullOrEmpty ||
         uri.queryParameters.isEmpty ||
         !uri.queryParameters.containsKey("secret")) {
       return null;
@@ -120,37 +118,37 @@ class OtpTokenParser {
     //Get the query parameters
     Map<String, String> queryParameters = uri.queryParameters;
     if (queryParameters.containsKey("issuer") &&
-        Utils.isNotEmpty(queryParameters["issuer"])) {
+        queryParameters["issuer"].notNullOrEmpty) {
       token.issuer = queryParameters["issuer"]!;
     } else {
       token.issuer = issuerExt;
     }
     if (queryParameters.containsKey("algorithm") &&
-        Utils.isNotEmpty(queryParameters["algorithm"])) {
+        queryParameters["algorithm"].notNullOrEmpty) {
       token.algorithm = OtpAlgorithm.fromString(queryParameters["algorithm"]!);
     } else {
       token.algorithm = OtpAlgorithm.SHA1;
     }
     if (queryParameters.containsKey("digits") &&
-        Utils.isNotEmpty(queryParameters["digits"])) {
+        queryParameters["digits"].notNullOrEmpty) {
       token.digits = OtpDigits.fromString(queryParameters["digits"]!);
     } else {
       token.digits = token.tokenType.defaultDigits;
     }
     if (queryParameters.containsKey("period") &&
-        Utils.isNotEmpty(queryParameters["period"])) {
+        queryParameters["period"].notNullOrEmpty) {
       token.periodString = queryParameters["period"]!;
     } else {
       token.periodString = token.tokenType.defaultPeriod.toString();
     }
     if (queryParameters.containsKey("counter") &&
-        Utils.isNotEmpty(queryParameters["counter"])) {
+        queryParameters["counter"].notNullOrEmpty) {
       token.counterString = queryParameters["counter"]!;
     } else {
       token.counterString = "0";
     }
     if (queryParameters.containsKey("secret") &&
-        Utils.isNotEmpty(queryParameters["secret"])) {
+        queryParameters["secret"].notNullOrEmpty) {
       token.secret = queryParameters["secret"]!;
       if (!CheckTokenUtil.isSecretBase32(token.secret)) return null;
     }
@@ -193,25 +191,25 @@ class OtpTokenParser {
       token.pin = queryParameters["pin"]!;
     }
     if (queryParameters.containsKey("issuer") &&
-        Utils.isNotEmpty(queryParameters["issuer"])) {
+        queryParameters["issuer"].notNullOrEmpty) {
       token.issuer = queryParameters["issuer"]!;
     } else {
       token.issuer = issuerExt;
     }
     if (queryParameters.containsKey("digits") &&
-        Utils.isNotEmpty(queryParameters["digits"])) {
+        queryParameters["digits"].notNullOrEmpty) {
       token.digits = OtpDigits.fromString(queryParameters["digits"]!);
     } else {
       token.digits = token.tokenType.defaultDigits;
     }
     if (queryParameters.containsKey("period") &&
-        Utils.isNotEmpty(queryParameters["period"])) {
+        queryParameters["period"].notNullOrEmpty) {
       token.periodString = queryParameters["period"]!;
     } else {
       token.periodString = token.tokenType.defaultPeriod.toString();
     }
     if (queryParameters.containsKey("secret") &&
-        Utils.isNotEmpty(queryParameters["secret"])) {
+        queryParameters["secret"].notNullOrEmpty) {
       token.secret = queryParameters["secret"]!;
       if (!CheckTokenUtil.isSecretBase32(token.secret)) return null;
     }
@@ -221,7 +219,7 @@ class OtpTokenParser {
 
   static List<OtpToken> parseOtpauthMigrationUri(Uri uri) {
     if (!uri.queryParameters.containsKey("data") ||
-        Utils.isEmpty(uri.queryParameters["data"])) {
+        uri.queryParameters["data"].nullOrEmpty) {
       return [];
     }
     String rawData = uri.queryParameters["data"]!;
@@ -243,7 +241,7 @@ class OtpTokenParser {
 
   static List<OtpToken> parseCloudOtpauthMigrationUri(Uri uri) {
     if (!uri.queryParameters.containsKey("tokens") ||
-        Utils.isEmpty(uri.queryParameters["tokens"])) {
+        uri.queryParameters["tokens"].nullOrEmpty) {
       return [];
     }
     String rawData = uri.queryParameters["tokens"]!;
@@ -265,7 +263,7 @@ class OtpTokenParser {
       String line) async {
     Uri uri = Uri.tryParse(line) ?? Uri();
     if (!uri.queryParameters.containsKey("categories") ||
-        Utils.isEmpty(uri.queryParameters["categories"])) {
+        uri.queryParameters["categories"].nullOrEmpty) {
       return [];
     }
     String rawData = uri.queryParameters["categories"]!;

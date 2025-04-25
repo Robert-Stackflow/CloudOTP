@@ -17,15 +17,11 @@ const Widget emptyWidget = SizedBox.shrink();
 
 const bool defaultEnableSafeMode = true;
 
-const String feedbackEmail = "2014027378@qq.com";
-String feedbackSubject = "${ResponsiveUtil.appName}反馈";
-const windowsKeyPath = r'SOFTWARE\Cloudchewie\${ResponsiveUtil.appName}';
-const String feedbackBody = "";
+String windowsKeyPath = 'SOFTWARE\\Cloudchewie\\${ResponsiveUtil.appName}';
 String downloadPkgsUrl =
     "https://pkgs.cloudchewie.com/${ResponsiveUtil.appName}";
 String officialWebsite =
     "https://apps.cloudchewie.com/${ResponsiveUtil.appName.toLowerCase()}";
-const String qqGroupUrl = "https://qm.qq.com/q/2HJ8PC1XcQ";
 String repoUrl =
     "https://github.com/Robert-Stackflow/${ResponsiveUtil.appName}";
 String releaseUrl =

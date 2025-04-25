@@ -16,15 +16,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Lock/pin_verify_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/biometric_util.dart';
-import 'package:cloudotp/Utils/file_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
-import 'package:cloudotp/Utils/request_header_util.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,21 +34,16 @@ import 'package:hive/hive.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:local_notifier/local_notifier.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
-import './Utils/ilogger.dart';
-import 'Resources/fonts.dart';
 import 'Screens/main_screen.dart';
 import 'TokenUtils/token_image_util.dart';
 import 'Utils/constant.dart';
-import 'Utils/notification_util.dart';
-import 'Utils/responsive_util.dart';
 import 'Utils/utils.dart';
-import 'Widgets/Custom/keyboard_handler.dart';
+import 'Widgets/cloudotp/cloudotp_file_util.dart';
 import 'generated/l10n.dart';
 
 const List<String> kWindowsSchemes = ["cloudotp", "com.cloudchewie.cloudotp"];
@@ -67,7 +60,7 @@ Future<void> runMyApp(List<String> args) async {
   late Widget home;
   if (!DatabaseManager.initialized) {
     home = const DatabaseDecryptScreen();
-  } else if (HiveUtil.canGuestureLock()) {
+  } else if (CloudOTPHiveUtil.canLock()) {
     home = const PinVerifyScreen(
       isModal: true,
       autoAuth: true,
@@ -77,34 +70,37 @@ Future<void> runMyApp(List<String> args) async {
   } else {
     home = MainScreen(key: mainScreenKey);
   }
-  runApp(MyApp(home: KeyboardHandler(key: keyboardHandlerKey, child: home)));
+  runApp(MyApp(home: home));
   FlutterNativeSplash.remove();
 }
 
 Future<void> initApp(WidgetsBinding widgetsBinding) async {
-  await FileUtil.migrationDataToSupportDirectory();
+  await CloudOTPFileUtil.migrationDataToSupportDirectory();
   FlutterError.onError = onError;
   imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   Hive.defaultDirectory = await FileUtil.getHiveDir();
-  if (HiveUtil.isFirstLogin()) {
-    await HiveUtil.initConfig();
-    HiveUtil.setFirstLogin();
+  if (ChewieHiveUtil.isFirstLogin()) {
+    await CloudOTPHiveUtil.initConfig();
+    ChewieHiveUtil.setFirstLogin();
   }
   if (haveMigratedToSupportDirectory) {
-    HiveUtil.put(HiveUtil.haveMigratedToSupportDirectoryKey, true);
+    ChewieHiveUtil.put(
+        CloudOTPHiveUtil.haveMigratedToSupportDirectoryKey, true);
   }
-  HiveUtil.put(
-      HiveUtil.oldVersionKey, (await PackageInfo.fromPlatform()).version);
+  ChewieHiveUtil.put(CloudOTPHiveUtil.oldVersionKey, ResponsiveUtil.version);
   try {
     await DatabaseManager.initDataBase(
-        HiveUtil.getString(HiveUtil.defaultDatabasePasswordKey) ?? "");
+        ChewieHiveUtil.getString(CloudOTPHiveUtil.defaultDatabasePasswordKey) ??
+            "");
   } catch (e) {
     if (DatabaseManager.lib != null) {
-      HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.customPassword);
+      CloudOTPHiveUtil.setEncryptDatabaseStatus(
+          EncryptDatabaseStatus.customPassword);
     } else {
-      HiveUtil.setEncryptDatabaseStatus(EncryptDatabaseStatus.defaultPassword);
+      CloudOTPHiveUtil.setEncryptDatabaseStatus(
+          EncryptDatabaseStatus.defaultPassword);
     }
   }
   await initCryptoUtil();
@@ -115,7 +111,6 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   initCloudLogger();
   if (ResponsiveUtil.isAndroid()) {
     await initDisplayMode();
-    await RequestHeaderUtil.initAndroidInfo();
     SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark);
@@ -123,16 +118,15 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   }
   if (ResponsiveUtil.isDesktop()) {
     await initWindow();
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
     LaunchAtStartup.instance.setup(
-      appName: packageInfo.appName,
+      appName: ResponsiveUtil.appName,
       appPath: Platform.resolvedExecutable,
     );
     await LocalNotifier.instance.setup(
-      appName: packageInfo.appName,
+      appName: ResponsiveUtil.appName,
       shortcutPolicy: ShortcutPolicy.requireCreate,
     );
-    HiveUtil.put(HiveUtil.launchAtStartupKey,
+    ChewieHiveUtil.put(ChewieHiveUtil.launchAtStartupKey,
         await LaunchAtStartup.instance.isEnabled());
     for (String scheme in kWindowsSchemes) {
       await protocolHandler.register(scheme);
@@ -144,15 +138,14 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
 
 Future<void> initWindow() async {
   await windowManager.ensureInitialized();
-  Offset position = HiveUtil.getWindowPosition();
+  Offset position = ChewieHiveUtil.getWindowPosition();
   WindowOptions windowOptions = WindowOptions(
-    size: HiveUtil.getWindowSize(),
-    minimumSize: minimumSize,
+    size: ChewieHiveUtil.getWindowSize(),
+    minimumSize: ChewieProvider.minimumWindowSize,
     center: position == Offset.zero,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
-    position: position,
   );
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
@@ -184,22 +177,22 @@ Future<void> onError(FlutterErrorDetails details) async {
 
 initCloudLogger() {
   CloudLogger.logTrace = (tag, message, [e, t]) {
-    ILogger.trace(tag, message, e, t);
+    ILogger.trace(message, e, t);
   };
   CloudLogger.logDebug = (tag, message, [e, t]) {
-    ILogger.debug(tag, message, e, t);
+    ILogger.debug(message, e, t);
   };
   CloudLogger.logInfo = (tag, message, [e, t]) {
-    ILogger.info(tag, message, e, t);
+    ILogger.info(message, e, t);
   };
   CloudLogger.logWarning = (tag, message, [e, t]) {
-    ILogger.warning(tag, message, e, t);
+    ILogger.debug(message, e, t);
   };
   CloudLogger.logError = (tag, message, [e, t]) {
-    ILogger.error(tag, message, e, t);
+    ILogger.error(message, e, t);
   };
   CloudLogger.logFatal = (tag, message, [e, t]) {
-    ILogger.fatal(tag, message, e, t);
+    ILogger.fatal(message, e, t);
   };
 }
 
@@ -215,7 +208,7 @@ class MyApp extends StatelessWidget {
 
   moveToCenter(BuildContext context) async {
     if (!ResponsiveUtil.isDesktop()) return;
-    Offset position = HiveUtil.getWindowPosition();
+    Offset position = ChewieHiveUtil.getWindowPosition();
     Rect rect = await Utils.getWindowRect(context);
     if (!rect.contains(position)) {
       windowManager.setAlignment(Alignment.center);
@@ -228,34 +221,36 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: appProvider),
+        ChangeNotifierProvider.value(value: chewieProvider),
       ],
       child: Consumer<AppProvider>(
         builder: (context, appProvider, child) => MaterialApp(
-          navigatorKey: globalNavigatorKey,
-          navigatorObservers: [routeObserver],
+          navigatorKey: chewieProvider.globalNavigatorKey,
+          navigatorObservers: [chewieProvider.routeObserver],
           title: title,
-          theme: appProvider.getBrightness() == null ||
-                  appProvider.getBrightness() == Brightness.light
-              ? appProvider.lightTheme.toThemeData()
-              : appProvider.darkTheme.toThemeData(),
-          darkTheme: appProvider.getBrightness() == null ||
-                  appProvider.getBrightness() == Brightness.dark
-              ? appProvider.darkTheme.toThemeData()
-              : appProvider.lightTheme.toThemeData(),
+          theme: chewieProvider.getBrightness() == null ||
+                  chewieProvider.getBrightness() == Brightness.light
+              ? chewieProvider.lightTheme.toThemeData()
+              : chewieProvider.darkTheme.toThemeData(),
+          darkTheme: chewieProvider.getBrightness() == null ||
+                  chewieProvider.getBrightness() == Brightness.dark
+              ? chewieProvider.darkTheme.toThemeData()
+              : chewieProvider.lightTheme.toThemeData(),
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
             S.delegate,
+            ChewieS.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          locale: appProvider.locale,
+          locale: chewieProvider.locale,
           supportedLocales: S.delegate.supportedLocales,
           localeResolutionCallback: (locale, supportedLocales) {
             ILogger.debug("CloudOTP",
-                "Locale: $locale, Supported: $supportedLocales, appProvider.locale: ${appProvider.locale}");
-            if (appProvider.locale != null) {
-              return appProvider.locale;
+                "Locale: $locale, Supported: $supportedLocales, chewieProvider.locale: ${chewieProvider.locale}");
+            if (chewieProvider.locale != null) {
+              return chewieProvider.locale;
             } else if (locale != null && supportedLocales.contains(locale)) {
               return locale;
             } else {
@@ -263,7 +258,6 @@ class MyApp extends StatelessWidget {
                 return Localizations.localeOf(context);
               } catch (e, t) {
                 ILogger.error(
-                    "CloudOTP",
                     "Failed to get locale by Localizations.localeOf(context)",
                     e,
                     t);
@@ -271,7 +265,7 @@ class MyApp extends StatelessWidget {
               }
             }
           },
-          home: ItemBuilder.buildContextMenuOverlay(home),
+          home: CustomMouseRegion(child: home),
           builder: (context, widget) {
             return Overlay(
               initialEntries: [

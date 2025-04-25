@@ -19,7 +19,7 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/services.dart';
 
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class TokenImageUtil {
   static List<String> brandLogos = [];
@@ -46,7 +46,7 @@ class TokenImageUtil {
       await rootBundle.loadString(path);
       return true;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to load asset $path", e, t);
+      ILogger.error("Failed to load asset $path", e, t);
       return false;
     }
   }
@@ -57,7 +57,7 @@ class TokenImageUtil {
 
   static String? matchBrandLogo(OtpToken token) {
     final issuer = cleanBrand(token.issuer);
-    if (Utils.isEmpty(issuer)) return null;
+    if (issuer.nullOrEmpty) return null;
     String brandLogo = brandLogos.firstWhere(
       (logo) => cleanBrand(logo).split(".")[0] == issuer,
       orElse: () => "",
@@ -84,7 +84,7 @@ class TokenImageUtil {
   }
 
   static List<String> matchBrandLogos(String issuer) {
-    if (Utils.isEmpty(issuer)) return TokenImageUtil.brandLogos;
+    if (issuer.nullOrEmpty) return TokenImageUtil.brandLogos;
     issuer = cleanBrand(issuer);
     List<String> res = [];
     String brandLogo = brandLogos.firstWhere(

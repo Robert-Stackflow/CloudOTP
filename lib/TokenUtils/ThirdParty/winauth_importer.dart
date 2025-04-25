@@ -18,17 +18,11 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/file_util.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../Models/opt_token.dart';
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../generated/l10n.dart';
 import '../import_token_util.dart';
 
@@ -86,7 +80,7 @@ class WinauthTokenImporter implements BaseTokenImporter {
     late ProgressDialog dialog;
     if (showLoading) {
       dialog =
-          showProgressDialog(msg: S.current.importing, showProgress: false);
+          showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -146,7 +140,7 @@ class WinauthTokenImporter implements BaseTokenImporter {
           controller: TextEditingController(),
         );
         BottomSheetBuilder.showBottomSheet(
-          rootContext,
+          chewieProvider.rootContext,
           responsive: true,
           useWideLandscape: true,
           (context) => InputBottomSheet(
@@ -164,13 +158,15 @@ class WinauthTokenImporter implements BaseTokenImporter {
             inputFormatters: [
               RegexInputFormatter.onlyNumberAndLetterAndSymbol,
             ],
-            tailingType: InputItemTailingType.password,
+                          tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
             onValidConfirm: (password) async {},
           ),
         );
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to import from Winauth", e, t);
+      ILogger.error("Failed to import from Winauth", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

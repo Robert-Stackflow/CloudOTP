@@ -19,7 +19,7 @@ import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import './backup_encrypt_interface.dart';
 import 'backup.dart';
 
@@ -100,7 +100,6 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
       unencryptedData = cipher.process(encryptedData);
     } catch (e, t) {
       ILogger.error(
-          "CloudOTP",
           "Failed to decrypt data (InvalidPasswordOrDataCorruptedException)",
           e,
           t);
@@ -124,8 +123,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
       }
       return true;
     } catch (e, t) {
-      ILogger.error(
-          "CloudOTP", "Failed to decrypt (FileNotBackupException)", e, t);
+      ILogger.error("Failed to decrypt (FileNotBackupException)", e, t);
       throw FileNotBackupException();
     }
   }

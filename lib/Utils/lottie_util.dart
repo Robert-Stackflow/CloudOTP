@@ -13,12 +13,12 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:cloudotp/Utils/responsive_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
 
-class LottieUtil {
+class LottieFiles {
   static const String brightness = "assets/lottie/brightness.json";
   static const String celebrate = "assets/lottie/celebrate.json";
   static const String loadingHourglass = "assets/lottie/loading_hourglass.json";
@@ -64,7 +64,7 @@ class LottieUtil {
     bool useInfinity = true,
   }) {
     String path = useInfinity ? loadingInfinity : loadingHourglass;
-    return Utils.isDark(context) || forceDark
+    return ColorUtil.isDark(context) || forceDark
         ? forceDark
             ? path
             : path

@@ -17,8 +17,6 @@ import 'dart:typed_data';
 
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cloud/huaweicloud_response.dart';
 
@@ -26,13 +24,8 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/BottomSheet/Backups/huawei_backups_bottom_sheet.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/Dialog/dialog_builder.dart';
-import '../../Widgets/Dialog/progress_dialog.dart';
-import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
 class HuaweiCloudServiceScreen extends StatefulWidget {
@@ -122,7 +115,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
-            context,
+            context: context,
             background: Colors.transparent,
             text: S.current.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -163,58 +156,53 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
   }
 
   _buildBody() {
-    return Column(
+    return ListView(
       children: [
         if (_configInitialized) _enableInfo(),
-        const SizedBox(height: 10),
         if (_configInitialized && currentConfig.connected) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
         if (_configInitialized && currentConfig.connected) _operationButtons(),
+        const SizedBox(height: 30),
       ],
     );
   }
 
   _enableInfo() {
-    return ItemBuilder.buildRadioItem(
-      context: context,
-      title: S.current.enable + S.current.cloudTypeHuaweiCloud,
-      topRadius: true,
-      bottomRadius: true,
-      value: _huaweiCloudCloudServiceConfig?.enabled ?? false,
-      onTap: () {
-        setState(() {
-          _huaweiCloudCloudServiceConfig!.enabled =
-              !_huaweiCloudCloudServiceConfig!.enabled;
-          CloudServiceConfigDao.updateConfigEnabled(
-              _huaweiCloudCloudServiceConfig!,
-              _huaweiCloudCloudServiceConfig!.enabled);
-        });
-      },
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: CheckboxItem(
+        title: S.current.enable + S.current.cloudTypeHuaweiCloud,
+        value: _huaweiCloudCloudServiceConfig?.enabled ?? false,
+        onTap: () {
+          setState(() {
+            _huaweiCloudCloudServiceConfig!.enabled =
+                !_huaweiCloudCloudServiceConfig!.enabled;
+            CloudServiceConfigDao.updateConfigEnabled(
+                _huaweiCloudCloudServiceConfig!,
+                _huaweiCloudCloudServiceConfig!.enabled);
+          });
+        },
+      ),
     );
   }
 
   _accountInfo() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
-      topRadius: true,
-      bottomRadius: true,
-      padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         children: [
           InputItem(
             controller: _accountController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudDisplayName,
+            title: S.current.cloudDisplayName,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
-            leadingType: InputItemLeadingType.text,
             disabled: true,
-            leadingText: S.current.cloudSize,
+            title: S.current.cloudSize,
           ),
         ],
       ),
@@ -222,137 +210,127 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
   }
 
   _loginButton() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            text: S.current.cloudSignin,
-            background: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              try {
-                ping();
-              } catch (e, t) {
-                ILogger.error(
-                    "CloudOTP", "Failed to connect to huawei cloud", e, t);
-                IToast.show(S.current.cloudConnectionError);
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: RoundIconTextButton(
+        text: S.current.cloudSignin,
+        background: Theme.of(context).primaryColor,
+        fontSizeDelta: 2,
+        onPressed: () async {
+          try {
+            ping();
+          } catch (e, t) {
+            ILogger.error("Failed to connect to huawei cloud", e, t);
+            IToast.show(S.current.cloudConnectionError);
+          }
+        },
+      ),
     );
   }
 
   _operationButtons() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildFramedButton(
-            context,
-            text: S.current.cloudPullBackup,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            outline: Theme.of(context).primaryColor,
-            color: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
-              try {
-                List<HuaweiCloudFileInfo>? files =
-                    await _huaweiCloudCloudService!.listBackups();
-                if (files == null) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomOutlinedButton(
+              text: S.current.cloudPullBackup,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              outline: Theme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                try {
+                  List<HuaweiCloudFileInfo>? files =
+                      await _huaweiCloudCloudService!.listBackups();
+                  if (files == null) {
+                    CustomLoadingDialog.dismissLoading();
+                    IToast.show(S.current.cloudPullFailed);
+                    return;
+                  }
+                  CloudServiceConfigDao.updateLastPullTime(
+                      _huaweiCloudCloudServiceConfig!);
+                  CustomLoadingDialog.dismissLoading();
+                  files.sort((a, b) =>
+                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                  if (files.isNotEmpty) {
+                    BottomSheetBuilder.showBottomSheet(
+                      context,
+                      responsive: true,
+                      (dialogContext) => HuaweiCloudBackupsBottomSheet(
+                        files: files,
+                        cloudService: _huaweiCloudCloudService!,
+                        onSelected: (selectedFile) async {
+                          var dialog = showProgressDialog(
+                            S.current.cloudPulling,
+                            showProgress: true,
+                          );
+                          Uint8List? res =
+                              await _huaweiCloudCloudService!.downloadFile(
+                            selectedFile.id,
+                            onProgress: (c, t) {
+                              dialog.updateProgress(progress: c / t);
+                            },
+                          );
+                          ImportTokenUtil.importFromCloud(context, res, dialog);
+                        },
+                      ),
+                    );
+                  } else {
+                    IToast.show(S.current.cloudNoBackupFile);
+                  }
+                } catch (e, t) {
+                  ILogger.error("Failed to pull from huawei cloud", e, t);
                   CustomLoadingDialog.dismissLoading();
                   IToast.show(S.current.cloudPullFailed);
-                  return;
                 }
-                CloudServiceConfigDao.updateLastPullTime(
-                    _huaweiCloudCloudServiceConfig!);
-                CustomLoadingDialog.dismissLoading();
-                files.sort((a, b) =>
-                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                if (files.isNotEmpty) {
-                  BottomSheetBuilder.showBottomSheet(
-                    context,
-                    responsive: true,
-                    (dialogContext) => HuaweiCloudBackupsBottomSheet(
-                      files: files,
-                      cloudService: _huaweiCloudCloudService!,
-                      onSelected: (selectedFile) async {
-                        var dialog = showProgressDialog(
-                          msg: S.current.cloudPulling,
-                          showProgress: true,
-                        );
-                        Uint8List? res =
-                            await _huaweiCloudCloudService!.downloadFile(
-                          selectedFile.id,
-                          onProgress: (c, t) {
-                            dialog.updateProgress(progress: c / t);
-                          },
-                        );
-                        ImportTokenUtil.importFromCloud(context, res, dialog);
-                      },
-                    ),
-                  );
-                } else {
-                  IToast.show(S.current.cloudNoBackupFile);
-                }
-              } catch (e, t) {
-                ILogger.error(
-                    "CloudOTP", "Failed to pull from huawei cloud", e, t);
-                CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.cloudPullFailed);
-              }
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Theme.of(context).primaryColor,
-            text: S.current.cloudPushBackup,
-            fontSizeDelta: 2,
-            onTap: () async {
-              ExportTokenUtil.backupEncryptToCloud(
-                config: _huaweiCloudCloudServiceConfig!,
-                cloudService: _huaweiCloudCloudService!,
-              );
-            },
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Theme.of(context).primaryColor,
+              text: S.current.cloudPushBackup,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                ExportTokenUtil.backupEncryptToCloud(
+                  config: _huaweiCloudCloudServiceConfig!,
+                  cloudService: _huaweiCloudCloudService!,
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Colors.red,
-            text: S.current.cloudLogout,
-            fontSizeDelta: 2,
-            onTap: () async {
-              DialogBuilder.showConfirmDialog(context,
-                  title: S.current.cloudLogout,
-                  message: S.current.cloudLogoutMessage,
-                  onTapConfirm: () async {
-                await _huaweiCloudCloudService!.signOut();
-                setState(() {
-                  _huaweiCloudCloudServiceConfig!.connected = false;
-                  _huaweiCloudCloudServiceConfig!.account = "";
-                  _huaweiCloudCloudServiceConfig!.totalSize =
-                      _huaweiCloudCloudServiceConfig!.remainingSize =
-                          _huaweiCloudCloudServiceConfig!.usedSize = -1;
-                  updateConfig(_huaweiCloudCloudServiceConfig!);
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Colors.red,
+              text: S.current.cloudLogout,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                DialogBuilder.showConfirmDialog(context,
+                    title: S.current.cloudLogout,
+                    message: S.current.cloudLogoutMessage,
+                    onTapConfirm: () async {
+                  await _huaweiCloudCloudService!.signOut();
+                  setState(() {
+                    _huaweiCloudCloudServiceConfig!.connected = false;
+                    _huaweiCloudCloudServiceConfig!.account = "";
+                    _huaweiCloudCloudServiceConfig!.totalSize =
+                        _huaweiCloudCloudServiceConfig!.remainingSize =
+                            _huaweiCloudCloudServiceConfig!.usedSize = -1;
+                    updateConfig(_huaweiCloudCloudServiceConfig!);
+                  });
                 });
-              });
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-      ],
+        ],
+      ),
     );
   }
 }

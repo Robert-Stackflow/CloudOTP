@@ -100,7 +100,7 @@ class GoogleDriveCloudService extends CloudService {
 
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
-    maxCount ??= HiveUtil.getMaxBackupsCount();
+    maxCount ??= CloudOTPHiveUtil.getMaxBackupsCount();
     List<GoogleDriveFileInfo>? list = await listBackups();
     if (list == null) return false;
     list.sort((a, b) {

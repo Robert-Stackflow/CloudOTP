@@ -21,7 +21,6 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pointycastle/api.dart';
@@ -32,11 +31,7 @@ import 'package:pointycastle/key_derivators/api.dart';
 import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../generated/l10n.dart';
 
 class TwoFASTokenOtp {
@@ -210,7 +205,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
         try {
           twoFASTokens.add(TwoFASToken.fromJson(service));
         } catch (e, t) {
-          ILogger.error("CloudOTP", "Failed to import 2FAS token", e, t);
+          ILogger.error("Failed to import 2FAS token", e, t);
         }
       }
     }
@@ -219,7 +214,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
         try {
           twoFASGroups.add(TwoFASGroup.fromJson(service));
         } catch (e, t) {
-          ILogger.error("CloudOTP", "Failed to import 2FAS token groups", e, t);
+          ILogger.error("Failed to import 2FAS token groups", e, t);
         }
       }
     }
@@ -231,13 +226,13 @@ class TwoFASTokenImporter implements BaseTokenImporter {
   }
 
   @override
-  Future<void> importFromPath(String path, {
+  Future<void> importFromPath(
+    String path, {
     bool showLoading = true,
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog =
-          showProgressDialog(msg: S.current.importing, showProgress: false);
+      dialog = showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -249,7 +244,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
         if (json.containsKey('servicesEncrypted')) {
           if (showLoading) dialog.dismiss();
           InputValidateAsyncController validateAsyncController =
-          InputValidateAsyncController(
+              InputValidateAsyncController(
             listen: false,
             validator: (text) async {
               if (text.isEmpty) {
@@ -259,7 +254,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
                 dialog.show(msg: S.current.importing, showProgress: false);
               }
               var res = await compute(
-                    (receiveMessage) {
+                (receiveMessage) {
                   return decryptServices(receiveMessage["servicesEncrypted"],
                       receiveMessage["password"]);
                 },
@@ -286,35 +281,36 @@ class TwoFASTokenImporter implements BaseTokenImporter {
             controller: TextEditingController(),
           );
           BottomSheetBuilder.showBottomSheet(
-            rootContext,
+            chewieProvider.rootContext,
             responsive: true,
             useWideLandscape: true,
-                (context) =>
-                InputBottomSheet(
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return S.current.autoBackupPasswordCannotBeEmpty;
-                    }
-                    return null;
-                  },
-                  checkSyncValidator: false,
-                  validateAsyncController: validateAsyncController,
-                  title: S.current.inputImportPasswordTitle,
-                  message: S.current.inputImportPasswordTip,
-                  hint: S.current.inputImportPasswordHint,
-                  inputFormatters: [
-                    RegexInputFormatter.onlyNumberAndLetterAndSymbol,
-                  ],
-                  tailingType: InputItemTailingType.password,
-                  onValidConfirm: (password) async {},
-                ),
+            (context) => InputBottomSheet(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return S.current.autoBackupPasswordCannotBeEmpty;
+                }
+                return null;
+              },
+              checkSyncValidator: false,
+              validateAsyncController: validateAsyncController,
+              title: S.current.inputImportPasswordTitle,
+              message: S.current.inputImportPasswordTip,
+              hint: S.current.inputImportPasswordHint,
+              inputFormatters: [
+                RegexInputFormatter.onlyNumberAndLetterAndSymbol,
+              ],
+              tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
+              onValidConfirm: (password) async {},
+            ),
           );
         } else {
           await import(json);
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to import from 2FAS", e, t);
+      ILogger.error("Failed to import from 2FAS", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

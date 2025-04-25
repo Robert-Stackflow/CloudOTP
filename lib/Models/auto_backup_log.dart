@@ -15,8 +15,8 @@
 
 import 'dart:convert';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/l10n.dart';
@@ -56,15 +56,15 @@ enum AutoBackupStatus {
       case AutoBackupStatus.pending:
         return Colors.grey;
       case AutoBackupStatus.encrypting:
-        return Theme.of(rootContext).primaryColor;
+        return ChewieTheme.primaryColor;
       case AutoBackupStatus.encryptFailed:
         return Colors.red;
       case AutoBackupStatus.saving:
-        return Theme.of(rootContext).primaryColor;
+        return ChewieTheme.primaryColor;
       case AutoBackupStatus.saveFailed:
         return Colors.red;
       case AutoBackupStatus.uploading:
-        return Theme.of(rootContext).primaryColor;
+        return ChewieTheme.primaryColor;
       case AutoBackupStatus.uploadFailed:
         return Colors.red;
       case AutoBackupStatus.complete:

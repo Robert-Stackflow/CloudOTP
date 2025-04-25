@@ -2,10 +2,10 @@ part of 'lottie_cupertino_refresh.dart';
 
 const double _kDefaultCustomIndicatorRadius = 20.0;
 
-double kCupertinoFrictionFactor(double overscrollFraction) =>
+double kCustomCupertinoFrictionFactor(double overscrollFraction) =>
     0.25 * math.pow(1 - overscrollFraction, 2);
 
-double kCupertinoHorizontalFrictionFactor(double overscrollFraction) =>
+double kCustomCupertinoHorizontalFrictionFactor(double overscrollFraction) =>
     0.52 * math.pow(1 - overscrollFraction, 2);
 
 /// Custom indicator.

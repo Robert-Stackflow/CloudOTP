@@ -15,16 +15,12 @@
 
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
-import 'package:cloudotp/Resources/theme.dart';
 import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Utils/route_util.dart';
-import 'package:cloudotp/Widgets/Custom/loading_icon.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Database/config_dao.dart';
 import '../../Utils/utils.dart';
@@ -67,25 +63,15 @@ class BackupLogScreenState extends State<BackupLogScreen> {
     return widget.isOverlay
         ? _buildDesktopBody()
         : Scaffold(
-            appBar: ItemBuilder.buildAppBar(
-              context: context,
+            appBar: ResponsiveAppBar(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              title: Text(
-                S.current.backupLogs,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .apply(fontWeightDelta: 2),
-              ),
-              center: canBackup && appProvider.autoBackupLogs.isNotEmpty,
-              leading: Icons.arrow_back_rounded,
-              onLeadingTap: () {
+              title: S.current.backupLogs,
+              onTapBack: () {
                 Navigator.pop(context);
               },
               actions: [
                 canBackup && appProvider.autoBackupLogs.isNotEmpty
-                    ? ItemBuilder.buildIconButton(
-                        context: context,
+                    ? CircleIconButton(
                         icon: Icon(
                           Icons.cleaning_services_outlined,
                           color: Theme.of(context).iconTheme.color,
@@ -94,12 +80,12 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                         padding: const EdgeInsets.all(10),
                         onTap: clear,
                       )
-                    : ItemBuilder.buildBlankIconButton(context),
+                    : const BlankIconButton(),
                 const SizedBox(width: 5),
                 if (ResponsiveUtil.isLandscape())
                   Container(
                     margin: const EdgeInsets.only(right: 5),
-                    child: ItemBuilder.buildBlankIconButton(context),
+                    child: const BlankIconButton(),
                   ),
               ],
             ),
@@ -110,17 +96,10 @@ class BackupLogScreenState extends State<BackupLogScreen> {
   _buildDesktopBody() {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).canvasColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Theme.of(context).dividerColor, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(rootContext).shadowColor,
-            offset: const Offset(0, 4),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ).scale(2)
-        ],
+        color: ChewieTheme.scaffoldBackgroundColor,
+        borderRadius: ChewieDimens.borderRadius8,
+        border: ChewieTheme.border,
+        boxShadow: ChewieTheme.defaultBoxShadow,
       ),
       width: !ResponsiveUtil.isLandscape()
           ? null
@@ -136,9 +115,6 @@ class BackupLogScreenState extends State<BackupLogScreen> {
   clear() {
     appProvider.clearAutoBackupLogs();
     appProvider.autoBackupLoadingStatus = LoadingStatus.none;
-    if (widget.isOverlay) {
-      context.contextMenuOverlay.hide();
-    }
   }
 
   _buildBody() {
@@ -166,10 +142,9 @@ class BackupLogScreenState extends State<BackupLogScreen> {
               ),
               const Spacer(),
               if (canBackup && appProvider.autoBackupLogs.isNotEmpty)
-                ItemBuilder.buildIconButton(
-                  context: context,
+                CircleIconButton(
                   icon: const Icon(
-                    Icons.cleaning_services_outlined,
+                    LucideIcons.trash2,
                     size: 16,
                   ),
                   onTap: clear,
@@ -196,13 +171,11 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 10),
-                ItemBuilder.buildRoundButton(
-                  context,
+                RoundIconTextButton(
                   text: S.current.goToSetBackupPassword,
                   background: Theme.of(context).primaryColor,
-                  onTap: () {
+                  onPressed: () {
                     if (widget.isOverlay) {
-                      context.contextMenuOverlay.hide();
                       RouteUtil.pushDialogRoute(
                           context,
                           const BackupSettingScreen(
@@ -221,10 +194,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
         if (canBackup && appProvider.autoBackupLogs.isEmpty)
           Container(
             margin: const EdgeInsets.only(top: 20),
-            child: ItemBuilder.buildEmptyPlaceholder(
-              context: context,
-              text: S.current.noBackupLogs,
-            ),
+            child: EmptyPlaceholder(text: S.current.noBackupLogs),
           ),
       ],
     );
@@ -250,12 +220,10 @@ class BackupLogItemState extends State<BackupLogItem> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: widget.isOverlay
-            ? MyTheme.getCardBackground(context)
-            : Theme.of(context).canvasColor,
-        borderRadius: BorderRadius.circular(10),
+        color: ChewieTheme.canvasColor,
+        borderRadius: ChewieDimens.borderRadius8,
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: ChewieDimens.borderRadius8,
           onTap: !expanded
               ? () {
                   setState(() {
@@ -266,7 +234,7 @@ class BackupLogItemState extends State<BackupLogItem> {
           child: Container(
             padding: EdgeInsets.all(widget.isOverlay ? 8 : 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: ChewieDimens.borderRadius8,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,11 +249,11 @@ class BackupLogItemState extends State<BackupLogItem> {
                           ),
                     ),
                     const Spacer(),
-                    ItemBuilder.buildRoundButton(
-                      context,
+                    RoundIconTextButton(
                       radius: 5,
+                      height: 24,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 2),
+                          horizontal: 6, vertical: 2),
                       text: widget.log.lastStatusItem.labelShort,
                       textStyle: Theme.of(context).textTheme.labelSmall?.apply(
                           color: Colors.white,
@@ -293,8 +261,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                       background: widget.log.lastStatus.color,
                     ),
                     const SizedBox(width: 5),
-                    ItemBuilder.buildIconButton(
-                      context: context,
+                    CircleIconButton(
                       padding: const EdgeInsets.all(4),
                       icon: Icon(
                           expanded
@@ -321,19 +288,18 @@ class BackupLogItemState extends State<BackupLogItem> {
   }
 
   _buildList() {
-    return ItemBuilder.buildHtmlWidget(
-      context,
-      textStyle: Theme.of(context)
-          .textTheme
-          .labelSmall
-          ?.apply(fontSizeDelta: widget.isOverlay ? 0 : 1),
-      List.generate(
+    return CustomHtmlWidget(
+      content: List.generate(
         widget.log.status.length,
         (i) {
           AutoBackupLogStatusItem statusItem = widget.log.status[i];
-          return '[${Utils.timestampToDateString(statusItem.timestamp)}]: ${statusItem.label(widget.log)}';
+          return '[${TimeUtil.timestampToDateString(statusItem.timestamp)}]: ${statusItem.label(widget.log)}';
         },
       ).join('<br>'),
+      style: Theme.of(context)
+          .textTheme
+          .labelSmall
+          ?.apply(fontSizeDelta: widget.isOverlay ? 0 : 1),
     );
   }
 }

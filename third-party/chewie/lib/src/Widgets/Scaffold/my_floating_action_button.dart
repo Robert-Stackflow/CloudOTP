@@ -43,7 +43,7 @@ enum _FloatingActionButtonType {
 /// action button.
 ///
 /// {@tool dartpad}
-/// This example shows a [FloatingActionButton] in its usual position within a
+/// This example shows a [MyFloatingActionButton] in its usual position within a
 /// [Scaffold]. Pressing the button cycles it through a few variations in its
 /// [foregroundColor], [backgroundColor], and [shape]. The button automatically
 /// animates its segue from one set of visual parameters to another.
@@ -52,14 +52,14 @@ enum _FloatingActionButtonType {
 /// {@end-tool}
 ///
 /// {@tool dartpad}
-/// This sample shows all the variants of [FloatingActionButton] widget as
+/// This sample shows all the variants of [MyFloatingActionButton] widget as
 /// described in: https://m3.material.io/components/floating-action-button/overview.
 ///
 /// ** See code in examples/api/lib/material/floating_action_button/floating_action_button.1.dart **
 /// {@end-tool}
 ///
 /// {@tool dartpad}
-/// This sample shows [FloatingActionButton] with additional color mappings as
+/// This sample shows [MyFloatingActionButton] with additional color mappings as
 /// described in: https://m3.material.io/components/floating-action-button/overview.
 ///
 /// ** See code in examples/api/lib/material/floating_action_button/floating_action_button.2.dart **
@@ -71,12 +71,12 @@ enum _FloatingActionButtonType {
 ///  * [ElevatedButton], a filled button whose material elevates when pressed.
 ///  * <https://material.io/design/components/buttons-floating-action-button.html>
 ///  * <https://m3.material.io/components/floating-action-button>
-class FloatingActionButton extends StatelessWidget {
+class MyFloatingActionButton extends StatelessWidget {
   /// Creates a circular floating action button.
   ///
   /// The [elevation], [highlightElevation], and [disabledElevation] parameters,
   /// if specified, must be non-negative.
-  const FloatingActionButton({
+  const MyFloatingActionButton({
     super.key,
     this.child,
     this.tooltip,
@@ -121,7 +121,7 @@ class FloatingActionButton extends StatelessWidget {
   ///
   /// The [elevation], [focusElevation], [hoverElevation], [highlightElevation],
   /// and [disabledElevation] parameters, if specified, must be non-negative.
-  const FloatingActionButton.small({
+  const MyFloatingActionButton.small({
     super.key,
     this.child,
     this.tooltip,
@@ -164,7 +164,7 @@ class FloatingActionButton extends StatelessWidget {
   ///
   /// The [elevation], [focusElevation], [hoverElevation], [highlightElevation],
   /// and [disabledElevation] parameters, if specified, must be non-negative.
-  const FloatingActionButton.large({
+  const MyFloatingActionButton.large({
     super.key,
     this.child,
     this.tooltip,
@@ -208,7 +208,7 @@ class FloatingActionButton extends StatelessWidget {
   ///
   /// See also:
   ///  * <https://m3.material.io/components/extended-fab>
-  const FloatingActionButton.extended({
+  const MyFloatingActionButton.extended({
     super.key,
     this.tooltip,
     this.foregroundColor,
@@ -287,7 +287,7 @@ class FloatingActionButton extends StatelessWidget {
   /// Material 3, defaults to [ColorScheme.onPrimaryContainer] with opacity 0.08.
   final Color? hoverColor;
 
-  /// The splash color for this [FloatingActionButton]'s [InkWell].
+  /// The splash color for this [MyFloatingActionButton]'s [InkWell].
   ///
   /// If null, [FloatingActionButtonThemeData.splashColor] is used, if that is
   /// null, [ThemeData.splashColor] is used in Material 2; [ColorScheme.onPrimaryContainer]
@@ -302,7 +302,7 @@ class FloatingActionButton extends StatelessWidget {
   /// have a hero tag.
   ///
   /// If this is not explicitly set, then there can only be one
-  /// [FloatingActionButton] per route (that is, per screen), since otherwise
+  /// [MyFloatingActionButton] per route (that is, per screen), since otherwise
   /// there would be a tag conflict (multiple heroes on one route can't have the
   /// same tag). The Material Design specification recommends only using one
   /// floating action button per screen.
@@ -451,13 +451,13 @@ class FloatingActionButton extends StatelessWidget {
   final bool? enableFeedback;
 
   /// The spacing between the icon and the label for an extended
-  /// [FloatingActionButton].
+  /// [MyFloatingActionButton].
   ///
   /// If null, [FloatingActionButtonThemeData.extendedIconLabelSpacing] is used.
   /// If that is also null, the default is 8.0.
   final double? extendedIconLabelSpacing;
 
-  /// The padding for an extended [FloatingActionButton]'s content.
+  /// The padding for an extended [MyFloatingActionButton]'s content.
   ///
   /// If null, [FloatingActionButtonThemeData.extendedPadding] is used. If that
   /// is also null, the default is
@@ -465,7 +465,7 @@ class FloatingActionButton extends StatelessWidget {
   /// provided, and `EdgeInsetsDirectional.only(start: 20.0, end: 20.0)` if not.
   final EdgeInsetsGeometry? extendedPadding;
 
-  /// The text style for an extended [FloatingActionButton]'s label.
+  /// The text style for an extended [MyFloatingActionButton]'s label.
   ///
   /// If null, [FloatingActionButtonThemeData.extendedTextStyle] is used. If
   /// that is also null, then [TextTheme.labelLarge] with a letter spacing of 1.2

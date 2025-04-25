@@ -19,21 +19,14 @@ import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/regex_util.dart';
 import '../../Widgets/BottomSheet/Backups/s3_backups_bottom_sheet.dart';
-import '../../Widgets/Dialog/custom_dialog.dart';
-import '../../Widgets/Dialog/dialog_builder.dart';
-import '../../Widgets/Item/input_item.dart';
 import '../../generated/l10n.dart';
 
 class S3CloudServiceScreen extends StatefulWidget {
@@ -129,7 +122,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
-            context,
+            context: context,
             background: Colors.transparent,
             text: S.current.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -168,41 +161,38 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
   }
 
   _buildBody() {
-    return Column(
+    return ListView(
       children: [
         if (_configInitialized) _enableInfo(),
-        const SizedBox(height: 10),
         if (_configInitialized) _accountInfo(),
         const SizedBox(height: 30),
         if (_configInitialized && !currentConfig.connected) _loginButton(),
         if (_configInitialized && currentConfig.connected) _operationButtons(),
+        const SizedBox(height: 30),
       ],
     );
   }
 
   _enableInfo() {
-    return ItemBuilder.buildRadioItem(
-      context: context,
-      title: S.current.enable + S.current.cloudTypeS3Cloud,
-      topRadius: true,
-      bottomRadius: true,
-      value: _s3CloudServiceConfig?.enabled ?? false,
-      onTap: () {
-        setState(() {
-          _s3CloudServiceConfig!.enabled = !_s3CloudServiceConfig!.enabled;
-          CloudServiceConfigDao.updateConfigEnabled(
-              _s3CloudServiceConfig!, _s3CloudServiceConfig!.enabled);
-        });
-      },
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: CheckboxItem(
+        title: S.current.enable + S.current.cloudTypeS3Cloud,
+        value: _s3CloudServiceConfig?.enabled ?? false,
+        onTap: () {
+          setState(() {
+            _s3CloudServiceConfig!.enabled = !_s3CloudServiceConfig!.enabled;
+            CloudServiceConfigDao.updateConfigEnabled(
+                _s3CloudServiceConfig!, _s3CloudServiceConfig!.enabled);
+          });
+        },
+      ),
     );
   }
 
   _accountInfo() {
-    return ItemBuilder.buildContainerItem(
-      context: context,
-      topRadius: true,
-      bottomRadius: true,
-      padding: const EdgeInsets.only(top: 15, bottom: 5, right: 10),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Form(
         key: formKey,
         child: Column(
@@ -210,9 +200,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,
-              leadingText: S.current.s3Endpoint,
-              leadingType: InputItemLeadingType.text,
-              topRadius: true,
+              title: S.current.s3Endpoint,
               disabled: currentConfig.connected,
               validator: (text) {
                 if (text.isEmpty) {
@@ -234,20 +222,23 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                 return null;
               },
               textInputAction: TextInputAction.next,
-              leadingType: InputItemLeadingType.text,
               disabled: currentConfig.connected,
-              leadingText: S.current.s3Bucket,
+              title: S.current.s3Bucket,
               hint: S.current.s3BucketHint,
             ),
             InputItem(
               controller: _accessKeyController,
               textInputAction: TextInputAction.next,
-              leadingType: InputItemLeadingType.text,
-              leadingText: S.current.s3AccessKey,
-              tailingType: InputItemTailingType.password,
+              title: S.current.s3AccessKey,
+              tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
               disabled: currentConfig.connected,
               hint: S.current.s3AccessKeyHint,
-              obscureText: currentConfig.connected,
+              style: InputItemStyle(
+                obscure: currentConfig.connected,
+                bottomRadius: true,
+              ),
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
@@ -257,17 +248,20 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                 }
                 return null;
               },
-              bottomRadius: true,
             ),
             InputItem(
               controller: _secretKeyController,
               textInputAction: TextInputAction.next,
-              leadingType: InputItemLeadingType.text,
-              leadingText: S.current.s3SecretKey,
-              tailingType: InputItemTailingType.password,
+              title: S.current.s3SecretKey,
+              tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
               disabled: currentConfig.connected,
               hint: S.current.s3SecretKeyHint,
-              obscureText: currentConfig.connected,
+              style: InputItemStyle(
+                obscure: currentConfig.connected,
+                bottomRadius: true,
+              ),
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
@@ -277,16 +271,13 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                 }
                 return null;
               },
-              bottomRadius: true,
             ),
             InputItem(
               controller: _regionController,
               textInputAction: TextInputAction.next,
-              leadingType: InputItemLeadingType.text,
-              leadingText: S.current.s3Region,
+              title: S.current.s3Region,
               disabled: currentConfig.connected,
               hint: S.current.s3RegionHint,
-              bottomRadius: true,
             ),
           ],
         ),
@@ -295,134 +286,125 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
   }
 
   _loginButton() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            text: S.current.cloudSignin,
-            background: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              if (await isValid()) {
-                try {
-                  await CloudServiceConfigDao.updateConfig(currentConfig);
-                  _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
-                  ping();
-                } catch (e, t) {
-                  ILogger.error(
-                      "CloudOTP", "Failed to connect to S3 cloud", e, t);
-                  IToast.show(S.current.cloudConnectionError);
-                }
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: RoundIconTextButton(
+        text: S.current.cloudSignin,
+        background: Theme.of(context).primaryColor,
+        fontSizeDelta: 2,
+        onPressed: () async {
+          if (await isValid()) {
+            try {
+              await CloudServiceConfigDao.updateConfig(currentConfig);
+              _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
+              ping();
+            } catch (e, t) {
+              ILogger.error("Failed to connect to S3 cloud", e, t);
+              IToast.show(S.current.cloudConnectionError);
+            }
+          }
+        },
+      ),
     );
   }
 
   _operationButtons() {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildFramedButton(
-            context,
-            text: S.current.cloudPullBackup,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            outline: Theme.of(context).primaryColor,
-            color: Theme.of(context).primaryColor,
-            fontSizeDelta: 2,
-            onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
-              try {
-                List<S3CloudFileInfo>? files =
-                    await _s3CloudService!.listBackups();
-                if (files == null) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomOutlinedButton(
+              text: S.current.cloudPullBackup,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              outline: Theme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                try {
+                  List<S3CloudFileInfo>? files =
+                      await _s3CloudService!.listBackups();
+                  if (files == null) {
+                    CustomLoadingDialog.dismissLoading();
+                    IToast.show(S.current.cloudPullFailed);
+                    return;
+                  }
+                  CloudServiceConfigDao.updateLastPullTime(
+                      _s3CloudServiceConfig!);
+                  CustomLoadingDialog.dismissLoading();
+                  files.sort(
+                      (a, b) => b.modifyTimestamp.compareTo(a.modifyTimestamp));
+                  if (files.isNotEmpty) {
+                    BottomSheetBuilder.showBottomSheet(
+                      context,
+                      responsive: true,
+                      (dialogContext) => S3CloudBackupsBottomSheet(
+                        files: files,
+                        cloudService: _s3CloudService!,
+                        onSelected: (selectedFile) async {
+                          var dialog = showProgressDialog(
+                            S.current.cloudPulling,
+                            showProgress: true,
+                          );
+                          Uint8List? res = await _s3CloudService!.downloadFile(
+                            selectedFile.path,
+                            onProgress: (c, t) {
+                              dialog.updateProgress(progress: c / t);
+                            },
+                          );
+                          ImportTokenUtil.importFromCloud(context, res, dialog);
+                        },
+                      ),
+                    );
+                  } else {
+                    IToast.show(S.current.cloudNoBackupFile);
+                  }
+                } catch (e, t) {
+                  ILogger.error("Failed to pull from S3 cloud", e, t);
                   CustomLoadingDialog.dismissLoading();
                   IToast.show(S.current.cloudPullFailed);
-                  return;
                 }
-                CloudServiceConfigDao.updateLastPullTime(
-                    _s3CloudServiceConfig!);
-                CustomLoadingDialog.dismissLoading();
-                files.sort(
-                    (a, b) => b.modifyTimestamp.compareTo(a.modifyTimestamp));
-                if (files.isNotEmpty) {
-                  BottomSheetBuilder.showBottomSheet(
-                    context,
-                    responsive: true,
-                    (dialogContext) => S3CloudBackupsBottomSheet(
-                      files: files,
-                      cloudService: _s3CloudService!,
-                      onSelected: (selectedFile) async {
-                        var dialog = showProgressDialog(
-                          msg: S.current.cloudPulling,
-                          showProgress: true,
-                        );
-                        Uint8List? res = await _s3CloudService!.downloadFile(
-                          selectedFile.path,
-                          onProgress: (c, t) {
-                            dialog.updateProgress(progress: c / t);
-                          },
-                        );
-                        ImportTokenUtil.importFromCloud(context, res, dialog);
-                      },
-                    ),
-                  );
-                } else {
-                  IToast.show(S.current.cloudNoBackupFile);
-                }
-              } catch (e, t) {
-                ILogger.error("CloudOTP", "Failed to pull from S3 cloud", e, t);
-                CustomLoadingDialog.dismissLoading();
-                IToast.show(S.current.cloudPullFailed);
-              }
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Theme.of(context).primaryColor,
-            text: S.current.cloudPushBackup,
-            fontSizeDelta: 2,
-            onTap: () async {
-              ExportTokenUtil.backupEncryptToCloud(
-                config: _s3CloudServiceConfig!,
-                cloudService: _s3CloudService!,
-              );
-            },
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Theme.of(context).primaryColor,
+              text: S.current.cloudPushBackup,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                ExportTokenUtil.backupEncryptToCloud(
+                  config: _s3CloudServiceConfig!,
+                  cloudService: _s3CloudService!,
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ItemBuilder.buildRoundButton(
-            context,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            background: Colors.red,
-            text: S.current.cloudLogout,
-            fontSizeDelta: 2,
-            onTap: () async {
-              DialogBuilder.showConfirmDialog(context,
-                  title: S.current.cloudLogout,
-                  message: S.current.cloudLogoutMessage,
-                  onTapConfirm: () async {
-                setState(() {
-                  currentConfig.connected = false;
-                  _s3CloudService = null;
+          const SizedBox(width: 10),
+          Expanded(
+            child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              background: Colors.red,
+              text: S.current.cloudLogout,
+              fontSizeDelta: 2,
+              onPressed: () async {
+                DialogBuilder.showConfirmDialog(context,
+                    title: S.current.cloudLogout,
+                    message: S.current.cloudLogoutMessage,
+                    onTapConfirm: () async {
+                  setState(() {
+                    currentConfig.connected = false;
+                    _s3CloudService = null;
+                  });
                 });
-              });
-            },
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -1,36 +1,28 @@
-/*
- * Copyright (c) 2024 Robert-Stackflow.
- *
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program.
- * If not, see <https://www.gnu.org/licenses/>.
- */
+import 'dart:async';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_appearance_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_safe_screen.dart';
+import 'package:cloudotp/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Utils/app_provider.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Utils/route_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
-import '../../generated/l10n.dart';
+
+class SettingNavigationItem {
+  final String title;
+  final IconData icon;
+
+  const SettingNavigationItem({required this.title, required this.icon});
+}
 
 class SettingNavigationScreen extends StatefulWidget {
   const SettingNavigationScreen({super.key});
-
-  static const String routeName = "/setting/navigation";
 
   @override
   State<SettingNavigationScreen> createState() =>
@@ -38,117 +30,298 @@ class SettingNavigationScreen extends StatefulWidget {
 }
 
 class _SettingNavigationScreenState extends State<SettingNavigationScreen>
-    with TickerProviderStateMixin {
+    with AutomaticKeepAliveClientMixin {
+  int _selectedIndex = 0;
+  String _searchText = "";
+  final TextEditingController _searchController = TextEditingController();
+  final SearchConfig _searchConfig = SearchConfig();
+  Timer? _debounceTimer;
+
+  final List<SettingNavigationItem> _navigationItems = [
+    SettingNavigationItem(
+        title: S.current.generalSetting, icon: LucideIcons.settings2),
+    SettingNavigationItem(
+        title: S.current.appearanceSetting,
+        icon: LucideIcons.paintbrushVertical),
+    SettingNavigationItem(
+        title: S.current.operationSetting, icon: LucideIcons.pointer),
+    SettingNavigationItem(
+        title: S.current.backupSetting, icon: LucideIcons.cloudUpload),
+    SettingNavigationItem(
+        title: S.current.safeSetting, icon: LucideIcons.shieldCheck),
+    SettingNavigationItem(title: S.current.about, icon: LucideIcons.info),
+  ];
+
+  final List<Widget?> _pageCache = List.filled(8, null);
+
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_onSearchTextChanged);
   }
 
   @override
+  void dispose() {
+    _searchController.removeListener(_onSearchTextChanged);
+    _searchController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchTextChanged() {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 200), () {
+      search(_searchController.text);
+    });
+  }
+
+  search(String query) {
+    setState(() {
+      _searchText = query;
+    });
+  }
+
+  _buildSearchRow() {
+    return Container(
+      margin: const EdgeInsets.only(left: 20, top: 11, bottom: 10),
+      constraints: const BoxConstraints(maxWidth: 500),
+      child: Row(
+        children: [
+          Expanded(
+            child: MySearchBar(
+              controller: _searchController,
+              hintText: "搜索设置项（空格分隔多个关键词、支持拼音匹配、模糊匹配）",
+              onSubmitted: (text) {
+                search(text);
+              },
+              showSearchButton: false,
+            ),
+          ),
+          const SizedBox(width: 8),
+          RoundIconTextButton(
+            background: ChewieTheme.canvasColor,
+            border: ChewieTheme.borderWithWidth(1),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            tooltip: "高级选项",
+            color: ChewieTheme.titleMedium.color,
+            icon: Icon(
+              LucideIcons.listFilter,
+              color: ChewieTheme.iconColor,
+              size: 20,
+            ),
+            onPressed: () {
+              BottomSheetBuilder.showContextMenu(
+                  context, _buildFilterMoreButtons());
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  _buildFilterMoreButtons() {
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem.checkbox(
+          "拼音匹配",
+          checked: _searchConfig.enablePinyin,
+          onPressed: () {
+            setState(() {
+              _searchConfig.enablePinyin = !_searchConfig.enablePinyin;
+            });
+          },
+        ),
+        FlutterContextMenuItem.checkbox(
+          "模糊匹配",
+          checked: _searchConfig.enableShortPinyin,
+          onPressed: () {
+            setState(() {
+              _searchConfig.enableShortPinyin =
+                  !_searchConfig.enableShortPinyin;
+            });
+          },
+        )
+      ],
+    );
+  }
+
+  Widget _buildCurrentPage(int index) {
+    if (_pageCache[index] != null) return _pageCache[index]!;
+
+    late Widget page;
+    switch (index) {
+      case 0:
+        page = GeneralSettingScreen(
+          key: generalSettingScreenKey,
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 1:
+        page = AppearanceSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 2:
+        page = OperationSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 3:
+        page = BackupSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 4:
+        page = SafeSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 5:
+        page = AboutSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      default:
+        page = const SizedBox.shrink();
+    }
+
+    _pageCache[index] = _KeepAliveWrapper(child: page);
+    return _pageCache[index]!;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      child: Scaffold(
-        appBar: ResponsiveUtil.isLandscape()
-            ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.setting,
-                context: context,
-                transparent: true,
-              )
-            : ItemBuilder.buildAppBar(
-                context: context,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                leading: Icons.arrow_back_rounded,
-                onLeadingTap: () {
-                  Navigator.pop(context);
-                },
-                title: Text(
-                  S.current.setting,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontWeightDelta: 2),
-                ),
-                actions: [
-                  ItemBuilder.buildBlankIconButton(context),
-                  const SizedBox(width: 5),
-                ],
-              ),
-        body: EasyRefresh(
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+    super.build(context);
+    return Scaffold(
+      appBar: ResponsiveAppBar(
+        showBack: false,
+        titleLeftMargin: 15,
+        title: S.current.setting,
+      ),
+      body: Row(
+        children: [
+          Container(
+            width: 144,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: ChewieTheme.canvasColor,
+              border: ChewieTheme.rightDivider,
+            ),
+            child: ListView.builder(
+              itemCount: _navigationItems.length,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              itemBuilder: (context, index) {
+                final item = _navigationItems[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 4),
+                  child: SettingNavigationItemWidget(
+                    title: item.title,
+                    icon: item.icon,
+                    selected: index == _selectedIndex,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // _buildSearchRow(),
+                Expanded(child: _buildCurrentPage(_selectedIndex)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+}
+
+class SettingNavigationItemWidget extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const SettingNavigationItemWidget({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = selected ? ChewieTheme.primaryColor : Colors.transparent;
+    final textColor = selected ? ChewieTheme.primaryButtonColor : null;
+
+    return PressableAnimation(
+      onTap: onTap,
+      child: InkAnimation(
+        color: bgColor,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
             children: [
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.generalSetting,
-                leading: Icons.now_widgets_outlined,
-                showLeading: true,
-                topRadius: true,
-                bottomRadius: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(context,
-                      GeneralSettingScreen(key: generalSettingScreenKey));
-                },
+              // Icon(icon, color: textColor),
+              // const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: ChewieTheme.bodyMedium.copyWith(
+                    color: textColor,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
               ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.appearanceSetting,
-                leading: Icons.color_lens_outlined,
-                showLeading: true,
-                topRadius: true,
-                bottomRadius: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const AppearanceSettingScreen());
-                },
-              ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.operationSetting,
-                leading: Icons.handyman_outlined,
-                showLeading: true,
-                topRadius: true,
-                bottomRadius: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const OperationSettingScreen());
-                },
-              ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.backupSetting,
-                leading: Icons.backup_outlined,
-                showLeading: true,
-                topRadius: true,
-                bottomRadius: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const BackupSettingScreen());
-                },
-              ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildEntryItem(
-                context: context,
-                title: S.current.safeSetting,
-                leading: Icons.privacy_tip_outlined,
-                showLeading: true,
-                topRadius: true,
-                bottomRadius: true,
-                onTap: () {
-                  RouteUtil.pushCupertinoRoute(
-                      context, const SafeSettingScreen());
-                },
-              ),
-              const SizedBox(height: 30),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+class _KeepAliveWrapper extends StatefulWidget {
+  final Widget child;
+
+  const _KeepAliveWrapper({required this.child});
+
+  @override
+  State<_KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<_KeepAliveWrapper>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
+  }
+
+  @override
+  bool get wantKeepAlive => true;
 }

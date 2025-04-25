@@ -22,7 +22,7 @@ import 'package:path/path.dart';
 import 'package:webdav_client/webdav_client.dart';
 
 import '../../Models/cloud_service_config.dart';
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'cloud_service.dart';
 
 class WebDavCloudService extends CloudService {
@@ -74,7 +74,7 @@ class WebDavCloudService extends CloudService {
       await client.ping();
       return CloudServiceStatus.success;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to authenticate webdav", e, t);
+      ILogger.error("Failed to authenticate webdav", e, t);
       if (e is DioException) {
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
@@ -103,7 +103,7 @@ class WebDavCloudService extends CloudService {
       var list = await client.readDir(_webdavPath);
       return list;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to list file from webdav", e, t);
+      ILogger.error("Failed to list file from webdav", e, t);
       return null;
     }
   }
@@ -148,7 +148,7 @@ class WebDavCloudService extends CloudService {
         return false;
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to upload file to webdav", e, t);
+      ILogger.error("Failed to upload file to webdav", e, t);
       return false;
     }
   }
@@ -171,7 +171,7 @@ class WebDavCloudService extends CloudService {
         ),
       );
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to download file from webdav", e, t);
+      ILogger.error("Failed to download file from webdav", e, t);
       return null;
     }
   }
@@ -190,7 +190,7 @@ class WebDavCloudService extends CloudService {
 
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
-    maxCount ??= HiveUtil.getMaxBackupsCount();
+    maxCount ??= CloudOTPHiveUtil.getMaxBackupsCount();
     List<WebDavFileInfo>? list = await listBackups();
     if (list == null) return false;
     list.sort((a, b) {

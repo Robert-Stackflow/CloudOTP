@@ -16,22 +16,21 @@
 import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
 import 'package:cloudotp/TokenUtils/code_generator.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:context_menus/context_menus.dart';
+import 'package:cloudotp/Widgets/cloudotp/cloudotp_item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -40,9 +39,6 @@ import '../../Models/opt_token.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
 import '../../Utils/constant.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/utils.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
 import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import '../../generated/l10n.dart';
 
@@ -71,7 +67,8 @@ class TokenLayoutNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _codeVisiable = !HiveUtil.getBool(HiveUtil.defaultHideCodeKey);
+  bool _codeVisiable =
+      !ChewieHiveUtil.getBool(CloudOTPHiveUtil.defaultHideCodeKey);
 
   bool get codeVisiable => _codeVisiable;
 
@@ -167,34 +164,73 @@ class TokenLayoutState extends State<TokenLayout>
     return CodeGenerator.getNextCode(widget.token);
   }
 
-  _buildContextMenuButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(S.current.copyTokenCode,
-            onPressed: _processCopyCode),
-        ContextMenuButtonConfig(S.current.copyNextTokenCode,
-            onPressed: _processCopyNextCode),
-        ContextMenuButtonConfig.divider(),
-        ContextMenuButtonConfig(
-            widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
-            textColor:
-                widget.token.pinned ? Theme.of(context).primaryColor : null,
-            onPressed: _processPin),
-        ContextMenuButtonConfig(S.current.editToken, onPressed: _processEdit),
-        ContextMenuButtonConfig(S.current.editTokenIcon,
-            onPressed: _processEditIcon),
-        ContextMenuButtonConfig(S.current.editTokenCategory,
-            onPressed: _processEditCategory),
-        ContextMenuButtonConfig.divider(),
-        ContextMenuButtonConfig(S.current.viewTokenQrCode,
-            onPressed: _processViewQrCode),
-        ContextMenuButtonConfig(S.current.copyTokenUri,
-            onPressed: _processCopyUri),
-        ContextMenuButtonConfig.divider(),
-        ContextMenuButtonConfig.warning(S.current.resetCopyTimes,
-            textColor: Colors.red, onPressed: _processResetCopyTimes),
-        ContextMenuButtonConfig.warning(S.current.deleteToken,
-            textColor: Colors.red, onPressed: _processDelete),
+  FlutterContextMenu _buildContextMenuButtons() {
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
+          iconData: LucideIcons.copy,
+          S.current.copyTokenCode,
+          onPressed: _processCopyCode,
+        ),
+        FlutterContextMenuItem.divider(),
+        FlutterContextMenuItem(
+          widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
+          iconData: widget.token.pinned ? LucideIcons.pinOff : LucideIcons.pin,
+          style: MenuItemStyle(
+            normalColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
+          ),
+          onPressed: _processPin,
+        ),
+        FlutterContextMenuItem(
+          iconData: LucideIcons.pencilLine,
+          S.current.editToken,
+          onPressed: _processEdit,
+        ),
+        FlutterContextMenuItem(
+          iconData: LucideIcons.qrCode,
+          S.current.viewTokenQrCode,
+          onPressed: _processViewQrCode,
+        ),
+        FlutterContextMenuItem.divider(),
+        FlutterContextMenuItem.submenu(
+          S.current.moreOptionShort,
+          iconData: LucideIcons.ellipsis,
+          items: [
+            FlutterContextMenuItem(
+              iconData: LucideIcons.blend,
+              S.current.editTokenIcon,
+              onPressed: _processEditIcon,
+            ),
+            FlutterContextMenuItem(
+              iconData: LucideIcons.shapes,
+              S.current.editTokenCategory,
+              onPressed: _processEditCategory,
+            ),
+            FlutterContextMenuItem(
+              iconData: LucideIcons.text,
+              S.current.copyTokenUri,
+              onPressed: _processCopyUri,
+            ),
+            FlutterContextMenuItem(
+              iconData: LucideIcons.copySlash,
+              S.current.copyNextTokenCode,
+              onPressed: _processCopyNextCode,
+            ),
+            FlutterContextMenuItem.divider(),
+            FlutterContextMenuItem(
+              iconData: LucideIcons.rotateCcw,
+              S.current.resetCopyTimes,
+              status: MenuItemStatus.error,
+              onPressed: _processResetCopyTimes,
+            ),
+            FlutterContextMenuItem(
+              iconData: LucideIcons.trash2,
+              S.current.deleteToken,
+              status: MenuItemStatus.error,
+              onPressed: _processDelete,
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -202,9 +238,6 @@ class TokenLayoutState extends State<TokenLayout>
   _buildContextMenuRegion() {
     return ContextMenuRegion(
       key: ValueKey("contextMenuRegion${widget.token.keyString}"),
-      behavior: ResponsiveUtil.isDesktop()
-          ? const [ContextMenuShowBehavior.secondaryTap]
-          : const [],
       contextMenu: _buildContextMenuButtons(),
       child: Selector<AppProvider, bool>(
         selector: (context, provider) => provider.dragToReorder,
@@ -357,18 +390,17 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _processCopyCode() {
-    Utils.copy(context, getCurrentCode());
+    ChewieUtils.copy(context, getCurrentCode());
     TokenDao.incTokenCopyTimes(widget.token);
   }
 
   _processCopyNextCode() {
-    Utils.copy(context, getNextCode());
+    ChewieUtils.copy(context, getNextCode());
     TokenDao.incTokenCopyTimes(widget.token);
   }
 
   _processEdit() {
-    RouteUtil.pushDialogRoute(context, AddTokenScreen(token: widget.token),
-        showClose: false);
+    RouteUtil.pushDialogRoute(context, AddTokenScreen(token: widget.token));
   }
 
   _processPin() async {
@@ -402,11 +434,11 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _processViewQrCode() {
-    DialogBuilder.showQrcodesDialog(
+    CloudOTPItemBuilder.showQrcodesDialog(
       context,
       title: widget.token.title,
       qrcodes: [OtpTokenParser.toUri(widget.token).toString()],
-      asset: AssetUtil.getBrandPath(widget.token.imagePath),
+      asset: AssetFiles.getBrandPath(widget.token.imagePath),
     );
   }
 
@@ -416,7 +448,7 @@ class TokenLayoutState extends State<TokenLayout>
       title: S.current.copyUriClearWarningTitle,
       message: S.current.copyUriClearWarningTip,
       onTapConfirm: () {
-        Utils.copy(context, OtpTokenParser.toUri(widget.token));
+        ChewieUtils.copy(context, OtpTokenParser.toUri(widget.token));
       },
       onTapCancel: () {},
     );
@@ -482,7 +514,7 @@ class TokenLayoutState extends State<TokenLayout>
           selector: (context, provider) => provider.showEye,
           builder: (context, showEye, child) => showEye
               ? Container(
-                  child: ItemBuilder.buildIconButton(
+                  child: CircleIconButton(
                     onTap: () {
                       HapticFeedback.lightImpact();
                       tokenLayoutNotifier.codeVisiable =
@@ -496,7 +528,6 @@ class TokenLayoutState extends State<TokenLayout>
                       color: color ??
                           Theme.of(context).textTheme.labelMedium?.color,
                     ),
-                    context: context,
                   ),
                 )
               : emptyWidget,
@@ -516,7 +547,7 @@ class TokenLayoutState extends State<TokenLayout>
             tokenLayoutNotifier.haveToResetHOTP,
         builder: (context, haveToResetHOTP, child) => haveToResetHOTP
             ? Container(
-                child: ItemBuilder.buildIconButton(
+                child: CircleIconButton(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     widget.token.counterString =
@@ -533,7 +564,6 @@ class TokenLayoutState extends State<TokenLayout>
                     color:
                         color ?? Theme.of(context).textTheme.labelMedium?.color,
                   ),
-                  context: context,
                 ),
               )
             : emptyWidget,
@@ -658,14 +688,15 @@ class TokenLayoutState extends State<TokenLayout>
       tokenLayoutNotifier.codeVisiable = true;
     }
     updateCode();
-    if (HiveUtil.getBool(HiveUtil.clickToCopyKey)) {
-      if (HiveUtil.getBool(HiveUtil.autoCopyNextCodeKey) &&
+    if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.clickToCopyKey)) {
+      if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoCopyNextCodeKey) &&
           currentProgress < autoCopyNextCodeProgressThrehold) {
         _processCopyNextCode();
       } else {
         _processCopyCode();
       }
-      if (HiveUtil.getBool(HiveUtil.autoMinimizeAfterClickToCopyKey,
+      if (ChewieHiveUtil.getBool(
+          CloudOTPHiveUtil.autoMinimizeAfterClickToCopyKey,
           defaultValue: false)) {
         if (ResponsiveUtil.isDesktop()) {
           windowManager.minimize();
@@ -677,8 +708,8 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _buildSimpleLayout() {
-    return ItemBuilder.buildClickItem(
-      Material(
+    return ClickableWrapper(
+      child: Material(
         color: widget.token.pinned
             ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
@@ -699,7 +730,8 @@ class TokenLayoutState extends State<TokenLayout>
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        ItemBuilder.buildTokenImage(widget.token, size: 32),
+                        CloudOTPItemBuilder.buildTokenImage(widget.token,
+                            size: 32),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -743,9 +775,8 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _buildCompactLayout() {
-    TextTheme textTheme = Theme.of(context).textTheme;
-    return ItemBuilder.buildClickItem(
-      Material(
+    return ClickableWrapper(
+      child: Material(
         color: widget.token.pinned
             ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
@@ -791,7 +822,8 @@ class TokenLayoutState extends State<TokenLayout>
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ItemBuilder.buildTokenImage(widget.token, size: 28),
+                        CloudOTPItemBuilder.buildTokenImage(widget.token,
+                            size: 28),
                       ],
                     ),
                     Container(
@@ -803,8 +835,7 @@ class TokenLayoutState extends State<TokenLayout>
                           Expanded(child: _buildCodeLayout(letterSpacing: 8)),
                           if (isHOTP) _buildHOTPRefreshButton(padding: 4),
                           if (!isHOTP) _buildEyeButton(padding: 4),
-                          ItemBuilder.buildIconButton(
-                            context: context,
+                          CircleIconButton(
                             padding: const EdgeInsets.all(4),
                             icon: Icon(
                               Icons.more_vert_rounded,
@@ -833,8 +864,8 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _buildSpotlightLayout() {
-    return ItemBuilder.buildClickItem(
-      Material(
+    return ClickableWrapper(
+      child: Material(
         color: widget.token.pinned
             ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
@@ -851,7 +882,8 @@ class TokenLayoutState extends State<TokenLayout>
               children: [
                 Container(
                   margin: const EdgeInsets.only(bottom: 3),
-                  child: ItemBuilder.buildTokenImage(widget.token, size: 36),
+                  child: CloudOTPItemBuilder.buildTokenImage(widget.token,
+                      size: 36),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -907,8 +939,8 @@ class TokenLayoutState extends State<TokenLayout>
   }
 
   _buildListLayout() {
-    return ItemBuilder.buildClickItem(
-      Material(
+    return ClickableWrapper(
+      child: Material(
         color: widget.token.pinned
             ? Theme.of(context).primaryColor.withOpacity(0.15)
             : Theme.of(context).canvasColor,
@@ -922,7 +954,7 @@ class TokenLayoutState extends State<TokenLayout>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Row(
               children: [
-                ItemBuilder.buildTokenImage(widget.token, size: 28),
+                CloudOTPItemBuilder.buildTokenImage(widget.token, size: 28),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

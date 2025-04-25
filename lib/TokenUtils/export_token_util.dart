@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/auto_backup_log_dao.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
@@ -30,7 +31,6 @@ import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_v1.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
@@ -41,12 +41,6 @@ import '../Models/Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/token_category.dart';
 import '../Utils/constant.dart';
-import '../Utils/file_util.dart';
-import '../Utils/ilogger.dart';
-import '../Utils/itoast.dart';
-import '../Utils/utils.dart';
-import '../Widgets/Dialog/custom_dialog.dart';
-import '../Widgets/Dialog/progress_dialog.dart';
 import '../generated/l10n.dart';
 import 'Backup/backup_encrypt_interface.dart';
 import 'Cloud/cloud_service.dart';
@@ -59,7 +53,7 @@ class ExportTokenUtil {
   }
 
   static String getExportFileName(String extension) {
-    return "CloudOTP-Backup-${Utils.getFormattedDate(DateTime.now())}-${ResponsiveUtil.deviceName}.$extension";
+    return "CloudOTP-Backup-${TimeUtil.getFormattedDate(DateTime.now())}-${ResponsiveUtil.deviceName}.$extension";
   }
 
   static exportUriFile(
@@ -132,7 +126,7 @@ class ExportTokenUtil {
         return encryptedData;
       }, null);
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to export data to Uint8List", e, t);
+      ILogger.error("Failed to export data to Uint8List", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       }
@@ -162,7 +156,7 @@ class ExportTokenUtil {
         IToast.showTop(S.current.exportSuccess);
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to export data to encrypt file", e, t);
+      ILogger.error("Failed to export data to encrypt file", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       } else {
@@ -180,7 +174,7 @@ class ExportTokenUtil {
     String? password,
   }) async {
     var dialog = showProgressDialog(
-      msg: S.current.exporting,
+      S.current.exporting,
       showProgress: false,
     );
     encryptedData ??= await ExportTokenUtil.getUint8List(password: password);
@@ -211,12 +205,13 @@ class ExportTokenUtil {
   }) async {
     Future.delayed(force ? Duration.zero : const Duration(seconds: 1),
         () async {
-      if (!force && !await HiveUtil.canAutoBackup()) return;
+      if (!force && !await CloudOTPHiveUtil.canAutoBackup()) return;
       List<CloudServiceConfig> validConfigs =
           await CloudServiceConfigDao.getValidConfigs();
-      bool enableLocalBackup = HiveUtil.getBool(HiveUtil.enableLocalBackupKey);
+      bool enableLocalBackup =
+          ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableLocalBackupKey);
       bool enableCloudBackup =
-          HiveUtil.getBool(HiveUtil.enableCloudBackupKey) &&
+          ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableCloudBackupKey) &&
               validConfigs.isNotEmpty;
       late AutoBackupType type;
       if (enableLocalBackup && enableCloudBackup) {
@@ -258,7 +253,7 @@ class ExportTokenUtil {
     ProgressDialog? dialog;
     if (showLoading) {
       dialog = showProgressDialog(
-        msg: S.current.backuping,
+        S.current.backuping,
         showProgress: false,
       );
     }
@@ -275,7 +270,7 @@ class ExportTokenUtil {
         if (canLocalBackup) {
           try {
             log.addStatus(AutoBackupStatus.saving);
-            String backupPath = await HiveUtil.getBackupPath();
+            String backupPath = await CloudOTPHiveUtil.getBackupPath();
             Directory directory = Directory(backupPath);
             if (!directory.existsSync()) {
               directory.createSync(recursive: true);
@@ -286,7 +281,7 @@ class ExportTokenUtil {
             await ExportTokenUtil.deleteOldBackup();
             log.addStatus(AutoBackupStatus.saveSuccess);
           } catch (e, t) {
-            ILogger.error("CloudOTP", "Failed to local backup", e, t);
+            ILogger.error("Failed to local backup", e, t);
             if (e is PathAccessException) {
               noPermission = true;
             }
@@ -324,8 +319,7 @@ class ExportTokenUtil {
                       type: cloudService.type);
                 }
               } catch (e, t) {
-                ILogger.error("CloudOTP",
-                    "Failed to cloud backup to $cloudService}", e, t);
+                ILogger.error("Failed to cloud backup to $cloudService}", e, t);
                 log.addStatus(AutoBackupStatus.uploadFailed,
                     type: cloudService.type);
               }
@@ -350,7 +344,7 @@ class ExportTokenUtil {
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to auto backup", e, t);
+      ILogger.error("Failed to auto backup", e, t);
       if (e is BackupBaseException) {
         log.addStatus(AutoBackupStatus.encryptFailed);
         if (showToast) IToast.showTop(e.intlMessage);
@@ -369,7 +363,7 @@ class ExportTokenUtil {
     bool showToast = false,
     Uint8List? encryptedData,
   }) async {
-    if (!await HiveUtil.canBackup()) return;
+    if (!await CloudOTPHiveUtil.canBackup()) return;
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.backuping);
     }
@@ -379,7 +373,7 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(S.current.backupFailed);
         return;
       } else {
-        String backupPath = await HiveUtil.getBackupPath();
+        String backupPath = await CloudOTPHiveUtil.getBackupPath();
         Directory directory = Directory(backupPath);
         if (!directory.existsSync()) {
           directory.createSync(recursive: true);
@@ -392,7 +386,7 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(S.current.backupSuccess);
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to backup encrypt file to local", e, t);
+      ILogger.error("Failed to backup encrypt file to local", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
@@ -412,11 +406,11 @@ class ExportTokenUtil {
     required CloudServiceConfig config,
     required CloudService cloudService,
   }) async {
-    if (!await HiveUtil.canBackup()) return;
+    if (!await CloudOTPHiveUtil.canBackup()) return;
     ProgressDialog? dialog;
     if (showLoading) {
       dialog = showProgressDialog(
-        msg: S.current.backuping,
+        S.current.backuping,
         showProgress: false,
       );
     }
@@ -448,8 +442,7 @@ class ExportTokenUtil {
         }
       }
     } catch (e, t) {
-      ILogger.error(
-          "CloudOTP", "Failed to backup encrypt file to cloud $config", e, t);
+      ILogger.error("Failed to backup encrypt file to cloud $config", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
@@ -481,7 +474,7 @@ class ExportTokenUtil {
   }
 
   static Future<List<List<FileSystemEntity>>> getLocalBackups() async {
-    String backupPath = await HiveUtil.getBackupPath();
+    String backupPath = await CloudOTPHiveUtil.getBackupPath();
     String defaultBackupPath = await FileUtil.getBackupDir();
     if (backupPath == defaultBackupPath) {
       return [await getLocalBackupsByPath(backupPath), []];
@@ -494,7 +487,7 @@ class ExportTokenUtil {
   }
 
   static Future<void> deleteOldBackup() async {
-    int maxBackupCount = HiveUtil.getMaxBackupsCount();
+    int maxBackupCount = CloudOTPHiveUtil.getMaxBackupsCount();
     if (maxBackupCount == 0) return;
     List<FileSystemEntity> backups = (await getLocalBackups())[0];
     backups.sort((a, b) {
@@ -549,7 +542,7 @@ class ExportTokenUtil {
           .toList();
       return [tokenQrcodes, passCount];
     } catch (e, t) {
-      ILogger.error("CloudOTP",
+      ILogger.error(
           "Failed to export data to google authenticator qrcodes", e, t);
       return null;
     } finally {
@@ -623,7 +616,7 @@ class ExportTokenUtil {
       }
       return qrcodes;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to export data to qrcodes", e, t);
+      ILogger.error("Failed to export data to qrcodes", e, t);
       return null;
     } finally {
       if (showLoading) {

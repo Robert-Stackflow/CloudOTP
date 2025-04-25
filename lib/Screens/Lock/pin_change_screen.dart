@@ -15,18 +15,12 @@
 
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
-import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_indicator.dart';
-import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_view.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 
 import '../../Utils/biometric_util.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 
 class PinChangeScreen extends StatefulWidget {
@@ -40,11 +34,14 @@ class PinChangeScreen extends StatefulWidget {
 
 class PinChangeScreenState extends State<PinChangeScreen> {
   String _gesturePassword = "";
-  final String? _oldPassword = HiveUtil.getString(HiveUtil.guesturePasswdKey);
-  bool _isEditMode = HiveUtil.getString(HiveUtil.guesturePasswdKey) != null &&
-      HiveUtil.getString(HiveUtil.guesturePasswdKey)!.isNotEmpty;
+  final String? _oldPassword =
+      ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey);
+  bool _isEditMode =
+      ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey) != null &&
+          ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey)!
+              .isNotEmpty;
   late final bool _enableBiometric =
-      HiveUtil.getBool(HiveUtil.enableBiometricKey);
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = _isEditMode
       ? GestureNotifier(
           status: GestureStatus.verify,
@@ -76,7 +73,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
   }
 
   void auth() async {
-    await Utils.localAuth(onAuthed: () {
+    await ChewieUtils.localAuth(onAuthed: () {
       IToast.showTop(S.current.biometricVerifySuccess);
       setState(() {
         _notifier.setStatus(
@@ -131,14 +128,11 @@ class PinChangeScreenState extends State<PinChangeScreen> {
               ),
               Visibility(
                 visible: _isEditMode && _biometricAvailable && _enableBiometric,
-                child: ItemBuilder.buildRoundButton(
-                  context,
+                child: RoundIconTextButton(
                   text: ResponsiveUtil.isWindows()
                       ? S.current.biometricVerifyPin
                       : S.current.biometric,
-                  onTap: () {
-                    auth();
-                  },
+                  onPressed: auth,
                 ),
               ),
               const SizedBox(height: 50),
@@ -186,7 +180,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
               );
               Navigator.pop(context);
             });
-            HiveUtil.put(HiveUtil.guesturePasswdKey,
+            ChewieHiveUtil.put(CloudOTPHiveUtil.guesturePasswdKey,
                 GestureUnlockView.selectedToString(selected));
           } else {
             setState(() {

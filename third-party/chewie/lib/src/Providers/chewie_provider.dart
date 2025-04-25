@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 ChewieProvider chewieProvider = ChewieProvider();
 
 class ChewieProvider with ChangeNotifier {
-  Size defaultWindowSize = const Size(1280, 720);
-  Size minimumWindowSize = const Size(1000, 640);
+  static const Size defaultWindowSize = Size(1280, 720);
+  static const Size minimumWindowSize = Size(1000, 640);
 
   String latestVersion = "";
 

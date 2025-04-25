@@ -4,13 +4,31 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:shell_executor/shell_executor.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 
+enum LinuxOSType {
+  Gnome,
+  KDE;
+
+  String get captureProcessName {
+    switch (this) {
+      case LinuxOSType.Gnome:
+        return "gnome-screenshot";
+      case LinuxOSType.KDE:
+        return "spectacle";
+    }
+  }
+}
+
+
 class ResponsiveUtil {
+  static String buildNumber = "";
+  static String version = "";
   static String appName = "";
   static String packageName = "";
   static String deviceName = "";
@@ -33,6 +51,8 @@ class ResponsiveUtil {
   }
 
   static init() async {
+    buildNumber = (await PackageInfo.fromPlatform()).buildNumber;
+    version = (await PackageInfo.fromPlatform()).version;
     appName = (await PackageInfo.fromPlatform()).appName;
     packageName = (await PackageInfo.fromPlatform()).packageName;
     deviceName = await getDeviceName();
@@ -246,5 +266,23 @@ class ResponsiveUtil {
 
   static bool isWideLandscape([bool useAppProvider = true]) {
     return isWeb() || isDesktop() || (useAppProvider && isTablet());
+  }
+
+  static LinuxOSType getLinuxOSType() {
+    if (Platform.isLinux) {
+      bool? isKdeDesktop;
+      try {
+        final result = ShellExecutor.global.execSync('pgrep', ['plasmashell']);
+        isKdeDesktop = result.exitCode == 0;
+      } catch (_) {
+        isKdeDesktop = false;
+      }
+      if (isKdeDesktop) {
+        return LinuxOSType.KDE;
+      } else {
+        return LinuxOSType.Gnome;
+      }
+    }
+    return LinuxOSType.Gnome;
   }
 }

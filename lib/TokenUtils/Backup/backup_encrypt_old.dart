@@ -19,7 +19,7 @@ import 'dart:typed_data';
 import 'package:pointycastle/export.dart' as pointycastle;
 
 import '../../Models/opt_token.dart';
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'backup.dart';
 import 'backup_encrypt_interface.dart';
 
@@ -57,8 +57,7 @@ class BackupEncryptionOld implements BackupEncryptInterface {
       base64.decode(utf8.decode(data));
       return true;
     } catch (e, t) {
-      ILogger.error(
-          "CloudOTP", "Failed to decrypt from wrong format data", e, t);
+      ILogger.error( "Failed to decrypt from wrong format data", e, t);
       return false;
     }
   }
@@ -121,7 +120,7 @@ class AESStringCipher {
       final decryptedData = cipher.process(encryptedData);
       return utf8.decode(decryptedData);
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to decrypt data", e, t);
+      ILogger.error("Failed to decrypt data", e, t);
     }
     return "";
   }

@@ -27,6 +27,7 @@ import 'ilogger.dart';
 import 'itoast.dart';
 
 class ChewieUtils {
+
   static Future<void> setSafeMode(bool enabled) async {
     if (ResponsiveUtil.isMobile()) {
       if (enabled) {
@@ -94,6 +95,11 @@ class ChewieUtils {
 
   static List<T> deepCopy<T>(List<T> list) {
     return List<T>.from(list);
+  }
+
+  static Future<String?> getClipboardData() async {
+    ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    return data?.text;
   }
 
   static void copy(

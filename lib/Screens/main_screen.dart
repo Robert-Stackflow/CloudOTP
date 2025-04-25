@@ -16,25 +16,19 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
-import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
+import 'package:cloudotp/Screens/Setting/mobile_setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
-import 'package:cloudotp/Utils/asset_util.dart';
-import 'package:cloudotp/Utils/constant.dart';
-import 'package:cloudotp/Utils/file_util.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/Dialog/dialog_builder.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
-import 'package:cloudotp/Widgets/Window/window_caption.dart';
-import 'package:context_menus/context_menus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:path/path.dart' as path;
 import 'package:protocol_handler/protocol_handler.dart';
@@ -43,27 +37,17 @@ import 'package:screen_capturer/screen_capturer.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../Resources/colors.dart';
 import '../TokenUtils/import_token_util.dart';
 import '../Utils/app_provider.dart';
-import '../Utils/enums.dart';
 import '../Utils/hive_util.dart';
-import '../Utils/ilogger.dart';
-import '../Utils/itoast.dart';
 import '../Utils/lottie_util.dart';
-import '../Utils/route_util.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/import_from_third_party_bottom_sheet.dart';
-import '../Widgets/Custom/loading_icon.dart';
-import '../Widgets/Dialog/custom_dialog.dart';
-import '../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../Widgets/General/LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
-import '../Widgets/Scaffold/my_scaffold.dart';
-import '../Widgets/Window/window_button.dart';
 import '../generated/l10n.dart';
 import 'Backup/cloud_service_screen.dart';
 import 'Lock/pin_verify_screen.dart';
 import 'Setting/backup_log_screen.dart';
+import 'Setting/setting_navigation_screen.dart';
 import 'Token/category_screen.dart';
 
 const borderColor = Color(0xFF805306);
@@ -88,8 +72,6 @@ class MainScreenState extends State<MainScreen>
         WindowListener,
         AutomaticKeepAliveClientMixin {
   Timer? _timer;
-  late AnimationController darkModeController;
-  Widget? darkModeWidget;
   bool _isMaximized = false;
   bool _isStayOnTop = false;
   Orientation _oldOrientation = Orientation.portrait;
@@ -117,26 +99,26 @@ class MainScreenState extends State<MainScreen>
   @override
   Future<void> onWindowResize() async {
     super.onWindowResize();
-    windowManager.setMinimumSize(minimumSize);
-    HiveUtil.setWindowSize(await windowManager.getSize());
+    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
+    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
   }
 
   @override
   Future<void> onWindowResized() async {
     super.onWindowResized();
-    HiveUtil.setWindowSize(await windowManager.getSize());
+    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
   }
 
   @override
   Future<void> onWindowMove() async {
     super.onWindowMove();
-    HiveUtil.setWindowPosition(await windowManager.getPosition());
+    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
   }
 
   @override
   Future<void> onWindowMoved() async {
     super.onWindowMoved();
-    HiveUtil.setWindowPosition(await windowManager.getPosition());
+    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
   }
 
   @override
@@ -149,7 +131,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onWindowMaximize() {
-    windowManager.setMinimumSize(minimumSize);
+    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
     setState(() {
       _isMaximized = true;
     });
@@ -157,7 +139,7 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onWindowUnmaximize() {
-    windowManager.setMinimumSize(minimumSize);
+    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
     setState(() {
       _isMaximized = false;
     });
@@ -170,14 +152,15 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void onProtocolUrlReceived(String url) {
-    ILogger.info("CloudOTP", "Protocol url received", url);
+    ILogger.info("Protocol url received", url);
   }
 
   Future<void> fetchReleases() async {
-    Utils.getReleases(
+    ChewieUtils.getReleases(
       context: context,
       showLoading: false,
-      showUpdateDialog: HiveUtil.getBool(HiveUtil.autoCheckUpdateKey),
+      showUpdateDialog:
+          ChewieHiveUtil.getBool(ChewieHiveUtil.autoCheckUpdateKey),
       showFailedToast: false,
       showLatestToast: false,
     );
@@ -194,33 +177,26 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void initState() {
-    _oldOrientation = MediaQuery.of(rootContext).orientation;
+    _oldOrientation = MediaQuery.of(chewieProvider.rootContext).orientation;
     super.initState();
     if (ResponsiveUtil.isDesktop() && !ResponsiveUtil.isLinux()) {
       protocolHandler.addListener(this);
     }
     windowManager.addListener(this);
     WidgetsBinding.instance.addObserver(this);
-    HiveUtil.showCloudEntry().then((value) {
+    CloudOTPHiveUtil.showCloudEntry().then((value) {
       appProvider.canShowCloudBackupButton = value;
     });
     fetchReleases();
-    darkModeController = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      darkModeWidget = LottieUtil.load(
-        LottieUtil.sunLight,
-        size: 25,
-        autoForward: !Utils.isDark(context),
-        controller: darkModeController,
-      );
-      if (HiveUtil.getBool(HiveUtil.autoFocusSearchBarKey,
+      if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
           defaultValue: false)) {
         searchFocusNode.requestFocus();
       }
       if (ResponsiveUtil.isDesktop()) {
         await Utils.initTray();
         trayManager.addListener(this);
-        keyboardHandlerState?.focus();
+        // keyboardHandlerState?.focus();
       }
     });
     initGlobalConfig();
@@ -242,14 +218,17 @@ class MainScreenState extends State<MainScreen>
     EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
           backgroundColor: Theme.of(context).canvasColor,
           indicator:
-              LottieUtil.load(LottieUtil.getLoadingPath(context), scale: 1.5),
+              LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5),
           hapticFeedback: true,
           triggerOffset: 40,
         );
     EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
-          indicator: LottieUtil.load(LottieUtil.getLoadingPath(context)),
+          indicator: LottieFiles.load(LottieFiles.getLoadingPath(context)),
         );
-    Utils.setSafeMode(HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+    chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+        LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
+    ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
+        CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
   }
 
@@ -257,7 +236,7 @@ class MainScreenState extends State<MainScreen>
     bool autoAuth = false,
   }) async {
     if (DatabaseManager.isDatabaseEncrypted &&
-        HiveUtil.getEncryptDatabaseStatus() ==
+        CloudOTPHiveUtil.getEncryptDatabaseStatus() ==
             EncryptDatabaseStatus.customPassword) {
       await DatabaseManager.resetDatabase();
       pushRootPage(const DatabaseDecryptScreen());
@@ -276,7 +255,8 @@ class MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
-    Utils.setSafeMode(HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+    ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
+        CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
     super.build(context);
     return OrientationBuilder(builder: (ctx, ori) {
@@ -289,11 +269,8 @@ class MainScreenState extends State<MainScreen>
   }
 
   goHome() {
-    while (Navigator.of(rootContext).canPop()) {
-      Navigator.of(rootContext).pop();
-    }
-    while (desktopNavigatorState!.canPop()) {
-      desktopNavigatorState?.pop();
+    while (Navigator.of(chewieProvider.rootContext).canPop()) {
+      Navigator.of(chewieProvider.rootContext).pop();
     }
     appProvider.canPopByProvider = false;
   }
@@ -322,18 +299,16 @@ class MainScreenState extends State<MainScreen>
   }
 
   _buildDesktopBody() {
-    var leftPosWidget = Column(
+    var leftPosWidget = Row(
       children: [
-        _titleBar(),
+        _sideBar(),
         Expanded(
-          child: Row(
+          child: Stack(
             children: [
-              _sideBar(
-                  leftPadding: ResponsiveUtil.isDesktop() ? 8 : 4,
-                  rightPadding: 4,
-                  topPadding: 8),
-              Expanded(
-                child: _desktopMainContent(rightMargin: 5),
+              HomeScreen(key: homeScreenKey),
+              Positioned(
+                right: 0,
+                child: _titleBar(),
               ),
             ],
           ),
@@ -347,75 +322,74 @@ class MainScreenState extends State<MainScreen>
   }
 
   changeMode() {
-    if (Utils.isDark(context)) {
-      appProvider.themeMode = ActiveThemeMode.light;
-      darkModeController.forward();
+    if (ColorUtil.isDark(context)) {
+      chewieProvider.themeMode = ActiveThemeMode.light;
     } else {
-      appProvider.themeMode = ActiveThemeMode.dark;
-      darkModeController.reverse();
+      chewieProvider.themeMode = ActiveThemeMode.dark;
     }
+    setState(() {});
   }
 
   static buildSortContextMenuButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig.checkbox(
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem.checkbox(
           S.current.defaultOrder,
           checked: homeScreenState?.orderType == OrderType.Default,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.Default);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.alphabeticalASCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.AlphabeticalASC);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.alphabeticalDESCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.AlphabeticalDESC);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.copyTimesDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CopyTimesDESC);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.copyTimesASCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CopyTimesASC);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.lastCopyTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeDESC);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.lastCopyTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeASC);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.createTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CreateTimeDESC);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.createTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeASC,
           onPressed: () {
@@ -427,16 +401,16 @@ class MainScreenState extends State<MainScreen>
   }
 
   static buildLayoutContextMenuButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig.checkbox(
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem.checkbox(
           S.current.simpleLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Simple,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.Simple);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.compactLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Compact,
           onPressed: () {
@@ -450,14 +424,14 @@ class MainScreenState extends State<MainScreen>
         //     homeScreenState?.changeLayoutType(LayoutType.Tile);
         //   },
         // ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.listLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.List,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.List);
           },
         ),
-        ContextMenuButtonConfig.checkbox(
+        FlutterContextMenuItem.checkbox(
           S.current.spotlightLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Spotlight,
           onPressed: () {
@@ -469,22 +443,26 @@ class MainScreenState extends State<MainScreen>
   }
 
   _buildQrCodeContextMenuButtons() {
-    return GenericContextMenu(
-      buttonConfigs: [
-        ContextMenuButtonConfig(
+    return FlutterContextMenu(
+      entries: [
+        FlutterContextMenuItem(
           S.current.scanFromImageFile,
+          iconData: LucideIcons.fileImage,
           onPressed: () async {
             FilePickerResult? result = await FileUtil.pickFiles(
               type: FileType.image,
               lockParentWindow: true,
             );
             if (result == null) return;
-            await ImportTokenUtil.analyzeImageFile(result.files.single.path!,
-                context: context);
+            await ImportTokenUtil.analyzeImageFile(
+              result.files.single.path!,
+              context: context,
+            );
           },
         ),
-        ContextMenuButtonConfig(
+        FlutterContextMenuItem(
           S.current.scanFromClipboard,
+          iconData: LucideIcons.clipboardList,
           onPressed: () {
             ScreenCapturerPlatform.instance
                 .readImageFromClipboard()
@@ -497,21 +475,24 @@ class MainScreenState extends State<MainScreen>
             });
           },
         ),
-        ContextMenuButtonConfig.divider(),
-        ContextMenuButtonConfig(
+        FlutterContextMenuItem.divider(),
+        FlutterContextMenuItem(
           S.current.scanFromRegionCapture,
+          iconData: LucideIcons.scanQrCode,
           onPressed: () async {
             await capture(CaptureMode.region);
           },
         ),
-        ContextMenuButtonConfig(
+        FlutterContextMenuItem(
           S.current.scanFromWindowCapture,
+          iconData: LucideIcons.scanSearch,
           onPressed: () async {
             await capture(CaptureMode.window);
           },
         ),
-        ContextMenuButtonConfig(
+        FlutterContextMenuItem(
           S.current.scanFromScreenCapture,
+          iconData: LucideIcons.fullscreen,
           onPressed: () async {
             await capture(CaptureMode.screen);
           },
@@ -571,7 +552,7 @@ class MainScreenState extends State<MainScreen>
         doDismissLoading: true,
       );
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to capture and analyze image", e, t);
+      ILogger.error("Failed to capture and analyze image", e, t);
       if (e is PlatformException) {
         if (reCaptureWhenFailed) capture(mode, reCaptureWhenFailed: false);
       } else if (e is ProcessException) {
@@ -586,17 +567,18 @@ class MainScreenState extends State<MainScreen>
   }
 
   _sideBar({
-    int quarterTurns = 0,
-    double topPadding = 5,
-    double leftPadding = 0,
-    double rightPadding = 0,
+    double width = 56,
+    bool rightBorder = true,
   }) {
     return Container(
-      width: 40 + leftPadding + rightPadding,
+      width: width,
       alignment: Alignment.center,
-      color: Colors.transparent,
-      padding: EdgeInsets.only(left: leftPadding, right: rightPadding),
+      decoration: BoxDecoration(
+        color: ChewieTheme.appBarBackgroundColor,
+        border: rightBorder ? ChewieTheme.rightDivider : null,
+      ),
       child: Stack(
+        alignment: Alignment.center,
         children: [
           if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
           Consumer<AppProvider>(
@@ -604,61 +586,59 @@ class MainScreenState extends State<MainScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: topPadding),
-                // if (ResponsiveUtil.isTablet()) _buildLogo(size: 36),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  quarterTurns: quarterTurns,
-                  text: S.current.addToken,
-                  direction: Axis.vertical,
-                  showText: false,
-                  fontSizeDelta: -2,
-                  icon: const Icon(Icons.add_rounded),
-                  onTap: () async {
+                ResponsiveUtil.buildDesktopWidget(
+                    desktop: const SizedBox(height: 8)),
+                ResponsiveUtil.buildDesktopWidget(desktop: _buildLogo()),
+                const SizedBox(height: 8),
+                ToolButton(
+                  context: context,
+                  tooltip: S.current.addToken,
+                  tooltipPosition: TooltipPosition.right,
+                  padding: const EdgeInsets.all(8),
+                  iconSize: 22,
+                  icon: LucideIcons.plus,
+                  onPressed: () async {
                     DialogBuilder.showPageDialog(context,
-                        child: const AddTokenScreen(), showClose: false);
+                        child: const AddTokenScreen());
                   },
                 ),
                 const SizedBox(height: 4),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  quarterTurns: quarterTurns,
-                  text: S.current.category,
-                  fontSizeDelta: -2,
-                  showText: false,
-                  direction: Axis.vertical,
-                  icon: const Icon(Icons.category_outlined),
-                  onTap: () async {
+                ToolButton(
+                  context: context,
+                  tooltip: S.current.category,
+                  tooltipPosition: TooltipPosition.right,
+                  padding: const EdgeInsets.all(8),
+                  iconSize: 22,
+                  icon: LucideIcons.shapes,
+                  onPressed: () async {
                     DialogBuilder.showPageDialog(context,
-                        child: const CategoryScreen(), showClose: false);
+                        child: const CategoryScreen());
                   },
                 ),
                 if (!ResponsiveUtil.isLandscapeTablet())
                   const SizedBox(height: 4),
                 if (!ResponsiveUtil.isLandscapeTablet())
-                  ItemBuilder.buildIconTextButton(
-                    context,
-                    quarterTurns: quarterTurns,
-                    text: S.current.scanToken,
-                    fontSizeDelta: -2,
-                    showText: false,
-                    direction: Axis.vertical,
-                    icon: const Icon(Icons.qr_code_rounded),
-                    onTap: () async {
-                      context.contextMenuOverlay
-                          .show(_buildQrCodeContextMenuButtons());
+                  ToolButton(
+                    context: context,
+                    tooltip: S.current.scanToken,
+                    tooltipPosition: TooltipPosition.right,
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 22,
+                    icon: LucideIcons.qrCode,
+                    onPressed: () async {
+                      BottomSheetBuilder.showContextMenu(
+                          context, _buildQrCodeContextMenuButtons());
                     },
                   ),
                 const SizedBox(height: 4),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  quarterTurns: quarterTurns,
-                  text: S.current.exportImport,
-                  fontSizeDelta: -2,
-                  showText: false,
-                  direction: Axis.vertical,
-                  icon: const Icon(Icons.import_export_rounded),
-                  onTap: () async {
+                ToolButton(
+                  context: context,
+                  tooltip: S.current.exportImport,
+                  tooltipPosition: TooltipPosition.right,
+                  padding: const EdgeInsets.all(8),
+                  iconSize: 22,
+                  icon: LucideIcons.import,
+                  onPressed: () async {
                     DialogBuilder.showPageDialog(
                       context,
                       child: const ImportExportTokenScreen(),
@@ -666,15 +646,14 @@ class MainScreenState extends State<MainScreen>
                   },
                 ),
                 const SizedBox(height: 4),
-                ItemBuilder.buildIconTextButton(
-                  context,
-                  quarterTurns: quarterTurns,
-                  text: S.current.importFromThirdParty,
-                  fontSizeDelta: -2,
-                  showText: false,
-                  direction: Axis.vertical,
-                  icon: const Icon(Icons.apps_rounded),
-                  onTap: () async {
+                ToolButton(
+                  context: context,
+                  tooltip: S.current.importFromThirdParty,
+                  icon: LucideIcons.waypoints,
+                  tooltipPosition: TooltipPosition.right,
+                  padding: const EdgeInsets.all(8),
+                  iconSize: 22,
+                  onPressed: () async {
                     RouteUtil.pushDialogRoute(
                       context,
                       const ImportFromThirdPartyBottomSheet(),
@@ -684,87 +663,87 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 if (provider.canShowCloudBackupButton &&
                     provider.showCloudBackupButton)
-                  ItemBuilder.buildIconTextButton(
-                    context,
-                    quarterTurns: quarterTurns,
-                    text: S.current.cloudBackupServiceSetting,
-                    fontSizeDelta: -2,
-                    showText: false,
-                    direction: Axis.vertical,
-                    icon: const Icon(Icons.cloud_queue_rounded),
-                    onTap: () async {
+                  ToolButton(
+                    context: context,
+                    tooltip: S.current.cloudBackupServiceSetting,
+                    icon: LucideIcons.cloudUpload,
+                    tooltipPosition: TooltipPosition.right,
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 22,
+                    onPressed: () async {
                       DialogBuilder.showPageDialog(context,
-                          child: const CloudServiceScreen(), showClose: true);
+                          child: const CloudServiceScreen());
                     },
                   ),
                 const Spacer(),
-                const SizedBox(height: 8),
-                if (provider.showSortButton)
-                  ItemBuilder.buildIconButton(
+                if (provider.showSortButton) ...[
+                  ToolButton(
                     context: context,
-                    quarterTurns: quarterTurns,
-                    icon: const Icon(Icons.sort_rounded, size: 22),
-                    onTap: () {
-                      context.contextMenuOverlay
-                          .show(buildSortContextMenuButtons());
+                    icon: homeScreenState?.orderType.icon ??
+                        LucideIcons.arrowUpNarrowWide,
+                    tooltip: homeScreenState?.orderType.title,
+                    tooltipPosition: TooltipPosition.right,
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 22,
+                    onPressed: () {
+                      BottomSheetBuilder.showContextMenu(
+                          context, buildSortContextMenuButtons());
                     },
                   ),
-                if (provider.showLayoutButton)
-                  ItemBuilder.buildIconButton(
+                  const SizedBox(height: 4),
+                ],
+                if (provider.showLayoutButton) ...[
+                  ToolButton(
                     context: context,
-                    quarterTurns: quarterTurns,
-                    icon: const Icon(Icons.dashboard_outlined, size: 22),
-                    onTap: () {
-                      context.contextMenuOverlay
-                          .show(buildLayoutContextMenuButtons());
+                    icon: homeScreenState?.layoutType.icon ??
+                        LucideIcons.layoutDashboard,
+                    tooltip: homeScreenState?.layoutType.title,
+                    tooltipPosition: TooltipPosition.right,
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 22,
+                    onPressed: () {
+                      BottomSheetBuilder.showContextMenu(
+                          context, buildLayoutContextMenuButtons());
                     },
                   ),
-                ItemBuilder.buildDynamicIconButton(
-                  context: context,
-                  quarterTurns: quarterTurns,
-                  icon: darkModeWidget,
+                  const SizedBox(height: 4),
+                ],
+                ToolButton.dynamicButton(
+                  tooltip: S.current.themeMode,
+                  iconBuilder: (context, isDark) =>
+                      isDark ? LucideIcons.sun : LucideIcons.moon,
                   onTap: changeMode,
-                  onChangemode: (context, themeMode, child) {
-                    if (darkModeController.duration != null) {
-                      if (themeMode == ActiveThemeMode.light) {
-                        darkModeController.forward();
-                      } else if (themeMode == ActiveThemeMode.dark) {
-                        darkModeController.reverse();
-                      } else {
-                        if (Utils.isDark(context)) {
-                          darkModeController.reverse();
-                        } else {
-                          darkModeController.forward();
-                        }
-                      }
-                    }
-                  },
+                  tooltipPosition: TooltipPosition.right,
+                  onChangemode: (context, themeMode, child) {},
+                  iconSize: 22,
                 ),
-                const SizedBox(width: 6),
-                ItemBuilder.buildDynamicIconButton(
+                const SizedBox(height: 4),
+                ToolButton(
                   context: context,
-                  quarterTurns: quarterTurns,
-                  icon: AssetUtil.loadDouble(
-                    context,
-                    AssetUtil.settingLightIcon,
-                    AssetUtil.settingDarkIcon,
-                  ),
-                  onTap: () async {
+                  tooltip: S.current.setting,
+                  tooltipPosition: TooltipPosition.right,
+                  icon: LucideIcons.bolt,
+                  padding: const EdgeInsets.all(8),
+                  iconSize: 22,
+                  onPressed: () {
                     RouteUtil.pushDialogRoute(
                         context, const SettingNavigationScreen());
                   },
                 ),
-                const SizedBox(width: 6),
-                ItemBuilder.buildIconButton(
-                  context: context,
-                  quarterTurns: quarterTurns,
-                  icon: const Icon(Icons.info_outline_rounded, size: 22),
-                  onTap: () async {
-                    RouteUtil.pushDialogRoute(
-                        context, const AboutSettingScreen());
-                  },
-                ),
-                const SizedBox(height: 6),
+                // const SizedBox(height: 4),
+                // ToolButton(
+                //   context: context,
+                //   tooltip: S.current.about,
+                //   icon: LucideIcons.info,
+                //   tooltipPosition: TooltipPosition.right,
+                //   padding: const EdgeInsets.all(8),
+                //   iconSize: 22,
+                //   onPressed: () async {
+                //     RouteUtil.pushDialogRoute(
+                //         context, const AboutSettingScreen());
+                //   },
+                // ),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -774,11 +753,11 @@ class MainScreenState extends State<MainScreen>
   }
 
   _buildLogo({
-    double size = 50,
+    double size = 32,
   }) {
     return IgnorePointer(
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: ChewieDimens.borderRadius8,
         clipBehavior: Clip.antiAlias,
         child: Container(
           width: size,
@@ -795,90 +774,47 @@ class MainScreenState extends State<MainScreen>
   }
 
   _titleBar() {
-    return (ResponsiveUtil.isDesktop())
-        ? ItemBuilder.buildWindowTitle(
-            context,
-            isStayOnTop: _isStayOnTop,
-            isMaximized: _isMaximized,
-            onStayOnTopTap: () {
-              setState(() {
-                _isStayOnTop = !_isStayOnTop;
-                windowManager.setAlwaysOnTop(_isStayOnTop);
-              });
-            },
-            leftWidgets: [
-              const SizedBox(width: 2.5),
-              _buildLogo(),
-              const SizedBox(width: 8),
-              Container(
-                constraints: const BoxConstraints(maxWidth: 300, minWidth: 200),
-                child: ItemBuilder.buildDesktopSearchBar(
-                  context: context,
-                  borderRadius: 8,
-                  bottomMargin: 18,
-                  hintFontSizeDelta: 1,
-                  focusNode: searchFocusNode,
-                  controller: searchController,
-                  background: Colors.grey.withAlpha(40),
-                  hintText: S.current.searchToken,
-                  onSubmitted: (text) {
-                    homeScreenState?.performSearch(text);
-                  },
-                ),
-              ),
-            ],
-            rightButtons: [
-              Selector<AppProvider, bool>(
-                selector: (context, appProvider) =>
-                    appProvider.showBackupLogButton,
-                builder: (context, showBackupLogButton, child) =>
-                    showBackupLogButton
-                        ? WindowButton(
-                            colors: MyColors.getNormalButtonColors(context),
-                            borderRadius: BorderRadius.circular(8),
-                            padding: EdgeInsets.zero,
-                            iconBuilder: (buttonContext) =>
-                                Selector<AppProvider, LoadingStatus>(
-                              selector: (context, appProvider) =>
-                                  appProvider.autoBackupLoadingStatus,
-                              builder:
-                                  (context, autoBackupLoadingStatus, child) =>
-                                      LoadingIcon(
-                                status: autoBackupLoadingStatus,
-                                normalIcon:
-                                    const Icon(Icons.history_rounded, size: 25),
-                              ),
-                            ),
-                            onPressed: () {
-                              context.contextMenuOverlay
-                                  .show(const BackupLogScreen(isOverlay: true));
-                            },
-                          )
-                        : const SizedBox.shrink(),
-              ),
-              const SizedBox(width: 3),
-            ],
-          )
-        : emptyWidget;
-  }
-
-  _desktopMainContent({
-    double leftMargin = 0,
-    double rightMargin = 0,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(left: leftMargin, right: rightMargin),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        child: Navigator(
-          key: desktopNavigatorKey,
-          onGenerateRoute: (settings) {
-            return RouteUtil.getFadeRoute(HomeScreen(key: homeScreenKey));
-          },
-        ),
+    return ResponsiveUtil.buildDesktopWidget(
+      desktop: WindowTitleWrapper(
+        height: 48,
+        isStayOnTop: _isStayOnTop,
+        isMaximized: _isMaximized,
+        backgroundColor: Colors.transparent,
+        onStayOnTopTap: () {
+          setState(() {
+            _isStayOnTop = !_isStayOnTop;
+            windowManager.setAlwaysOnTop(_isStayOnTop);
+          });
+        },
+        rightButtons: [
+          Selector<AppProvider, bool>(
+            selector: (context, appProvider) => appProvider.showBackupLogButton,
+            builder: (context, showBackupLogButton, child) =>
+                showBackupLogButton
+                    ? WindowButton(
+                        colors: ChewieColors.getNormalButtonColors(context),
+                        borderRadius: ChewieDimens.borderRadius8,
+                        padding: EdgeInsets.zero,
+                        iconBuilder: (buttonContext) =>
+                            Selector<AppProvider, LoadingStatus>(
+                          selector: (context, appProvider) =>
+                              appProvider.autoBackupLoadingStatus,
+                          builder: (context, autoBackupLoadingStatus, child) =>
+                              LoadingIcon(
+                            status: autoBackupLoadingStatus,
+                            normalIcon:
+                                const Icon(LucideIcons.history, size: 22),
+                          ),
+                        ),
+                        onPressed: () {
+                          BottomSheetBuilder.showGenericContextMenu(
+                              context, const BackupLogScreen(isOverlay: true));
+                        },
+                      )
+                    : const SizedBox.shrink(),
+          ),
+          const SizedBox(width: 3),
+        ],
       ),
     );
   }
@@ -890,14 +826,14 @@ class MainScreenState extends State<MainScreen>
   }
 
   void setTimer() {
-    _timer = Timer(
-      Duration(seconds: appProvider.autoLockTime.seconds),
-      () {
-        if (!appProvider.preventLock && HiveUtil.shouldAutoLock()) {
-          jumpToLock();
-        }
-      },
-    );
+    // _timer = Timer(
+    //   Duration(seconds: appProvider.autoLockTime.seconds),
+    //   () {
+    //     if (!appProvider.preventLock && ChewieHiveUtil.shouldAutoLock()) {
+    //       jumpToLock();
+    //     }
+    //   },
+    // );
   }
 
   @override
@@ -924,13 +860,12 @@ class MainScreenState extends State<MainScreen>
     trayManager.removeListener(this);
     WidgetsBinding.instance.removeObserver(this);
     windowManager.removeListener(this);
-    darkModeController.dispose();
     super.dispose();
   }
 
   @override
   void onTrayIconMouseDown() {
-    Utils.displayApp();
+    ChewieUtils.displayApp();
   }
 
   @override

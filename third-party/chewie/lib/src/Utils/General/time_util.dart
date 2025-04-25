@@ -1,6 +1,12 @@
 import 'package:intl/intl.dart';
 
 class TimeUtil {
+  static String timestampToDateString(int timestamp) {
+    var date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    var dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+    return dateFormat.format(date);
+  }
+
   static String getFormattedDate(DateTime dateTime) {
     return DateFormat("yyyy-MM-dd-HH-mm-ss").format(dateTime);
   }

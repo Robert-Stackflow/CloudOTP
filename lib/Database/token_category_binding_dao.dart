@@ -13,6 +13,7 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
@@ -147,7 +148,7 @@ class BindingDao {
     );
     List<String> uids = List.generate(maps.length, (i) => maps[i]["token_uid"]);
     uids = uids.toSet().toList();
-    uids.removeWhere((e) => !Utils.isUid(e));
+    uids.removeWhere((e) => !StringUtil.isUid(e));
     List<OtpToken> tokens = [];
     for (String uid in uids) {
       OtpToken? token = await TokenDao.getTokenByUid(uid, searchKey: searchKey);
@@ -167,7 +168,7 @@ class BindingDao {
       whereArgs: [categoryUid],
     );
     List<String> uids = List.generate(maps.length, (i) => maps[i]["token_uid"]);
-    uids.removeWhere((e) => !Utils.isUid(e));
+    uids.removeWhere((e) => !StringUtil.isUid(e));
     return uids;
   }
 
@@ -181,7 +182,7 @@ class BindingDao {
     );
     List<String> uids =
         List.generate(maps.length, (i) => maps[i]["category_uid"]);
-    uids.removeWhere((e) => !Utils.isUid(e));
+    uids.removeWhere((e) => !StringUtil.isUid(e));
     return uids;
   }
 

@@ -5,12 +5,14 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   biometric_storage
   flutter_secure_storage_linux
+  gtk
   handy_window
   hotkey_manager_linux
   isar_flutter_libs
   local_notifier
+  local_proxy
   screen_capturer_linux
-  screen_retriever
+  screen_retriever_linux
   sodium_libs
   tray_manager
   url_launcher_linux

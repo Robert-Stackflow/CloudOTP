@@ -22,8 +22,6 @@ import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/utils.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pointycastle/api.dart';
@@ -37,11 +35,7 @@ import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
 import 'package:pointycastle/paddings/pkcs7.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
-import '../../Widgets/BottomSheet/bottom_sheet_builder.dart';
-import '../../Widgets/BottomSheet/input_bottom_sheet.dart';
-import '../../Widgets/Item/input_item.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../generated/l10n.dart';
 
 class BitwardenFolder {
@@ -56,7 +50,7 @@ class BitwardenFolder {
   factory BitwardenFolder.fromJson(Map<String, dynamic> json) {
     return BitwardenFolder(
       name: json['name'] ?? "",
-      uid: json['id'] ?? Utils.generateUid(),
+      uid: json['id'] ?? StringUtil.generateUid(),
     );
   }
 }
@@ -190,7 +184,7 @@ class BitwardenItem {
     }
     return BitwardenItem(
       favorite: json['favorite'] as bool,
-      uid: json['id'] ?? Utils.generateUid(),
+      uid: json['id'] ?? StringUtil.generateUid(),
       name: json['name'] as String,
       folderId: json['folderId'] as String?,
       type: json['type'] as int,
@@ -429,7 +423,7 @@ class BitwardenTokenImporter implements BaseTokenImporter {
     late ProgressDialog dialog;
     if (showLoading) {
       dialog =
-          showProgressDialog(msg: S.current.importing, showProgress: false);
+          showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -491,7 +485,7 @@ class BitwardenTokenImporter implements BaseTokenImporter {
             controller: TextEditingController(),
           );
           BottomSheetBuilder.showBottomSheet(
-            rootContext,
+            chewieProvider.rootContext,
             responsive: true,
             useWideLandscape: true,
             (context) => InputBottomSheet(
@@ -509,7 +503,9 @@ class BitwardenTokenImporter implements BaseTokenImporter {
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
-              tailingType: InputItemTailingType.password,
+                            tailingConfig: InputItemLeadingTailingConfig(
+                type: InputItemLeadingTailingType.password,
+              ),
               onValidConfirm: (password) async {},
             ),
           );
@@ -518,7 +514,7 @@ class BitwardenTokenImporter implements BaseTokenImporter {
         }
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to import from Bitwarden", e, t);
+      ILogger.error("Failed to import from Bitwarden", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

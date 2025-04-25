@@ -37,14 +37,17 @@ class CacheUtil {
     await file.delete();
   }
 
-  static renderSize(double value) {
+  static renderSize(
+    double value, {
+    int fractionDigits = 2,
+  }) {
     List<String> unitArr = ['B', 'K', 'M', 'G'];
     int index = 0;
     while (value > 1024) {
       index++;
       value = value / 1024;
     }
-    String size = value.toStringAsFixed(2);
+    String size = value.toStringAsFixed(fractionDigits);
     if (size == '0.00') {
       return '0M';
     }

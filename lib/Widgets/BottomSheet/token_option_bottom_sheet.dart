@@ -16,12 +16,11 @@
 import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Utils/asset_util.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -33,14 +32,8 @@ import '../../TokenUtils/code_generator.dart';
 import '../../TokenUtils/otp_token_parser.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/constant.dart';
-import '../../Utils/itoast.dart';
-import '../../Utils/route_util.dart';
-import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
-import '../Dialog/dialog_builder.dart';
-import '../WaterfallFlow/scroll_view.dart';
-import '../WaterfallFlow/sliver_waterfall_flow.dart';
-import 'bottom_sheet_builder.dart';
+import '../cloudotp/cloudotp_item_builder.dart';
 
 class TokenOptionBottomSheet extends StatefulWidget {
   const TokenOptionBottomSheet({
@@ -119,6 +112,8 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
     }
   }
 
+  Radius radius = ChewieDimens.radius8;
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -126,12 +121,13 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
             borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(20)
-                    : Radius.zero),
+                top: radius,
+                bottom:
+                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            color: ChewieTheme.scaffoldBackgroundColor,
+            border: ChewieTheme.border,
+            boxShadow: ChewieTheme.defaultBoxShadow,
           ),
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -153,37 +149,35 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ItemBuilder.buildTokenImage(widget.token, size: 36),
+          CloudOTPItemBuilder.buildTokenImage(widget.token, size: 36),
           const SizedBox(width: 12),
-          ItemBuilder.buildClickItem(
-            GestureDetector(
-              onTap: () {
-                tokenLayoutNotifier.codeVisiable =
-                    !tokenLayoutNotifier.codeVisiable;
-                HapticFeedback.lightImpact();
-              },
-              child: ChangeNotifierProvider.value(
-                value: tokenLayoutNotifier,
-                child: Selector<TokenLayoutNotifier, bool>(
+          ClickableGestureDetector(
+            onTap: () {
+              tokenLayoutNotifier.codeVisiable =
+                  !tokenLayoutNotifier.codeVisiable;
+              HapticFeedback.lightImpact();
+            },
+            child: ChangeNotifierProvider.value(
+              value: tokenLayoutNotifier,
+              child: Selector<TokenLayoutNotifier, bool>(
+                selector: (context, tokenLayoutNotifier) =>
+                    tokenLayoutNotifier.codeVisiable,
+                builder: (context, codeVisiable, child) =>
+                    Selector<TokenLayoutNotifier, String>(
                   selector: (context, tokenLayoutNotifier) =>
-                      tokenLayoutNotifier.codeVisiable,
-                  builder: (context, codeVisiable, child) =>
-                      Selector<TokenLayoutNotifier, String>(
-                    selector: (context, tokenLayoutNotifier) =>
-                        tokenLayoutNotifier.code,
-                    builder: (context, code, child) => AutoSizeText(
-                      codeVisiable
-                          ? code
-                          : (isHOTP ? hotpPlaceholderText : placeholderText) *
-                              widget.token.digits.digit,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 24,
-                            letterSpacing: 10,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                      maxLines: 1,
-                    ),
+                      tokenLayoutNotifier.code,
+                  builder: (context, code, child) => AutoSizeText(
+                    codeVisiable
+                        ? code
+                        : (isHOTP ? hotpPlaceholderText : placeholderText) *
+                            widget.token.digits.digit,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 24,
+                          letterSpacing: 10,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                    maxLines: 1,
                   ),
                 ),
               ),
@@ -197,7 +191,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                 selector: (context, tokenLayoutNotifier) =>
                     tokenLayoutNotifier.haveToResetHOTP,
                 builder: (context, haveToResetHOTP, child) => haveToResetHOTP
-                    ? ItemBuilder.buildIconButton(
+                    ? CircleIconButton(
                         onTap: () {
                           widget.token.counterString =
                               (widget.token.counter + 1).toString();
@@ -213,7 +207,6 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                           size: 20,
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
-                        context: context,
                       )
                     : const SizedBox.shrink(),
               ),
@@ -278,7 +271,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           title: S.current.copyTokenCode,
           onTap: () {
             Navigator.pop(context);
-            Utils.copy(context, getCurrentCode());
+            ChewieUtils.copy(context, getCurrentCode());
             TokenDao.incTokenCopyTimes(widget.token);
           },
         ),
@@ -287,7 +280,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           title: S.current.copyNextTokenCode,
           onTap: () {
             Navigator.pop(context);
-            Utils.copy(context, getNextCode());
+            ChewieUtils.copy(context, getNextCode());
             TokenDao.incTokenCopyTimes(widget.token);
           },
         ),
@@ -329,11 +322,11 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           title: S.current.viewTokenQrCode,
           onTap: () {
             Navigator.pop(context);
-            DialogBuilder.showQrcodesDialog(
+            CloudOTPItemBuilder.showQrcodesDialog(
               context,
               title: widget.token.title,
               qrcodes: [OtpTokenParser.toUri(widget.token).toString()],
-              asset: AssetUtil.getBrandPath(widget.token.imagePath),
+              asset: AssetFiles.getBrandPath(widget.token.imagePath),
             );
           },
         ),
@@ -346,7 +339,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               title: S.current.copyUriClearWarningTitle,
               message: S.current.copyUriClearWarningTip,
               onTapConfirm: () {
-                Utils.copy(rootContext, OtpTokenParser.toUri(widget.token));
+                ChewieUtils.copy(context, OtpTokenParser.toUri(widget.token));
                 Navigator.pop(context);
               },
               onTapCancel: () {},
@@ -449,14 +442,14 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
   }) {
     return Material(
       color: backgroundColor ?? Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: ChewieDimens.borderRadius8,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: ChewieDimens.borderRadius8,
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: ChewieDimens.borderRadius8,
           ),
           child: Column(
             children: [

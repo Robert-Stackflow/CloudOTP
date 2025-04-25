@@ -21,11 +21,9 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/Base32/base32.dart';
-import 'package:cloudotp/Widgets/Dialog/progress_dialog.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../Utils/ilogger.dart';
-import '../../Utils/itoast.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 
@@ -106,7 +104,7 @@ class FreeOTPPlusToken {
 
   OtpToken toOtpToken() {
     OtpToken token = OtpToken.init();
-    token.uid = Utils.generateUid();
+    token.uid = StringUtil.generateUid();
     token.account = label;
     token.secret = base32.encode(Uint8List.fromList(secret));
     token.issuer = issuer;
@@ -138,7 +136,7 @@ class FreeOTPPlusTokenImporter implements BaseTokenImporter {
           FreeOTPPlusToken freeOTPPlusToken = FreeOTPPlusToken.fromJson(token);
           freeOTPPlusTokens.add(freeOTPPlusToken);
         } catch (e, t) {
-          ILogger.error("CloudOTP", "Failed to parse token: $token", e, t);
+          ILogger.error("Failed to parse token: $token", e, t);
         }
       }
     }
@@ -156,7 +154,7 @@ class FreeOTPPlusTokenImporter implements BaseTokenImporter {
     late ProgressDialog dialog;
     if (showLoading) {
       dialog =
-          showProgressDialog(msg: S.current.importing, showProgress: false);
+          showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -167,7 +165,7 @@ class FreeOTPPlusTokenImporter implements BaseTokenImporter {
         await import(json);
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to import from FreeOTPPlus", e, t);
+      ILogger.error("Failed to import from FreeOTPPlus", e, t);
       IToast.showTop(S.current.importFailed);
     } finally {
       if (showLoading) {

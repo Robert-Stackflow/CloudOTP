@@ -81,16 +81,17 @@ class CheckboxItemState extends SearchableState<CheckboxItem> {
   Widget build(BuildContext context) {
     assert(widget.padding > 5);
     if (!shouldShow) return const SizedBox.shrink();
-
     return InkAnimation(
       borderRadius: _borderRadius,
       ink: false,
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: _effectivePadding,
-              horizontal: 6,
+            padding: EdgeInsets.only(
+              top: _effectivePadding,
+              bottom: _effectivePadding,
+              left: 6,
+              right: 4,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,6 +159,7 @@ class CheckboxItemState extends SearchableState<CheckboxItem> {
       opacity: widget.disabled ? 0.2 : 1,
       child: Transform.scale(
         scale: scale,
+        alignment: Alignment.centerRight,
         child: Switch(
           value: widget.value,
           onChanged: widget.disabled

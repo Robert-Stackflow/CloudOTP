@@ -15,6 +15,8 @@
 
 import 'dart:convert';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
+
 import '../Database/token_category_binding_dao.dart';
 import '../Utils/utils.dart';
 import 'Proto/TokenCategory/token_category_payload.pb.dart';
@@ -52,7 +54,7 @@ class TokenCategory {
     required this.title,
     String? tUid,
   })  : id = 0,
-        uid = tUid ?? Utils.generateUid(),
+        uid = tUid ?? StringUtil.generateUid(),
         seq = 0,
         createTimeStamp = DateTime.now().millisecondsSinceEpoch,
         editTimeStamp = DateTime.now().millisecondsSinceEpoch,
@@ -102,7 +104,7 @@ class TokenCategory {
   factory TokenCategory.fromCategoryParameters(
       TokenCategoryParameters parameters) {
     List<int> tmp = [];
-    if (Utils.isNotEmpty(parameters.tokenIds)) {
+    if (parameters.tokenIds.notNullOrEmpty) {
       for (String e in parameters.tokenIds.split(",")) {
         if (e.isNotEmpty) {
           tmp.add(int.tryParse(e) ?? -1);
@@ -125,7 +127,7 @@ class TokenCategory {
 
   factory TokenCategory.fromMap(Map<String, dynamic> map) {
     List<int> tmpIds = [];
-    if (Utils.isNotEmpty(map['token_ids'])) {
+    if ((map['token_ids'] as String?).notNullOrEmpty) {
       for (String e in map['token_ids'].split(",")) {
         if (e.isNotEmpty) {
           tmpIds.add(int.tryParse(e) ?? -1);
@@ -133,7 +135,7 @@ class TokenCategory {
       }
     }
     List<String> tmpBindings = [];
-    if (Utils.isNotEmpty(map['bindings'])) {
+    if ((map['bindings'] as String?).notNullOrEmpty) {
       for (String e in map['bindings'].split(",")) {
         if (e.isNotEmpty) {
           tmpBindings.add(e);

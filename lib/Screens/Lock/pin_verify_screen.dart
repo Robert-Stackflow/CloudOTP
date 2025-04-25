@@ -15,22 +15,16 @@
 
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/route_util.dart';
 import 'package:cloudotp/Utils/utils.dart';
-import 'package:cloudotp/Widgets/General/Unlock/gesture_notifier.dart';
-import 'package:cloudotp/Widgets/General/Unlock/gesture_unlock_view.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../../Resources/theme.dart';
 import '../../Utils/biometric_util.dart';
-import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/responsive_util.dart';
-import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 import '../main_screen.dart';
 
@@ -57,9 +51,10 @@ class PinVerifyScreen extends StatefulWidget {
 
 class PinVerifyScreenState extends State<PinVerifyScreen>
     with WindowListener, TrayListener {
-  final String? _password = HiveUtil.getString(HiveUtil.guesturePasswdKey);
+  final String? _password =
+      ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey);
   late final bool _enableBiometric =
-      HiveUtil.getBool(HiveUtil.enableBiometricKey);
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = GestureNotifier(
       status: GestureStatus.verify, gestureText: S.current.verifyGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
@@ -73,31 +68,31 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
   @override
   Future<void> onWindowResize() async {
     super.onWindowResize();
-    windowManager.setMinimumSize(minimumSize);
-    HiveUtil.setWindowSize(await windowManager.getSize());
+    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
+    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
   }
 
   @override
   Future<void> onWindowResized() async {
     super.onWindowResized();
-    HiveUtil.setWindowSize(await windowManager.getSize());
+    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
   }
 
   @override
   Future<void> onWindowMove() async {
     super.onWindowMove();
-    HiveUtil.setWindowPosition(await windowManager.getPosition());
+    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
   }
 
   @override
   Future<void> onWindowMoved() async {
     super.onWindowMoved();
-    HiveUtil.setWindowPosition(await windowManager.getPosition());
+    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
   }
 
   @override
   void onWindowMaximize() {
-    windowManager.setMinimumSize(minimumSize);
+    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
     setState(() {
       _isMaximized = true;
     });
@@ -105,7 +100,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
 
   @override
   void onWindowUnmaximize() {
-    windowManager.setMinimumSize(minimumSize);
+    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
     setState(() {
       _isMaximized = false;
     });
@@ -138,13 +133,17 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
   }
 
   void auth() async {
-    Utils.localAuth(
+    ChewieUtils.localAuth(
       onAuthed: () {
         if (widget.onSuccess != null) widget.onSuccess!();
         if (widget.jumpToMain) {
-          Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
-              ItemBuilder.buildContextMenuOverlay(
-                  MainScreen(key: mainScreenKey))));
+          Navigator.of(context).pushReplacement(
+            RouteUtil.getFadeRoute(
+              CustomMouseRegion(
+                child: MainScreen(key: mainScreenKey),
+              ),
+            ),
+          );
         } else {
           Navigator.of(context).pop();
         }
@@ -155,17 +154,17 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
 
   @override
   Widget build(BuildContext context) {
-    Utils.setSafeMode(HiveUtil.getBool(HiveUtil.enableSafeModeKey,
+    ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
+        CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
     return Scaffold(
-      backgroundColor: MyTheme.getBackground(context),
+      backgroundColor: ChewieTheme.scaffoldBackgroundColor,
       appBar: ResponsiveUtil.isDesktop() && widget.showWindowTitle
           ? PreferredSize(
               preferredSize: const Size(0, 86),
-              child: ItemBuilder.buildWindowTitle(
-                context,
+              child: WindowTitleWrapper(
                 forceClose: true,
-                backgroundColor: MyTheme.getBackground(context),
+                backgroundColor: ChewieTheme.scaffoldBackgroundColor,
                 isStayOnTop: _isStayOnTop,
                 isMaximized: _isMaximized,
                 onStayOnTopTap: () {
@@ -180,7 +179,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
       bottomNavigationBar: widget.showWindowTitle
           ? Container(
               height: 86,
-              color: MyTheme.getBackground(context),
+              color: ChewieTheme.scaffoldBackgroundColor,
             )
           : null,
       body: SafeArea(
@@ -217,14 +216,11 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
                 ),
                 Visibility(
                   visible: _biometricAvailable && _enableBiometric,
-                  child: ItemBuilder.buildRoundButton(
-                    context,
+                  child: RoundIconTextButton(
                     text: ResponsiveUtil.isWindows()
                         ? S.current.biometricVerifyPin
                         : S.current.biometric,
-                    onTap: () {
-                      auth();
-                    },
+                    onPressed: auth,
                   ),
                 ),
                 const SizedBox(height: 50),
@@ -244,9 +240,13 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
         if (_password == password) {
           if (widget.onSuccess != null) widget.onSuccess!();
           if (widget.jumpToMain) {
-            Navigator.of(context).pushReplacement(RouteUtil.getFadeRoute(
-                ItemBuilder.buildContextMenuOverlay(
-                    MainScreen(key: mainScreenKey))));
+            Navigator.of(context).pushReplacement(
+              RouteUtil.getFadeRoute(
+                CustomMouseRegion(
+                  child: MainScreen(key: mainScreenKey),
+                ),
+              ),
+            );
           } else {
             Navigator.of(context).pop();
           }
@@ -270,7 +270,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
 
   @override
   void onTrayIconMouseDown() {
-    Utils.displayApp();
+    ChewieUtils.displayApp();
   }
 
   @override

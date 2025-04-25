@@ -19,7 +19,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cloudotp/Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:hashlib/hashlib.dart';
 
 import '../../Utils/Base32/base32.dart';

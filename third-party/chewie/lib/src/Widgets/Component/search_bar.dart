@@ -40,7 +40,6 @@ class MySearchBarState extends State<MySearchBar> {
   Widget build(BuildContext context) {
     InputItemStyle style =
         widget.style ?? InputItemStyle(backgroundColor: Colors.transparent);
-
     return Row(
       children: [
         Expanded(
@@ -56,7 +55,9 @@ class MySearchBarState extends State<MySearchBar> {
             decoration: InputDecoration(
               hintText: widget.hintText,
               filled: true,
-              fillColor: style.fieldBackgroundColor ?? ChewieTheme.canvasColor,
+              fillColor: widget.background ??
+                  style.fieldBackgroundColor ??
+                  ChewieTheme.canvasColor,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 13.5),
               isDense: style.isDense,

@@ -13,9 +13,8 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
@@ -24,8 +23,8 @@ import '../../Database/token_dao.dart';
 import '../../Models/opt_token.dart';
 import '../../Models/token_category.dart';
 import '../../Utils/app_provider.dart';
-import '../../Utils/itoast.dart';
 import '../../generated/l10n.dart';
+import '../cloudotp/cloudotp_item_builder.dart';
 
 class SelectTokenBottomSheet extends StatefulWidget {
   const SelectTokenBottomSheet({
@@ -43,6 +42,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   List<OtpToken> tokens = [];
   List<String> oldSelectedUids = [];
   GroupButtonController controller = GroupButtonController();
+  Radius radius = ChewieDimens.radius8;
 
   @override
   void initState() {
@@ -68,29 +68,32 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
     return Wrap(
       runAlignment: WrapAlignment.center,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
-            borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(20)
-                    : Radius.zero),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildHeader(),
-              Container(
-                constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height - 320),
-                child: _buildButtons(),
-              ),
-              _buildFooter(),
-            ],
+        Material(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.vertical(
+                  top: radius,
+                  bottom:
+                      ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+              color: ChewieTheme.scaffoldBackgroundColor,
+              border: ChewieTheme.border,
+              boxShadow: ChewieTheme.defaultBoxShadow,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildHeader(),
+                Container(
+                  constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height - 320),
+                  child: _buildButtons(),
+                ),
+                _buildFooter(),
+              ],
+            ),
           ),
         ),
       ],
@@ -112,13 +115,12 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   _buildButtons() {
     return tokens.isNotEmpty
         ? SingleChildScrollView(
-            child: ItemBuilder.buildGroupTokenButtons(
+            child: CloudOTPItemBuilder.buildGroupTokenButtons(
               tokens: tokens,
               controller: controller,
             ),
           )
-        : ItemBuilder.buildEmptyPlaceholder(
-            context: context, text: S.current.noToken);
+        : EmptyPlaceholder(text: S.current.noToken);
   }
 
   _buildFooter() {
@@ -132,11 +134,10 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
           const Expanded(flex: 2, child: SizedBox(height: 50)),
           Expanded(
             flex: 1,
-            child: ItemBuilder.buildRoundButton(
-              context,
+            child: RoundIconTextButton(
               background: Theme.of(context).primaryColor,
               text: S.current.save,
-              onTap: () async {
+              onPressed: () async {
                 List<int> selectedIndexes = controller.selectedIndexes.toList();
                 List<String> tokenUids =
                     selectedIndexes.map((e) => tokens[e].uid).toList();

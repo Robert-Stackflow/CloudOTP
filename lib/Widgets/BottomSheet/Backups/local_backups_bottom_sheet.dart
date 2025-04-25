@@ -15,16 +15,10 @@
 
 import 'dart:io';
 
-import 'package:cloudotp/Utils/cache_util.dart';
-import 'package:cloudotp/Utils/file_util.dart';
-import 'package:cloudotp/Utils/itoast.dart';
-import 'package:cloudotp/Utils/responsive_util.dart';
-import 'package:cloudotp/Widgets/Dialog/custom_dialog.dart';
-import 'package:cloudotp/Widgets/Item/item_builder.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 
 import '../../../TokenUtils/export_token_util.dart';
-import '../../../Utils/ilogger.dart';
 import '../../../Utils/utils.dart';
 import '../../../generated/l10n.dart';
 
@@ -58,6 +52,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
     });
     super.initState();
   }
+  Radius radius = ChewieDimens.radius8;
 
   @override
   Widget build(BuildContext context) {
@@ -67,12 +62,12 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
         minHeight: MediaQuery.of(context).size.height * 0.3,
       ),
       decoration: BoxDecoration(
-        color: Theme.of(context).canvasColor,
         borderRadius: BorderRadius.vertical(
-            top: const Radius.circular(20),
-            bottom: ResponsiveUtil.isWideLandscape()
-                ? const Radius.circular(20)
-                : Radius.zero),
+            top: radius,
+            bottom: ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+        color: ChewieTheme.scaffoldBackgroundColor,
+        border: ChewieTheme.border,
+        boxShadow: ChewieTheme.defaultBoxShadow,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -93,6 +88,10 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
 
   _buildHeader() {
     return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.vertical(top: radius),
+        color: ChewieTheme.canvasColor,
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
@@ -121,8 +120,8 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
   _buildItem(FileSystemEntity file, bool isDefaultPath) {
     String size = CacheUtil.renderSize(file.statSync().size.toDouble(),
         fractionDigits: 0);
-    String time =
-        Utils.formatTimestamp(file.statSync().modified.millisecondsSinceEpoch);
+    String time = TimeUtil.formatTimestamp(
+        file.statSync().modified.millisecondsSinceEpoch);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -155,8 +154,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                   ],
                 ),
               ),
-              ItemBuilder.buildIconButton(
-                context: context,
+              CircleIconButton(
                 icon: const Icon(Icons.file_present_outlined),
                 onTap: () async {
                   Navigator.pop(context);
@@ -164,8 +162,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                 },
               ),
               const SizedBox(width: 5),
-              ItemBuilder.buildIconButton(
-                context: context,
+              CircleIconButton(
                 icon:
                     const Icon(Icons.delete_outline_rounded, color: Colors.red),
                 onTap: () async {
@@ -177,7 +174,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                     });
                     IToast.showTop(S.current.deleteSuccess);
                   } catch (e, t) {
-                    ILogger.error("CloudOTP",
+                    ILogger.error(
                         "Failed to delete backup file from local", e, t);
                     IToast.showTop(S.current.deleteFailed);
                   }

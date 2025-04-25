@@ -15,16 +15,15 @@
 
 import 'dart:convert';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/Cloud/googledrive_cloud_service.dart';
-import 'package:cloudotp/Utils/cache_util.dart';
 
 import '../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../TokenUtils/Cloud/webdav_cloud_service.dart';
-import '../Utils/utils.dart';
 import '../generated/l10n.dart';
 
 enum CloudServiceType {
@@ -110,19 +109,19 @@ class CloudServiceConfig {
   Future<bool> isValid() async {
     switch (type) {
       case CloudServiceType.Webdav:
-        return Utils.isNotEmpty(endpoint) &&
-            Utils.isNotEmpty(account) &&
-            Utils.isNotEmpty(secret);
+        return endpoint.notNullOrEmpty &&
+            account.notNullOrEmpty &&
+            secret.notNullOrEmpty;
       case CloudServiceType.GoogleDrive:
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:
       case CloudServiceType.HuaweiCloud:
         return configured;
       case CloudServiceType.S3Cloud:
-        return Utils.isNotEmpty(endpoint) &&
-            Utils.isNotEmpty(account) &&
-            Utils.isNotEmpty(secret) &&
-            Utils.isNotEmpty(token);
+        return endpoint.notNullOrEmpty &&
+            account.notNullOrEmpty &&
+            secret.notNullOrEmpty &&
+            token.notNullOrEmpty;
     }
   }
 

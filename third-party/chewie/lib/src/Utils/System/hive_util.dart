@@ -5,6 +5,7 @@ import 'package:awesome_chewie/src/Utils/System/file_util.dart';
 import 'package:awesome_chewie/src/Utils/System/proxy_util.dart';
 import 'package:awesome_chewie/src/Utils/enums.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
+import 'package:awesome_chewie/src/Utils/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
@@ -52,12 +53,6 @@ class ChewieHiveUtil {
   static const String followMainColorKey = "followMainColor";
   static const String savePathKey = "savePaths";
 
-  //Privacy
-  static const String enableGuesturePasswdKey = "enableGuesturePasswd";
-  static const String guesturePasswdKey = "guesturePasswd";
-  static const String enableBiometricKey = "enableBiometric";
-  static const String autoLockKey = "autoLock";
-  static const String autoLockSecondsKey = "autoLockSeconds";
   static const String enableSafeModeKey = "enableSafeMode";
 
   //System
@@ -67,13 +62,16 @@ class ChewieHiveUtil {
   static const String proxyConfigKey = "proxyConfig";
 
   static initConfig() async {
+    await ChewieHiveUtil.put(ChewieHiveUtil.enableSafeModeKey, defaultEnableSafeMode);
     ChewieHiveUtil.put(ChewieHiveUtil.followMainColorKey, true);
     ChewieHiveUtil.put(ChewieHiveUtil.inappWebviewKey, true);
   }
 
   static initBox() async {
-    await Hive.openBox(ChewieHiveUtil.settingsBox,
-        path: await FileUtil.getApplicationDir());
+    Hive.box(
+      name: ChewieHiveUtil.settingsBox,
+      directory: await FileUtil.getApplicationDir(),
+    );
   }
 
   static void setWindowSize(Size size) {
@@ -83,18 +81,18 @@ class ChewieHiveUtil {
 
   static Size getWindowSize() {
     if (!ChewieHiveUtil.getBool(ChewieHiveUtil.recordWindowStateKey)) {
-      return chewieProvider.defaultWindowSize;
+      return ChewieProvider.defaultWindowSize;
     }
     String? size = ChewieHiveUtil.getString(ChewieHiveUtil.windowSizeKey);
     if (size == null || size.isEmpty) {
-      return chewieProvider.defaultWindowSize;
+      return ChewieProvider.defaultWindowSize;
     }
     try {
       List<String> list = size.split(",");
       return Size(double.parse(list[0]), double.parse(list[1]));
     } catch (e, t) {
       ILogger.error("Failed to get window size", e, t);
-      return chewieProvider.defaultWindowSize;
+      return ChewieProvider.defaultWindowSize;
     }
   }
 
@@ -307,17 +305,6 @@ class ChewieHiveUtil {
   static void setDarkTheme(int index) =>
       ChewieHiveUtil.put(ChewieHiveUtil.darkThemeIndexKey, index);
 
-  static bool shouldAutoLock() =>
-      canLock() && ChewieHiveUtil.getBool(ChewieHiveUtil.autoLockKey);
-
-  static bool canLock() =>
-      ChewieHiveUtil.getBool(ChewieHiveUtil.enableGuesturePasswdKey) &&
-      hasGuesturePasswd();
-
-  static bool hasGuesturePasswd() =>
-      ChewieHiveUtil.getString(ChewieHiveUtil.guesturePasswdKey) != null &&
-      ChewieHiveUtil.getString(ChewieHiveUtil.guesturePasswdKey)!.isNotEmpty;
-
   static List<SortableItem> getSortableItems(
     String key,
     List<SortableItem> defaultValue,
@@ -340,7 +327,7 @@ class ChewieHiveUtil {
     String boxName = ChewieHiveUtil.settingsBox,
     int defaultValue = 0,
   }) {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     if (!box.containsKey(key)) {
       put(key, defaultValue, boxName: boxName);
     }
@@ -352,11 +339,11 @@ class ChewieHiveUtil {
     String boxName = ChewieHiveUtil.settingsBox,
     int defaultValue = 0,
   }) {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     if (!box.containsKey(key)) {
       put(key, defaultValue, boxName: boxName);
     }
-    return box.get(key, defaultValue: defaultValue);
+    return box.get(key);
   }
 
   static bool getBool(
@@ -364,7 +351,7 @@ class ChewieHiveUtil {
     String boxName = ChewieHiveUtil.settingsBox,
     bool defaultValue = true,
   }) {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     if (!box.containsKey(key)) {
       put(key, defaultValue, boxName: boxName);
     }
@@ -377,7 +364,7 @@ class ChewieHiveUtil {
     bool autoCreate = true,
     String? defaultValue,
   }) {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     if (!box.containsKey(key)) {
       if (!autoCreate) {
         return null;
@@ -391,7 +378,7 @@ class ChewieHiveUtil {
     String key, {
     String boxName = ChewieHiveUtil.settingsBox,
   }) {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     Map<String, dynamic> res = {};
     if (box.get(key) != null) {
       res = Map<String, dynamic>.from(box.get(key));
@@ -405,7 +392,7 @@ class ChewieHiveUtil {
     bool autoCreate = true,
     List<dynamic> defaultValue = const [],
   }) {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     if (!box.containsKey(key)) {
       if (!autoCreate) {
         return null;
@@ -436,7 +423,7 @@ class ChewieHiveUtil {
     dynamic value, {
     String boxName = ChewieHiveUtil.settingsBox,
   }) async {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     return box.put(key, value);
   }
 
@@ -444,7 +431,7 @@ class ChewieHiveUtil {
     String key, {
     String boxName = ChewieHiveUtil.settingsBox,
   }) async {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     box.delete(key);
   }
 
@@ -452,7 +439,7 @@ class ChewieHiveUtil {
     String key, {
     String boxName = ChewieHiveUtil.settingsBox,
   }) {
-    final Box box = Hive.box(boxName);
+    final Box box = Hive.box(name: boxName);
     return box.containsKey(key);
   }
 }

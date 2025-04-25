@@ -22,7 +22,7 @@ import 'package:s3_storage/s3_storage.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
-import '../../Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/utils.dart';
 import '../export_token_util.dart';
 import 'cloud_service.dart';
@@ -78,7 +78,7 @@ class S3CloudService extends CloudService {
         return CloudServiceStatus.success;
       }
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to authenticate s3", e, t);
+      ILogger.error("Failed to authenticate s3", e, t);
       return CloudServiceStatus.unknownError;
     }
   }
@@ -89,7 +89,7 @@ class S3CloudService extends CloudService {
       bool connected = await s3Storage.bucketExists(bucket);
       return connected;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to connect to s3 cloud", e, t);
+      ILogger.error("Failed to connect to s3 cloud", e, t);
       return false;
     }
   }
@@ -103,8 +103,7 @@ class S3CloudService extends CloudService {
       );
       return true;
     } catch (e, t) {
-      ILogger.error(
-          "CloudOTP", "Failed to delete backup file $path from s3 cloud", e, t);
+      ILogger.error("Failed to delete backup file $path from s3 cloud", e, t);
       return false;
     }
   }
@@ -112,7 +111,7 @@ class S3CloudService extends CloudService {
   @override
   Future<bool> deleteOldBackup([int? maxCount]) async {
     try {
-      maxCount ??= HiveUtil.getMaxBackupsCount();
+      maxCount ??= CloudOTPHiveUtil.getMaxBackupsCount();
       List<S3CloudFileInfo>? list = await listBackups();
       if (list == null) return false;
       list.sort((a, b) {
@@ -124,8 +123,7 @@ class S3CloudService extends CloudService {
       }
       return true;
     } catch (e, t) {
-      ILogger.error(
-          "CloudOTP", "Failed to delete old backups from s3 cloud", e, t);
+      ILogger.error("Failed to delete old backups from s3 cloud", e, t);
       return false;
     }
   }
@@ -142,7 +140,7 @@ class S3CloudService extends CloudService {
       );
       return await response.toBytes();
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to download from s3 cloud", e, t);
+      ILogger.error("Failed to download from s3 cloud", e, t);
       return null;
     }
   }
@@ -182,7 +180,7 @@ class S3CloudService extends CloudService {
           .toList();
       return files;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to list file from s3 cloud", e, t);
+      ILogger.error("Failed to list file from s3 cloud", e, t);
       return null;
     }
   }
@@ -205,7 +203,7 @@ class S3CloudService extends CloudService {
       deleteOldBackup();
       return response.isNotEmpty;
     } catch (e, t) {
-      ILogger.error("CloudOTP", "Failed to upload file to s3 cloud", e, t);
+      ILogger.error("Failed to upload file to s3 cloud", e, t);
       return false;
     }
   }

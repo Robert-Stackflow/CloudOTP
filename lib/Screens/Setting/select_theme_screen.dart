@@ -13,17 +13,15 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:cloudotp/Resources/theme_color_data.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Screens/Setting/base_setting_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:flutter/material.dart';
 
-import '../../Utils/responsive_util.dart';
-import '../../Widgets/General/EasyRefresh/easy_refresh.dart';
-import '../../Widgets/Item/item_builder.dart';
 import '../../generated/l10n.dart';
 
-class SelectThemeScreen extends StatefulWidget {
+class SelectThemeScreen extends BaseSettingScreen {
   const SelectThemeScreen({super.key});
 
   static const String routeName = "/setting/theme";
@@ -34,100 +32,74 @@ class SelectThemeScreen extends StatefulWidget {
 
 class _SelectThemeScreenState extends State<SelectThemeScreen>
     with TickerProviderStateMixin {
-  int _selectedLightIndex = HiveUtil.getLightThemeIndex();
-  int _selectedDarkIndex = HiveUtil.getDarkThemeIndex();
+  int _selectedLightIndex = ChewieHiveUtil.getLightThemeIndex();
+  int _selectedDarkIndex = ChewieHiveUtil.getDarkThemeIndex();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      child: Scaffold(
-        appBar: ResponsiveUtil.isLandscape()
-            ? ItemBuilder.buildSimpleAppBar(
-                title: S.current.selectTheme,
-                context: context,
-                transparent: true,
-              )
-            : ItemBuilder.buildAppBar(
-                context: context,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                leading: Icons.arrow_back_rounded,
-                onLeadingTap: () {
-                  Navigator.pop(context);
-                },
-                title: Text(
-                  S.current.selectTheme,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontWeightDelta: 2),
-                ),
-                actions: [
-                  ItemBuilder.buildBlankIconButton(context),
-                  const SizedBox(width: 5),
-                ],
-              ),
-        body: EasyRefresh(
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            children: [
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.lightTheme),
-              ItemBuilder.buildContainerItem(
-                context: context,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: _buildLightThemeList(),
-                      ),
-                    ),
+    return ItemBuilder.buildSettingScreen(
+      context: context,
+      title: S.current.selectTheme,
+      showTitleBar: widget.showTitleBar,
+      showBack: true,
+      padding: widget.padding,
+      onTapBack: () {
+        if (ResponsiveUtil.isLandscape()) {
+          chewieProvider.dialogNavigatorState?.popPage();
+        } else {
+          Navigator.pop(context);
+        }
+      },
+      children: [
+        CaptionItem(
+          title: S.current.lightTheme,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: _buildLightThemeList(),
                   ),
                 ),
-                bottomRadius: true,
               ),
-              const SizedBox(height: 10),
-              ItemBuilder.buildCaptionItem(
-                  context: context, title: S.current.darkTheme),
-              ItemBuilder.buildContainerItem(
-                context: context,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: _buildDarkThemeList(),
-                      ),
-                    ),
-                  ),
-                ),
-                bottomRadius: true,
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
+        CaptionItem(
+          title: S.current.darkTheme,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: _buildDarkThemeList(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+      ],
     );
   }
 
   List<Widget> _buildLightThemeList() {
     var list = List<Widget>.generate(
-      ThemeColorData.defaultLightThemes.length,
-      (index) => ItemBuilder.buildThemeItem(
+      ChewieThemeColorData.defaultLightThemes.length,
+      (index) => ThemeItem(
         index: index,
         groupIndex: _selectedLightIndex,
-        themeColorData: ThemeColorData.defaultLightThemes[index],
-        context: context,
+        themeColorData: ChewieThemeColorData.defaultLightThemes[index],
         onChanged: (index) {
           setState(
             () {
               _selectedLightIndex = index ?? 0;
-              appProvider.setLightTheme(index ?? 0);
+              chewieProvider.setLightTheme(index ?? 0);
             },
           );
         },
@@ -139,17 +111,16 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
 
   List<Widget> _buildDarkThemeList() {
     var list = List<Widget>.generate(
-      ThemeColorData.defaultDarkThemes.length,
-      (index) => ItemBuilder.buildThemeItem(
+      ChewieThemeColorData.defaultDarkThemes.length,
+      (index) => ThemeItem(
         index: index,
         groupIndex: _selectedDarkIndex,
-        themeColorData: ThemeColorData.defaultDarkThemes[index],
-        context: context,
+        themeColorData: ChewieThemeColorData.defaultDarkThemes[index],
         onChanged: (index) {
           setState(
             () {
               _selectedDarkIndex = index ?? 0;
-              appProvider.setDarkTheme(index ?? 0);
+              chewieProvider.setDarkTheme(index ?? 0);
             },
           );
         },

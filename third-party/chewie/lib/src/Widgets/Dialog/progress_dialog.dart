@@ -5,15 +5,15 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
 
 ProgressDialog showProgressDialog(
-  BuildContext context, {
-  String? msg,
+  String? msg, {
   bool barrierDismissible = false,
+  bool showProgress = true,
 }) {
   ProgressDialog dialog = ProgressDialog(context: chewieProvider.rootContext);
   dialog.show(
     msg: msg ?? '加载中...',
     barrierDismissible: barrierDismissible,
-    showProgress: true,
+    showProgress: showProgress,
   );
   return dialog;
 }
@@ -212,15 +212,7 @@ class _LoadingDialogIndicatorState extends State<LoadingDialogIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return Icon(
-      LucideIcons.loader,
-      size: 40,
-      color: widget.error
-          ? ChewieTheme.errorColor
-          : widget.complete
-              ? ChewieTheme.successColor
-              : ChewieTheme.primaryColor,
-    );
+    return chewieProvider.loadingWidgetBuilder(40, false);
   }
 
   @override

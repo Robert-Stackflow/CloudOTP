@@ -13,6 +13,7 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
@@ -20,7 +21,6 @@ import 'package:sqflite/sqflite.dart';
 
 import '../Models/auto_backup_log.dart';
 import '../TokenUtils/export_token_util.dart';
-import '../Utils/ilogger.dart';
 import '../Utils/utils.dart';
 
 class TokenDao {
@@ -227,7 +227,7 @@ class TokenDao {
       );
       return OtpToken.fromMap(maps[0]);
     } catch (e, t) {
-      ILogger.error("CloudOTP",
+      ILogger.error(
           "Failed to get token by id $id and serachKey $searchKey", e, t);
       return null;
     }
@@ -246,7 +246,7 @@ class TokenDao {
       );
       return maps.isNotEmpty ? OtpToken.fromMap(maps[0]) : null;
     } catch (e, t) {
-      ILogger.error("CloudOTP",
+      ILogger.error(
           "Failed to get token by uid $uid and searchKey $searchKey", e, t);
       return null;
     }
