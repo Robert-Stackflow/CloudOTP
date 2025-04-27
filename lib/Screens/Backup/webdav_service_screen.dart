@@ -253,6 +253,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
         text: S.current.cloudSignin,
+        width: double.infinity,
         background: Theme.of(context).primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
@@ -335,7 +336,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Theme.of(context).primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
@@ -350,7 +351,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
               text: S.current.cloudLogout,
               fontSizeDelta: 2,

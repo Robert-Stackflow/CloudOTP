@@ -26,6 +26,7 @@ import '../../Utils/biometric_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
+import '../../Utils/lottie_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import '../main_screen.dart';
@@ -163,6 +164,8 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   @override
   void initState() {
     super.initState();
+    chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+        LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
     initBiometricAuthentication();
     trayManager.addListener(this);
     windowManager.addListener(this);
@@ -193,36 +196,52 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
-    return MyScaffold(
-      backgroundColor: ChewieTheme.scaffoldBackgroundColor,
-      appBar: ResponsiveUtil.isDesktop()
-          ? PreferredSize(
-              preferredSize: const Size(0, 86),
-              child: WindowTitleWrapper(
-                forceClose: true,
-                backgroundColor: ChewieTheme.scaffoldBackgroundColor,
-                isStayOnTop: _isStayOnTop,
-                isMaximized: _isMaximized,
-                onStayOnTopTap: () {
-                  setState(() {
-                    _isStayOnTop = !_isStayOnTop;
-                    windowManager.setAlwaysOnTop(_isStayOnTop);
-                  });
-                },
-              ),
-            )
-          : null,
-      bottomNavigationBar: Container(
-        height: 86,
-        color: ChewieTheme.scaffoldBackgroundColor,
-      ),
-      body: SafeArea(
-        right: false,
-        child: Center(
-          child:
-              DatabaseManager.lib != null ? _buildBody() : _buildFailedBody(),
+    return Stack(
+      children: [
+        MyScaffold(
+          backgroundColor: ChewieTheme.scaffoldBackgroundColor,
+          appBar: ResponsiveUtil.isDesktop()
+              ? ResponsiveAppBar(
+                  title: S.current.appName,
+                  showBack: false,
+                  titleLeftMargin: 10,
+                  actions: const [
+                    BlankIconButton(),
+                  ],
+                )
+              : null,
+          bottomNavigationBar: Container(
+            height: 86,
+            color: ChewieTheme.scaffoldBackgroundColor,
+          ),
+          body: SafeArea(
+            right: false,
+            child: Center(
+              child: DatabaseManager.lib != null
+                  ? _buildBody()
+                  : _buildFailedBody(),
+            ),
+          ),
         ),
-      ),
+        if (ResponsiveUtil.isDesktop())
+          Positioned(
+            top: 0,
+            right: 0,
+            child: WindowTitleWrapper(
+              height: 48,
+              forceClose: true,
+              backgroundColor: Colors.transparent,
+              isStayOnTop: _isStayOnTop,
+              isMaximized: _isMaximized,
+              onStayOnTopTap: () {
+                setState(() {
+                  _isStayOnTop = !_isStayOnTop;
+                  windowManager.setAlwaysOnTop(_isStayOnTop);
+                });
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -257,11 +276,17 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 30),
         Container(
-          constraints: const BoxConstraints(maxWidth: 300),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          constraints: const BoxConstraints(maxWidth: 400),
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 10,
+            bottom: 18,
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
-            color: Colors.grey.withAlpha(40),
-            borderRadius: BorderRadius.circular(12),
+            color: ChewieTheme.canvasColor,
+            borderRadius: ChewieDimens.borderRadius8,
           ),
           child: Form(
             key: formKey,
@@ -345,6 +370,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
         RoundIconTextButton(
           text: S.current.loadSqlcipherFailedLearnMore,
           fontSizeDelta: 2,
+          height: 48,
           background: Theme.of(context).primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
           onPressed: () {

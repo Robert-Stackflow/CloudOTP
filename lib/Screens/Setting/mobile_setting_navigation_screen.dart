@@ -20,6 +20,7 @@ import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_safe_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Utils/app_provider.dart';
 import '../../generated/l10n.dart';
@@ -50,6 +51,8 @@ class _MobileSettingNavigationScreenState extends State<MobileSettingNavigationS
         appBar: ResponsiveAppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: S.current.setting,
+          showBack: true,
+          showBorder: true,
           actions: const [
             BlankIconButton(),
             SizedBox(width: 5),
@@ -62,7 +65,7 @@ class _MobileSettingNavigationScreenState extends State<MobileSettingNavigationS
             children: [
               EntryItem(
                 title: S.current.generalSetting,
-                leading: Icons.now_widgets_outlined,
+                leading: LucideIcons.settings2,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(
@@ -71,40 +74,36 @@ class _MobileSettingNavigationScreenState extends State<MobileSettingNavigationS
                   );
                 },
               ),
-              const SizedBox(height: 10),
               EntryItem(
                 title: S.current.appearanceSetting,
-                leading: Icons.color_lens_outlined,
+                leading: LucideIcons.paintbrushVertical,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(
                       context, const AppearanceSettingScreen());
                 },
               ),
-              const SizedBox(height: 10),
               EntryItem(
                 title: S.current.operationSetting,
-                leading: Icons.handyman_outlined,
+                leading: LucideIcons.pointer,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(
                       context, const OperationSettingScreen());
                 },
               ),
-              const SizedBox(height: 10),
               EntryItem(
                 title: S.current.backupSetting,
-                leading: Icons.backup_outlined,
+                leading: LucideIcons.cloudUpload,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(
                       context, const BackupSettingScreen());
                 },
               ),
-              const SizedBox(height: 10),
               EntryItem(
                 title: S.current.safeSetting,
-                leading: Icons.privacy_tip_outlined,
+                leading: LucideIcons.shieldCheck,
                 showLeading: true,
                 onTap: () {
                   RouteUtil.pushCupertinoRoute(

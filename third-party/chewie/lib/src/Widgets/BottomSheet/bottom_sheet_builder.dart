@@ -12,8 +12,12 @@ import 'floating_modal.dart';
 import 'generic_context_menu_bottom_sheet.dart';
 
 class BottomSheetBuilder {
-  static Future showContextMenu(BuildContext context, FlutterContextMenu menu) {
-    if (ResponsiveUtil.isLandscape()) {
+  static Future showContextMenu(
+    BuildContext context,
+    FlutterContextMenu menu, {
+    bool forcePopup = false,
+  }) {
+    if (ResponsiveUtil.isLandscape() || forcePopup) {
       return menu.showAtMousePosition(
           chewieProvider.rootContext, chewieProvider.mousePosition);
     } else {

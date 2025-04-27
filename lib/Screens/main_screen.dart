@@ -29,7 +29,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:move_to_background/move_to_background.dart';
 import 'package:path/path.dart' as path;
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:provider/provider.dart';
@@ -272,7 +271,6 @@ class MainScreenState extends State<MainScreen>
     while (Navigator.of(chewieProvider.rootContext).canPop()) {
       Navigator.of(chewieProvider.rootContext).pop();
     }
-    appProvider.canPopByProvider = false;
   }
 
   _buildBodyByPlatform() {
@@ -282,7 +280,7 @@ class MainScreenState extends State<MainScreen>
       return PopScope(
         canPop: false,
         onPopInvokedWithResult: (_, __) {
-          MoveToBackground.moveTaskToBack();
+          SystemNavigator.pop();
         },
         child: Scaffold(
           resizeToAvoidBottomInset: false,
@@ -295,7 +293,7 @@ class MainScreenState extends State<MainScreen>
   }
 
   _buildMobileBody() {
-    return HomeScreen(key: homeScreenKey);
+    return HomeScreen(key: chewieProvider.panelScreenKey);
   }
 
   _buildDesktopBody() {
@@ -305,7 +303,7 @@ class MainScreenState extends State<MainScreen>
         Expanded(
           child: Stack(
             children: [
-              HomeScreen(key: homeScreenKey),
+              HomeScreen(key: chewieProvider.panelScreenKey),
               Positioned(
                 right: 0,
                 child: _titleBar(),
@@ -329,6 +327,8 @@ class MainScreenState extends State<MainScreen>
     }
     setState(() {});
   }
+
+
 
   static buildSortContextMenuButtons() {
     return FlutterContextMenu(
@@ -676,6 +676,28 @@ class MainScreenState extends State<MainScreen>
                     },
                   ),
                 const Spacer(),
+                if (provider.showBackupLogButton) ...[
+                  ToolButton(
+                    context: context,
+                    tooltip: S.current.backupLogs,
+                    tooltipPosition: TooltipPosition.right,
+                    iconBuilder: (buttonContext) =>
+                        Selector<AppProvider, LoadingStatus>(
+                          selector: (context, appProvider) =>
+                          appProvider.autoBackupLoadingStatus,
+                          builder: (context, autoBackupLoadingStatus, child) =>
+                              LoadingIcon(
+                                status: autoBackupLoadingStatus,
+                                normalIcon: const Icon(LucideIcons.history, size: 22),
+                              ),
+                        ),
+                    onPressed: () {
+                      BottomSheetBuilder.showGenericContextMenu(
+                          context, const BackupLogScreen(isOverlay: true));
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                ],
                 if (provider.showSortButton) ...[
                   ToolButton(
                     context: context,
@@ -786,35 +808,6 @@ class MainScreenState extends State<MainScreen>
             windowManager.setAlwaysOnTop(_isStayOnTop);
           });
         },
-        rightButtons: [
-          Selector<AppProvider, bool>(
-            selector: (context, appProvider) => appProvider.showBackupLogButton,
-            builder: (context, showBackupLogButton, child) =>
-                showBackupLogButton
-                    ? WindowButton(
-                        colors: ChewieColors.getNormalButtonColors(context),
-                        borderRadius: ChewieDimens.borderRadius8,
-                        padding: EdgeInsets.zero,
-                        iconBuilder: (buttonContext) =>
-                            Selector<AppProvider, LoadingStatus>(
-                          selector: (context, appProvider) =>
-                              appProvider.autoBackupLoadingStatus,
-                          builder: (context, autoBackupLoadingStatus, child) =>
-                              LoadingIcon(
-                            status: autoBackupLoadingStatus,
-                            normalIcon:
-                                const Icon(LucideIcons.history, size: 22),
-                          ),
-                        ),
-                        onPressed: () {
-                          BottomSheetBuilder.showGenericContextMenu(
-                              context, const BackupLogScreen(isOverlay: true));
-                        },
-                      )
-                    : const SizedBox.shrink(),
-          ),
-          const SizedBox(width: 3),
-        ],
       ),
     );
   }

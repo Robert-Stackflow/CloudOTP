@@ -25,6 +25,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../Utils/biometric_util.dart';
 import '../../Utils/hive_util.dart';
+import '../../Utils/lottie_util.dart';
 import '../../generated/l10n.dart';
 import '../main_screen.dart';
 
@@ -118,6 +119,8 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
     if (widget.jumpToMain) trayManager.addListener(this);
     windowManager.addListener(this);
     super.initState();
+    chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+        LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
     Utils.initSimpleTray();
     initBiometricAuthentication();
   }

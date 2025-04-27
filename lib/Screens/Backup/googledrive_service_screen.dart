@@ -299,7 +299,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Theme.of(context).primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
@@ -314,7 +314,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
               text: S.current.cloudLogout,
               fontSizeDelta: 2,

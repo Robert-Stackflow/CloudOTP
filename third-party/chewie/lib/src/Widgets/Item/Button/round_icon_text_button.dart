@@ -11,7 +11,7 @@ class RoundIconTextButton extends StatelessWidget {
   final Function()? onPressed;
   final Color? background;
   final Widget? icon;
-  final EdgeInsets? padding;
+  final EdgeInsets padding;
   final double radius;
   final Color? color;
   final double fontSizeDelta;
@@ -28,13 +28,13 @@ class RoundIconTextButton extends StatelessWidget {
     this.onPressed,
     this.background,
     this.icon,
-    this.padding,
+    this.padding = const EdgeInsets.symmetric(horizontal: 24),
     this.radius = 8,
     this.color,
     this.fontSizeDelta = 0,
     this.textStyle,
     this.width,
-    this.height = 36,
+    this.height = 48,
     this.border,
     this.disabled = false,
   });
@@ -62,8 +62,7 @@ class RoundIconTextButton extends StatelessWidget {
                 clickable: isClickable,
                 child: Container(
                   width: width,
-                  padding:
-                      padding ?? const EdgeInsets.symmetric(horizontal: 24),
+                  padding: padding,
                   decoration: BoxDecoration(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(radius),

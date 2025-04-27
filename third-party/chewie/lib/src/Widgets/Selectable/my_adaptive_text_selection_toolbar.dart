@@ -43,9 +43,9 @@ import 'my_selectable_region.dart';
 ///   widget but only for Cupertino context menus.
 /// * [TextSelectionToolbar], the default toolbar for Android.
 /// * [DesktopTextSelectionToolbar], the default toolbar for desktop platforms
-///    other than MacOChewieS.
-/// * [CupertinoTextSelectionToolbar], the default toolbar for iOChewieS.
-/// * [CupertinoDesktopTextSelectionToolbar], the default toolbar for MacOChewieS.
+///    other than MacOS.
+/// * [CupertinoTextSelectionToolbar], the default toolbar for iOS.
+/// * [CupertinoDesktopTextSelectionToolbar], the default toolbar for MacOS.
 class MyAdaptiveTextSelectionToolbar extends StatelessWidget {
   /// Create an instance of [MyAdaptiveTextSelectionToolbar] with the
   /// given [children].

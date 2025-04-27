@@ -88,7 +88,7 @@ dependencies:
     path: third-party/tool/saf
   handy_window: ^0.4.0
   native_device_orientation: ^2.0.3 # 设备方向
-  process_run: ^1.0.0+1 # 运行
+  process_run: 1.2.2+1 # 运行
   restart_app: ^1.2.1 # 重启APP
   tray_manager: ^0.2.3 # 托盘图标
   hotkey_manager: ^0.2.3 # 热键
@@ -98,7 +98,8 @@ dependencies:
   flutter_local_notifications: ^17.2.1+2 # 本地通知
   flutter_resizable_container: ^2.0.0 # 可调整大小的容器
   screen_protector: ^1.4.2+1
-  flutter_windowmanager: ^0.2.0
+  flutter_windowmanager:
+    path: third-party/tool/flutter_windowmanager
   move_to_background: ^1.0.2 # 移动到后台
   launch_at_startup: ^0.3.1 # 开机启动
   local_notifier: ^0.1.6 # 本地通知

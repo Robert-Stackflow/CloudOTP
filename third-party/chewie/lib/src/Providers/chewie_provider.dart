@@ -103,12 +103,6 @@ class ChewieProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  setLightTheme(int index) {
-    ChewieHiveUtil.setLightTheme(index);
-    _lightTheme = ChewieHiveUtil.getLightTheme();
-    notifyListeners();
-  }
-
   ChewieThemeColorData _darkTheme = ChewieHiveUtil.getDarkTheme();
 
   ChewieThemeColorData get darkTheme => _darkTheme;
@@ -118,30 +112,12 @@ class ChewieProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  setDarkTheme(int index) {
-    ChewieHiveUtil.setDarkTheme(index);
-    _darkTheme = ChewieHiveUtil.getDarkTheme();
-    notifyListeners();
-  }
-
   static List<SelectionItemModel<ActiveThemeMode>> getSupportedThemeMode() {
     return [
       SelectionItemModel(ChewieS.current.followSystem, ActiveThemeMode.system),
       SelectionItemModel(ChewieS.current.lightTheme, ActiveThemeMode.light),
       SelectionItemModel(ChewieS.current.darkTheme, ActiveThemeMode.dark),
     ];
-  }
-
-  Locale? _locale = ChewieHiveUtil.getLocale();
-
-  Locale? get locale => _locale;
-
-  set locale(Locale? value) {
-    if (value != _locale) {
-      _locale = value;
-      notifyListeners();
-      ChewieHiveUtil.setLocale(value);
-    }
   }
 
   int? _fontSize = ChewieHiveUtil.getFontSize();

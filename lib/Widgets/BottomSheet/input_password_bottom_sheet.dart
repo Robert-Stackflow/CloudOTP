@@ -53,6 +53,8 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
     });
   }
 
+  Radius radius = ChewieDimens.radius8;
+
   @override
   Widget build(BuildContext context) {
     return AnimatedPadding(
@@ -65,11 +67,12 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(
-                  top: const Radius.circular(20),
-                  bottom: ResponsiveUtil.isWideLandscape()
-                      ? const Radius.circular(20)
-                      : Radius.zero),
-              color: ChewieTheme.canvasColor,
+                  top: radius,
+                  bottom:
+                      ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+              color: ChewieTheme.scaffoldBackgroundColor,
+              border: ChewieTheme.border,
+              boxShadow: ChewieTheme.defaultBoxShadow,
             ),
             child: Form(
               key: formKey,

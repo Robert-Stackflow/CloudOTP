@@ -41,7 +41,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
             borderRadius: BorderRadius.vertical(
                 top: radius,
                 bottom:
-                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
             border: ChewieTheme.border,
             boxShadow: ChewieTheme.defaultBoxShadow,
           ),
@@ -67,7 +67,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
       padding: const EdgeInsets.symmetric(vertical: 20),
       alignment: Alignment.center,
       child: Text(
-        ChewieS.current.rateTitle,
+        ChewieS.current.rateTitle(ResponsiveUtil.appName),
         style: ChewieTheme.titleLarge,
       ),
     );
@@ -108,7 +108,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
             mainAxisSize: MainAxisSize.min,
             children: List.generate(
               5,
-              (index) {
+                  (index) {
                 return ClickableGestureDetector(
                   child: Icon(
                     index < currentStar

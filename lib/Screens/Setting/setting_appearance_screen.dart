@@ -131,10 +131,10 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
         SearchableBuilderWidget(
           title: S.current.selectTheme,
           builder: (_, title, description, searchText, searchConfig) =>
-              Selector<ChewieProvider, ChewieThemeColorData>(
+              Selector<AppProvider, ChewieThemeColorData>(
             selector: (context, appProvider) => appProvider.lightTheme,
             builder: (context, lightTheme, child) =>
-                Selector<ChewieProvider, ChewieThemeColorData>(
+                Selector<AppProvider, ChewieThemeColorData>(
               selector: (context, appProvider) => appProvider.darkTheme,
               builder: (context, darkTheme, child) => EntryItem(
                 tip: "${lightTheme.name}/${darkTheme.name}",

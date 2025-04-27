@@ -56,6 +56,7 @@ class _CategoryScreenState extends State<CategoryScreen>
     return MyScaffold(
       appBar: ResponsiveAppBar(
         title: S.current.category,
+        showBorder: true,
         showBack: !ResponsiveUtil.isLandscape(),
         titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
         actions: [
@@ -98,7 +99,6 @@ class _CategoryScreenState extends State<CategoryScreen>
               });
             },
           ),
-          const SizedBox(width: 5),
         ],
       ),
       body: _buildBody(),
@@ -120,7 +120,11 @@ class _CategoryScreenState extends State<CategoryScreen>
               },
               cacheExtent: 9999,
               padding: const EdgeInsets.only(
-                  top: 6, left: 12, right: 12, bottom: 30),
+                top: 6,
+                left: 12,
+                right: 12,
+                bottom: 30,
+              ),
               buildDefaultDragHandles: false,
               itemCount: categories.length,
               onReorder: (oldIndex, newIndex) {

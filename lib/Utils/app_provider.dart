@@ -32,13 +32,12 @@ GlobalKey<GeneralSettingScreenState> generalSettingScreenKey =
 GeneralSettingScreenState? get generalSettingScreenState =>
     generalSettingScreenKey.currentState;
 
-GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
-
 GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
-HomeScreenState? get homeScreenState => homeScreenKey.currentState;
-
 MainScreenState? get mainScreenState => mainScreenKey.currentState;
+
+HomeScreenState? get homeScreenState =>
+    chewieProvider.panelScreenKey.currentState as HomeScreenState?;
 
 // GlobalKey<KeyboardHandlerState> keyboardHandlerKey =
 //     GlobalKey<KeyboardHandlerState>();
@@ -231,15 +230,6 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _canPopByProvider = false;
-
-  bool get canPopByProvider => _canPopByProvider;
-
-  set canPopByProvider(bool value) {
-    _canPopByProvider = value;
-    notifyListeners();
-  }
-
   bool _showCloudBackupButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showCloudBackupButtonKey,
       defaultValue: ResponsiveUtil.isLandscape(false));
@@ -351,6 +341,50 @@ class AppProvider with ChangeNotifier {
       _autoLockTime = value;
       notifyListeners();
       CloudOTPHiveUtil.setAutoLockTime(value);
+    }
+  }
+
+  ChewieThemeColorData _lightTheme = ChewieHiveUtil.getLightTheme();
+
+  ChewieThemeColorData get lightTheme => _lightTheme;
+
+  set lightTheme(ChewieThemeColorData value) {
+    _lightTheme = value;
+    chewieProvider.lightTheme = value;
+    notifyListeners();
+  }
+
+  setLightTheme(int index) {
+    ChewieHiveUtil.setLightTheme(index);
+    _lightTheme = ChewieHiveUtil.getLightTheme();
+    notifyListeners();
+  }
+
+  ChewieThemeColorData _darkTheme = ChewieHiveUtil.getDarkTheme();
+
+  ChewieThemeColorData get darkTheme => _darkTheme;
+
+  set darkTheme(ChewieThemeColorData value) {
+    _darkTheme = value;
+    chewieProvider.darkTheme = value;
+    notifyListeners();
+  }
+
+  setDarkTheme(int index) {
+    ChewieHiveUtil.setDarkTheme(index);
+    _darkTheme = ChewieHiveUtil.getDarkTheme();
+    notifyListeners();
+  }
+
+  Locale? _locale = ChewieHiveUtil.getLocale();
+
+  Locale? get locale => _locale;
+
+  set locale(Locale? value) {
+    if (value != _locale) {
+      _locale = value;
+      notifyListeners();
+      ChewieHiveUtil.setLocale(value);
     }
   }
 }

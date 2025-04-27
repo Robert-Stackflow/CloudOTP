@@ -18,7 +18,7 @@ import 'dart:math' as math show pi;
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart' show clampDouble;
+import 'package:flutter/foundation.dart' show Brightness, clampDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -1431,25 +1431,26 @@ class MyDesktopTextSelectionToolbar extends StatelessWidget {
   const MyDesktopTextSelectionToolbar({
     super.key,
     required this.anchor,
+    this.backgroundColor,
     required this.items,
-    this.decoration,
     this.dividerColor,
-    this.padding,
-    this.itemBuilder,
+    this.toolbarBuilder = _defaultToolbarBuilder,
   });
 
   /// {@macro flutter.material.TextSelectionToolbar.anchorAbove}
   final Offset anchor;
 
+  final Color? backgroundColor;
+
   final Color? dividerColor;
-
-  final BoxDecoration? decoration;
-
-  final EdgeInsetsGeometry? padding;
 
   final List<MyContextMenuItem> items;
 
-  final Function(BuildContext, MyContextMenuItem)? itemBuilder;
+  /// {@macro flutter.material.TextSelectionToolbar.toolbarBuilder}
+  ///
+  /// The given anchor and isAbove can be used to position an arrow, as in the
+  /// default Cupertino toolbar.
+  final CupertinoToolbarBuilder toolbarBuilder;
 
   /// Minimal padding from all edges of the selection toolbar to all edges of the
   /// viewport.
@@ -1460,6 +1461,27 @@ class MyDesktopTextSelectionToolbar extends StatelessWidget {
   ///    padding from the edges of the viewport.
   ///  * [TextSelectionToolbar], which uses this same value as well.
   static const double kToolbarScreenPadding = 8.0;
+
+  // Builds a toolbar just like the default iOS toolbar, with the right color
+  // background and a rounded cutout with an arrow.
+  static Widget _defaultToolbarBuilder(
+    BuildContext context,
+    Offset anchorAbove,
+    Offset anchorBelow,
+    Widget child,
+    Color? backgroundColor,
+    Color? dividerColor,
+  ) {
+    return _CupertinoTextSelectionToolbarShape(
+      anchorAbove: anchorAbove,
+      anchorBelow: anchorBelow,
+      shadowColor: Theme.of(context).shadowColor,
+      child: ColoredBox(
+        color: backgroundColor ?? _kToolbarBackgroundColor.resolveFrom(context),
+        child: child,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1484,51 +1506,236 @@ class MyDesktopTextSelectionToolbar extends StatelessWidget {
         child: items.isNotEmpty
             ? Container(
                 width: 160,
-                padding: padding ??
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: decoration ??
-                    BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                          color: Theme.of(context).dividerColor, width: 1),
-                      color: Theme.of(context).canvasColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context).shadowColor,
-                          offset: const Offset(0, 4),
-                          blurRadius: 10,
-                          spreadRadius: 1,
-                        ).scale(2)
-                      ],
-                    ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: Theme.of(context).dividerColor, width: 1),
+                  color: Theme.of(context).canvasColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).shadowColor,
+                      offset: const Offset(0, 4),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ).scale(2)
+                  ],
+                ),
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemBuilder: itemBuilder != null
-                      ? (context, index) => itemBuilder!(context, items[index])
-                      : (context, index) {
-                          BorderRadius radius = BorderRadius.circular(8);
-                          return Material(
+                  itemBuilder: (context, index) {
+                    BorderRadius radius = BorderRadius.circular(10);
+                    return Material(
+                      // borderRadius: BorderRadius.vertical(
+                      //   top: index == 0 ? const Radius.circular(10) : Radius.zero,
+                      //   bottom: index == items.length - 1
+                      //       ? const Radius.circular(10)
+                      //       : Radius.zero,
+                      // ),
+                      borderRadius: radius,
+                      child: InkWell(
+                        borderRadius: radius,
+                        onTap: items[index].onPressed,
+                        child: Container(
+                          decoration: BoxDecoration(
                             borderRadius: radius,
-                            child: InkWell(
-                              borderRadius: radius,
-                              onTap: items[index].onPressed,
-                              child: Container(
-                                decoration: BoxDecoration(borderRadius: radius),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                child: Text(
-                                  items[index].label ?? "",
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          child: Text(
+                            items[index].label ?? "",
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                   itemCount: items.length,
                 ),
               )
             : Container(),
       ),
+    );
+  }
+}
+
+class _DesktopTextSelectionToolbarContent extends StatefulWidget {
+  const _DesktopTextSelectionToolbarContent({
+    required this.anchorAbove,
+    required this.anchorBelow,
+    required this.toolbarBuilder,
+    required this.children,
+    this.backgroundColor,
+    this.dividerColor,
+  }) : assert(children.length > 0);
+
+  final Offset anchorAbove;
+  final Offset anchorBelow;
+  final List<Widget> children;
+  final CupertinoToolbarBuilder toolbarBuilder;
+  final Color? backgroundColor;
+  final Color? dividerColor;
+
+  @override
+  _DesktopTextSelectionToolbarContentState createState() =>
+      _DesktopTextSelectionToolbarContentState();
+}
+
+class _DesktopTextSelectionToolbarContentState
+    extends State<_DesktopTextSelectionToolbarContent>
+    with TickerProviderStateMixin {
+  // Controls the fading of the buttons within the menu during page transitions.
+  late AnimationController _controller;
+  int? _nextPage;
+  int _page = 0;
+
+  final GlobalKey _toolbarItemsKey = GlobalKey();
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    final double? velocity = details.primaryVelocity;
+
+    if (velocity != null && velocity != 0) {
+      if (velocity > 0) {
+        _handlePreviousPage();
+      } else {
+        _handleNextPage();
+      }
+    }
+  }
+
+  void _handleNextPage() {
+    final RenderBox? renderToolbar =
+        _toolbarItemsKey.currentContext?.findRenderObject() as RenderBox?;
+
+    if (renderToolbar is _RenderCupertinoTextSelectionToolbarItems &&
+        renderToolbar.hasNextPage) {
+      _controller.reverse();
+      _controller.addStatusListener(_statusListener);
+      _nextPage = _page + 1;
+    }
+  }
+
+  void _handlePreviousPage() {
+    final RenderBox? renderToolbar =
+        _toolbarItemsKey.currentContext?.findRenderObject() as RenderBox?;
+
+    if (renderToolbar is _RenderCupertinoTextSelectionToolbarItems &&
+        renderToolbar.hasPreviousPage) {
+      _controller.reverse();
+      _controller.addStatusListener(_statusListener);
+      _nextPage = _page - 1;
+    }
+  }
+
+  void _statusListener(AnimationStatus status) {
+    if (status != AnimationStatus.dismissed) {
+      return;
+    }
+
+    setState(() {
+      _page = _nextPage!;
+      _nextPage = null;
+    });
+    _controller.forward();
+    _controller.removeStatusListener(_statusListener);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      value: 1.0,
+      vsync: this,
+      // This was eyeballed on a physical iOS device running iOS 13.
+      duration: _kToolbarTransitionDuration,
+    );
+  }
+
+  @override
+  void didUpdateWidget(_DesktopTextSelectionToolbarContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the children are changing, the current page should be reset.
+    if (widget.children != oldWidget.children) {
+      _page = 0;
+      _nextPage = null;
+      _controller.forward();
+      _controller.removeStatusListener(_statusListener);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Color chevronColor = _kToolbarTextColor.resolveFrom(context);
+
+    // Wrap the children and the chevron painters in Center with widthFactor
+    // and heightFactor of 1.0 so _CupertinoTextSelectionToolbarItems can get
+    // the natural size of the buttons and then expand vertically as needed.
+    final Widget backButton = Center(
+      widthFactor: 1.0,
+      heightFactor: 1.0,
+      child: CupertinoTextSelectionToolbarButton(
+        onPressed: _handlePreviousPage,
+        child: IgnorePointer(
+          child: CustomPaint(
+            painter: _LeftCupertinoChevronPainter(color: chevronColor),
+            size: const Size.square(_kToolbarChevronSize),
+          ),
+        ),
+      ),
+    );
+    final Widget nextButton = Center(
+      widthFactor: 1.0,
+      heightFactor: 1.0,
+      child: CupertinoTextSelectionToolbarButton(
+        onPressed: _handleNextPage,
+        child: IgnorePointer(
+          child: CustomPaint(
+            painter: _RightCupertinoChevronPainter(color: chevronColor),
+            size: const Size.square(_kToolbarChevronSize),
+          ),
+        ),
+      ),
+    );
+    final List<Widget> children = widget.children.map((Widget child) {
+      return Center(
+        widthFactor: 1.0,
+        heightFactor: 1.0,
+        child: child,
+      );
+    }).toList();
+
+    return widget.toolbarBuilder(
+      context,
+      widget.anchorAbove,
+      widget.anchorBelow,
+      FadeTransition(
+        opacity: _controller,
+        child: AnimatedSize(
+          duration: _kToolbarTransitionDuration,
+          curve: Curves.decelerate,
+          child: GestureDetector(
+            onHorizontalDragEnd: _onHorizontalDragEnd,
+            child: _MobileTextSelectionToolbarItems(
+              key: _toolbarItemsKey,
+              page: _page,
+              backButton: backButton,
+              dividerColor: widget.dividerColor ??
+                  _kToolbarDividerColor.resolveFrom(context),
+              dividerWidth: 1.0 / MediaQuery.devicePixelRatioOf(context),
+              nextButton: nextButton,
+              children: children,
+            ),
+          ),
+        ),
+      ),
+      widget.backgroundColor,
+      widget.dividerColor,
     );
   }
 }

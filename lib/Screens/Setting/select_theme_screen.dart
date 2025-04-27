@@ -99,7 +99,7 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
           setState(
             () {
               _selectedLightIndex = index ?? 0;
-              chewieProvider.setLightTheme(index ?? 0);
+              appProvider.setLightTheme(index ?? 0);
             },
           );
         },
@@ -120,7 +120,7 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
           setState(
             () {
               _selectedDarkIndex = index ?? 0;
-              chewieProvider.setDarkTheme(index ?? 0);
+              appProvider.setDarkTheme(index ?? 0);
             },
           );
         },

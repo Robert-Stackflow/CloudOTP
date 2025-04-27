@@ -238,6 +238,7 @@ class TokenLayoutState extends State<TokenLayout>
   _buildContextMenuRegion() {
     return ContextMenuRegion(
       key: ValueKey("contextMenuRegion${widget.token.keyString}"),
+      enable: ResponsiveUtil.isDesktop(),
       contextMenu: _buildContextMenuButtons(),
       child: Selector<AppProvider, bool>(
         selector: (context, provider) => provider.dragToReorder,
@@ -298,7 +299,7 @@ class TokenLayoutState extends State<TokenLayout>
             backgroundColor: Theme.of(context).cardColor,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             foregroundColor: Theme.of(context).primaryColor,
-            icon: Icons.qr_code_rounded,
+            icon: LucideIcons.qrCode,
             label: S.current.viewTokenQrCodeShort,
             spacing: 8,
             simple: simple,
@@ -310,7 +311,7 @@ class TokenLayoutState extends State<TokenLayout>
             backgroundColor: Theme.of(context).cardColor,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             foregroundColor: Theme.of(context).primaryColor,
-            icon: Icons.edit_outlined,
+            icon: LucideIcons.pencilLine,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             label: S.current.editTokenShort,
             simple: simple,
@@ -322,7 +323,7 @@ class TokenLayoutState extends State<TokenLayout>
             backgroundColor: Theme.of(context).cardColor,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             foregroundColor: Theme.of(context).primaryColor,
-            icon: Icons.more_vert_rounded,
+            icon: LucideIcons.ellipsisVertical,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             label: S.current.moreOptionShort,
             simple: simple,
@@ -334,7 +335,7 @@ class TokenLayoutState extends State<TokenLayout>
             backgroundColor: Colors.red,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             foregroundColor: Theme.of(context).primaryColor,
-            icon: Icons.delete,
+            icon: LucideIcons.trash2,
             simple: simple,
             label: S.current.deleteTokenShort,
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -523,7 +524,7 @@ class TokenLayoutState extends State<TokenLayout>
                     },
                     padding: EdgeInsets.all(padding),
                     icon: Icon(
-                      Icons.visibility_outlined,
+                      LucideIcons.eye,
                       size: 20,
                       color: color ??
                           Theme.of(context).textTheme.labelMedium?.color,
@@ -838,7 +839,7 @@ class TokenLayoutState extends State<TokenLayout>
                           CircleIconButton(
                             padding: const EdgeInsets.all(4),
                             icon: Icon(
-                              Icons.more_vert_rounded,
+                              LucideIcons.ellipsisVertical,
                               color:
                                   Theme.of(context).textTheme.labelSmall?.color,
                               size: 20,

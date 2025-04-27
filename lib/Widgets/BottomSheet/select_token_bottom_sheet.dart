@@ -69,13 +69,14 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
       runAlignment: WrapAlignment.center,
       children: [
         Material(
+          color: Colors.transparent,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(
                   top: radius,
                   bottom:
-                      ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                  ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
               color: ChewieTheme.scaffoldBackgroundColor,
               border: ChewieTheme.border,
               boxShadow: ChewieTheme.defaultBoxShadow,
@@ -88,7 +89,10 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
                 _buildHeader(),
                 Container(
                   constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height - 320),
+                      maxHeight: MediaQuery
+                          .of(context)
+                          .size
+                          .height - 320),
                   child: _buildButtons(),
                 ),
                 _buildFooter(),
@@ -103,11 +107,17 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.vertical(top: radius)
+      ),
       alignment: Alignment.center,
       child: Text(
         textAlign: TextAlign.center,
         S.current.setTokenForCategory(widget.category.title),
-        style: Theme.of(context).textTheme.titleLarge,
+        style: Theme
+            .of(context)
+            .textTheme
+            .titleLarge,
       ),
     );
   }
@@ -115,11 +125,11 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   _buildButtons() {
     return tokens.isNotEmpty
         ? SingleChildScrollView(
-            child: CloudOTPItemBuilder.buildGroupTokenButtons(
-              tokens: tokens,
-              controller: controller,
-            ),
-          )
+      child: CloudOTPItemBuilder.buildGroupTokenButtons(
+        tokens: tokens,
+        controller: controller,
+      ),
+    )
         : EmptyPlaceholder(text: S.current.noToken);
   }
 
@@ -135,12 +145,14 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
           Expanded(
             flex: 1,
             child: RoundIconTextButton(
-              background: Theme.of(context).primaryColor,
+              background: Theme
+                  .of(context)
+                  .primaryColor,
               text: S.current.save,
               onPressed: () async {
                 List<int> selectedIndexes = controller.selectedIndexes.toList();
                 List<String> tokenUids =
-                    selectedIndexes.map((e) => tokens[e].uid).toList();
+                selectedIndexes.map((e) => tokens[e].uid).toList();
                 List<String> unSelectedUids = oldSelectedUids
                     .where((element) => !tokenUids.contains(element))
                     .toList();

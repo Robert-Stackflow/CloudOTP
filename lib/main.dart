@@ -42,6 +42,7 @@ import 'package:window_manager/window_manager.dart';
 import 'Screens/main_screen.dart';
 import 'TokenUtils/token_image_util.dart';
 import 'Utils/constant.dart';
+import 'Utils/lottie_util.dart';
 import 'Utils/utils.dart';
 import 'Widgets/cloudotp/cloudotp_file_util.dart';
 import 'generated/l10n.dart';
@@ -230,12 +231,12 @@ class MyApp extends StatelessWidget {
           title: title,
           theme: chewieProvider.getBrightness() == null ||
                   chewieProvider.getBrightness() == Brightness.light
-              ? chewieProvider.lightTheme.toThemeData()
-              : chewieProvider.darkTheme.toThemeData(),
+              ? appProvider.lightTheme.toThemeData()
+              : appProvider.darkTheme.toThemeData(),
           darkTheme: chewieProvider.getBrightness() == null ||
                   chewieProvider.getBrightness() == Brightness.dark
-              ? chewieProvider.darkTheme.toThemeData()
-              : chewieProvider.lightTheme.toThemeData(),
+              ? appProvider.darkTheme.toThemeData()
+              : appProvider.lightTheme.toThemeData(),
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
             S.delegate,
@@ -244,13 +245,13 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          locale: chewieProvider.locale,
+          locale: appProvider.locale,
           supportedLocales: S.delegate.supportedLocales,
           localeResolutionCallback: (locale, supportedLocales) {
             ILogger.debug("CloudOTP",
-                "Locale: $locale, Supported: $supportedLocales, chewieProvider.locale: ${chewieProvider.locale}");
-            if (chewieProvider.locale != null) {
-              return chewieProvider.locale;
+                "Locale: $locale, Supported: $supportedLocales, appProvider.locale: ${appProvider.locale}");
+            if (appProvider.locale != null) {
+              return appProvider.locale;
             } else if (locale != null && supportedLocales.contains(locale)) {
               return locale;
             } else {

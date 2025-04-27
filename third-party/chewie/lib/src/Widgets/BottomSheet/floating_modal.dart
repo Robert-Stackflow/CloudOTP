@@ -35,7 +35,9 @@ class FloatingModal extends StatelessWidget {
     double preferVerticalMargin =
         height > preferHeight ? (height - preferHeight) / 2 : 0;
     return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+      filter: ResponsiveUtil.isDesktop()
+          ? ImageFilter.blur(sigmaX: 2, sigmaY: 2)
+          : ImageFilter.blur(sigmaX: 0, sigmaY: 0),
       child: Container(
         margin: EdgeInsets.only(
           left: preferHorizontalMargin,

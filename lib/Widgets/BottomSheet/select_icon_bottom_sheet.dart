@@ -14,6 +14,7 @@
  */
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Widgets/cloudotp/cloudotp_item_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
@@ -70,6 +71,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
   @override
   Widget build(BuildContext context) {
     Widget mainBody = Material(
+      color: Colors.transparent,
       child: Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -129,14 +131,15 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
         mainAxisSpacing: 6,
         crossAxisSpacing: 6,
       ),
-      itemBuilder: (context, index) => RoundIconTextButton(
+      itemBuilder: (context, index) => CloudOTPItemBuilder.buildRoundButton(
+        context,
         radius: 8,
         icon: ClipRRect(
           borderRadius: BorderRadius.circular(3),
           child: AssetFiles.loadBrand(icons[index], width: 20, height: 20),
         ),
         text: icons[index].split(".")[0],
-        onPressed: () async {
+        onTap: () async {
           widget.token.imagePath = icons[index];
           widget.onSelected.call(widget.token.imagePath);
           if (widget.doUpdate) {

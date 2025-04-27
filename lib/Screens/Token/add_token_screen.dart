@@ -21,6 +21,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Database/category_dao.dart';
 import '../../TokenUtils/check_token_util.dart';
@@ -181,7 +182,6 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               processDone();
             },
           ),
-          const SizedBox(width: 5),
         ],
       ),
       body: EasyRefresh(
@@ -253,15 +253,12 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               _typeInfo(),
               const SizedBox(height: 10),
               _basicInfo(),
-              const SizedBox(height: 10),
-              ..._categoryInfo(),
-              const SizedBox(height: 10),
-              if (_isEditing) ..._copyTimesInfo(),
-              if (_isEditing && !isSteam && !isYandex)
-                const SizedBox(height: 10),
               if (!_showAdvancedInfo && !isSteam && !isYandex)
                 _showAdvancedInfoButton(),
               if (_showAdvancedInfo && !isSteam && !isYandex) _advancedInfo(),
+              const SizedBox(height: 10),
+              ..._categoryInfo(),
+              if (_isEditing) ..._copyTimesInfo(),
               if (_isEditing) ..._deleteButton(),
               SizedBox(height: _isEditing ? 0 : 30),
             ],
@@ -295,30 +292,28 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   }
 
   _typeInfo() {
-    return ContainerItem(
-      child: ItemBuilder.buildGroupTile(
-        context: context,
-        // title: S.current.tokenType,
-        controller: _typeController,
-        buttons: OtpTokenType.toLabels(),
-        onSelected: (value, index, isSelected) {
-          _otpToken.tokenType = index.otpTokenType;
-          _otpToken.digits = index.otpTokenType.defaultDigits;
-          _digitsController.selectIndex(_otpToken.digits.index);
-          _periodController.text = _otpToken.periodString =
-              _otpToken.tokenType.defaultPeriod.toString();
-          if (_otpToken.tokenType == OtpTokenType.Yandex) {
-            _otpToken.digits = OtpDigits.D8;
-            _otpToken.algorithm = OtpAlgorithm.SHA256;
-          }
-          setState(() {});
-        },
-      ),
+    return ItemBuilder.buildGroupTile(
+      context: context,
+      // title: S.current.tokenType,
+      controller: _typeController,
+      buttons: OtpTokenType.toLabels(),
+      onSelected: (value, index, isSelected) {
+        _otpToken.tokenType = index.otpTokenType;
+        _otpToken.digits = index.otpTokenType.defaultDigits;
+        _digitsController.selectIndex(_otpToken.digits.index);
+        _periodController.text = _otpToken.periodString =
+            _otpToken.tokenType.defaultPeriod.toString();
+        if (_otpToken.tokenType == OtpTokenType.Yandex) {
+          _otpToken.digits = OtpDigits.D8;
+          _otpToken.algorithm = OtpAlgorithm.SHA256;
+        }
+        setState(() {});
+      },
     );
   }
 
   _basicInfo() {
-    return ContainerItem(
+    return Container(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
       child: Column(
         children: [
@@ -334,6 +329,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             },
             hint: S.current.tokenIssuerHint,
             style: InputItemStyle(
+              titleTopMargin: 0,
+              topMargin: 0,
+              bottomMargin: 0,
               maxLength: 32,
             ),
           ),
@@ -342,12 +340,19 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             textInputAction: TextInputAction.next,
             title: S.current.tokenAccount,
             hint: S.current.tokenAccountHint,
+            style: InputItemStyle(
+              titleTopMargin: 0,
+              topMargin: 0,
+              bottomMargin: 0,
+            ),
           ),
           InputItem(
             controller: _secretController,
             textInputAction: TextInputAction.next,
             title: S.current.tokenSecret,
             style: InputItemStyle(
+              topMargin: 0,
+              bottomMargin: 0,
               obscure: _isEditing,
             ),
             tailingConfig: InputItemLeadingTailingConfig(
@@ -374,6 +379,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               textInputAction: TextInputAction.next,
               title: S.current.tokenPin,
               style: InputItemStyle(
+                topMargin: 0,
+                bottomMargin: 0,
                 obscure: _isEditing,
                 maxLength: _otpToken.tokenType.maxPinLength,
               ),
@@ -395,10 +402,54 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   }
 
   _categoryInfo() {
+    selectCategory() {
+      BottomSheetBuilder.showBottomSheet(
+        context,
+        responsive: true,
+        (context) => SelectCategoryBottomSheet(
+          token: _otpToken,
+          isEditingToken: true,
+          initialCategorUids: selectedCategoryUids,
+          onCategoryChanged: (selected) {
+            selectedCategoryUids = selected;
+            setState(() {});
+          },
+        ),
+      );
+    }
+
     return [
+      EntryItem(
+        tipWidth: 300,
+        title: S.current.editTokenCategory,
+        trailing: LucideIcons.shapes,
+        tipWidget: selectedCategoryUids.isNotEmpty
+            ? Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: selectedCategoryUids
+                    .map(
+                      (e) => RoundIconTextButton(
+                        height: 32,
+                        radius: 6,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        background: Theme.of(context).primaryColor,
+                        text: categories
+                            .firstWhere((element) => element.uid == e)
+                            .title,
+                        onPressed: selectCategory,
+                      ),
+                    )
+                    .toList(),
+              )
+            : null,
+        onTap: selectCategory,
+      ),
       EntryItem(
         tipWidth: 120,
         title: S.current.autoMatchTokenIcon,
+        trailing: LucideIcons.refreshCcw,
         onTap: () {
           setState(() {
             customedImage = false;
@@ -426,107 +477,73 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           );
         },
       ),
-      EntryItem(
-        tipWidth: 300,
-        title: S.current.editTokenCategory,
-        tipWidget: selectedCategoryUids.isNotEmpty
-            ? Wrap(
-                spacing: 5,
-                runSpacing: 5,
-                children: selectedCategoryUids
-                    .map(
-                      (e) => RoundIconTextButton(
-                        radius: 6,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        background: Theme.of(context).primaryColor,
-                        text: categories
-                            .firstWhere((element) => element.uid == e)
-                            .title,
-                      ),
-                    )
-                    .toList(),
-              )
-            : null,
-        onTap: () {
-          BottomSheetBuilder.showBottomSheet(
-            context,
-            responsive: true,
-            (context) => SelectCategoryBottomSheet(
-              token: _otpToken,
-              isEditingToken: true,
-              initialCategorUids: selectedCategoryUids,
-              onCategoryChanged: (selected) {
-                selectedCategoryUids = selected;
-                setState(() {});
-              },
-            ),
-          );
-        },
-      ),
     ];
   }
 
   _showAdvancedInfoButton() {
-    return Row(
-      children: [
-        Expanded(
-          child: RoundIconTextButton(
-            background: Theme.of(context).canvasColor,
-            radius: 12,
-            text: S.current.showAdvancedInfo,
-            icon: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
-            textStyle: Theme.of(context).textTheme.titleMedium,
-            fontSizeDelta: 2,
-            onPressed: () {
-              setState(() {
-                _showAdvancedInfo = true;
-              });
-            },
-          ),
+    return Container(
+      margin: const EdgeInsets.only(top: 5),
+      child: RoundIconTextButton(
+        width: double.infinity,
+        background: Theme.of(context).canvasColor,
+        radius: 12,
+        text: S.current.showAdvancedInfo,
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: Theme.of(context).textTheme.bodySmall?.color,
         ),
-      ],
+        textStyle: Theme.of(context).textTheme.titleMedium,
+        fontSizeDelta: 2,
+        onPressed: () {
+          setState(() {
+            _showAdvancedInfo = true;
+          });
+        },
+      ),
     );
   }
 
   _advancedInfo() {
-    return ContainerItem(
+    return Container(
       padding: const EdgeInsets.only(top: 5, bottom: 5),
       child: Column(
         children: [
           Visibility(
             visible: !isSteam && !isYandex,
-            child: ItemBuilder.buildGroupTile(
-              context: context,
-              title: S.current.tokenDigits,
-              controller: _digitsController,
-              buttons: OtpDigits.toStrings(),
-              onSelected: (value, index, isSelected) {
-                _otpToken.digits = OtpDigits.fromString(value);
-                setState(() {});
-              },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: ItemBuilder.buildGroupTile(
+                context: context,
+                title: S.current.tokenDigits,
+                controller: _digitsController,
+                buttons: OtpDigits.toStrings(),
+                onSelected: (value, index, isSelected) {
+                  _otpToken.digits = OtpDigits.fromString(value);
+                  setState(() {});
+                },
+              ),
             ),
           ),
           Visibility(
             visible: !isSteam && !isMotp && !isYandex,
-            child: ItemBuilder.buildGroupTile(
-              context: context,
-              title: S.current.tokenAlgorithm,
-              controller: _algorithmController,
-              buttons: OtpAlgorithm.toStrings(),
-              onSelected: (value, index, isSelected) {
-                _otpToken.algorithm = index.otpAlgorithm;
-                setState(() {});
-              },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: ItemBuilder.buildGroupTile(
+                context: context,
+                title: S.current.tokenAlgorithm,
+                controller: _algorithmController,
+                buttons: OtpAlgorithm.toStrings(),
+                onSelected: (value, index, isSelected) {
+                  _otpToken.algorithm = index.otpAlgorithm;
+                  setState(() {});
+                },
+              ),
             ),
           ),
           Visibility(
             visible: !isSteam && !isYandex && !isHotp,
             child: Container(
-              margin: const EdgeInsets.only(top: 10),
+              margin: const EdgeInsets.only(bottom: 10),
               child: InputItem(
                 controller: _periodController,
                 title: S.current.tokenPeriod,
@@ -536,6 +553,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                     ? TextInputAction.done
                     : TextInputAction.next,
                 hint: S.current.tokenPeriodHint,
+                style: InputItemStyle(
+                  titleTopMargin: 0,
+                  topMargin: 0,
+                  bottomMargin: 0,
+                ),
                 validator: (text) {
                   if (text.isEmpty) {
                     return S.current.periodCannotBeEmpty;
@@ -551,7 +573,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           Visibility(
             visible: !isSteam && !isYandex && isHotp,
             child: Container(
-              margin: const EdgeInsets.only(top: 10),
+              margin: const EdgeInsets.only(bottom: 10),
               child: InputItem(
                 controller: _counterController,
                 title: S.current.tokenCounter,
@@ -559,6 +581,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
                 hint: S.current.tokenCounterHint,
+                style: InputItemStyle(
+                  titleTopMargin: 0,
+                  topMargin: 0,
+                  bottomMargin: 0,
+                ),
                 validator: (text) {
                   if (text.isEmpty) {
                     return S.current.counterCannotBeEmpty;
@@ -572,7 +599,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             ),
           ),
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: const EdgeInsets.symmetric(vertical: 5),
             width: double.infinity,
             child: RoundIconTextButton(
               background: Theme.of(context).canvasColor,

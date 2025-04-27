@@ -23,6 +23,7 @@ import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../Database/token_dao.dart';
@@ -267,7 +268,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
       ),
       children: [
         _buildItem(
-          leading: Icons.copy_rounded,
+          leading: LucideIcons.copy,
           title: S.current.copyTokenCode,
           onTap: () {
             Navigator.pop(context);
@@ -276,7 +277,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.token_outlined,
+          leading: LucideIcons.copySlash,
           title: S.current.copyNextTokenCode,
           onTap: () {
             Navigator.pop(context);
@@ -285,7 +286,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.edit_rounded,
+          leading: LucideIcons.pencilLine,
           title: S.current.editToken,
           onTap: () {
             Navigator.pop(context);
@@ -318,7 +319,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.qr_code_rounded,
+          leading: LucideIcons.qrCode,
           title: S.current.viewTokenQrCode,
           onTap: () {
             Navigator.pop(context);
@@ -331,7 +332,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.text_fields_rounded,
+          leading: LucideIcons.text,
           title: S.current.copyTokenUri,
           onTap: () {
             DialogBuilder.showConfirmDialog(
@@ -347,7 +348,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.category_outlined,
+          leading: LucideIcons.shapes,
           title: S.current.editTokenCategory,
           onTap: () {
             Navigator.pop(context);
@@ -359,7 +360,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.image_search_rounded,
+          leading: LucideIcons.blend,
           title: S.current.editTokenIcon,
           onTap: () {
             Navigator.pop(context);
@@ -381,12 +382,12 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
             onTap: () {},
           ),
         _buildItem(
-          leading: Icons.calculate_outlined,
+          leading: LucideIcons.squarePercent,
           title: S.current.currentCopyTimes(widget.token.copyTimes),
           onTap: () {},
         ),
         _buildItem(
-          leading: Icons.repeat_one_rounded,
+          leading: LucideIcons.rotateCcw,
           title: S.current.resetCopyTimes,
           titleColor: Colors.red,
           leadingColor: Colors.red,
@@ -407,7 +408,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           },
         ),
         _buildItem(
-          leading: Icons.delete_outline_rounded,
+          leading: LucideIcons.trash2,
           title: S.current.deleteToken,
           titleColor: Colors.red,
           leadingColor: Colors.red,

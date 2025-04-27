@@ -93,7 +93,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onLeadingTap: onTapBack ??
                     () => chewieProvider.panelScreenState?.popPage(),
                 backgroundColor:
-                    backgroundColor ?? ChewieTheme.appBarBackgroundColor,
+                    backgroundColor ?? ChewieTheme.scaffoldBackgroundColor,
                 titleLeftMargin: titleLeftMargin,
                 rightSpacing: rightSpacing,
                 title: titleWidget != null
@@ -111,17 +111,19 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
 
-    return bottomWidget != null && bottomHeight != null
-        ? PreferredSize(
-            preferredSize: Size.fromHeight(height + bottomHeight!),
-            child: Column(
-              children: [
-                topWidget,
-                bottomWidget!,
-              ],
-            ),
-          )
-        : topWidget;
+    return SafeArea(
+      child: bottomWidget != null && bottomHeight != null
+          ? PreferredSize(
+              preferredSize: Size.fromHeight(height + bottomHeight!),
+              child: Column(
+                children: [
+                  topWidget,
+                  bottomWidget!,
+                ],
+              ),
+            )
+          : topWidget,
+    );
   }
 
   @override

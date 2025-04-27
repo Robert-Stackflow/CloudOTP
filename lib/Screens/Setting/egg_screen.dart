@@ -72,8 +72,12 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
     return Stack(
       children: [
         Scaffold(
-          appBar:
-              ResponsiveUtil.isLandscape() ? null : const ResponsiveAppBar(),
+          appBar: ResponsiveUtil.isLandscape()
+              ? null
+              : const ResponsiveAppBar(
+                  showBorder: true,
+                  showBack: true,
+                ),
           body: EasyRefresh(
             child: ListView(
               physics: const BouncingScrollPhysics(),
@@ -111,8 +115,8 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 10),
-                    child:CustomHtmlWidget(
-                      content:S.current.eggEssay,
+                    child: CustomHtmlWidget(
+                      content: S.current.eggEssay,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),

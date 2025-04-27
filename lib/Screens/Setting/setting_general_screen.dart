@@ -16,10 +16,12 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import 'base_setting_screen.dart';
@@ -103,8 +105,8 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
         SearchableBuilderWidget(
           title: S.current.language,
           builder: (_, title, description, searchText, searchConfig) =>
-              Selector<ChewieProvider, Locale?>(
-            selector: (context, globalProvider) => globalProvider.locale,
+              Selector<AppProvider, Locale?>(
+            selector: (context, appProvider) => appProvider.locale,
             builder: (context, locale, child) =>
                 InlineSelectionItem<SelectionItemModel<Locale?>>(
               searchText: searchText,
@@ -113,10 +115,10 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
               searchConfig: searchConfig,
               selections: _supportedLocaleTuples,
               selected: _supportedLocaleTuples.firstWhere(
-                  (element) => element.value == chewieProvider.locale),
+                  (element) => element.value == appProvider.locale),
               hint: S.current.chooseLanguage,
               onChanged: (item) {
-                chewieProvider.locale = item?.value;
+                appProvider.locale = item?.value;
               },
             ),
           ),
@@ -166,6 +168,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
         EntryItem(
           title: S.current.exportLog,
           description: S.current.exportLogHint,
+          trailing: LucideIcons.fileUp,
           onTap: () {
             FileUtil.exportLogs();
           },

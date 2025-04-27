@@ -51,3 +51,6 @@ cloudotp.db
 /assets/fonts/**
 
 /releases/**
+
+# FVM Version Cache
+.fvm/

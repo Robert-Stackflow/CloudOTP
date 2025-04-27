@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Screens/Token/add_token_screen.dart';
@@ -128,7 +129,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
+            color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
                 bottom: ResponsiveUtil.isWideLandscape()
@@ -144,7 +145,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
                 _buildHeader(),
                 _buildScanner(),
                 if (!widget.onlyShowScanner)
-                  const MyDivider(horizontal: 10, vertical: 0),
+                  const MyDivider(horizontal: 10, vertical: 5),
                 if (!widget.onlyShowScanner) _buildOptions(),
                 // if (!widget.onlyShowScanner) const SizedBox(height: 20),
               ],
@@ -308,7 +309,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
             Navigator.pop(context);
             RouteUtil.pushDialogRoute(context, const AddTokenScreen());
           },
-          leading: Icons.add_rounded,
+          leading: LucideIcons.pencilLine,
         ),
         EntryItem(
           paddingHorizontal: 20,
@@ -319,7 +320,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
             Navigator.pop(context);
             RouteUtil.pushDialogRoute(context, const ImportExportTokenScreen());
           },
-          leading: Icons.import_export_rounded,
+          leading: LucideIcons.import,
         ),
         EntryItem(
           paddingHorizontal: 20,
@@ -333,7 +334,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
               const ImportFromThirdPartyBottomSheet(),
             );
           },
-          leading: Icons.apps_rounded,
+          leading: LucideIcons.waypoints,
         ),
       ],
     );

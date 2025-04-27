@@ -136,7 +136,7 @@ class EntryItemState extends SearchableState<EntryItem> {
       SizedBox(width: widget.showLeading ? 10 : 5),
       Expanded(child: _buildTextContent()),
       const SizedBox(width: 50),
-      _buildTipWidget(),
+      if (widget.tipWidget == null) _buildTipWidget(),
       if (widget.tipWidget != null) _buildCustomTipWidget(),
       // if (widget.showTrailing) SizedBox(width: widget.trailingLeftMargin),
       // if (widget.showTrailing) _buildTrailingIcon(),
@@ -187,6 +187,7 @@ class EntryItemState extends SearchableState<EntryItem> {
         ? Container(
             constraints: const BoxConstraints(minWidth: 100),
             child: RoundIconTextButton(
+              height: 32,
               onPressed: widget.onTap,
               text: widget.tip,
               textStyle: ChewieTheme.bodyMedium
@@ -197,13 +198,13 @@ class EntryItemState extends SearchableState<EntryItem> {
             ),
           )
         : RoundIconTextButton(
+            height: 32,
             onPressed: widget.onTap,
             icon: Icon(
               widget.trailing,
               size: 16,
               color: ChewieTheme.bodyMedium.color,
             ),
-            height: 32,
             padding: const EdgeInsets.symmetric(horizontal: 8),
             background: ChewieTheme.canvasColor,
             border: ChewieTheme.border,

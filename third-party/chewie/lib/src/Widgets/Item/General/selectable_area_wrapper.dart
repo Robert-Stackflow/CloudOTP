@@ -33,71 +33,71 @@ class SelectableAreaWrapper extends StatelessWidget {
   Widget build(BuildContext _) {
     return MySelectionArea(
       focusNode: focusNode,
-      onRightclick: !ResponsiveUtil.isDesktop()
-          ? null
-          : (details) {
-              String? selectedText = details.selectedText;
-              FlutterContextMenu contextMenu = FlutterContextMenu(
-                entries: [
-                  if (selectedText.notNullOrEmpty)
-                    FlutterContextMenuItem(
-                      ChewieS.current.copy,
-                      iconData: LucideIcons.copy,
-                      onPressed: () {
-                        details.clearSelection();
-                        ChewieUtils.copy(
-                            chewieProvider.rootContext, selectedText);
-                      },
-                    ),
-                  if (selectedText.notNullOrEmpty)
-                    FlutterContextMenuItem.submenu(
-                      ChewieS.current.search,
-                      iconData: LucideIcons.search,
-                      items: [
-                        FlutterContextMenuItem(
-                          "Google搜索",
-                          onPressed: () {
-                            details.clearSelection();
-                            UriUtil.launchUrlUri(chewieProvider.rootContext,
-                                "https://www.google.com/search?q=$selectedText");
-                          },
-                        ),
-                        FlutterContextMenuItem(
-                          "Bing搜索",
-                          onPressed: () {
-                            details.clearSelection();
-                            UriUtil.launchUrlUri(chewieProvider.rootContext,
-                                "https://bing.com/search?q=$selectedText");
-                          },
-                        ),
-                        FlutterContextMenuItem(
-                          "百度搜索",
-                          onPressed: () {
-                            details.clearSelection();
-                            UriUtil.launchUrlUri(chewieProvider.rootContext,
-                                "https://www.baidu.com/s?wd=$selectedText");
-                          },
-                        ),
-                      ],
-                    ),
-                  FlutterContextMenuItem(
-                    ChewieS.current.selectAll,
-                    iconData: LucideIcons.textCursorInput,
-                    onPressed: () {
-                      details.clearSelection();
-                      details.selectAll();
-                    },
-                  ),
-                  if (selectedText.notNullOrEmpty)
-                    ...contextMenuItemsBuilder?.call(details, selectedText) ??
-                        [],
-                ],
-              );
-              contextMenu.showAtMousePosition(
-                chewieProvider.rootContext,
-                details.contextMenuAnchors.primaryAnchor,
-              );
-            },
+      // onRightclick: !ResponsiveUtil.isDesktop()
+      //     ? null
+      //     : (details) {
+      //         String? selectedText = details.selectedText;
+      //         FlutterContextMenu contextMenu = FlutterContextMenu(
+      //           entries: [
+      //             if (selectedText.notNullOrEmpty)
+      //               FlutterContextMenuItem(
+      //                 ChewieS.current.copy,
+      //                 iconData: LucideIcons.copy,
+      //                 onPressed: () {
+      //                   details.clearSelection();
+      //                   ChewieUtils.copy(
+      //                       chewieProvider.rootContext, selectedText);
+      //                 },
+      //               ),
+      //             if (selectedText.notNullOrEmpty)
+      //               FlutterContextMenuItem.submenu(
+      //                 ChewieS.current.search,
+      //                 iconData: LucideIcons.search,
+      //                 items: [
+      //                   FlutterContextMenuItem(
+      //                     "Google搜索",
+      //                     onPressed: () {
+      //                       details.clearSelection();
+      //                       UriUtil.launchUrlUri(chewieProvider.rootContext,
+      //                           "https://www.google.com/search?q=$selectedText");
+      //                     },
+      //                   ),
+      //                   FlutterContextMenuItem(
+      //                     "Bing搜索",
+      //                     onPressed: () {
+      //                       details.clearSelection();
+      //                       UriUtil.launchUrlUri(chewieProvider.rootContext,
+      //                           "https://bing.com/search?q=$selectedText");
+      //                     },
+      //                   ),
+      //                   FlutterContextMenuItem(
+      //                     "百度搜索",
+      //                     onPressed: () {
+      //                       details.clearSelection();
+      //                       UriUtil.launchUrlUri(chewieProvider.rootContext,
+      //                           "https://www.baidu.com/s?wd=$selectedText");
+      //                     },
+      //                   ),
+      //                 ],
+      //               ),
+      //             FlutterContextMenuItem(
+      //               ChewieS.current.selectAll,
+      //               iconData: LucideIcons.textCursorInput,
+      //               onPressed: () {
+      //                 details.clearSelection();
+      //                 details.selectAll();
+      //               },
+      //             ),
+      //             if (selectedText.notNullOrEmpty)
+      //               ...contextMenuItemsBuilder?.call(details, selectedText) ??
+      //                   [],
+      //           ],
+      //         );
+      //         contextMenu.showAtMousePosition(
+      //           chewieProvider.rootContext,
+      //           details.contextMenuAnchors.primaryAnchor,
+      //         );
+      //       },
       contextMenuBuilder: (contextMenuContext, details) {
         Map<ContextMenuButtonType, String> typeToString = {
           ContextMenuButtonType.copy: ChewieS.current.copy,
@@ -142,7 +142,7 @@ class SelectableAreaWrapper extends StatelessWidget {
         } else {
           return MyDesktopTextSelectionToolbar(
             anchor: details.contextMenuAnchors.primaryAnchor,
-            decoration: ChewieTheme.defaultDecoration,
+            // decoration: ChewieTheme.defaultDecoration,
             dividerColor: ChewieTheme.dividerColor,
             items: items,
           );

@@ -70,7 +70,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
               ? const EdgeInsets.all(24)
               : EdgeInsets.zero,
           decoration: BoxDecoration(
-            color: ChewieTheme.canvasColor,
+            color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
                 top: const Radius.circular(20),
                 bottom: ResponsiveUtil.isWideLandscape()
@@ -115,7 +115,9 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                   itemBuilder: (context, index) {
                     return Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: ColorUtil.isDark(context)
+                            ? Colors.white
+                            : ChewieTheme.canvasColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       alignment: Alignment.center,

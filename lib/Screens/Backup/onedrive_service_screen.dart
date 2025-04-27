@@ -264,6 +264,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               text: S.current.cloudPullBackup,
               color: Theme.of(context).primaryColor,
               fontSizeDelta: 2,
@@ -319,6 +320,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Theme.of(context).primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
@@ -333,6 +335,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
               text: S.current.cloudLogout,
               fontSizeDelta: 2,

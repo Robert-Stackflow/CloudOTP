@@ -63,7 +63,6 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
         title: S.current.cloudBackupServiceSetting,
         actions: const [
           BlankIconButton(),
-          SizedBox(width: 5),
         ],
       ),
       body: EasyRefresh(
@@ -100,6 +99,9 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       context: context,
       controller: _typeController,
       constraintWidth: false,
+      padding: ResponsiveUtil.isLandscape()
+          ? const EdgeInsets.symmetric(horizontal: 16)
+          : null,
       buttons: CloudServiceType.toEnableStrings(),
       onSelected: (value, index, isSelected) {
         setState(() {

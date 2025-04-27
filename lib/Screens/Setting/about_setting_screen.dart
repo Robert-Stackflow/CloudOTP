@@ -112,7 +112,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
       context: context,
       backgroundColor: Colors.transparent,
       title: "",
-      showBorder: false,
+      showBorder: true,
       showTitleBar: widget.showTitleBar,
       showBack: !ResponsiveUtil.isLandscape(),
       padding: widget.padding,

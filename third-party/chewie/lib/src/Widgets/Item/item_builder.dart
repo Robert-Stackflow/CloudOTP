@@ -30,7 +30,7 @@ class ItemBuilder {
     bool showBack = true,
     Color? backgroundColor,
     double titleLeftMargin = 5,
-    bool showBorder = false,
+    bool showBorder = true,
     Function()? onTapBack,
   }) {
     return Scaffold(
@@ -292,14 +292,14 @@ class ItemBuilder {
   }) {
     return Container(
       color: Colors.transparent,
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 10),
+      padding: padding ?? const EdgeInsets.symmetric(horizontal: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           if (title.isNotEmpty)
             Container(
-              margin: const EdgeInsets.only(bottom: 10),
+              margin: const EdgeInsets.only(bottom: 8),
               child: Text(
                 title,
                 style: ChewieTheme.titleMedium
@@ -350,6 +350,7 @@ class ItemBuilder {
         return SizedBox(
           width: constraintWidth ? 80 : null,
           child: RoundIconTextButton(
+            height: 36,
             text: label,
             radius: radius,
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
@@ -417,7 +418,7 @@ class ItemBuilder {
     } else {
       return MyDesktopTextSelectionToolbar(
         anchor: details.contextMenuAnchors.primaryAnchor,
-        decoration: ChewieTheme.defaultDecoration,
+        // decoration: ChewieTheme.defaultDecoration,
         dividerColor: ChewieTheme.dividerColor,
         items: items,
       );

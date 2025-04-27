@@ -18,6 +18,7 @@ import 'package:biometric_storage/biometric_storage.dart';
 import 'package:cloudotp/Utils/biometric_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/input_password_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../Database/database_manager.dart';
@@ -200,6 +201,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
           child: EntryItem(
             title: S.current.clearEncryptDatabasePassword,
             description: S.current.clearEncryptDatabasePasswordTip,
+            trailing: LucideIcons.refreshCcw,
             onTap: () {
               DialogBuilder.showConfirmDialog(
                 context,
@@ -248,6 +250,8 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
                         appProvider.currentDatabasePassword);
                 if (_allowDatabaseBiometric) {
                   IToast.showTop(S.current.enableBiometricSuccess);
+                }else{
+                  IToast.showTop(S.current.biometricError);
                 }
                 setState(() {});
               } else {
@@ -280,6 +284,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
             builder: (context, autoLockTime, child) =>
                 InlineSelectionItem<AutoLockOption>(
               title: S.current.autoLockDelay,
+              hint: S.current.chooseAutoLockDelay,
               selections: AutoLockOption.getOptions(),
               selected: AutoLockOption.fromAutoLockTime(autoLockTime),
               onChanged: (autoLockOption) {

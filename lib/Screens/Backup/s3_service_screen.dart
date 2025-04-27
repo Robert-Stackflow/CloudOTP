@@ -371,7 +371,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Theme.of(context).primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
@@ -386,7 +386,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
           const SizedBox(width: 10),
           Expanded(
             child: RoundIconTextButton(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
               text: S.current.cloudLogout,
               fontSizeDelta: 2,

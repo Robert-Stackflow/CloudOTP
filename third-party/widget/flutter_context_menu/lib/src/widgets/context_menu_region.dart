@@ -9,6 +9,7 @@ class ContextMenuRegion extends StatelessWidget {
   final Widget child;
   final ValueChanged<dynamic>? onItemSelected;
   final bool showOnClicked;
+  final bool enable;
 
   const ContextMenuRegion({
     super.key,
@@ -16,6 +17,7 @@ class ContextMenuRegion extends StatelessWidget {
     required this.child,
     this.onItemSelected,
     this.showOnClicked = false,
+    this.enable = true,
   });
 
   @override
@@ -27,8 +29,8 @@ class ContextMenuRegion extends StatelessWidget {
         mousePosition = event.position;
       },
       child: GestureDetector(
-        onLongPress: () => _showMenu(context, mousePosition),
-        onSecondaryTap: () => _showMenu(context, mousePosition),
+        onLongPress: enable ? () => _showMenu(context, mousePosition) : null,
+        onSecondaryTap: enable ? () => _showMenu(context, mousePosition) : null,
         onTap: showOnClicked ? () => _showMenu(context, mousePosition) : null,
         child: child,
       ),

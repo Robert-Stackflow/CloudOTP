@@ -59,7 +59,9 @@ class CustomInfoDialogWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+      filter: ResponsiveUtil.isDesktop()
+          ? ImageFilter.blur(sigmaX: 2, sigmaY: 2)
+          : ImageFilter.blur(sigmaX: 0, sigmaY: 0),
       child: Align(
         alignment: align,
         child: Material(

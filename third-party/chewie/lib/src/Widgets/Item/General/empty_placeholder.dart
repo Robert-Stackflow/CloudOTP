@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:awesome_chewie/src/Resources/theme.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class EmptyPlaceholder extends StatelessWidget {
   final String text;
@@ -39,7 +40,7 @@ class EmptyPlaceholder extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
             Icon(
-              Icons.inbox_rounded,
+              LucideIcons.inbox,
               size: size,
               color: ChewieTheme.labelLarge.color,
             ),

@@ -5,7 +5,7 @@ abstract class BaseSettingScreen extends StatefulWidget {
   const BaseSettingScreen({
     super.key,
     this.showTitleBar = true,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10),
+    this.padding = const EdgeInsets.symmetric(horizontal: 6),
     this.searchText = "",
     this.searchConfig,
   });

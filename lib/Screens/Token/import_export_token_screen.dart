@@ -56,7 +56,6 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             ? []
             : [
                 const BlankIconButton(),
-                const SizedBox(width: 5),
               ],
       ),
       body: EasyRefresh(

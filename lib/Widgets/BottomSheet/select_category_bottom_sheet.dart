@@ -115,6 +115,9 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       alignment: Alignment.center,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.vertical(top: radius)
+      ),
       child: Text(
         textAlign: TextAlign.center,
         widget.token.issuer.isNotEmpty

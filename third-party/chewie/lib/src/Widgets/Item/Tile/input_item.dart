@@ -100,8 +100,10 @@ class InputItemLeadingTailingConfig {
 class InputItemStyle {
   final Color? backgroundColor;
   final Color? fieldBackgroundColor;
+  final EdgeInsets? contentPadding;
   final bool topRadius;
   final bool bottomRadius;
+  final double titleTopMargin;
   final bool showBorder;
   final int? maxLength;
   final int? maxLines;
@@ -121,9 +123,11 @@ class InputItemStyle {
     this.radius = 8,
     this.showBorder = true,
     this.maxLength,
+    this.contentPadding,
     this.horizontalMargin = 0,
     this.topMargin = 5,
     this.bottomMargin = 5,
+    this.titleTopMargin = 10,
     this.maxLines,
     this.minLines,
     this.obscure = false,
@@ -200,7 +204,7 @@ class InputItemState extends State<InputItem> {
 
   bool get isPassword =>
       widget.tailingConfig?.type == InputItemLeadingTailingType.password ||
-      widget.leadingConfig?.type == InputItemLeadingTailingType.password;
+          widget.leadingConfig?.type == InputItemLeadingTailingType.password;
 
   @override
   void initState() {
@@ -260,12 +264,12 @@ class InputItemState extends State<InputItem> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (widget.title.notNullOrEmpty) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: style.titleTopMargin),
             Container(
               margin: const EdgeInsets.only(left: 5, right: 5),
               child: Text(
                 widget.title!,
-                style: textTheme.bodyMedium,
+                style: textTheme.bodyMedium?.apply(fontWeightDelta: 2),
               ),
             ),
           ],
@@ -279,7 +283,8 @@ class InputItemState extends State<InputItem> {
               ),
             ),
           ],
-          const SizedBox(height: 8),
+          if (widget.title.notNullOrEmpty || widget.description.notNullOrEmpty)
+            const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,7 +348,7 @@ class InputItemState extends State<InputItem> {
         hintText: hint,
         filled: true,
         fillColor: style.fieldBackgroundColor ?? theme.canvasColor,
-        contentPadding: const EdgeInsets.all(12),
+        contentPadding: style.contentPadding ?? const EdgeInsets.all(12),
         isDense: style.isDense,
         counterStyle: textTheme.bodySmall,
         hintStyle: textTheme.bodySmall,
@@ -352,10 +357,10 @@ class InputItemState extends State<InputItem> {
         errorMaxLines: 1,
         border: style.showBorder
             ? OutlineInputBorder(
-                borderSide: ChewieTheme.borderSide,
-                borderRadius: BorderRadius.circular(style.radius),
-                gapPadding: 0,
-              )
+          borderSide: ChewieTheme.borderSide,
+          borderRadius: BorderRadius.circular(style.radius),
+          gapPadding: 0,
+        )
             : InputBorder.none,
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: theme.primaryColor, width: 0.8),
@@ -385,10 +390,10 @@ class InputItemState extends State<InputItem> {
       ),
       contextMenuBuilder: (contextMenuContext, details) =>
           ItemBuilder.editTextContextMenuBuilder(
-        contextMenuContext,
-        details,
-        context: context,
-      ),
+            contextMenuContext,
+            details,
+            context: context,
+          ),
     );
   }
 
@@ -499,9 +504,9 @@ class RegexInputFormatter implements TextInputFormatter {
 
   static RegexInputFormatter onlyNumber = RegexInputFormatter(RegExp(r'^\d*$'));
   static RegexInputFormatter onlyLetter =
-      RegexInputFormatter(RegExp(r'^[a-zA-Z]*$'));
+  RegexInputFormatter(RegExp(r'^[a-zA-Z]*$'));
   static RegexInputFormatter onlyNumberAndLetter =
-      RegexInputFormatter(RegExp(r'^[a-zA-Z0-9]*$'));
+  RegexInputFormatter(RegExp(r'^[a-zA-Z0-9]*$'));
   static RegexInputFormatter onlyNumberAndLetterAndSymbol = RegexInputFormatter(
       RegExp(r'^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]\{\};:",<>.?/\\|`~]*$'));
 
@@ -521,8 +526,8 @@ class RegexInputFormatter implements TextInputFormatter {
   static RegexInputFormatter onlyUrl = RegexInputFormatter(urlRegex);
 
   @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
+      TextEditingValue newValue) {
     final String newString = newValue.text;
     if (regex.hasMatch(newString)) {
       return newValue;
@@ -533,8 +538,8 @@ class RegexInputFormatter implements TextInputFormatter {
 
 class TrimInputFormatter implements TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
+      TextEditingValue newValue) {
     return TextEditingValue(
       text: newValue.text.trimLeft(),
       selection: newValue.selection,
