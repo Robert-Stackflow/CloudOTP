@@ -41,20 +41,20 @@ jobs:
             artifact_path: |
               build/linux/*.deb
               build/linux/*.tar.gz
-          - target: iOS
-            os: macos-latest
-            cache_pod_key: ios-pods
-            cache_pod_path: ios/Pods
-            cache_pod_restore_keys_hash_file: ios/Podfile.lock
-            artifact_name: release-iOS
-            artifact_path: build/**/*.ipa
-          - target: MacOS
-            os: macos-latest
-            cache_pod_key: macos-pods
-            cache_pod_path: macos/Pods
-            cache_pod_restore_keys_hash_file: macos/Podfile.lock
-            artifact_name: release-MacOS
-            artifact_path: /Users/runner/work/CloudOTP/CloudOTP/*.dmg
+#          - target: iOS
+#            os: macos-latest
+#            cache_pod_key: ios-pods
+#            cache_pod_path: ios/Pods
+#            cache_pod_restore_keys_hash_file: ios/Podfile.lock
+#            artifact_name: release-iOS
+#            artifact_path: build/**/*.ipa
+#          - target: MacOS
+#            os: macos-latest
+#            cache_pod_key: macos-pods
+#            cache_pod_path: macos/Pods
+#            cache_pod_restore_keys_hash_file: macos/Podfile.lock
+#            artifact_name: release-MacOS
+#            artifact_path: /Users/runner/work/CloudOTP/CloudOTP/*.dmg
     outputs:
       version: ${{ steps.get_version.outputs.version }}
       date: ${{ steps.get_version.outputs.date}}
@@ -100,10 +100,10 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      # Xcodebuild
-      - name: Build Xcode
-        if: matrix.os == 'macos-latest'
-        run: xcodebuild -resolvePackageDependencies -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release
+#      # Xcodebuild
+#      - name: Build Xcode
+#        if: matrix.os == 'macos-latest'
+#        run: xcodebuild -resolvePackageDependencies -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release
 
       # Flutter Pub Get
       - name: Flutter Pub Get
@@ -136,29 +136,29 @@ jobs:
           mv app-armeabi-v7a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-armeabi-v7a.apk
           mv app-x86_64-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-x86_64.apk
 
-      # Build iOS .ipa
-      - name: Build iOS
-        if: matrix.target == 'iOS'
-        run: |
-          cd ios
-          pod update
-          cd ..
-          flutter build ios --release --no-codesign
-          sh tools/ios_tools/thin_payload.sh build/ios/iphoneos/*.app
-          cd build
-          mkdir -p Payload
-          mv ios/iphoneos/*.app Payload
-          zip -9 CloudOTP-${{ steps.get_version.outputs.version }}-ios.ipa -r Payload
-
-      # Build MacOS .dmg
-      - name: Build MacOS
-        if: matrix.target == 'MacOS'
-        run: |
-          cd macos
-          pod update
-          cd ..
-          flutter build macos --release
-          hdiutil create -format UDZO -srcfolder build/macos/Build/Products/Release/cloudotp.app -volname CloudOTP-${{ steps.get_version.outputs.version }}-macos CloudOTP-${{ steps.get_version.outputs.version }}-macos.dmg
+#      # Build iOS .ipa
+#      - name: Build iOS
+#        if: matrix.target == 'iOS'
+#        run: |
+#          cd ios
+#          pod update
+#          cd ..
+#          flutter build ios --release --no-codesign
+#          sh tools/ios_tools/thin_payload.sh build/ios/iphoneos/*.app
+#          cd build
+#          mkdir -p Payload
+#          mv ios/iphoneos/*.app Payload
+#          zip -9 CloudOTP-${{ steps.get_version.outputs.version }}-ios.ipa -r Payload
+#
+#      # Build MacOS .dmg
+#      - name: Build MacOS
+#        if: matrix.target == 'MacOS'
+#        run: |
+#          cd macos
+#          pod update
+#          cd ..
+#          flutter build macos --release
+#          hdiutil create -format UDZO -srcfolder build/macos/Build/Products/Release/cloudotp.app -volname CloudOTP-${{ steps.get_version.outputs.version }}-macos CloudOTP-${{ steps.get_version.outputs.version }}-macos.dmg
 
       # Build Windows .zip
       - name: Build Windows
@@ -251,8 +251,8 @@ jobs:
           mv /tmp/artifacts/release-Android/*.apk /tmp/artifacts/final/
           mv /tmp/artifacts/release-Windows/*.zip /tmp/artifacts/final/
           mv /tmp/artifacts/release-Windows/*.exe /tmp/artifacts/final/
-          mv /tmp/artifacts/release-MacOS/*.dmg /tmp/artifacts/final/
-          mv /tmp/artifacts/release-iOS/*.ipa /tmp/artifacts/final/
+#          mv /tmp/artifacts/release-MacOS/*.dmg /tmp/artifacts/final/
+#          mv /tmp/artifacts/release-iOS/*.ipa /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.deb /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.tar.gz /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux-arm/*.deb /tmp/artifacts/final/
