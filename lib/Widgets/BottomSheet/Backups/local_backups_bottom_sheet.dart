@@ -17,6 +17,7 @@ import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/export_token_util.dart';
 import '../../../Utils/utils.dart';
@@ -52,6 +53,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
     });
     super.initState();
   }
+
   Radius radius = ChewieDimens.radius8;
 
   @override
@@ -155,7 +157,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                 ),
               ),
               CircleIconButton(
-                icon: const Icon(Icons.file_present_outlined),
+                icon: const Icon(LucideIcons.import, size: 20),
                 onTap: () async {
                   Navigator.pop(context);
                   widget.onSelected(file);
@@ -164,7 +166,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
               const SizedBox(width: 5),
               CircleIconButton(
                 icon:
-                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {

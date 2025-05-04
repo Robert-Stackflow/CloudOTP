@@ -101,6 +101,7 @@ class CloudOTPItemBuilder {
     bool enableDeselect = true,
     bool disabled = false,
     bool isRadio = false,
+    double height = 32,
     Function(dynamic value, int index, bool isSelected)? onSelected,
   }) {
     return GroupButton(
@@ -118,7 +119,7 @@ class CloudOTPItemBuilder {
       buttonBuilder: (selected, token, context, onTap, disabled) {
         return RoundIconTextButton(
           radius: 8,
-          height: 32,
+          height: height,
           icon: buildTokenImage(token, size: 12),
           text: token.issuer,
           onPressed: onTap,

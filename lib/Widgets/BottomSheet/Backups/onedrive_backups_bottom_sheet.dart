@@ -17,6 +17,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/Cloud/onedrive_cloud_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cloud/onedrive_response.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../Utils/utils.dart';
 import '../../../generated/l10n.dart';
@@ -47,6 +48,7 @@ class OneDriveBackupsBottomSheetState
     files = widget.files;
     super.initState();
   }
+
   Radius radius = ChewieDimens.radius8;
 
   @override
@@ -109,67 +111,60 @@ class OneDriveBackupsBottomSheetState
   _buildItem(OneDriveFileInfo file) {
     String size = CacheUtil.renderSize(file.size.toDouble(), fractionDigits: 0);
     String time = TimeUtil.formatTimestamp(file.lastModifiedDateTime);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {},
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                width: 0.5,
-                color: Theme.of(context).dividerColor,
-              ),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      file.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      "$time    $size",
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              CircleIconButton(
-                icon: const Icon(Icons.cloud_download_outlined),
-                onTap: () async {
-                  Navigator.pop(context);
-                  widget.onSelected(file);
-                },
-              ),
-              const SizedBox(width: 5),
-              CircleIconButton(
-                icon:
-                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
-                onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
-                  try {
-                    await widget.cloudService.deleteFile(file.id);
-                    setState(() {
-                      files.remove(file);
-                    });
-                    IToast.showTop(S.current.deleteSuccess);
-                  } catch (e, t) {
-                    ILogger.error("Failed to delete file from webdav", e, t);
-                    IToast.showTop(S.current.deleteFailed);
-                  }
-                  CustomLoadingDialog.dismissLoading();
-                },
-              ),
-            ],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            width: 0.5,
+            color: Theme.of(context).dividerColor,
           ),
         ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  file.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  "$time    $size",
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          CircleIconButton(
+            icon: const Icon(LucideIcons.import, size: 20),
+            onTap: () async {
+              Navigator.pop(context);
+              widget.onSelected(file);
+            },
+          ),
+          const SizedBox(width: 5),
+          CircleIconButton(
+            icon: const Icon(LucideIcons.trash, color: Colors.red, size: 20),
+            onTap: () async {
+              CustomLoadingDialog.showLoading(title: S.current.deleting);
+              try {
+                await widget.cloudService.deleteFile(file.id);
+                setState(() {
+                  files.remove(file);
+                });
+                IToast.showTop(S.current.deleteSuccess);
+              } catch (e, t) {
+                ILogger.error("Failed to delete file from webdav", e, t);
+                IToast.showTop(S.current.deleteFailed);
+              }
+              CustomLoadingDialog.dismissLoading();
+            },
+          ),
+        ],
       ),
     );
   }

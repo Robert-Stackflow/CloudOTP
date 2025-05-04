@@ -11,6 +11,7 @@ import 'package:cloudotp/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 import '../../Utils/app_provider.dart';
 
@@ -22,7 +23,12 @@ class SettingNavigationItem {
 }
 
 class SettingNavigationScreen extends StatefulWidget {
-  const SettingNavigationScreen({super.key});
+  final bool initAboutPage;
+
+  const SettingNavigationScreen({
+    super.key,
+    this.initAboutPage = false,
+  });
 
   @override
   State<SettingNavigationScreen> createState() =>
@@ -37,20 +43,7 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   final SearchConfig _searchConfig = SearchConfig();
   Timer? _debounceTimer;
 
-  final List<SettingNavigationItem> _navigationItems = [
-    SettingNavigationItem(
-        title: S.current.generalSetting, icon: LucideIcons.settings2),
-    SettingNavigationItem(
-        title: S.current.appearanceSetting,
-        icon: LucideIcons.paintbrushVertical),
-    SettingNavigationItem(
-        title: S.current.operationSetting, icon: LucideIcons.pointer),
-    SettingNavigationItem(
-        title: S.current.backupSetting, icon: LucideIcons.cloudUpload),
-    SettingNavigationItem(
-        title: S.current.safeSetting, icon: LucideIcons.shieldCheck),
-    SettingNavigationItem(title: S.current.about, icon: LucideIcons.info),
-  ];
+  List<SettingNavigationItem> _navigationItems = [];
 
   final List<Widget?> _pageCache = List.filled(8, null);
 
@@ -58,6 +51,7 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchTextChanged);
+    _selectedIndex = widget.initAboutPage ? _navigationItems.length - 1 : 0;
   }
 
   @override
@@ -80,6 +74,134 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
       _searchText = query;
     });
   }
+
+  Widget _buildCurrentPage(int index) {
+    // if (_pageCache[index] != null) return _pageCache[index]!;
+
+    late Widget page;
+    switch (index) {
+      case 0:
+        page = GeneralSettingScreen(
+          key: generalSettingScreenKey,
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 1:
+        page = AppearanceSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 2:
+        page = OperationSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 3:
+        page = BackupSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 4:
+        page = SafeSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      case 5:
+        page = AboutSettingScreen(
+          showTitleBar: false,
+          searchText: _searchText,
+          searchConfig: _searchConfig,
+        );
+        break;
+      default:
+        page = const SizedBox.shrink();
+    }
+
+    _pageCache[index] = _KeepAliveWrapper(child: page);
+    return _pageCache[index]!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    _navigationItems = [
+      SettingNavigationItem(
+          title: S.current.generalSetting, icon: LucideIcons.settings2),
+      SettingNavigationItem(
+          title: S.current.appearanceSetting,
+          icon: LucideIcons.paintbrushVertical),
+      SettingNavigationItem(
+          title: S.current.operationSetting, icon: LucideIcons.pointer),
+      SettingNavigationItem(
+          title: S.current.backupSetting, icon: LucideIcons.cloudUpload),
+      SettingNavigationItem(
+          title: S.current.safeSetting, icon: LucideIcons.shieldCheck),
+      SettingNavigationItem(title: S.current.about, icon: LucideIcons.info),
+    ];
+    return Consumer<AppProvider>(
+      builder: (context, provider, child) => Scaffold(
+        appBar: ResponsiveAppBar(
+          showBack: false,
+          titleLeftMargin: 15,
+          title: S.current.setting,
+        ),
+        body: Row(
+          children: [
+            Container(
+              width: 144,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: ChewieTheme.canvasColor,
+                border: ChewieTheme.rightDivider,
+              ),
+              child: ListView.builder(
+                itemCount: _navigationItems.length,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                itemBuilder: (context, index) {
+                  final item = _navigationItems[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    child: SettingNavigationItemWidget(
+                      title: item.title,
+                      icon: item.icon,
+                      selected: index == _selectedIndex,
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // _buildSearchRow(),
+                  Expanded(child: _buildCurrentPage(_selectedIndex)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
 
   _buildSearchRow() {
     return Container(
@@ -144,118 +266,6 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
       ],
     );
   }
-
-  Widget _buildCurrentPage(int index) {
-    if (_pageCache[index] != null) return _pageCache[index]!;
-
-    late Widget page;
-    switch (index) {
-      case 0:
-        page = GeneralSettingScreen(
-          key: generalSettingScreenKey,
-          showTitleBar: false,
-          searchText: _searchText,
-          searchConfig: _searchConfig,
-        );
-        break;
-      case 1:
-        page = AppearanceSettingScreen(
-          showTitleBar: false,
-          searchText: _searchText,
-          searchConfig: _searchConfig,
-        );
-        break;
-      case 2:
-        page = OperationSettingScreen(
-          showTitleBar: false,
-          searchText: _searchText,
-          searchConfig: _searchConfig,
-        );
-        break;
-      case 3:
-        page = BackupSettingScreen(
-          showTitleBar: false,
-          searchText: _searchText,
-          searchConfig: _searchConfig,
-        );
-        break;
-      case 4:
-        page = SafeSettingScreen(
-          showTitleBar: false,
-          searchText: _searchText,
-          searchConfig: _searchConfig,
-        );
-        break;
-      case 5:
-        page = AboutSettingScreen(
-          showTitleBar: false,
-          searchText: _searchText,
-          searchConfig: _searchConfig,
-        );
-        break;
-      default:
-        page = const SizedBox.shrink();
-    }
-
-    _pageCache[index] = _KeepAliveWrapper(child: page);
-    return _pageCache[index]!;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return Scaffold(
-      appBar: ResponsiveAppBar(
-        showBack: false,
-        titleLeftMargin: 15,
-        title: S.current.setting,
-      ),
-      body: Row(
-        children: [
-          Container(
-            width: 144,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: ChewieTheme.canvasColor,
-              border: ChewieTheme.rightDivider,
-            ),
-            child: ListView.builder(
-              itemCount: _navigationItems.length,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              itemBuilder: (context, index) {
-                final item = _navigationItems[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 4),
-                  child: SettingNavigationItemWidget(
-                    title: item.title,
-                    icon: item.icon,
-                    selected: index == _selectedIndex,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = index;
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // _buildSearchRow(),
-                Expanded(child: _buildCurrentPage(_selectedIndex)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  bool get wantKeepAlive => true;
 }
 
 class SettingNavigationItemWidget extends StatelessWidget {

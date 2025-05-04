@@ -16,6 +16,7 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:webdav_client/webdav_client.dart';
 
 import '../../../Utils/utils.dart';
@@ -143,7 +144,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
                 ),
               ),
               CircleIconButton(
-                icon: const Icon(Icons.cloud_download_outlined),
+                icon: const Icon(LucideIcons.import, size: 20),
                 onTap: () async {
                   Navigator.pop(context);
                   widget.onSelected(file);
@@ -152,7 +153,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
               const SizedBox(width: 5),
               CircleIconButton(
                 icon:
-                    const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {

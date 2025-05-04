@@ -111,7 +111,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _gestureSettings() {
     return CaptionItem(
-      title: "手势密码",
+      title: S.current.gestureLockSettings,
       children: [
         const SizedBox(height: 10),
         CheckboxItem(
@@ -149,7 +149,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _databaseSettings() {
     return CaptionItem(
-      title: "数据库密码",
+      title: S.current.databaseEncryptionSettings,
       children: [
         Visibility(
           visible: DatabaseManager.isDatabaseEncrypted,
@@ -269,7 +269,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _autoLockSettings() {
     return CaptionItem(
-      title: "自动锁定",
+      title: S.current.autoLockSettings,
       children: [
         CheckboxItem(
           value: _autoLock,
@@ -302,7 +302,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _safeModeSettings() {
     return CaptionItem(
-      title: "安全模式",
+      title: S.current.safeMode,
       children: [
         CheckboxItem(
           value: _enableSafeMode,

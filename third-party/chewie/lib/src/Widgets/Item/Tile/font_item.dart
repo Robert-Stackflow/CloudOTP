@@ -19,15 +19,15 @@ class FontItem extends StatefulWidget {
   final double height;
 
   const FontItem({
-    Key? key,
+    super.key,
     required this.font,
     required this.currentFont,
     required this.onChanged,
     this.onDelete,
     this.showDelete = false,
     this.width = 110,
-    this.height = 160,
-  }) : super(key: key);
+    this.height = 154,
+  });
 
   @override
   FontItemState createState() => FontItemState();
@@ -45,8 +45,7 @@ class FontItemState extends State<FontItem> {
           Container(
             width: widget.width,
             height: widget.height,
-            padding:
-                const EdgeInsets.only(top: 10, bottom: 5, left: 10, right: 10),
+            padding: const EdgeInsets.only(top: 8, left: 10, right: 10),
             decoration: BoxDecoration(
               color: ChewieTheme.canvasColor,
               border: ChewieTheme.border,
@@ -69,7 +68,7 @@ class FontItemState extends State<FontItem> {
                               children: [
                                 AutoSizeText(
                                   "AaBbCcDd",
-                                  style: ChewieTheme.titleMedium.apply(
+                                  style: ChewieTheme.bodyMedium.apply(
                                     fontFamily: widget.font.fontFamily,
                                     letterSpacingDelta: 1,
                                   ),
@@ -77,7 +76,8 @@ class FontItemState extends State<FontItem> {
                                 ),
                                 AutoSizeText(
                                   "AaBbCcDd",
-                                  style: ChewieTheme.titleLarge.apply(
+                                  style: ChewieTheme.bodyMedium.apply(
+                                    fontWeightDelta: 2,
                                     fontFamily: widget.font.fontFamily,
                                     letterSpacingDelta: 1,
                                   ),
@@ -85,7 +85,7 @@ class FontItemState extends State<FontItem> {
                                 ),
                                 AutoSizeText(
                                   "你好世界",
-                                  style: ChewieTheme.titleMedium.apply(
+                                  style: ChewieTheme.bodyMedium.apply(
                                     fontFamily: widget.font.fontFamily,
                                     letterSpacingDelta: 1,
                                   ),
@@ -93,7 +93,8 @@ class FontItemState extends State<FontItem> {
                                 ),
                                 AutoSizeText(
                                   "你好世界",
-                                  style: ChewieTheme.titleLarge.apply(
+                                  style: ChewieTheme.bodyMedium.apply(
+                                    fontWeightDelta: 2,
                                     fontFamily: widget.font.fontFamily,
                                     letterSpacingDelta: 1,
                                   ),
@@ -103,7 +104,7 @@ class FontItemState extends State<FontItem> {
                             )
                           : Text(
                               ChewieS.current.fontFileNotExist,
-                              style: ChewieTheme.titleLarge.apply(
+                              style: ChewieTheme.bodyMedium.apply(
                                 fontFamily: widget.font.fontFamily,
                                 fontWeightDelta: 0,
                               ),

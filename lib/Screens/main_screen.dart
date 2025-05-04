@@ -24,6 +24,7 @@ import 'package:cloudotp/Screens/Setting/mobile_setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
+import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -75,7 +76,6 @@ class MainScreenState extends State<MainScreen>
   bool _isStayOnTop = false;
   Orientation _oldOrientation = Orientation.portrait;
   TextEditingController searchController = TextEditingController();
-  FocusNode searchFocusNode = FocusNode();
 
   @override
   void onWindowMinimize() {
@@ -165,15 +165,6 @@ class MainScreenState extends State<MainScreen>
     );
   }
 
-  focusSearch() {
-    searchFocusNode.requestFocus();
-    // searchFocusNode.addListener(() {
-    //   if (!searchFocusNode.hasFocus) {
-    //     keyboardHandlerState?.focus();
-    //   }
-    // });
-  }
-
   @override
   void initState() {
     _oldOrientation = MediaQuery.of(chewieProvider.rootContext).orientation;
@@ -190,7 +181,7 @@ class MainScreenState extends State<MainScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
           defaultValue: false)) {
-        searchFocusNode.requestFocus();
+        ShortcutsUtil.focusSearch();
       }
       if (ResponsiveUtil.isDesktop()) {
         await Utils.initTray();
@@ -321,14 +312,16 @@ class MainScreenState extends State<MainScreen>
 
   changeMode() {
     if (ColorUtil.isDark(context)) {
-      chewieProvider.themeMode = ActiveThemeMode.light;
+      appProvider.themeMode = ActiveThemeMode.light;
     } else {
-      chewieProvider.themeMode = ActiveThemeMode.dark;
+      appProvider.themeMode = ActiveThemeMode.dark;
     }
     setState(() {});
   }
 
-
+  refresh() {
+    setState(() {});
+  }
 
   static buildSortContextMenuButtons() {
     return FlutterContextMenu(
@@ -570,19 +563,19 @@ class MainScreenState extends State<MainScreen>
     double width = 56,
     bool rightBorder = true,
   }) {
-    return Container(
-      width: width,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: ChewieTheme.appBarBackgroundColor,
-        border: rightBorder ? ChewieTheme.rightDivider : null,
-      ),
-      child: Stack(
+    return Consumer<AppProvider>(
+      builder: (context, provider, child) => Container(
+        width: width,
         alignment: Alignment.center,
-        children: [
-          if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
-          Consumer<AppProvider>(
-            builder: (context, provider, child) => Column(
+        decoration: BoxDecoration(
+          color: ChewieTheme.appBarBackgroundColor,
+          border: rightBorder ? ChewieTheme.rightDivider : null,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (ResponsiveUtil.isDesktop()) const WindowMoveHandle(),
+            Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -683,14 +676,14 @@ class MainScreenState extends State<MainScreen>
                     tooltipPosition: TooltipPosition.right,
                     iconBuilder: (buttonContext) =>
                         Selector<AppProvider, LoadingStatus>(
-                          selector: (context, appProvider) =>
+                      selector: (context, appProvider) =>
                           appProvider.autoBackupLoadingStatus,
-                          builder: (context, autoBackupLoadingStatus, child) =>
-                              LoadingIcon(
-                                status: autoBackupLoadingStatus,
-                                normalIcon: const Icon(LucideIcons.history, size: 22),
-                              ),
-                        ),
+                      builder: (context, autoBackupLoadingStatus, child) =>
+                          LoadingIcon(
+                        status: autoBackupLoadingStatus,
+                        normalIcon: const Icon(LucideIcons.history, size: 22),
+                      ),
+                    ),
                     onPressed: () {
                       BottomSheetBuilder.showGenericContextMenu(
                           context, const BackupLogScreen(isOverlay: true));
@@ -768,8 +761,8 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 8),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

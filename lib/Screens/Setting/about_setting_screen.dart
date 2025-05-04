@@ -111,7 +111,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
     return ItemBuilder.buildSettingScreen(
       context: context,
       backgroundColor: Colors.transparent,
-      title: "",
+      title: S.current.about,
       showBorder: true,
       showTitleBar: widget.showTitleBar,
       showBack: !ResponsiveUtil.isLandscape(),
@@ -207,7 +207,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   _buildRepo() {
     return SearchableCaptionItem(
-      title: "项目仓库",
+      title: S.current.projectRepoAbout,
       searchConfig: widget.searchConfig,
       searchText: widget.searchText,
       children: [
@@ -243,7 +243,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   _buildApp() {
     return SearchableCaptionItem(
-      title: "APP",
+      title: S.current.appAbout,
       searchConfig: widget.searchConfig,
       searchText: widget.searchText,
       children: [
@@ -282,7 +282,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   _buildContact() {
     return SearchableCaptionItem(
-      title: "联系",
+      title: S.current.contactAbout,
       searchConfig: widget.searchConfig,
       searchText: widget.searchText,
       children: [

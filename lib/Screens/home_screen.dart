@@ -76,11 +76,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   final TextEditingController _searchController = TextEditingController();
   final PageController _marqueeController = PageController();
   late AnimationController _animationController;
-  final FocusNode _searchFocusNode = FocusNode();
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
 
-  bool get hasSearchFocus => _searchFocusNode.hasFocus;
+  bool get hasSearchFocus => appProvider.searchFocusNode.hasFocus;
 
   String get currentCategoryUid {
     if (_currentTabIndex == 0) {
@@ -278,7 +277,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                 child: MySearchBar(
                   borderRadius: 8,
                   bottomMargin: 18,
-                  focusNode: _searchFocusNode,
+                  focusNode: appProvider.searchFocusNode,
                   controller: _searchController,
                   background: ChewieTheme.scaffoldBackgroundColor,
                   hintText: S.current.searchToken,
@@ -346,11 +345,11 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     _marqueeController.animateToPage(shown ? 1 : 0,
         duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     if (shown) {
-      _searchFocusNode.requestFocus();
+      appProvider.searchFocusNode.requestFocus();
       _animationController.reverse();
     } else {
       _searchController.clear();
-      _searchFocusNode.unfocus();
+      appProvider.searchFocusNode.unfocus();
       _animationController.forward();
     }
   }
@@ -557,7 +556,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
                               ),
-                              focusNode: _searchFocusNode,
+                              focusNode: appProvider.searchFocusNode,
                               controller: _searchController,
                             ),
                           ),
@@ -593,16 +592,16 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             alignment: Alignment.centerLeft,
             height: height,
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .canvasColor
+              color: ChewieTheme.scaffoldBackgroundColor
                   .withOpacity(enableFrostedGlassEffect ? 0.2 : 1),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).shadowColor,
+                  color: ChewieTheme.shadowColor,
                   blurRadius: 30,
                   spreadRadius: 1,
                 ),
               ],
+              // border: ChewieTheme.topDivider,
             ),
             padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding)
                 .copyWith(right: 70),
@@ -955,7 +954,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   unfocusSearch() {
-    _searchFocusNode.unfocus();
+    appProvider.searchFocusNode.unfocus();
+    appProvider.shortcutFocusNode.unfocus();
   }
 
   performSearch(String searchKey) {
@@ -974,6 +974,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       }
       CloudOTPHiveUtil.setLayoutType(layoutType);
     });
+    mainScreenState?.refresh();
   }
 
   changeOrderType({
@@ -991,6 +992,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       CloudOTPHiveUtil.setOrderType(orderType);
     });
     if (doPerformSort) performSort();
+    mainScreenState?.refresh();
   }
 
   resetCopyTimesSingle(OtpToken token) {

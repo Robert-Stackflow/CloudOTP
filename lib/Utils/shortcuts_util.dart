@@ -15,11 +15,18 @@
 
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 
+import '../Screens/Setting/setting_safe_screen.dart';
+import '../Screens/main_screen.dart';
+import '../Widgets/Shortcuts/app_shortcuts.dart';
+import '../Widgets/Shortcuts/keyboard_widget.dart';
 import '../generated/l10n.dart';
+import 'app_provider.dart';
+import 'hive_util.dart';
 
 typedef LocalizationsProvider = String Function(S);
 
@@ -62,98 +69,6 @@ class ChangeDayNightModeIntent extends Intent {
 class EscapeIntent extends Intent {
   const EscapeIntent();
 }
-
-class HomeIntent extends Intent {
-  const HomeIntent();
-}
-
-final defaultCloudOTPShortcuts = [
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyA,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const AddTokenIntent(),
-    labelProvider: (s) => s.addToken,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyH,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const HomeIntent(),
-    labelProvider: (s) => s.home,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyI,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const ImportExportIntent(),
-    labelProvider: (s) => s.exportImport,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyC,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const CategoryIntent(),
-    labelProvider: (s) => s.category,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyT,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const ChangeLayoutTypeIntent(),
-    labelProvider: (s) => s.changeLayoutType,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyD,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const ChangeDayNightModeIntent(),
-    labelProvider: (s) => s.changeDayNightMode,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyS,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const SettingIntent(),
-    labelProvider: (s) => s.setting,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.slash,
-    ).singleActivator,
-    intent: const SearchIntent(),
-    labelProvider: (s) => s.searchToken,
-  ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.keyL,
-      modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
-    ).singleActivator,
-    intent: const LockIntent(),
-    labelProvider: (s) => s.lock,
-  ),
-  // CloudOTPShortcut.all(
-  //   key: HotKey(
-  //     key: LogicalKeyboardKey.escape,
-  //   ).singleActivator,
-  //   intent: const EscapeIntent(),
-  //   labelProvider: (s) => s.escape,
-  // ),
-  CloudOTPShortcut.all(
-    key: HotKey(
-      key: LogicalKeyboardKey.f1,
-    ).singleActivator,
-    intent: const KeyboardShortcutHelpIntent(),
-    labelProvider: (s) => s.shortcutHelp,
-  ),
-];
 
 class CloudOTPShortcut {
   const CloudOTPShortcut({
@@ -275,5 +190,144 @@ extension HotKeyExt on HotKey {
       meta: (modifiers ?? []).contains(HotKeyModifier.meta),
     );
     return activator;
+  }
+}
+
+class ShortcutsUtil {
+  static final shortcuts = [
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyA,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const AddTokenIntent(),
+      labelProvider: (s) => s.addToken,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyI,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const ImportExportIntent(),
+      labelProvider: (s) => s.exportImport,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyC,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const CategoryIntent(),
+      labelProvider: (s) => s.category,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyT,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const ChangeLayoutTypeIntent(),
+      labelProvider: (s) => s.changeLayoutType,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyD,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const ChangeDayNightModeIntent(),
+      labelProvider: (s) => s.changeDayNightMode,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyS,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const SettingIntent(),
+      labelProvider: (s) => s.setting,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.slash,
+      ).singleActivator,
+      intent: const SearchIntent(),
+      labelProvider: (s) => s.searchToken,
+    ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.keyL,
+        modifiers: [HotKeyModifier.control, HotKeyModifier.alt],
+      ).singleActivator,
+      intent: const LockIntent(),
+      labelProvider: (s) => s.lock,
+    ),
+    // CloudOTPShortcut.all(
+    //   key: HotKey(
+    //     key: LogicalKeyboardKey.escape,
+    //   ).singleActivator,
+    //   intent: const EscapeIntent(),
+    //   labelProvider: (s) => s.escape,
+    // ),
+    CloudOTPShortcut.all(
+      key: HotKey(
+        key: LogicalKeyboardKey.f1,
+      ).singleActivator,
+      intent: const KeyboardShortcutHelpIntent(),
+      labelProvider: (s) => s.shortcutHelp,
+    ),
+  ];
+
+  static void focusSearch() {
+    appProvider.searchFocusNode.requestFocus();
+    appProvider.searchFocusNode.addListener(() {
+      if (!appProvider.searchFocusNode.hasFocus) {
+        appProvider.shortcutFocusNode.requestFocus();
+      }
+    });
+  }
+
+  static void lock(BuildContext context) {
+    if (CloudOTPHiveUtil.canLock()) {
+      mainScreenState?.jumpToLock();
+    } else {
+      IToast.showDesktopNotification(
+        S.current.noGestureLock,
+        body: S.current.noGestureLockTip,
+        actions: [S.current.cancel, S.current.goToSetGestureLock],
+        onClick: () {
+          ChewieUtils.displayApp();
+          RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+        },
+        onClickAction: (index) {
+          if (index == 1) {
+            ChewieUtils.displayApp();
+            RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+          }
+        },
+      );
+    }
+  }
+
+  static void showShortcutHelp(BuildContext context) {
+    RouteUtil.pushDialogRoute(
+      context,
+      KeyboardWidget(
+        bindings: shortcuts,
+        callbackOnHide: () {},
+        title: Text(
+          S.current.shortcut,
+          style: Theme.of(chewieProvider.rootContext).textTheme.titleLarge,
+        ),
+      ),
+    );
+  }
+
+  static void jumpToMain(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      RouteUtil.getFadeRoute(
+        CustomMouseRegion(
+          child: AppShortcuts(
+            child: MainScreen(key: mainScreenKey),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -65,9 +65,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
           BlankIconButton(),
         ],
       ),
-      body: EasyRefresh(
-        child: _buildBody(),
-      ),
+      body: _buildBody(),
     );
   }
 
@@ -99,9 +97,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       context: context,
       controller: _typeController,
       constraintWidth: false,
-      padding: ResponsiveUtil.isLandscape()
-          ? const EdgeInsets.symmetric(horizontal: 16)
-          : null,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       buttons: CloudServiceType.toEnableStrings(),
       onSelected: (value, index, isSelected) {
         setState(() {

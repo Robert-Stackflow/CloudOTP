@@ -16,12 +16,12 @@
 import 'dart:math';
 
 import 'package:biometric_storage/biometric_storage.dart';
+import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/database_manager.dart';
-import '../../Utils/app_provider.dart';
 import '../../Utils/biometric_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
@@ -29,7 +29,6 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/lottie_util.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
-import '../main_screen.dart';
 
 class DatabaseDecryptScreen extends StatefulWidget {
   const DatabaseDecryptScreen({super.key});
@@ -58,7 +57,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
     try {
       canAuthenticateResponse = await BiometricUtil.canAuthenticate();
       canAuthenticateResponseString =
-          await BiometricUtil.getCanAuthenticateResponseString();
+      await BiometricUtil.getCanAuthenticateResponseString();
       if (canAuthenticateResponse == CanAuthenticateResponse.success) {
         String? password = await BiometricUtil.getDatabasePassword();
         if (password == null) {
@@ -104,13 +103,12 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   initBiometricAuthentication() async {
     canAuthenticateResponse = await BiometricUtil.canAuthenticate();
     canAuthenticateResponseString =
-        await BiometricUtil.getCanAuthenticateResponseString();
+    await BiometricUtil.getCanAuthenticateResponseString();
     setState(() {});
     if (_biometricAvailable && _allowDatabaseBiometric) {
       auth();
-    } else {
-      FocusScope.of(context).requestFocus(_focusNode);
     }
+    FocusScope.of(context).requestFocus(_focusNode);
   }
 
   @override
@@ -202,13 +200,13 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           backgroundColor: ChewieTheme.scaffoldBackgroundColor,
           appBar: ResponsiveUtil.isDesktop()
               ? ResponsiveAppBar(
-                  title: S.current.appName,
-                  showBack: false,
-                  titleLeftMargin: 10,
-                  actions: const [
-                    BlankIconButton(),
-                  ],
-                )
+            title: S.current.appName,
+            showBack: false,
+            titleLeftMargin: 12,
+            actions: const [
+              BlankIconButton(),
+            ],
+          )
               : null,
           bottomNavigationBar: Container(
             height: 86,
@@ -253,13 +251,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
     CustomLoadingDialog.dismissLoading();
     if (isValidAsync) {
       if (DatabaseManager.initialized) {
-        Navigator.of(context).pushReplacement(
-          RouteUtil.getFadeRoute(
-            CustomMouseRegion(
-              child: MainScreen(key: mainScreenKey),
-            ),
-          ),
-        );
+        ShortcutsUtil.jumpToMain(context);
       }
     } else {
       _focusNode.requestFocus();
@@ -273,7 +265,10 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       children: [
         const Spacer(),
         Text(S.current.decryptDatabasePassword,
-            style: Theme.of(context).textTheme.titleLarge),
+            style: Theme
+                .of(context)
+                .textTheme
+                .titleLarge),
         const SizedBox(height: 30),
         Container(
           constraints: const BoxConstraints(maxWidth: 400),
@@ -325,14 +320,16 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
                 fontSizeDelta: 2,
                 disabled: !(_allowDatabaseBiometric && _isValidated),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 onPressed: () => auth(),
               ),
             if (_biometricAvailable) const SizedBox(width: 10),
             RoundIconTextButton(
               text: S.current.confirm,
               fontSizeDelta: 2,
-              background: Theme.of(context).primaryColor,
+              background: Theme
+                  .of(context)
+                  .primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
               onPressed: onSubmit,
             ),
@@ -352,17 +349,25 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           child: Text(
             S.current.loadSqlcipherFailed,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme
+                .of(context)
+                .textTheme
+                .titleLarge,
           ),
         ),
         const SizedBox(height: 30),
         IgnorePointer(
           child: SizedBox(
-            width: min(MediaQuery.sizeOf(context).width - 40, 500),
+            width: min(MediaQuery
+                .sizeOf(context)
+                .width - 40, 500),
             child: Text(
               S.current.loadSqlcipherFailedMessage,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .titleMedium,
             ),
           ),
         ),
@@ -371,7 +376,9 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           text: S.current.loadSqlcipherFailedLearnMore,
           fontSizeDelta: 2,
           height: 48,
-          background: Theme.of(context).primaryColor,
+          background: Theme
+              .of(context)
+              .primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
           onPressed: () {
             UriUtil.launchUrlUri(context, sqlcipherLearnMore);

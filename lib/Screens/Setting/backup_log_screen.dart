@@ -64,7 +64,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
         ? _buildDesktopBody()
         : Scaffold(
             appBar: ResponsiveAppBar(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              backgroundColor: ChewieTheme.appBarBackgroundColor,
               title: S.current.backupLogs,
               onTapBack: () {
                 Navigator.pop(context);
@@ -73,8 +73,8 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                 canBackup && appProvider.autoBackupLogs.isNotEmpty
                     ? CircleIconButton(
                         icon: Icon(
-                          Icons.cleaning_services_outlined,
-                          color: Theme.of(context).iconTheme.color,
+                          LucideIcons.trash2,
+                          color: ChewieTheme.iconColor,
                           size: 20,
                         ),
                         padding: const EdgeInsets.all(10),
@@ -151,7 +151,8 @@ class BackupLogScreenState extends State<BackupLogScreen> {
                 ),
             ],
           ),
-        if (widget.isOverlay) const SizedBox(height: 10),
+        if (widget.isOverlay && appProvider.autoBackupLogs.isNotEmpty)
+          const SizedBox(height: 10),
         ...List.generate(
           appProvider.autoBackupLogs.length,
           (index) {
@@ -162,40 +163,34 @@ class BackupLogScreenState extends State<BackupLogScreen> {
           },
         ),
         if (!canBackup)
-          Container(
-            margin: const EdgeInsets.only(top: 20),
-            child: Column(
-              children: [
-                Text(
-                  S.current.haveNotSetBckupPassword,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 10),
-                RoundIconTextButton(
-                  text: S.current.goToSetBackupPassword,
-                  background: Theme.of(context).primaryColor,
-                  onPressed: () {
-                    if (widget.isOverlay) {
-                      RouteUtil.pushDialogRoute(
-                          context,
-                          const BackupSettingScreen(
-                              jumpToAutoBackupPassword: true));
-                    } else {
-                      RouteUtil.pushCupertinoRoute(
-                          context,
-                          const BackupSettingScreen(
-                              jumpToAutoBackupPassword: true));
-                    }
-                  },
-                ),
-              ],
-            ),
+          Column(
+            children: [
+              Text(
+                S.current.haveNotSetBckupPassword,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 10),
+              RoundIconTextButton(
+                text: S.current.goToSetBackupPassword,
+                background: Theme.of(context).primaryColor,
+                onPressed: () {
+                  if (widget.isOverlay) {
+                    RouteUtil.pushDialogRoute(
+                        context,
+                        const BackupSettingScreen(
+                            jumpToAutoBackupPassword: true));
+                  } else {
+                    RouteUtil.pushCupertinoRoute(
+                        context,
+                        const BackupSettingScreen(
+                            jumpToAutoBackupPassword: true));
+                  }
+                },
+              ),
+            ],
           ),
         if (canBackup && appProvider.autoBackupLogs.isEmpty)
-          Container(
-            margin: const EdgeInsets.only(top: 20),
-            child: EmptyPlaceholder(text: S.current.noBackupLogs),
-          ),
+          EmptyPlaceholder(text: S.current.noBackupLogs, topPadding: 30),
       ],
     );
   }

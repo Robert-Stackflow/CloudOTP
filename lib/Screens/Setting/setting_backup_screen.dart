@@ -160,7 +160,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
   _backupSettings() {
     return [
       SearchableCaptionItem(
-        title: "备份密码",
+        title: S.current.backupPasswordSettings,
         children: [
           EntryItem(
             key: _setAutoBackupPasswordKey,
@@ -227,7 +227,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         ],
       ),
       CaptionItem(
-        title: "自动备份",
+        title: S.current.autoBackupSettings,
         children: [
           CheckboxItem(
             value: canBackup ? _enableAutoBackup : false,
@@ -339,7 +339,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         ],
       ),
       CaptionItem(
-        title: "本地备份",
+        title: S.current.localBackupSettings,
         children: [
           CheckboxItem(
             value: canBackup ? _enableLocalBackup : false,
@@ -397,7 +397,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         ],
       ),
       CaptionItem(
-        title: "云端备份",
+        title: S.current.cloudBackupSettings,
         children: [
           CheckboxItem(
             value: canBackup ? _enableCloudBackup : false,

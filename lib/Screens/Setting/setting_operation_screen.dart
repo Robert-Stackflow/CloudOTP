@@ -15,6 +15,7 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../Database/token_dao.dart';
 import '../../Utils/app_provider.dart';
@@ -80,7 +81,7 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
 
   _operationSettings() {
     return SearchableCaptionItem(
-      title: "令牌操作",
+      title: S.current.tokenOperationSettings,
       children: [
         CheckboxItem(
           value: autoDisplayNextCode,
@@ -169,14 +170,13 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
             });
           },
         ),
-
       ],
     );
   }
 
   _otherSettings() {
     return SearchableCaptionItem(
-      title: "其他",
+      title: S.current.otherOperationSettings,
       children: [
         EntryItem(
           title: S.current.resetCopyTimes,

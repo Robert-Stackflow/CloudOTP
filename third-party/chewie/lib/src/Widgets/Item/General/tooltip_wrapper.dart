@@ -24,7 +24,7 @@ class ToolTipWrapper extends StatelessWidget {
         message: message,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: ChewieTheme.defaultDecoration
-            .copyWith(color: ChewieTheme.primaryButtonColor, border: null),
+            .copyWith(color: ChewieTheme.canvasColor, border: null),
         textStyle: ChewieTheme.bodyMedium,
         waitDuration: waitDuration,
         position: position ?? TooltipPosition.bottom,

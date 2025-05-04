@@ -683,5 +683,19 @@
   "deleteTokenTitle": "Delete token \"{issuer}\"",
   "deleteTokenMessage": "Are you sure you want to delete token \"{issuer}\"?",
   "deleteTokenSuccess": "Token \"{issuer}\" deleted successfully",
-  "licenseDetail": "Open-source under the {license} license"
+  "licenseDetail": "Open-source under the {license} license",
+  "sideBarSettings": "Sidebar",
+  "tokenCardSettings": "Token Card Settings",
+  "tokenOperationSettings": "Token Operation",
+  "otherOperationSettings": "Other",
+  "backupPasswordSettings": "Backup Password",
+  "autoBackupSettings": "Auto Backup",
+  "localBackupSettings": "Local Backup",
+  "cloudBackupSettings": "Cloud Backup",
+  "databaseEncryptionSettings": "Database Encryption",
+  "gestureLockSettings": "Gesture Lock",
+  "autoLockSettings": "Auto Lock",
+  "projectRepoAbout": "Project Repository",
+  "appAbout": "App",
+  "contactAbout": "Contact"
 }

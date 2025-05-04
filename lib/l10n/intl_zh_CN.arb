@@ -683,5 +683,19 @@
   "deleteTokenTitle": "删除令牌「{issuer}」",
   "deleteTokenMessage": "是否删除令牌「{issuer}」？",
   "deleteTokenSuccess": "已删除令牌「{issuer}」",
-  "licenseDetail": "根据{license}许可证开源"
+  "licenseDetail": "根据{license}许可证开源",
+  "sideBarSettings": "侧边栏",
+  "tokenCardSettings": "令牌外观",
+  "tokenOperationSettings": "令牌操作",
+  "otherOperationSettings": "其他",
+  "backupPasswordSettings": "备份密码",
+  "autoBackupSettings": "自动备份",
+  "localBackupSettings": "本地备份",
+  "cloudBackupSettings": "云备份",
+  "databaseEncryptionSettings": "数据库加密",
+  "gestureLockSettings": "手势锁",
+  "autoLockSettings": "自动锁定",
+  "projectRepoAbout": "项目仓库",
+  "appAbout": "APP",
+  "contactAbout": "联系我们"
 }

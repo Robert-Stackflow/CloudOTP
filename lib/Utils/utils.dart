@@ -24,6 +24,7 @@ import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
+import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -31,6 +32,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../Screens/Setting/about_setting_screen.dart';
 import '../Screens/Setting/mobile_setting_navigation_screen.dart';
+import '../Screens/Setting/setting_navigation_screen.dart';
 import '../Screens/Setting/setting_safe_screen.dart';
 import '../TokenUtils/code_generator.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -246,29 +248,6 @@ class Utils {
     await trayManager.setContextMenu(menu);
   }
 
-  static showHelp(BuildContext context) {
-    if (appProvider.shownShortcutHelp) return;
-    appProvider.shownShortcutHelp = true;
-    // late OverlayEntry entry;
-    // entry = OverlayEntry(
-    //   builder: (context) {
-    //     return KeyboardWidget(
-    //       bindings: defaultCloudOTPShortcuts,
-    //       callbackOnHide: () {
-    //         appProvider.shownShortcutHelp = false;
-    //         entry.remove();
-    //       },
-    //       title: Text(
-    //         S.current.shortcut,
-    //         style: ChewieTheme.textTheme.titleLarge,
-    //       ),
-    //     );
-    //   },
-    // );
-    // Overlay.of(context).insert(entry);
-    // return null;
-  }
-
   static processTrayMenuItemClick(
     BuildContext context,
     MenuItem menuItem, [
@@ -278,33 +257,16 @@ class Utils {
       ChewieUtils.displayApp();
     } else if (menuItem.key == TrayKey.shortcutHelp.key) {
       ChewieUtils.displayApp();
-      Utils.showHelp(context);
+      ShortcutsUtil.showShortcutHelp(context);
     } else if (menuItem.key == TrayKey.lockApp.key) {
-      if (CloudOTPHiveUtil.canLock()) {
-        mainScreenState?.jumpToLock();
-      } else {
-        IToast.showDesktopNotification(
-          S.current.noGestureLock,
-          body: S.current.noGestureLockTip,
-          actions: [S.current.cancel, S.current.goToSetGestureLock],
-          onClick: () {
-            ChewieUtils.displayApp();
-            RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
-          },
-          onClickAction: (index) {
-            if (index == 1) {
-              ChewieUtils.displayApp();
-              RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
-            }
-          },
-        );
-      }
+      ShortcutsUtil.lock(context);
     } else if (menuItem.key == TrayKey.setting.key) {
       ChewieUtils.displayApp();
-      RouteUtil.pushDialogRoute(context, const MobileSettingNavigationScreen());
+      RouteUtil.pushDialogRoute(context, const SettingNavigationScreen());
     } else if (menuItem.key == TrayKey.about.key) {
       ChewieUtils.displayApp();
-      RouteUtil.pushDialogRoute(context, const AboutSettingScreen());
+      RouteUtil.pushDialogRoute(
+          context, const SettingNavigationScreen(initAboutPage: true));
     } else if (menuItem.key == TrayKey.officialWebsite.key) {
       UriUtil.launchUrlUri(context, officialWebsite);
     } else if (menuItem.key.notNullOrEmpty &&

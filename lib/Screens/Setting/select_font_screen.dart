@@ -15,6 +15,7 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Screens/Setting/base_setting_screen.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -89,8 +90,9 @@ class _SelectFontScreenState extends State<SelectFontScreen>
         font: CustomFont.defaultFonts[index],
         onChanged: (_) {
           _currentFont = CustomFont.defaultFonts[index];
-          chewieProvider.currentFont = _currentFont;
+          appProvider.currentFont = _currentFont;
           CustomFont.loadFont(context, _currentFont, autoRestartApp: false);
+          setState(() {});
         },
       ),
     );
@@ -106,9 +108,10 @@ class _SelectFontScreenState extends State<SelectFontScreen>
         font: customFonts[index],
         onChanged: (_) {
           _currentFont = customFonts[index];
-          chewieProvider.currentFont = _currentFont;
+          appProvider.currentFont = _currentFont;
           CustomFont.loadFont(context, customFonts[index],
               autoRestartApp: false);
+          setState(() {});
         },
         onDelete: (_) {
           DialogBuilder.showConfirmDialog(
@@ -119,7 +122,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
             onTapConfirm: () async {
               if (customFonts[index] == _currentFont) {
                 _currentFont = CustomFont.Default;
-                chewieProvider.currentFont = _currentFont;
+                appProvider.currentFont = _currentFont;
                 CustomFont.loadFont(context, _currentFont,
                     autoRestartApp: false);
               }
@@ -147,7 +150,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
               customFonts.add(customFont);
               ChewieHiveUtil.setCustomFonts(customFonts);
               _currentFont = customFont;
-              chewieProvider.currentFont = _currentFont;
+              appProvider.currentFont = _currentFont;
               CustomFont.loadFont(context, _currentFont, autoRestartApp: false);
               setState(() {});
             } else {

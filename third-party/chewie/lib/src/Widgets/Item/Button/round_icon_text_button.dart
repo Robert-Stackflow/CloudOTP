@@ -18,6 +18,7 @@ class RoundIconTextButton extends StatelessWidget {
   final TextStyle? textStyle;
   final double? width;
   final double height;
+  final double spacing;
   final Border? border;
   final bool disabled;
 
@@ -30,6 +31,7 @@ class RoundIconTextButton extends StatelessWidget {
     this.icon,
     this.padding = const EdgeInsets.symmetric(horizontal: 24),
     this.radius = 8,
+    this.spacing = 4,
     this.color,
     this.fontSizeDelta = 0,
     this.textStyle,
@@ -42,9 +44,12 @@ class RoundIconTextButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isClickable = !disabled && onPressed != null;
-    var backgroundColor = background ?? ChewieTheme.cardColor;
+    Color backgroundColor = background ?? ChewieTheme.cardColor;
     backgroundColor =
         disabled ? backgroundColor.withAlpha(127) : backgroundColor;
+    Color textColor = color ??
+        (background != null ? Colors.white : ChewieTheme.titleSmall.color!);
+    textColor = disabled ? textColor.withAlpha(127) : textColor;
     return ToolTipWrapper(
       message: tooltip,
       child: SizedBox(
@@ -73,14 +78,13 @@ class RoundIconTextButton extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (icon != null) icon!,
+                      if (icon != null && text != null)
+                        SizedBox(width: spacing),
                       Text(
                         text ?? "",
                         style: textStyle ??
                             ChewieTheme.titleSmall.apply(
-                              color: (color ??
-                                  (background != null
-                                      ? Colors.white
-                                      : ChewieTheme.titleSmall.color)),
+                              color: textColor,
                               fontWeightDelta: 2,
                               fontSizeDelta: fontSizeDelta,
                             ),

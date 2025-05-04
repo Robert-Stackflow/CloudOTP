@@ -44,6 +44,7 @@ import 'TokenUtils/token_image_util.dart';
 import 'Utils/constant.dart';
 import 'Utils/lottie_util.dart';
 import 'Utils/utils.dart';
+import 'Widgets/Shortcuts/app_shortcuts.dart';
 import 'Widgets/cloudotp/cloudotp_file_util.dart';
 import 'generated/l10n.dart';
 
@@ -69,7 +70,7 @@ Future<void> runMyApp(List<String> args) async {
       showWindowTitle: true,
     );
   } else {
-    home = MainScreen(key: mainScreenKey);
+    home = AppShortcuts(child: MainScreen(key: mainScreenKey));
   }
   runApp(MyApp(home: home));
   FlutterNativeSplash.remove();
@@ -229,14 +230,9 @@ class MyApp extends StatelessWidget {
           navigatorKey: chewieProvider.globalNavigatorKey,
           navigatorObservers: [chewieProvider.routeObserver],
           title: title,
-          theme: chewieProvider.getBrightness() == null ||
-                  chewieProvider.getBrightness() == Brightness.light
-              ? appProvider.lightTheme.toThemeData()
-              : appProvider.darkTheme.toThemeData(),
-          darkTheme: chewieProvider.getBrightness() == null ||
-                  chewieProvider.getBrightness() == Brightness.dark
-              ? appProvider.darkTheme.toThemeData()
-              : appProvider.lightTheme.toThemeData(),
+          themeMode: appProvider.themeMode.themeMode,
+          theme: appProvider.lightTheme.toThemeData(),
+          darkTheme: appProvider.darkTheme.toThemeData(),
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
             S.delegate,
@@ -280,6 +276,7 @@ class MyApp extends StatelessWidget {
                           if (!ResponsiveUtil.isDesktop() &&
                               homeScreenState?.hasSearchFocus == true) {
                             FocusManager.instance.primaryFocus?.unfocus();
+                            appProvider.shortcutFocusNode.requestFocus();
                           }
                         },
                         child: widget,

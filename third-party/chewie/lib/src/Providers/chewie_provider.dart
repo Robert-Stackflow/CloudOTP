@@ -7,7 +7,7 @@ ChewieProvider chewieProvider = ChewieProvider();
 
 class ChewieProvider with ChangeNotifier {
   static const Size defaultWindowSize = Size(1280, 720);
-  static const Size minimumWindowSize = Size(1000, 640);
+  static const Size minimumWindowSize = Size(800, 640);
 
   String latestVersion = "";
 
@@ -61,15 +61,6 @@ class ChewieProvider with ChangeNotifier {
       GlobalKey<BasePanelScreenState>();
 
   BasePanelScreenState? get panelScreenState => panelScreenKey.currentState;
-
-  CustomFont _currentFont = CustomFont.getCurrentFont();
-
-  CustomFont get currentFont => _currentFont;
-
-  set currentFont(CustomFont value) {
-    _currentFont = value;
-    notifyListeners();
-  }
 
   ProxyConfig _proxyConfig = ChewieHiveUtil.getProxyConfig() ??
       ProxyConfig(proxyType: ProxyType.NoProxy);

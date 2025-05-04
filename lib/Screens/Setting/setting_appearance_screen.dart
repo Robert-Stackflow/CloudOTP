@@ -108,7 +108,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
         SearchableBuilderWidget(
           title: S.current.themeMode,
           builder: (_, title, description, searchText, searchConfig) =>
-              Selector<ChewieProvider, ActiveThemeMode>(
+              Selector<AppProvider, ActiveThemeMode>(
             selector: (context, globalProvider) => globalProvider.themeMode,
             builder: (context, themeMode, child) =>
                 InlineSelectionItem<SelectionItemModel<ActiveThemeMode>>(
@@ -123,7 +123,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
                 themeMode,
               ),
               onChanged: (SelectionItemModel<ActiveThemeMode>? item) {
-                chewieProvider.themeMode = item!.value;
+                appProvider.themeMode = item!.value;
               },
             ),
           ),
@@ -152,7 +152,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
         SearchableBuilderWidget(
           title: S.current.chooseFontFamily,
           builder: (_, title, description, searchText, searchConfig) =>
-              Selector<ChewieProvider, CustomFont>(
+              Selector<AppProvider, CustomFont>(
             selector: (context, appProvider) => appProvider.currentFont,
             builder: (context, currentFont, child) => EntryItem(
               tip: currentFont.intlFontName,
@@ -172,7 +172,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
 
   Widget _buttonSettings() {
     return SearchableCaptionItem(
-      title: "侧边栏设置",
+      title: S.current.sideBarSettings,
       children: [
         CheckboxItem(
           title: S.current.showBackupLogButton,
@@ -220,7 +220,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
 
   Widget _tokenLayoutSettings() {
     return SearchableCaptionItem(
-      title: "令牌项目设置",
+      title: S.current.tokenCardSettings,
       children: [
         CheckboxItem(
           value: hideProgressBar,

@@ -140,7 +140,8 @@ class AppProvider with ChangeNotifier {
 
   bool preventLock = false;
 
-  bool shownShortcutHelp = false;
+  FocusNode shortcutFocusNode = FocusNode();
+  FocusNode searchFocusNode = FocusNode();
 
   final List<AutoBackupLog> _autoBackupLogs = [];
 
@@ -343,6 +344,28 @@ class AppProvider with ChangeNotifier {
       CloudOTPHiveUtil.setAutoLockTime(value);
     }
   }
+
+  ActiveThemeMode _themeMode = ChewieHiveUtil.getThemeMode();
+
+  ActiveThemeMode get themeMode => _themeMode;
+
+  set themeMode(ActiveThemeMode value) {
+    if (value != _themeMode) {
+      _themeMode = value;
+      notifyListeners();
+      chewieProvider.themeMode = _themeMode;
+    }
+  }
+
+  CustomFont _currentFont = CustomFont.getCurrentFont();
+
+  CustomFont get currentFont => _currentFont;
+
+  set currentFont(CustomFont value) {
+    _currentFont = value;
+    notifyListeners();
+  }
+
 
   ChewieThemeColorData _lightTheme = ChewieHiveUtil.getLightTheme();
 
