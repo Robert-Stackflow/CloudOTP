@@ -17,6 +17,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_token_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Database/category_dao.dart';
 import '../../Models/token_category.dart';
@@ -59,50 +60,60 @@ class _CategoryScreenState extends State<CategoryScreen>
         showBorder: true,
         showBack: !ResponsiveUtil.isLandscape(),
         titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        desktopActions: [
+          ToolButton(
+            context: context,
+            icon: LucideIcons.plus,
+            buttonSize: const Size(32, 32),
+            onPressed: _add,
+          ),
+        ],
         actions: [
           CircleIconButton(
-            icon: Icon(Icons.add_rounded,
+            icon: Icon(LucideIcons.plus,
                 color: Theme.of(context).iconTheme.color),
-            onTap: () {
-              InputValidateAsyncController validateAsyncController =
-                  InputValidateAsyncController(
-                validator: (text) async {
-                  if (text.isEmpty) {
-                    return S.current.categoryNameCannotBeEmpty;
-                  }
-                  if (await CategoryDao.isCategoryExist(text)) {
-                    return S.current.categoryNameDuplicate;
-                  }
-                  return null;
-                },
-                controller: TextEditingController(),
-              );
-              GlobalKey<InputBottomSheetState> key = GlobalKey();
-              BottomSheetBuilder.showBottomSheet(context,
-                  responsive: true, useWideLandscape: true, (context) {
-                return InputBottomSheet(
-                  key: key,
-                  title: S.current.addCategory,
-                  hint: S.current.inputCategory,
-                  validateAsyncController: validateAsyncController,
-                  style: InputItemStyle(
-                    maxLength: 32,
-                  ),
-                  onValidConfirm: (text) async {
-                    TokenCategory category = TokenCategory.title(title: text);
-                    await CategoryDao.insertCategory(category);
-                    categories.add(category);
-                    setState(() {});
-                    homeScreenState?.refreshCategories();
-                  },
-                );
-              });
-            },
+            onTap: _add,
           ),
         ],
       ),
       body: _buildBody(),
     );
+  }
+
+  _add() {
+    InputValidateAsyncController validateAsyncController =
+        InputValidateAsyncController(
+      validator: (text) async {
+        if (text.isEmpty) {
+          return S.current.categoryNameCannotBeEmpty;
+        }
+        if (await CategoryDao.isCategoryExist(text)) {
+          return S.current.categoryNameDuplicate;
+        }
+        return null;
+      },
+      controller: TextEditingController(),
+    );
+    GlobalKey<InputBottomSheetState> key = GlobalKey();
+    BottomSheetBuilder.showBottomSheet(context,
+        responsive: true, useWideLandscape: true, (context) {
+      return InputBottomSheet(
+        key: key,
+        title: S.current.addCategory,
+        hint: S.current.inputCategory,
+        validateAsyncController: validateAsyncController,
+        style: InputItemStyle(
+          maxLength: 32,
+        ),
+        onValidConfirm: (text) async {
+          TokenCategory category = TokenCategory.title(title: text);
+          await CategoryDao.insertCategory(category);
+          categories.add(category);
+          setState(() {});
+          homeScreenState?.refreshCategories();
+        },
+      );
+    });
   }
 
   _buildBody() {

@@ -20,6 +20,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double titleLeftMargin;
   final double rightSpacing;
   final List<Widget> actions;
+  final List<Widget> desktopActions;
   final double height;
   final double? borderWidth;
 
@@ -36,6 +37,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.centerTitle = false,
     this.titleLeftMargin = 5,
     this.rightSpacing = 8,
+    this.desktopActions = const [],
     this.actions = const [],
     this.height = 48,
     this.borderWidth,
@@ -82,6 +84,11 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
                             ),
                           ),
                         titleContent,
+                        const Spacer(),
+                        ...[
+                          ...desktopActions,
+                          const SizedBox(width: 44),
+                        ],
                       ],
                     ),
                   ),

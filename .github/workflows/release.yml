@@ -112,7 +112,7 @@ jobs:
           flutter doctor -v
           flutter pub get
           dart run intl_utils:generate
-          cd third_party/chewie
+          cd third-party/chewie
           dart run intl_utils:generate
 
       # Get app version

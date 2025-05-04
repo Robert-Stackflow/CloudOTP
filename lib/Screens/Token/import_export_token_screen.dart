@@ -52,11 +52,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
         title: S.current.exportImport,
         showBack: !ResponsiveUtil.isLandscape(),
         titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-        actions: ResponsiveUtil.isLandscape()
-            ? []
-            : [
-                const BlankIconButton(),
-              ],
+        actions: ResponsiveUtil.isLandscape() ? [] : [const BlankIconButton()],
       ),
       body: EasyRefresh(
         child: _buildBody(),

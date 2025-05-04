@@ -172,10 +172,20 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         title: _isEditing ? S.current.editToken : S.current.addToken,
         showBack: !ResponsiveUtil.isLandscape(),
         titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        desktopActions: [
+          ToolButton(
+            context: context,
+            icon: LucideIcons.check,
+            buttonSize: const Size(32, 32),
+            onPressed: () {
+              processDone();
+            },
+          ),
+        ],
         actions: [
           CircleIconButton(
             icon: Icon(
-              Icons.done_rounded,
+              LucideIcons.check,
               color: Theme.of(context).iconTheme.color,
             ),
             onTap: () {

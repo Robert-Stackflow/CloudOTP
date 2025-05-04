@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'package:awesome_chewie/src/Utils/System/route_util.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Button/window_button.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class DialogWrapperWidget extends StatefulWidget {
   final Widget child;
@@ -169,7 +170,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
                             child: ToolButton(
                               context: context,
                               buttonSize: const Size(32, 32),
-                              icon: Icons.close_rounded,
+                              icon: LucideIcons.x,
                               onPressed: () {
                                 popPage();
                               },
