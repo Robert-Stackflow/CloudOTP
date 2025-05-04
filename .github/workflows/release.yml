@@ -122,7 +122,7 @@ jobs:
         run: |
           echo "version=$(head -n 2 pubspec.yaml | tail -n 1 | cut -d ' ' -f 2 | cut -d '+' -f 1)" >> $GITHUB_OUTPUT
           echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-          echo "arch=${RUNNER_ARCH,,}" >> $GITHUB_OUTPUT
+          echo "arch=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       # Build Android .apk
       - name: Build Android
