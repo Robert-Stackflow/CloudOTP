@@ -262,11 +262,10 @@ class Utils {
       ShortcutsUtil.lock(context);
     } else if (menuItem.key == TrayKey.setting.key) {
       ChewieUtils.displayApp();
-      RouteUtil.pushDialogRoute(context, const SettingNavigationScreen());
+      ShortcutsUtil.jumpToSetting(context);
     } else if (menuItem.key == TrayKey.about.key) {
       ChewieUtils.displayApp();
-      RouteUtil.pushDialogRoute(
-          context, const SettingNavigationScreen(initAboutPage: true));
+      ShortcutsUtil.jumpToAbout(context);
     } else if (menuItem.key == TrayKey.officialWebsite.key) {
       UriUtil.launchUrlUri(context, officialWebsite);
     } else if (menuItem.key.notNullOrEmpty &&

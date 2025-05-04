@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 
+import '../Screens/Setting/setting_navigation_screen.dart';
 import '../Screens/Setting/setting_safe_screen.dart';
 import '../Screens/main_screen.dart';
 import '../Widgets/Shortcuts/app_shortcuts.dart';
@@ -293,12 +294,12 @@ class ShortcutsUtil {
         actions: [S.current.cancel, S.current.goToSetGestureLock],
         onClick: () {
           ChewieUtils.displayApp();
-          RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+          jumpToSetLock(context);
         },
         onClickAction: (index) {
           if (index == 1) {
             ChewieUtils.displayApp();
-            RouteUtil.pushDialogRoute(context, const SafeSettingScreen());
+            jumpToSetLock(context);
           }
         },
       );
@@ -317,6 +318,21 @@ class ShortcutsUtil {
         ),
       ),
     );
+  }
+
+  static void jumpToSetting(BuildContext context) {
+    RouteUtil.pushDialogRoute(
+        context, const SettingNavigationScreen());
+  }
+
+  static void jumpToSetLock(BuildContext context) {
+    RouteUtil.pushDialogRoute(
+        context, const SettingNavigationScreen(initPageIndex: 4));
+  }
+
+  static void jumpToAbout(BuildContext context) {
+    RouteUtil.pushDialogRoute(
+        context, const SettingNavigationScreen(initPageIndex: 5));
   }
 
   static void jumpToMain(BuildContext context) {

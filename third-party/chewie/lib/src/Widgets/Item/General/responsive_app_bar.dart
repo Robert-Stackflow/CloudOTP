@@ -112,6 +112,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     return SafeArea(
+      top: !ResponsiveUtil.isLandscape(),
       child: bottomWidget != null && bottomHeight != null
           ? PreferredSize(
               preferredSize: Size.fromHeight(height + bottomHeight!),

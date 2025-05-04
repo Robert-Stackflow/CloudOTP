@@ -23,11 +23,11 @@ class SettingNavigationItem {
 }
 
 class SettingNavigationScreen extends StatefulWidget {
-  final bool initAboutPage;
+  final int initPageIndex;
 
   const SettingNavigationScreen({
     super.key,
-    this.initAboutPage = false,
+    this.initPageIndex = 0,
   });
 
   @override
@@ -51,7 +51,7 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchTextChanged);
-    _selectedIndex = widget.initAboutPage ? _navigationItems.length - 1 : 0;
+    _selectedIndex = widget.initPageIndex;
   }
 
   @override
@@ -149,54 +149,55 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
       SettingNavigationItem(title: S.current.about, icon: LucideIcons.info),
     ];
     return Consumer<AppProvider>(
-      builder: (context, provider, child) => Scaffold(
-        appBar: ResponsiveAppBar(
-          showBack: false,
-          titleLeftMargin: 15,
-          title: S.current.setting,
-        ),
-        body: Row(
-          children: [
-            Container(
-              width: 144,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: ChewieTheme.canvasColor,
-                border: ChewieTheme.rightDivider,
-              ),
-              child: ListView.builder(
-                itemCount: _navigationItems.length,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                itemBuilder: (context, index) {
-                  final item = _navigationItems[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 4),
-                    child: SettingNavigationItemWidget(
-                      title: item.title,
-                      icon: item.icon,
-                      selected: index == _selectedIndex,
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
+      builder: (context, provider, child) =>
+          Scaffold(
+            appBar: ResponsiveAppBar(
+              showBack: false,
+              titleLeftMargin: 15,
+              title: S.current.setting,
             ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // _buildSearchRow(),
-                  Expanded(child: _buildCurrentPage(_selectedIndex)),
-                ],
-              ),
+            body: Row(
+              children: [
+                Container(
+                  width: 144,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: ChewieTheme.canvasColor,
+                    border: ChewieTheme.rightDivider,
+                  ),
+                  child: ListView.builder(
+                    itemCount: _navigationItems.length,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    itemBuilder: (context, index) {
+                      final item = _navigationItems[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 4),
+                        child: SettingNavigationItemWidget(
+                          title: item.title,
+                          icon: item.icon,
+                          selected: index == _selectedIndex,
+                          onTap: () {
+                            setState(() {
+                              _selectedIndex = index;
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // _buildSearchRow(),
+                      Expanded(child: _buildCurrentPage(_selectedIndex)),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -259,7 +260,7 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
           onPressed: () {
             setState(() {
               _searchConfig.enableShortPinyin =
-                  !_searchConfig.enableShortPinyin;
+              !_searchConfig.enableShortPinyin;
             });
           },
         )

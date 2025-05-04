@@ -273,7 +273,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           ? ResponsiveAppBar(
               titleLeftMargin: 10,
               titleWidget: Container(
-                constraints: const BoxConstraints(maxWidth: 300, minWidth: 200),
+                constraints: const BoxConstraints(maxWidth: 300, minWidth: 200,maxHeight: 36),
                 child: MySearchBar(
                   borderRadius: 8,
                   bottomMargin: 18,
@@ -288,8 +288,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
               ),
             )
           : null,
-      body: ResponsiveUtil.buildDesktopWidget(
-        desktop: Column(
+      body: ResponsiveUtil.buildLandscapeWidget(
+        landscape: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTabBar(),
@@ -298,7 +298,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             ),
           ],
         ),
-        mobile: PopScope(
+        portrait: PopScope(
           canPop: false,
           onPopInvokedWithResult: (_, __) {
             if (mounted && _shownSearchbarNotifier.value) {

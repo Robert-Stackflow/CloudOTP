@@ -61,7 +61,7 @@ jobs:
       arch: ${{ steps.get_version.outputs.arch}}
     runs-on: ${{ matrix.os }}
     env:
-      FLUTTER_VERSION: 3.29.3
+      FLUTTER_VERSION: 3.27.2
     steps:
       # Checkout branch
       - name: Checkout

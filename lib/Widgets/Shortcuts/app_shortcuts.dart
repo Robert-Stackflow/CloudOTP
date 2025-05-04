@@ -42,8 +42,7 @@ class AppShortcuts extends StatelessWidget {
           ),
           SettingIntent: CallbackAction(
             onInvoke: (_) {
-              RouteUtil.pushDialogRoute(
-                  chewieProvider.rootContext, const SettingNavigationScreen());
+              ShortcutsUtil.jumpToSetting(context);
               return null;
             },
           ),

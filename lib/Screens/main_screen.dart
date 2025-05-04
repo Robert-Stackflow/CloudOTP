@@ -274,6 +274,7 @@ class MainScreenState extends State<MainScreen>
           SystemNavigator.pop();
         },
         child: Scaffold(
+          backgroundColor: ChewieTheme.appBarBackgroundColor,
           resizeToAvoidBottomInset: false,
           body: SafeArea(child: _buildDesktopBody()),
         ),
@@ -579,9 +580,12 @@ class MainScreenState extends State<MainScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ResponsiveUtil.buildDesktopWidget(
-                    desktop: const SizedBox(height: 8)),
-                ResponsiveUtil.buildDesktopWidget(desktop: _buildLogo()),
+                ResponsiveUtil.buildGeneralWidget(
+                  desktop: const SizedBox(height: 8),
+                  landscape: const SizedBox(height: 12),
+                  portrait: const SizedBox(height: 8),
+                ),
+                _buildLogo(),
                 const SizedBox(height: 8),
                 ToolButton(
                   context: context,
