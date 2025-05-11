@@ -2275,9 +2275,7 @@ class ItemBuilder {
         } else {
           return MyDesktopTextSelectionToolbar(
             anchor: details.contextMenuAnchors.primaryAnchor,
-            decoration:BoxDecoration(
-              color: Theme.of(contextMenuContext).canvasColor,
-            ),
+            backgroundColor: Theme.of(context).canvasColor,
             dividerColor: Theme.of(context).dividerColor,
             items: items,
           );
@@ -2346,9 +2344,7 @@ class ItemBuilder {
     } else {
       return MyDesktopTextSelectionToolbar(
         anchor: details.contextMenuAnchors.primaryAnchor,
-        decoration:BoxDecoration(
-          color: Theme.of(contextMenuContext).canvasColor,
-        ),
+        backgroundColor: Theme.of(contextMenuContext).canvasColor,
         dividerColor: Theme.of(contextMenuContext).dividerColor,
         items: items,
       );
