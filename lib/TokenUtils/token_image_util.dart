@@ -108,8 +108,6 @@ class TokenImageUtil {
     for (final logo in brandLogos) {
       final brand = cleanBrand(logo).split(".")[0];
 
-      if (!issuer.contains(brand[0])) continue;
-
       final int lcs = longestCommonSubstring(issuer, brand);
 
       final bool containsEither =
