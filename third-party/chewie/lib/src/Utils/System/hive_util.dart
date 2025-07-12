@@ -61,10 +61,12 @@ class ChewieHiveUtil {
   static const String haveShownQQGroupDialogKey = "haveShownQQGroupDialog";
   static const String proxyConfigKey = "proxyConfig";
 
-  static const String haveMigratedToSupportDirectoryKey = "haveMigratedToSupportDirectory";
+  static const String haveMigratedToSupportDirectoryKey =
+      "haveMigratedToSupportDirectory";
 
   static initConfig() async {
-    await ChewieHiveUtil.put(ChewieHiveUtil.enableSafeModeKey, defaultEnableSafeMode);
+    await ChewieHiveUtil.put(
+        ChewieHiveUtil.enableSafeModeKey, defaultEnableSafeMode);
     ChewieHiveUtil.put(ChewieHiveUtil.followMainColorKey, true);
     ChewieHiveUtil.put(ChewieHiveUtil.inappWebviewKey, true);
     ChewieHiveUtil.put(ChewieHiveUtil.recordWindowStateKey, true);
@@ -116,7 +118,8 @@ class ChewieHiveUtil {
     }
     try {
       List<String> list = position.split(",");
-      ILogger.info("Get window position ${double.parse(list[0])},${double.parse(list[1])}");
+      ILogger.info(
+          "Get window position ${double.parse(list[0])},${double.parse(list[1])}");
       return Offset(double.parse(list[0]), double.parse(list[1]));
     } catch (e, t) {
       ILogger.error("Failed to get window position", e, t);

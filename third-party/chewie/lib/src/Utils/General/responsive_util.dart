@@ -25,7 +25,6 @@ enum LinuxOSType {
   }
 }
 
-
 class ResponsiveUtil {
   static String buildNumber = "";
   static String version = "";

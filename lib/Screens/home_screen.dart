@@ -273,7 +273,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           ? ResponsiveAppBar(
               titleLeftMargin: 10,
               titleWidget: Container(
-                constraints: const BoxConstraints(maxWidth: 300, minWidth: 200,maxHeight: 36),
+                constraints: const BoxConstraints(
+                    maxWidth: 300, minWidth: 200, maxHeight: 36),
                 child: MySearchBar(
                   borderRadius: 8,
                   bottomMargin: 18,

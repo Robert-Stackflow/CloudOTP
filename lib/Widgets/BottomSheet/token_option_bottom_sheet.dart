@@ -291,8 +291,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
           onTap: () {
             Navigator.pop(context);
             RouteUtil.pushDialogRoute(
-                context, AddTokenScreen(token: widget.token),
-                showClose: false);
+                context, AddTokenScreen(token: widget.token));
           },
         ),
         _buildItem(

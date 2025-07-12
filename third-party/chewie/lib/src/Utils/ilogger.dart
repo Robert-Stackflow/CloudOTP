@@ -120,8 +120,8 @@ class FileOutput extends LogOutput {
   File? file;
   static int maxLogSize = 100 * 1024 * 1024; // 100MB
   static int maxLogFileCount = 10; // 10 files
-  static RegExp logFilNameRegExp =
-      RegExp('${ResponsiveUtil.appName}_(\\d{4}-\\d{2}-\\d{2})_(\\d{2}-\\d{2}-\\d{2})\\.log');
+  static RegExp logFilNameRegExp = RegExp(
+      '${ResponsiveUtil.appName}_(\\d{4}-\\d{2}-\\d{2})_(\\d{2}-\\d{2}-\\d{2})\\.log');
   static RegExp errorLogFilNameRegExp = RegExp(r'error\.log');
 
   @override

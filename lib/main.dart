@@ -86,8 +86,7 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
     ChewieHiveUtil.setFirstLogin();
   }
   if (haveMigratedToSupportDirectory) {
-    ChewieHiveUtil.put(
-        ChewieHiveUtil.haveMigratedToSupportDirectoryKey, true);
+    ChewieHiveUtil.put(ChewieHiveUtil.haveMigratedToSupportDirectoryKey, true);
   }
   ChewieHiveUtil.put(CloudOTPHiveUtil.oldVersionKey, ResponsiveUtil.version);
   try {

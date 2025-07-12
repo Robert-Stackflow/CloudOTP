@@ -48,6 +48,7 @@ class HuaweiCloudBackupsBottomSheetState
     files = widget.files;
     super.initState();
   }
+
   Radius radius = ChewieDimens.radius16;
 
   @override

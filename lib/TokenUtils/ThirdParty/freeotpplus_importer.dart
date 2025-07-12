@@ -153,8 +153,7 @@ class FreeOTPPlusTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog =
-          showProgressDialog(S.current.importing, showProgress: false);
+      dialog = showProgressDialog(S.current.importing, showProgress: false);
     }
     try {
       File file = File(path);

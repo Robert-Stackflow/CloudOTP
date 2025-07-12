@@ -197,9 +197,9 @@ class FileUtil {
   }
 
   static Future<void> createBakDir(
-      Directory sourceDir, [
-        Directory? destDir,
-      ]) async {
+    Directory sourceDir, [
+    Directory? destDir,
+  ]) async {
     Directory directory = destDir ?? Directory("${sourceDir.path}-bak");
     if (await directory.exists()) {
       return;
@@ -269,14 +269,14 @@ class FileUtil {
     }
     Directory oldDir = Directory(await getOldApplicationDir());
     Directory newDir = Directory(await getApplicationDir());
-    if(await isDirectoryEmpty(oldDir)){
+    if (await isDirectoryEmpty(oldDir)) {
       try {
         await deleteDirectory(oldDir);
       } catch (e, t) {
-        ILogger.error( "Failed to delete old application directory", e, t);
+        ILogger.error("Failed to delete old application directory", e, t);
       }
       haveMigratedToSupportDirectory = true;
-    }else{
+    } else {
       try {
         if (oldDir.path == newDir.path) {
           return;
@@ -297,7 +297,7 @@ class FileUtil {
       try {
         await deleteDirectory(oldDir);
       } catch (e, t) {
-        ILogger.error( "Failed to delete old application directory", e, t);
+        ILogger.error("Failed to delete old application directory", e, t);
       }
       ILogger.info("CloudOTP",
           "Finish to migrate data from old application directory $oldDir to new application directory $newDir");
@@ -763,8 +763,11 @@ class FileUtil {
       });
       ILogger.info("Supported abis after sorted: $supportedAbis");
       for (var asset in assets) {
-        String abi =
-            asset.name.split("${ResponsiveUtil.appName}-$latestVersion-").last.split(".").first;
+        String abi = asset.name
+            .split("${ResponsiveUtil.appName}-$latestVersion-")
+            .last
+            .split(".")
+            .first;
         for (var supportedAbi in supportedAbis) {
           if (abi.toLowerCase().contains(supportedAbi)) {
             resAsset = asset;
@@ -793,8 +796,8 @@ class FileUtil {
     final dataSize = calloc<Uint32>();
     dataSize.value = 260 * 2;
 
-    final result = RegOpenKeyEx(
-        HKEY_LOCAL_MACHINE, TEXT(windowsKeyPath), 0, REG_SAM_FLAGS.KEY_READ, key);
+    final result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT(windowsKeyPath), 0,
+        REG_SAM_FLAGS.KEY_READ, key);
     if (result == WIN32_ERROR.ERROR_SUCCESS) {
       final queryResult = RegQueryValueEx(key.value, TEXT('InstallPath'),
           nullptr, nullptr, installPathPtr.cast(), dataSize);

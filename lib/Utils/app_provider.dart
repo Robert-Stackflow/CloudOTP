@@ -364,7 +364,6 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
   ChewieThemeColorData _lightTheme = ChewieHiveUtil.getLightTheme();
 
   ChewieThemeColorData get lightTheme => _lightTheme;

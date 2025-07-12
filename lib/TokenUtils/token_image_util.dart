@@ -22,8 +22,10 @@ import 'package:flutter/services.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
 
 class TokenImageUtil {
+  static const int matchThreshold = 5;
   static List<String> brandLogos = [];
   static List<String> darkBrandLogos = [];
+  static final Map<String, List<String>> _matchCache = {};
 
   static loadBrandLogos() async {
     final manifestContent = await rootBundle.loadString('AssetManifest.json');
@@ -55,48 +57,80 @@ class TokenImageUtil {
     return brand.replaceAll(RegExp(r'[_\s-]'), '').toLowerCase();
   }
 
+  static int longestCommonSubstring(String a, String b) {
+    final m = a.length;
+    final n = b.length;
+    int maxLen = 0;
+
+    final dp = List.generate(m + 1, (_) => List.filled(n + 1, 0));
+
+    for (int i = 1; i <= m; i++) {
+      for (int j = 1; j <= n; j++) {
+        if (a[i - 1] == b[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1;
+          maxLen = maxLen < dp[i][j] ? dp[i][j] : maxLen;
+        }
+      }
+    }
+
+    return maxLen;
+  }
+
   static String? matchBrandLogo(OtpToken token) {
     final issuer = cleanBrand(token.issuer);
     if (issuer.nullOrEmpty) return null;
-    String brandLogo = brandLogos.firstWhere(
-      (logo) => cleanBrand(logo).split(".")[0] == issuer,
-      orElse: () => "",
-    );
-    if (brandLogo.isEmpty) {
-      brandLogo = brandLogos.firstWhere(
-        (logo) => cleanBrand(logo).split(".")[0].contains(issuer),
-        orElse: () => "",
-      );
+
+    final matches = matchBrandLogos(issuer);
+    if (matches.isNotEmpty) return matches.first;
+
+    switch (token.tokenType) {
+      case OtpTokenType.Steam:
+        return "steam.png";
+      case OtpTokenType.Yandex:
+        return "yandex.png";
+      default:
+        return null;
     }
-    if (brandLogo.isEmpty) {
-      switch (token.tokenType) {
-        case OtpTokenType.Steam:
-          brandLogo = "steam.png";
-          break;
-        case OtpTokenType.Yandex:
-          brandLogo = "yandex.png";
-          break;
-        default:
-          break;
-      }
-    }
-    return brandLogo.isEmpty ? null : brandLogo;
   }
 
   static List<String> matchBrandLogos(String issuer) {
     if (issuer.nullOrEmpty) return TokenImageUtil.brandLogos;
+
     issuer = cleanBrand(issuer);
-    List<String> res = [];
-    String brandLogo = brandLogos.firstWhere(
-      (logo) => cleanBrand(logo).split(".")[0] == issuer,
-      orElse: () => "",
-    );
-    if (brandLogo.isNotEmpty) res.add(brandLogo);
-    for (var e in brandLogos) {
-      if (e != brandLogo && cleanBrand(e).split(".")[0].contains(issuer)) {
-        res.add(e);
+
+    if (_matchCache.containsKey(issuer)) {
+      return _matchCache[issuer]!;
+    }
+
+    const int substringMatchThreshold = 5;
+    final matches = <MapEntry<String, int>>[];
+
+    for (final logo in brandLogos) {
+      final brand = cleanBrand(logo).split(".")[0];
+
+      if (!issuer.contains(brand[0])) continue;
+
+      final int lcs = longestCommonSubstring(issuer, brand);
+
+      final bool containsEither =
+          (issuer.contains(brand) && lcs >= substringMatchThreshold) ||
+              brand.contains(issuer);
+
+      if (containsEither || lcs >= substringMatchThreshold) {
+        matches.add(MapEntry(logo, lcs));
       }
     }
-    return res;
+
+    matches.sort((a, b) => b.value.compareTo(a.value));
+
+    final seen = <String>{};
+    final result = [
+      for (final entry in matches)
+        if (seen.add(entry.key)) entry.key
+    ];
+
+    _matchCache[issuer] = result;
+
+    return result;
   }
 }

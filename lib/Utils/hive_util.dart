@@ -44,6 +44,8 @@ class CloudOTPHiveUtil {
   static const String autoDisplayNextCodeKey = "autoDisplayNextCode";
   static const String autoMinimizeAfterClickToCopyKey =
       "autoMinimizeAfterClickToCopy";
+  static const String autoMinimizeAfterClickToCopyOptionKey =
+      "autoMinimizeAfterClickToCopyOption";
   static const String hideProgressBarKey = "hideProgressBar";
   static const String autoHideCodeKey = "autoHideCode";
   static const String defaultHideCodeKey = "defaultHideCode";
@@ -159,8 +161,10 @@ class CloudOTPHiveUtil {
   }
 
   static Future<String> getBackupPath() async {
-    String res = ChewieHiveUtil.getString(CloudOTPHiveUtil.backupPathKey) ?? "";
-    if (res.isNotEmpty) res = await FileUtil.getBackupDir();
+    String res = ChewieHiveUtil.getString(CloudOTPHiveUtil.backupPathKey,
+            defaultValue: "") ??
+        "";
+    if (res.isEmpty) res = await FileUtil.getBackupDir();
     return res;
   }
 
