@@ -66,7 +66,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
     });
   }
 
-  Radius radius = ChewieDimens.radius8;
+  Radius radius = ChewieDimens.radius16;
 
   @override
   Widget build(BuildContext context) {

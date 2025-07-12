@@ -41,11 +41,8 @@ import 'package:window_manager/window_manager.dart';
 
 import 'Screens/main_screen.dart';
 import 'TokenUtils/token_image_util.dart';
-import 'Utils/constant.dart';
-import 'Utils/lottie_util.dart';
 import 'Utils/utils.dart';
 import 'Widgets/Shortcuts/app_shortcuts.dart';
-import 'Widgets/cloudotp/cloudotp_file_util.dart';
 import 'generated/l10n.dart';
 
 const List<String> kWindowsSchemes = ["cloudotp", "com.cloudchewie.cloudotp"];
@@ -77,7 +74,8 @@ Future<void> runMyApp(List<String> args) async {
 }
 
 Future<void> initApp(WidgetsBinding widgetsBinding) async {
-  await CloudOTPFileUtil.migrationDataToSupportDirectory();
+  await ResponsiveUtil.init();
+  await FileUtil.migrationDataToSupportDirectory();
   FlutterError.onError = onError;
   imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
@@ -89,7 +87,7 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   }
   if (haveMigratedToSupportDirectory) {
     ChewieHiveUtil.put(
-        CloudOTPHiveUtil.haveMigratedToSupportDirectoryKey, true);
+        ChewieHiveUtil.haveMigratedToSupportDirectoryKey, true);
   }
   ChewieHiveUtil.put(CloudOTPHiveUtil.oldVersionKey, ResponsiveUtil.version);
   try {
@@ -109,7 +107,6 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   NotificationUtil.init();
   await BiometricUtil.initStorage();
   await TokenImageUtil.loadBrandLogos();
-  ResponsiveUtil.init();
   initCloudLogger();
   if (ResponsiveUtil.isAndroid()) {
     await initDisplayMode();
@@ -150,6 +147,7 @@ Future<void> initWindow() async {
     titleBarStyle: TitleBarStyle.hidden,
   );
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setPosition(position);
     await windowManager.show();
     await windowManager.focus();
   });

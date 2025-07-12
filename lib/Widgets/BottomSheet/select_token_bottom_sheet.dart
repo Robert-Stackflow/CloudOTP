@@ -42,7 +42,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
   List<OtpToken> tokens = [];
   List<String> oldSelectedUids = [];
   GroupButtonController controller = GroupButtonController();
-  Radius radius = ChewieDimens.radius8;
+  Radius radius = ChewieDimens.radius16;
 
   @override
   void initState() {

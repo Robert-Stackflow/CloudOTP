@@ -1,6 +1,5 @@
 export 'src/Api/github_api.dart';
 export 'src/generated/intl/messages_all.dart';
-export 'src/generated/intl/messages_zh_CN.dart';
 export 'src/generated/l10n.dart';
 export 'src/Models/github_response.dart';
 export 'src/Models/refresh_interface.dart';

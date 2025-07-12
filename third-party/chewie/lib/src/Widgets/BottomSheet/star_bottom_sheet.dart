@@ -28,7 +28,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius8;
+  Radius radius = ChewieDimens.radius16;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
             borderRadius: BorderRadius.vertical(
                 top: radius,
                 bottom:
-                ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
             border: ChewieTheme.border,
             boxShadow: ChewieTheme.defaultBoxShadow,
           ),
@@ -67,7 +67,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
       padding: const EdgeInsets.symmetric(vertical: 20),
       alignment: Alignment.center,
       child: Text(
-        ChewieS.current.rateTitle(ResponsiveUtil.appName),
+        ChewieS.current.scoreDialogTitle(ResponsiveUtil.appName),
         style: ChewieTheme.titleLarge,
       ),
     );
@@ -108,7 +108,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
             mainAxisSize: MainAxisSize.min,
             children: List.generate(
               5,
-                  (index) {
+              (index) {
                 return ClickableGestureDetector(
                   child: Icon(
                     index < currentStar
@@ -141,26 +141,30 @@ class StarBottomSheetState extends State<StarBottomSheet> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          RoundIconTextButton(
-            text: ChewieS.current.rateLater,
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            fontSizeDelta: 2,
+          Expanded(
+            child: RoundIconTextButton(
+              text: ChewieS.current.rateLater,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              fontSizeDelta: 2,
+            ),
           ),
           const SizedBox(width: 20),
-          RoundIconTextButton(
-            background: ChewieTheme.primaryColor,
-            text: " ${ChewieS.current.confirm} ",
-            onPressed: () {
-              if (currentStar != 0) {
-                IToast.showTop(ChewieS.current.rateSuccess);
-                Navigator.of(context).pop();
-              } else {
-                IToast.showTop(ChewieS.current.pleaseClickToRate);
-              }
-            },
-            fontSizeDelta: 2,
+          Expanded(
+            child: RoundIconTextButton(
+              background: ChewieTheme.primaryColor,
+              text: " ${ChewieS.current.confirm} ",
+              onPressed: () {
+                if (currentStar != 0) {
+                  IToast.showTop(ChewieS.current.rateSuccess);
+                  Navigator.of(context).pop();
+                } else {
+                  IToast.showTop(ChewieS.current.pleaseClickToRate);
+                }
+              },
+              fontSizeDelta: 2,
+            ),
           ),
         ],
       ),

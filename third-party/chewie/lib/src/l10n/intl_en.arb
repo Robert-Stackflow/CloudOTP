@@ -135,7 +135,7 @@
   "privacyPolicy": "Privacy Policy",
   "serviceTerm": "Terms of Service",
   "rate": "Rate",
-  "rateTitle": "Rate {appName}",
+  "scoreDialogTitle": "Rate {appName}",
   "pleaseRate": "Please rate",
   "rateSuccess": "Thanks for your rating",
   "pleaseClickToRate": "Click to rate",

@@ -248,7 +248,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
       searchText: widget.searchText,
       children: [
         EntryItem(
-          title: S.current.rate,
+          title: ChewieS.current.rate,
           showLeading: true,
           onTap: () {
             BottomSheetBuilder.showBottomSheet(

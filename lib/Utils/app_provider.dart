@@ -49,8 +49,6 @@ Queue autoBackupQueue = Queue();
 
 AppProvider appProvider = AppProvider();
 
-bool haveMigratedToSupportDirectory = false;
-
 enum AutoLockTime {
   immediately,
   after30Seconds,

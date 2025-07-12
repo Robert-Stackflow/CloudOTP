@@ -135,7 +135,7 @@
   "privacyPolicy": "プライバシーポリシー",
   "serviceTerm": "サービス利用規約",
   "rate": "評価する",
-  "rateTitle": "{appName} を評価してください",
+  "scoreDialogTitle": "{appName} を評価してください",
   "pleaseRate": "評価をお願いします",
   "rateSuccess": "評価ありがとうございます",
   "pleaseClickToRate": "クリックして評価してください",
