@@ -1,0 +1,24 @@
+Categories:
+  - Security
+License: GPL-3.0-or-later
+AuthorName: Robert Stackflow
+AuthorEmail: robert.stackflow@gmail.com
+WebSite: https://github.com/Robert-Stackflow/CloudOTP
+SourceCode: https://github.com/Robert-Stackflow/CloudOTP
+IssueTracker: https://github.com/Robert-Stackflow/CloudOTP/issues
+Changelog: https://github.com/Robert-Stackflow/CloudOTP/blob/master/CHANGELOG.md
+
+AutoUpdateMode: Version V%v
+UpdateCheckMode: Tags
+CurrentVersion: 3.0.0
+CurrentVersionCode: 300
+
+RepoType: git
+Repo: https://github.com/Robert-Stackflow/CloudOTP.git
+
+Builds:
+  - versionName: 3.0.0
+    versionCode: 300
+    commit: V3.0.0
+    subdir: .
+    prebuilt: true
