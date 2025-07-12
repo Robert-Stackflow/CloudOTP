@@ -114,8 +114,8 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
               description: description,
               searchConfig: searchConfig,
               selections: _supportedLocaleTuples,
-              selected: _supportedLocaleTuples.firstWhere(
-                  (element) => element.value == appProvider.locale),
+              selected: _supportedLocaleTuples
+                  .firstWhere((element) => element.value == appProvider.locale),
               hint: S.current.chooseLanguage,
               onChanged: (item) {
                 appProvider.locale = item?.value;

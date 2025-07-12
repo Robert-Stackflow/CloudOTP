@@ -49,8 +49,6 @@ Queue autoBackupQueue = Queue();
 
 AppProvider appProvider = AppProvider();
 
-bool haveMigratedToSupportDirectory = false;
-
 enum AutoLockTime {
   immediately,
   after30Seconds,
@@ -207,7 +205,8 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _showEye = ChewieHiveUtil.getBool(CloudOTPHiveUtil.showEyeKey);
+  bool _showEye =
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.showEyeKey, defaultValue: false);
 
   bool get showEye => _showEye;
 
@@ -365,7 +364,6 @@ class AppProvider with ChangeNotifier {
     _currentFont = value;
     notifyListeners();
   }
-
 
   ChewieThemeColorData _lightTheme = ChewieHiveUtil.getLightTheme();
 

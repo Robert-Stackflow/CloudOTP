@@ -16,7 +16,7 @@ import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 
 class ChewieHiveUtil {
   //HiveBox
-  static const String settingsBox = "chewie";
+  static const String settingsBox = "settings";
 
   //General
   static const String localeKey = "locale";
@@ -61,10 +61,15 @@ class ChewieHiveUtil {
   static const String haveShownQQGroupDialogKey = "haveShownQQGroupDialog";
   static const String proxyConfigKey = "proxyConfig";
 
+  static const String haveMigratedToSupportDirectoryKey =
+      "haveMigratedToSupportDirectory";
+
   static initConfig() async {
-    await ChewieHiveUtil.put(ChewieHiveUtil.enableSafeModeKey, defaultEnableSafeMode);
+    await ChewieHiveUtil.put(
+        ChewieHiveUtil.enableSafeModeKey, defaultEnableSafeMode);
     ChewieHiveUtil.put(ChewieHiveUtil.followMainColorKey, true);
     ChewieHiveUtil.put(ChewieHiveUtil.inappWebviewKey, true);
+    ChewieHiveUtil.put(ChewieHiveUtil.recordWindowStateKey, true);
   }
 
   static initBox() async {
@@ -97,6 +102,7 @@ class ChewieHiveUtil {
   }
 
   static void setWindowPosition(Offset offset) {
+    ILogger.info("Set window position at ${offset.dx},${offset.dy}");
     ChewieHiveUtil.put(
         ChewieHiveUtil.windowPositionKey, "${offset.dx},${offset.dy}");
   }
@@ -112,6 +118,8 @@ class ChewieHiveUtil {
     }
     try {
       List<String> list = position.split(",");
+      ILogger.info(
+          "Get window position ${double.parse(list[0])},${double.parse(list[1])}");
       return Offset(double.parse(list[0]), double.parse(list[1]));
     } catch (e, t) {
       ILogger.error("Failed to get window position", e, t);

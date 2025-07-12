@@ -1,6 +1,5 @@
 export 'src/Api/github_api.dart';
 export 'src/generated/intl/messages_all.dart';
-export 'src/generated/intl/messages_zh_CN.dart';
 export 'src/generated/l10n.dart';
 export 'src/Models/github_response.dart';
 export 'src/Models/refresh_interface.dart';
@@ -54,7 +53,6 @@ export 'src/Widgets/BottomSheet/list_bottom_sheet.dart';
 export 'src/Widgets/BottomSheet/star_bottom_sheet.dart';
 export 'src/Widgets/Component/custom_html_widget.dart';
 export 'src/Widgets/Component/github_calendar.dart';
-export 'src/Widgets/Component/latex.dart';
 export 'src/Widgets/Component/load_more_notification.dart';
 export 'src/Widgets/Component/markdown_widget.dart';
 export 'src/Widgets/Component/my_cached_network_image.dart';

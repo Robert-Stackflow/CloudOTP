@@ -53,7 +53,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
     });
   }
 
-  Radius radius = ChewieDimens.radius8;
+  Radius radius = ChewieDimens.radius16;
 
   @override
   Widget build(BuildContext context) {

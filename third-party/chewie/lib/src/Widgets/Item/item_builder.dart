@@ -26,12 +26,13 @@ class ItemBuilder {
     required String title,
     required bool showTitleBar,
     required EdgeInsets padding,
-    required List<Widget> children,
+    List<Widget> children = const [],
     bool showBack = true,
     Color? backgroundColor,
     double titleLeftMargin = 5,
     bool showBorder = true,
     Function()? onTapBack,
+    Widget? overrideBody,
   }) {
     return Scaffold(
       appBar: showTitleBar
@@ -44,12 +45,13 @@ class ItemBuilder {
               onTapBack: onTapBack,
             )
           : null,
-      body: EasyRefresh(
-        child: ListView(
-          padding: padding,
-          children: children,
-        ),
-      ),
+      body: overrideBody ??
+          EasyRefresh(
+            child: ListView(
+              padding: padding,
+              children: children,
+            ),
+          ),
     );
   }
 

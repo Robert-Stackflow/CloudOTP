@@ -6,6 +6,7 @@ import 'package:awesome_chewie/src/Utils/General/string_util.dart';
 import 'package:awesome_chewie/src/Utils/General/time_util.dart';
 import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
+import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -14,6 +15,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:hive/hive.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
@@ -127,7 +129,7 @@ class FileUtil {
       String? filePath = await FileUtil.saveFile(
         dialogTitle: ChewieS.current.exportLog,
         fileName:
-            "Snipet-Logs-${TimeUtil.getFormattedDate(DateTime.now())}.zip",
+            "${ResponsiveUtil.appName}-Logs-${TimeUtil.getFormattedDate(DateTime.now())}.zip",
         type: FileType.custom,
         allowedExtensions: ['zip'],
         lockParentWindow: true,
@@ -167,7 +169,7 @@ class FileUtil {
         String? filePath = await FileUtil.saveFile(
           dialogTitle: ChewieS.current.exportLog,
           fileName:
-              "Snipet-Logs-${TimeUtil.getFormattedDate(DateTime.now())}.zip",
+              "${ResponsiveUtil.appName}-Logs-${TimeUtil.getFormattedDate(DateTime.now())}.zip",
           type: FileType.custom,
           allowedExtensions: ['zip'],
           lockParentWindow: true,
@@ -187,7 +189,136 @@ class FileUtil {
     }
   }
 
+  static Future<bool> isDirectoryEmpty(Directory directory) async {
+    if (!await directory.exists()) {
+      return true;
+    }
+    return directory.listSync().isEmpty;
+  }
+
+  static Future<void> createBakDir(
+    Directory sourceDir, [
+    Directory? destDir,
+  ]) async {
+    Directory directory = destDir ?? Directory("${sourceDir.path}-bak");
+    if (await directory.exists()) {
+      return;
+    } else {
+      await directory.create(recursive: true);
+    }
+    await copyDirectoryTo(sourceDir, directory);
+  }
+
+  static Future<void> copyDirectoryTo(
+      Directory oldDir, Directory newDir) async {
+    ILogger.info(
+        "CloudOTP", "Copy directory from ${oldDir.path} to ${newDir.path}");
+    if (!await oldDir.exists()) {
+      return;
+    }
+    if (!await newDir.exists()) {
+      await newDir.create(recursive: true);
+    }
+    List<FileSystemEntity> files = oldDir.listSync();
+    if (files.isNotEmpty) {
+      for (var file in files) {
+        if (file is File) {
+          String fileName = FileUtil.getFileNameWithExtension(file.path);
+          await file.copy(join(newDir.path, fileName));
+          ILogger.info(
+              "CloudOTP", "Copy file from ${file.path} to ${newDir.path}");
+        } else if (file is Directory) {
+          String dirName = FileUtil.getFileNameWithExtension(file.path);
+          Directory newSubDir = Directory(join(newDir.path, dirName));
+          await copyDirectoryTo(file, newSubDir);
+        }
+      }
+    }
+  }
+
+  static Future<void> deleteDirectory(Directory directory) async {
+    if (!await directory.exists()) {
+      return;
+    }
+    List<FileSystemEntity> files = directory.listSync();
+    if (files.isNotEmpty) {
+      for (var file in files) {
+        if (file is File) {
+          await file.delete();
+        } else if (file is Directory) {
+          await deleteDirectory(file);
+        }
+      }
+    }
+    await directory.delete(recursive: true);
+  }
+
+  static Future<void> migrationDataToSupportDirectory() async {
+    try {
+      Hive.defaultDirectory = await FileUtil.getHiveDir();
+      bool haveMigratedToSupportDirectoryFromHive = ChewieHiveUtil.getBool(
+          ChewieHiveUtil.haveMigratedToSupportDirectoryKey,
+          defaultValue: false);
+      if (haveMigratedToSupportDirectoryFromHive) {
+        ILogger.info("CloudOTP", "Have migrated data to support directory");
+        return;
+      }
+      Hive.closeAllBoxes();
+    } catch (e, t) {
+      ILogger.error("Failed to close all hive boxes", e, t);
+    }
+    Directory oldDir = Directory(await getOldApplicationDir());
+    Directory newDir = Directory(await getApplicationDir());
+    if (await isDirectoryEmpty(oldDir)) {
+      try {
+        await deleteDirectory(oldDir);
+      } catch (e, t) {
+        ILogger.error("Failed to delete old application directory", e, t);
+      }
+      haveMigratedToSupportDirectory = true;
+    } else {
+      try {
+        if (oldDir.path == newDir.path) {
+          return;
+        }
+        await createBakDir(oldDir, Directory("${newDir.path}-old-bak"));
+        bool isNewDirEmpty = await isDirectoryEmpty(newDir);
+        if (!isNewDirEmpty) {
+          await createBakDir(newDir);
+        }
+        ILogger.info("CloudOTP",
+            "Start to migrate data from old application directory $oldDir to new application directory $newDir");
+        await copyDirectoryTo(oldDir, newDir);
+        haveMigratedToSupportDirectory = true;
+      } catch (e, t) {
+        ILogger.error(
+            "Failed to migrate data from old application directory", e, t);
+      }
+      try {
+        await deleteDirectory(oldDir);
+      } catch (e, t) {
+        ILogger.error("Failed to delete old application directory", e, t);
+      }
+      ILogger.info("CloudOTP",
+          "Finish to migrate data from old application directory $oldDir to new application directory $newDir");
+    }
+    await Future.delayed(const Duration(milliseconds: 200));
+  }
+
   static Future<String> getApplicationDir() async {
+    //   return await getOldApplicationDir();
+    var path = (await getApplicationSupportDirectory()).path;
+    if (kDebugMode) {
+      path += "-Debug";
+    }
+    Directory directory = Directory(path);
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return path;
+  }
+
+  static Future<String> getOldApplicationDir() async {
     final dir = await getApplicationDocumentsDirectory();
     var appName = (await PackageInfo.fromPlatform()).appName;
     if (kDebugMode) {
@@ -200,6 +331,20 @@ class FileUtil {
     }
     return path;
   }
+
+  // static Future<String> getApplicationDir() async {
+  //   final dir = await getApplicationDocumentsDirectory();
+  //   var appName = (await PackageInfo.fromPlatform()).appName;
+  //   if (kDebugMode) {
+  //     appName += "-Debug";
+  //   }
+  //   String path = join(dir.path, appName);
+  //   Directory directory = Directory(path);
+  //   if (!await directory.exists()) {
+  //     await directory.create(recursive: true);
+  //   }
+  //   return path;
+  // }
 
   static Future<String> getFontDir() async {
     Directory directory = Directory(join(await getApplicationDir(), "Fonts"));
@@ -599,8 +744,8 @@ class FileUtil {
     }).toList();
     ReleaseAsset universalAsset = assets.firstWhere((element) {
       return [
-        'Snipet-$latestVersion.apk',
-        'Snipet-$latestVersion-android-universal.apk'
+        '${ResponsiveUtil.appName}-$latestVersion.apk',
+        '${ResponsiveUtil.appName}-$latestVersion-android-universal.apk'
       ].contains(element.name);
     }, orElse: () => assets.first);
     try {
@@ -618,8 +763,11 @@ class FileUtil {
       });
       ILogger.info("Supported abis after sorted: $supportedAbis");
       for (var asset in assets) {
-        String abi =
-            asset.name.split("Snipet-$latestVersion-").last.split(".").first;
+        String abi = asset.name
+            .split("${ResponsiveUtil.appName}-$latestVersion-")
+            .last
+            .split(".")
+            .first;
         for (var supportedAbi in supportedAbis) {
           if (abi.toLowerCase().contains(supportedAbi)) {
             resAsset = asset;
@@ -648,17 +796,17 @@ class FileUtil {
     final dataSize = calloc<Uint32>();
     dataSize.value = 260 * 2;
 
-    final result = RegOpenKeyEx(
-        HKEY_LOCAL_MACHINE, TEXT(windowsKeyPath), 0, KEY_READ, key);
-    if (result == ERROR_SUCCESS) {
+    final result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT(windowsKeyPath), 0,
+        REG_SAM_FLAGS.KEY_READ, key);
+    if (result == WIN32_ERROR.ERROR_SUCCESS) {
       final queryResult = RegQueryValueEx(key.value, TEXT('InstallPath'),
           nullptr, nullptr, installPathPtr.cast(), dataSize);
 
-      if (queryResult == ERROR_SUCCESS) {
+      if (queryResult == WIN32_ERROR.ERROR_SUCCESS) {
         final currentPath = Platform.resolvedExecutable;
         final installPath =
-            "${installPathPtr.cast<Utf16>().toDartString()}\\Snipet.exe";
-        ILogger.info("Snipet",
+            "${installPathPtr.cast<Utf16>().toDartString()}\\${ResponsiveUtil.appName}.exe";
+        ILogger.info(ResponsiveUtil.appName,
             "Get install path: $installPath and current path: $currentPath");
         tmp = installPath == currentPath
             ? WindowsVersion.installed

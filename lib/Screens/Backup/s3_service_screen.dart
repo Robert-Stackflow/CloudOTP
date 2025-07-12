@@ -314,10 +314,9 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
       child: Row(
         children: [
           Expanded(
-            child: CustomOutlinedButton(
+            child: RoundIconTextButton(
               text: S.current.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              outline: Theme.of(context).primaryColor,
               color: Theme.of(context).primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {

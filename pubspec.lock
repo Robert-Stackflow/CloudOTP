@@ -666,14 +666,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_math_fork:
-    dependency: transitive
-    description:
-      name: flutter_math_fork
-      sha256: "284bab89b2fbf1bc3a0baf13d011c1dd324d004e35d177626b77f2fc056366ac"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.7.3"
   flutter_native_splash:
     dependency: "direct main"
     description:

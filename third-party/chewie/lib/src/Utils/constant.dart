@@ -35,8 +35,8 @@ AndroidAuthMessages androidAuthMessages = AndroidAuthMessages(
   biometricNotRecognized: ChewieS.current.biometricNotRecognized,
   goToSettingsDescription: ChewieS.current.biometricGoToSettingsDescription,
   biometricHint: ResponsiveUtil.isWindows()
-      ? ChewieS.current.biometricReasonWindows("Snipet")
-      : ChewieS.current.biometricReason("Snipet"),
+      ? ChewieS.current.biometricReasonWindows(ResponsiveUtil.appName)
+      : ChewieS.current.biometricReason(ResponsiveUtil.appName),
   biometricSuccess: ChewieS.current.biometricSuccess,
   signInTitle: ChewieS.current.biometricSignInTitle,
   deviceCredentialsRequiredTitle:

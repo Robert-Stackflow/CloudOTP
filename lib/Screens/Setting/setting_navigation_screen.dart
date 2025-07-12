@@ -149,55 +149,54 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
       SettingNavigationItem(title: S.current.about, icon: LucideIcons.info),
     ];
     return Consumer<AppProvider>(
-      builder: (context, provider, child) =>
-          Scaffold(
-            appBar: ResponsiveAppBar(
-              showBack: false,
-              titleLeftMargin: 15,
-              title: S.current.setting,
+      builder: (context, provider, child) => Scaffold(
+        appBar: ResponsiveAppBar(
+          showBack: false,
+          titleLeftMargin: 15,
+          title: S.current.setting,
+        ),
+        body: Row(
+          children: [
+            Container(
+              width: 144,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: ChewieTheme.canvasColor,
+                border: ChewieTheme.rightDivider,
+              ),
+              child: ListView.builder(
+                itemCount: _navigationItems.length,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                itemBuilder: (context, index) {
+                  final item = _navigationItems[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    child: SettingNavigationItemWidget(
+                      title: item.title,
+                      icon: item.icon,
+                      selected: index == _selectedIndex,
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
-            body: Row(
-              children: [
-                Container(
-                  width: 144,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: ChewieTheme.canvasColor,
-                    border: ChewieTheme.rightDivider,
-                  ),
-                  child: ListView.builder(
-                    itemCount: _navigationItems.length,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    itemBuilder: (context, index) {
-                      final item = _navigationItems[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 4),
-                        child: SettingNavigationItemWidget(
-                          title: item.title,
-                          icon: item.icon,
-                          selected: index == _selectedIndex,
-                          onTap: () {
-                            setState(() {
-                              _selectedIndex = index;
-                            });
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // _buildSearchRow(),
-                      Expanded(child: _buildCurrentPage(_selectedIndex)),
-                    ],
-                  ),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // _buildSearchRow(),
+                  Expanded(child: _buildCurrentPage(_selectedIndex)),
+                ],
+              ),
             ),
-          ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -260,7 +259,7 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
           onPressed: () {
             setState(() {
               _searchConfig.enableShortPinyin =
-              !_searchConfig.enableShortPinyin;
+                  !_searchConfig.enableShortPinyin;
             });
           },
         )

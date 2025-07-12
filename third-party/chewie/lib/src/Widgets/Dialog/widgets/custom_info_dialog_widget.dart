@@ -76,8 +76,8 @@ class CustomInfoDialogWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: backgroundColor ?? ChewieTheme.scaffoldBackgroundColor,
               borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(roundbottom ? ChewieDimens.dimen8 : 0),
-                top: Radius.circular(roundTop ? ChewieDimens.dimen8 : 0),
+                bottom: Radius.circular(roundbottom ? ChewieDimens.dimen16 : 0),
+                top: Radius.circular(roundTop ? ChewieDimens.dimen16 : 0),
               ),
               border: ChewieTheme.border,
               boxShadow: ChewieTheme.defaultBoxShadow,

@@ -75,7 +75,7 @@ class CustomConfirmDialogWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: backgroundColor ?? ChewieTheme.scaffoldBackgroundColor,
               borderRadius:
-                  BorderRadius.circular(radiusDimen ?? ChewieDimens.dimen8),
+                  BorderRadius.circular(radiusDimen ?? ChewieDimens.dimen16),
               border: ChewieTheme.border,
               boxShadow: ChewieTheme.defaultBoxShadow,
             ),

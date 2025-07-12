@@ -23,8 +23,9 @@ import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
 import '../../generated/l10n.dart';
+import '../Setting/base_setting_screen.dart';
 
-class CloudServiceScreen extends StatefulWidget {
+class CloudServiceScreen extends BaseSettingScreen {
   const CloudServiceScreen({
     super.key,
   });
@@ -53,19 +54,20 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
 
   @override
   Widget build(BuildContext context) {
-    return MyScaffold(
-      appBar: ResponsiveAppBar(
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-        onTapBack: () {
+    return ItemBuilder.buildSettingScreen(
+      context: context,
+      padding: widget.padding,
+      showTitleBar: widget.showTitleBar,
+      title: S.current.cloudBackupServiceSetting,
+      showBack: true,
+      onTapBack: () {
+        if (ResponsiveUtil.isLandscape()) {
+          chewieProvider.dialogNavigatorState?.popPage();
+        } else {
           Navigator.pop(context);
-        },
-        title: S.current.cloudBackupServiceSetting,
-        actions: const [
-          BlankIconButton(),
-        ],
-      ),
-      body: _buildBody(),
+        }
+      },
+      overrideBody: _buildBody(),
     );
   }
 

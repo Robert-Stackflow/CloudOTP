@@ -47,9 +47,9 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
           decoration: BoxDecoration(
             color: ChewieTheme.canvasColor,
             borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
+                top: const Radius.circular(16),
                 bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(20)
+                    ? const Radius.circular(16)
                     : Radius.zero),
           ),
           child: Column(

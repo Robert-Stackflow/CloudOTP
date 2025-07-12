@@ -250,7 +250,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
                         appProvider.currentDatabasePassword);
                 if (_allowDatabaseBiometric) {
                   IToast.showTop(S.current.enableBiometricSuccess);
-                }else{
+                } else {
                   IToast.showTop(S.current.biometricError);
                 }
                 setState(() {});

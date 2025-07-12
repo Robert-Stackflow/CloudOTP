@@ -204,7 +204,7 @@ class InputItemState extends State<InputItem> {
 
   bool get isPassword =>
       widget.tailingConfig?.type == InputItemLeadingTailingType.password ||
-          widget.leadingConfig?.type == InputItemLeadingTailingType.password;
+      widget.leadingConfig?.type == InputItemLeadingTailingType.password;
 
   @override
   void initState() {
@@ -357,10 +357,10 @@ class InputItemState extends State<InputItem> {
         errorMaxLines: 1,
         border: style.showBorder
             ? OutlineInputBorder(
-          borderSide: ChewieTheme.borderSide,
-          borderRadius: BorderRadius.circular(style.radius),
-          gapPadding: 0,
-        )
+                borderSide: ChewieTheme.borderSide,
+                borderRadius: BorderRadius.circular(style.radius),
+                gapPadding: 0,
+              )
             : InputBorder.none,
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: theme.primaryColor, width: 0.8),
@@ -390,10 +390,10 @@ class InputItemState extends State<InputItem> {
       ),
       contextMenuBuilder: (contextMenuContext, details) =>
           ItemBuilder.editTextContextMenuBuilder(
-            contextMenuContext,
-            details,
-            context: context,
-          ),
+        contextMenuContext,
+        details,
+        context: context,
+      ),
     );
   }
 
@@ -504,9 +504,9 @@ class RegexInputFormatter implements TextInputFormatter {
 
   static RegexInputFormatter onlyNumber = RegexInputFormatter(RegExp(r'^\d*$'));
   static RegexInputFormatter onlyLetter =
-  RegexInputFormatter(RegExp(r'^[a-zA-Z]*$'));
+      RegexInputFormatter(RegExp(r'^[a-zA-Z]*$'));
   static RegexInputFormatter onlyNumberAndLetter =
-  RegexInputFormatter(RegExp(r'^[a-zA-Z0-9]*$'));
+      RegexInputFormatter(RegExp(r'^[a-zA-Z0-9]*$'));
   static RegexInputFormatter onlyNumberAndLetterAndSymbol = RegexInputFormatter(
       RegExp(r'^[a-zA-Z0-9!@#\$%\^&\*\(\)_\+\-=\[\]\{\};:",<>.?/\\|`~]*$'));
 
@@ -526,8 +526,8 @@ class RegexInputFormatter implements TextInputFormatter {
   static RegexInputFormatter onlyUrl = RegexInputFormatter(urlRegex);
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
-      TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     final String newString = newValue.text;
     if (regex.hasMatch(newString)) {
       return newValue;
@@ -538,8 +538,8 @@ class RegexInputFormatter implements TextInputFormatter {
 
 class TrimInputFormatter implements TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
-      TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     return TextEditingValue(
       text: newValue.text.trimLeft(),
       selection: newValue.selection,

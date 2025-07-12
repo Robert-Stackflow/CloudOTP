@@ -700,7 +700,14 @@ class TokenLayoutState extends State<TokenLayout>
           CloudOTPHiveUtil.autoMinimizeAfterClickToCopyKey,
           defaultValue: false)) {
         if (ResponsiveUtil.isDesktop()) {
-          windowManager.minimize();
+          int autoMinimizeAfterClickToCopyOption = ChewieHiveUtil.getInt(
+              CloudOTPHiveUtil.autoMinimizeAfterClickToCopyOptionKey,
+              defaultValue: 0);
+          if (autoMinimizeAfterClickToCopyOption == 0) {
+            windowManager.minimize();
+          } else {
+            windowManager.hide();
+          }
         } else {
           MoveToBackground.moveTaskToBack();
         }

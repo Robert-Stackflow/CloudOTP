@@ -321,8 +321,7 @@ class ShortcutsUtil {
   }
 
   static void jumpToSetting(BuildContext context) {
-    RouteUtil.pushDialogRoute(
-        context, const SettingNavigationScreen());
+    RouteUtil.pushDialogRoute(context, const SettingNavigationScreen());
   }
 
   static void jumpToSetLock(BuildContext context) {

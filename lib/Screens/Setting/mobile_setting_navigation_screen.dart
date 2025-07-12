@@ -35,8 +35,8 @@ class MobileSettingNavigationScreen extends StatefulWidget {
       _MobileSettingNavigationScreenState();
 }
 
-class _MobileSettingNavigationScreenState extends State<MobileSettingNavigationScreen>
-    with TickerProviderStateMixin {
+class _MobileSettingNavigationScreenState
+    extends State<MobileSettingNavigationScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();

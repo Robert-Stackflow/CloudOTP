@@ -27,7 +27,6 @@ import 'ilogger.dart';
 import 'itoast.dart';
 
 class ChewieUtils {
-
   static Future<void> setSafeMode(bool enabled) async {
     if (ResponsiveUtil.isMobile()) {
       if (enabled) {
@@ -230,7 +229,8 @@ class ChewieUtils {
                 if (ResponsiveUtil.isAndroid()) {
                   ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
                       latestVersion, latestReleaseItem!);
-                  ILogger.info("Snipet", "Get android asset: $androidAssset");
+                  ILogger.info(ResponsiveUtil.appName,
+                      "Get android asset: $androidAssset");
                   FileUtil.downloadAndUpdate(
                     context,
                     androidAssset.pkgsDownloadUrl,

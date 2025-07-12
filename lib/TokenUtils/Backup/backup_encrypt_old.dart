@@ -57,7 +57,7 @@ class BackupEncryptionOld implements BackupEncryptInterface {
       base64.decode(utf8.decode(data));
       return true;
     } catch (e, t) {
-      ILogger.error( "Failed to decrypt from wrong format data", e, t);
+      ILogger.error("Failed to decrypt from wrong format data", e, t);
       return false;
     }
   }

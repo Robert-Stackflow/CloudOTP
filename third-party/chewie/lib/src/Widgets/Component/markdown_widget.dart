@@ -10,7 +10,6 @@ import 'package:awesome_chewie/src/Resources/dimens.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/color_util.dart';
 import 'package:awesome_chewie/src/generated/l10n.dart';
-import 'latex.dart';
 
 class CustomMarkdownWidget extends StatefulWidget {
   const CustomMarkdownWidget(
@@ -124,10 +123,7 @@ class CustomMarkdownWidgetState extends State<CustomMarkdownWidget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: MarkdownGenerator(
-          generators: [latexGenerator],
-          inlineSyntaxList: [LatexSyntax()],
-        ).buildWidgets(
+        children: MarkdownGenerator().buildWidgets(
           widget.content,
           config: isDark ? darkConfig() : lightConfig(),
         ),

@@ -51,11 +51,15 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
   bool autoMinimizeAfterClickToCopy = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.autoMinimizeAfterClickToCopyKey,
       defaultValue: false);
+  int autoMinimizeAfterClickToCopyOption = ChewieHiveUtil.getInt(
+      CloudOTPHiveUtil.autoMinimizeAfterClickToCopyOptionKey,
+      defaultValue: 0);
   bool autoHideCode = ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoHideCodeKey);
   bool defaultHideCode =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.defaultHideCodeKey);
   bool dragToReorder = ChewieHiveUtil.getBool(CloudOTPHiveUtil.dragToReorderKey,
       defaultValue: !ResponsiveUtil.isMobile());
+  bool showTray = ChewieHiveUtil.getBool(ChewieHiveUtil.showTrayKey);
 
   @override
   void initState() {
@@ -73,6 +77,7 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
       padding: widget.padding,
       children: [
         _operationSettings(),
+        _copyOperationSettings(),
         _otherSettings(),
         const SizedBox(height: 30),
       ],
@@ -94,6 +99,37 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
             });
           },
         ),
+        CheckboxItem(
+          value: autoHideCode,
+          title: S.current.autoHideCode,
+          description: S.current.autoHideCodeTip,
+          onTap: () {
+            setState(() {
+              autoHideCode = !autoHideCode;
+              appProvider.autoHideCode = autoHideCode;
+            });
+          },
+        ),
+        CheckboxItem(
+          value: defaultHideCode,
+          title: S.current.defaultHideCode,
+          description: S.current.defaultHideCodeTip,
+          onTap: () {
+            setState(() {
+              defaultHideCode = !defaultHideCode;
+              ChewieHiveUtil.put(
+                  CloudOTPHiveUtil.defaultHideCodeKey, defaultHideCode);
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  _copyOperationSettings() {
+    return SearchableCaptionItem(
+      title: S.current.tokenCopyOperationSettings,
+      children: [
         CheckboxItem(
           value: clipToCopy,
           title: S.current.clickToCopy,
@@ -134,42 +170,31 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
               });
             },
           ),
-        CheckboxItem(
-          value: autoHideCode,
-          title: S.current.autoHideCode,
-          description: S.current.autoHideCodeTip,
-          onTap: () {
-            setState(() {
-              autoHideCode = !autoHideCode;
-              appProvider.autoHideCode = autoHideCode;
-            });
-          },
-        ),
-        CheckboxItem(
-          value: defaultHideCode,
-          title: S.current.defaultHideCode,
-          description: S.current.defaultHideCodeTip,
-          onTap: () {
-            setState(() {
-              defaultHideCode = !defaultHideCode;
-              ChewieHiveUtil.put(
-                  CloudOTPHiveUtil.defaultHideCodeKey, defaultHideCode);
-            });
-          },
-        ),
-        CheckboxItem(
-          value: dragToReorder,
-          title: S.current.dragToReorder,
-          description: S.current.dragToReorderTip,
-          onTap: () {
-            setState(() {
-              dragToReorder = !dragToReorder;
-              appProvider.dragToReorder = dragToReorder;
-              ChewieHiveUtil.put(
-                  CloudOTPHiveUtil.dragToReorderKey, dragToReorder);
-            });
-          },
-        ),
+        if (ResponsiveUtil.isDesktop() &&
+            clipToCopy &&
+            autoMinimizeAfterClickToCopy &&
+            showTray)
+          InlineSelectionItem<SelectionItemModel<int>>(
+            title: S.current.autoMinimizeAfterClickToCopyOption,
+            selections: [
+              SelectionItemModel(S.current.minimizeWindowAfterClickToCopy, 0),
+              SelectionItemModel(S.current.minimizeToTrayAfterClickToCopy, 1),
+            ],
+            hint: S.current.chooseAutoMinimizeAfterClickToCopyOption,
+            selected: SelectionItemModel(
+                autoMinimizeAfterClickToCopyOption == 0
+                    ? S.current.minimizeWindowAfterClickToCopy
+                    : S.current.minimizeToTrayAfterClickToCopy,
+                autoMinimizeAfterClickToCopyOption),
+            onChanged: (item) {
+              setState(() {
+                autoMinimizeAfterClickToCopyOption = item?.value ?? 0;
+                ChewieHiveUtil.put(
+                    CloudOTPHiveUtil.autoMinimizeAfterClickToCopyOptionKey,
+                    autoMinimizeAfterClickToCopyOption);
+              });
+            },
+          ),
       ],
     );
   }
@@ -193,6 +218,19 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
               },
               onTapCancel: () {},
             );
+          },
+        ),
+        CheckboxItem(
+          value: dragToReorder,
+          title: S.current.dragToReorder,
+          description: S.current.dragToReorderTip,
+          onTap: () {
+            setState(() {
+              dragToReorder = !dragToReorder;
+              appProvider.dragToReorder = dragToReorder;
+              ChewieHiveUtil.put(
+                  CloudOTPHiveUtil.dragToReorderKey, dragToReorder);
+            });
           },
         ),
         CheckboxItem(

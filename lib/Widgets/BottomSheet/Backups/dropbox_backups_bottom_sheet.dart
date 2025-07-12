@@ -48,7 +48,7 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius8;
+  Radius radius = ChewieDimens.radius16;
 
   @override
   Widget build(BuildContext context) {
