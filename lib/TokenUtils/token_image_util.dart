@@ -113,8 +113,7 @@ class TokenImageUtil {
       final int lcs = longestCommonSubstring(issuer, brand);
 
       final bool containsEither =
-          (issuer.contains(brand) && lcs >= substringMatchThreshold) ||
-              brand.contains(issuer);
+          issuer.contains(brand) || brand.contains(issuer);
 
       if (containsEither || lcs >= substringMatchThreshold) {
         matches.add(MapEntry(logo, lcs));
