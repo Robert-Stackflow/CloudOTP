@@ -4,6 +4,7 @@ import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 
 class IPrint {
   static final _buffer = StringBuffer();
@@ -58,7 +59,7 @@ class IPrint {
     String nowRecord = _buffer.toString();
     if (nowRecord.length > 50) {
       var path = await getTemporaryDirectory();
-      var filePath = join(path.path, "snipet.log");
+      var filePath = join(path.path, "${ResponsiveUtil.appName}.log");
       File file = File(filePath);
       file.writeAsStringSync(nowRecord, mode: FileMode.append);
       _buffer.clear();
@@ -67,7 +68,7 @@ class IPrint {
 
   static Future<File> savedLogFile() async {
     var path = await getTemporaryDirectory();
-    var filePath = join(path.path, "snipet.log");
+    var filePath = join(path.path, "${ResponsiveUtil.appName}.log");
     File file = File(filePath);
     file.writeAsStringSync(_buffer.toString());
     _buffer.clear();
