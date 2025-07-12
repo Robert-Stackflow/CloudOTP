@@ -205,7 +205,8 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _showEye = ChewieHiveUtil.getBool(CloudOTPHiveUtil.showEyeKey);
+  bool _showEye =
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.showEyeKey, defaultValue: false);
 
   bool get showEye => _showEye;
 

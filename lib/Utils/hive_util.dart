@@ -29,9 +29,7 @@ class CloudOTPHiveUtil {
   static const String settingsBox = "settings";
 
   //Auth
-  static const String deviceIdKey = "deviceId";
   static const String defaultDatabasePasswordKey = "defaultDatabasePassword";
-  static const String cookieKey = "cookieKey";
 
   static const String dragToReorderKey = "dragToReorder";
   static const String layoutTypeKey = "layoutType";
@@ -61,23 +59,6 @@ class CloudOTPHiveUtil {
   static const String hideBottombarWhenScrollingKey =
       "hideBottombarWhenScrolling";
   static const String enableLandscapeInTabletKey = "enableLandscapeInTablet";
-  static const String fontFamilyKey = "fontFamily";
-  static const String customFontsKey = "customFonts";
-  static const String lightThemeIndexKey = "lightThemeIndex";
-  static const String darkThemeIndexKey = "darkThemeIndex";
-  static const String lightThemePrimaryColorIndexKey =
-      "lightThemePrimaryColorIndex";
-  static const String darkThemePrimaryColorIndexKey =
-      "darkThemePrimaryColorIndex";
-  static const String customLightThemePrimaryColorKey =
-      "customLightThemePrimaryColor";
-  static const String customDarkThemePrimaryColorKey =
-      "customDarkThemePrimaryColor";
-  static const String customLightThemeListKey = "customLightThemeList";
-  static const String customDarkThemeListKey = "customDarkThemeListKey";
-  static const String themeModeKey = "themeMode";
-  static const String navItemsKey = "navItems";
-
   //Backup
   static const String enableAutoBackupKey = "enableAutoBackup";
   static const String enableLocalBackupKey = "enableLocalBackup";
@@ -88,7 +69,6 @@ class CloudOTPHiveUtil {
       "useBackupPasswordToExportImport";
 
   //Encrypt
-  static const String enableEncryptKey = "enableEncrypt";
   static const String encryptDatabaseStatusKey = "encryptDatabaseStatus";
 
   //Privacy
@@ -101,7 +81,6 @@ class CloudOTPHiveUtil {
   static const String enableSafeModeKey = "enableSafeMode";
 
   //System
-  static const String firstLoginKey = "firstLogin";
   static const String oldVersionKey = "oldVersion";
 
   static initConfig() async {
@@ -225,20 +204,5 @@ class CloudOTPHiveUtil {
     return OrderType.values[ChewieUtils.patchEnum(
         ChewieHiveUtil.getInt(CloudOTPHiveUtil.orderTypeKey),
         OrderType.values.length)];
-  }
-
-  static Map<String, String> getCookie() {
-    Map<String, String> map = {};
-    String str = ChewieHiveUtil.getString(cookieKey) ?? "";
-    if (str.isNotEmpty) {
-      List<String> list = str.split("; ");
-      for (String item in list) {
-        int equalIndex = item.indexOf("=");
-        if (equalIndex != -1) {
-          map[item.substring(0, equalIndex)] = item.substring(equalIndex + 1);
-        }
-      }
-    }
-    return map;
   }
 }

@@ -16,7 +16,7 @@ import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 
 class ChewieHiveUtil {
   //HiveBox
-  static const String settingsBox = "chewie";
+  static const String settingsBox = "settings";
 
   //General
   static const String localeKey = "locale";

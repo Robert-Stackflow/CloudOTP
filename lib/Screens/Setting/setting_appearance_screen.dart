@@ -66,7 +66,8 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
   final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
   bool hideProgressBar =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.hideProgressBarKey);
-  bool showEye = ChewieHiveUtil.getBool(CloudOTPHiveUtil.showEyeKey);
+  bool showEye =
+      ChewieHiveUtil.getBool(CloudOTPHiveUtil.showEyeKey, defaultValue: false);
 
   @override
   void initState() {
