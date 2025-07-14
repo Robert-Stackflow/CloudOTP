@@ -13,8 +13,8 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:http/http.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart';
 
 class CloudLogger {
   static Function(String tag, String message, [dynamic e, dynamic t])? logTrace;
@@ -29,7 +29,7 @@ class CloudLogger {
     if (logTrace != null) {
       logTrace!(tag, message, e, t);
     } else {
-      debugPrint('TRACE: $tag: $message $e $t');
+      debugPrint('[$tag] [TRACE] : $message $e $t');
     }
   }
 
@@ -37,7 +37,7 @@ class CloudLogger {
     if (logDebug != null) {
       logDebug!(tag, message, e, t);
     } else {
-      debugPrint('DEBUG: $tag: $message $e $t');
+      debugPrint('[$tag] [DEBUG] : $message $e $t');
     }
   }
 
@@ -45,7 +45,7 @@ class CloudLogger {
     if (logInfo != null) {
       logInfo!(tag, message, e, t);
     } else {
-      debugPrint('INFO: $tag: $message $e $t');
+      debugPrint('[$tag] [INFO] : $message $e $t');
     }
   }
 
@@ -54,7 +54,7 @@ class CloudLogger {
       logInfo!(tag, "$message [${response.statusCode}] [${response.body}]");
     } else {
       debugPrint(
-          'INFO for response: $tag: $message [${response.statusCode}] [${response.body}]');
+          '[$tag] [INFO RESPONSE] : $message [${response.statusCode}] [${response.body}]');
     }
   }
 
@@ -63,7 +63,7 @@ class CloudLogger {
       logError!(tag, "$message [${response.statusCode}] [${response.body}]");
     } else {
       debugPrint(
-          'ERROR for response: $tag: $message [${response.statusCode}] [${response.body}]');
+          '[$tag] [ERROR RESPONSE] : $message [${response.statusCode}] [${response.body}]');
     }
   }
 
@@ -71,7 +71,7 @@ class CloudLogger {
     if (logWarning != null) {
       logWarning!(tag, message, e, t);
     } else {
-      debugPrint('WARNING: $tag: $message $e $t');
+      debugPrint('[$tag] [WARNING] : $message $e $t');
     }
   }
 
@@ -79,7 +79,7 @@ class CloudLogger {
     if (logError != null) {
       logError!(tag, message, e, t);
     } else {
-      debugPrint('ERROR: $tag: $message $e $t');
+      debugPrint('[$tag] [ERROR] : $message $e $t');
     }
   }
 
@@ -87,7 +87,7 @@ class CloudLogger {
     if (logFatal != null) {
       logFatal!(tag, message, e, t);
     } else {
-      debugPrint('FATAL: $tag: $message $e $t');
+      debugPrint('[$tag] [FATAL] : $message $e $t');
     }
   }
 }

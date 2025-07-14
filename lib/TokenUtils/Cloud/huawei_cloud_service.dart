@@ -15,8 +15,7 @@
 
 import 'dart:typed_data';
 
-import 'package:flutter_cloud/huaweicloud.dart';
-import 'package:flutter_cloud/huaweicloud_response.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
@@ -26,10 +25,12 @@ import 'cloud_service.dart';
 class HuaweiCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.HuaweiCloud;
-  static const String _redirectUrl =
-      'https://apps.cloudchewie.com/oauth/cloudotp/huaweicloud/callback';
+  static const String _customAuthEndpoint =
+      'http://localhost:3009/oauth/cloudotp/huaweicloud/login';
+  static const String _customTokenEndpoint =
+      'http://localhost:3009/oauth/cloudotp/huaweicloud/token';
   static const String _callbackUrl = "cloudotp://auth/huaweicloud/callback";
-  static const String _clientId = '111829035';
+  static const String _clientId = '114701957';
   static const String _huaweiCloudEmptyPath = '';
   static const String _huaweiCloudPath = 'CloudOTP';
   final CloudServiceConfig _config;
@@ -45,8 +46,10 @@ class HuaweiCloudService extends CloudService {
 
   @override
   Future<void> init() async {
-    huaweiCloud = HuaweiCloud(
-      redirectUrl: _redirectUrl,
+    huaweiCloud = HuaweiCloud.server(
+      customAuthEndpoint: _customAuthEndpoint,
+      customTokenEndpoint: _customTokenEndpoint,
+      customRevokeEndpoint: "",
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
@@ -158,7 +161,7 @@ class HuaweiCloudService extends CloudService {
     HuaweiCloudResponse response = await huaweiCloud.push(
       fileData,
       _huaweiCloudPath,
-      fileName,
+      fileName: fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

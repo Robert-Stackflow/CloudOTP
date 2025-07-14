@@ -58,6 +58,7 @@ enum CloudServiceType {
   static List<String> toEnableStrings() {
     return [
       CloudServiceType.OneDrive.label,
+      CloudServiceType.HuaweiCloud.label,
       CloudServiceType.Dropbox.label,
       CloudServiceType.Webdav.label,
       CloudServiceType.S3Cloud.label,

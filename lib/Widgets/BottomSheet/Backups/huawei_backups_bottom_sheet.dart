@@ -15,7 +15,7 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/huaweicloud_response.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/Cloud/huawei_cloud_service.dart';

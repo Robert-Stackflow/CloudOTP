@@ -18,7 +18,7 @@ import 'dart:typed_data';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/huaweicloud_response.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/huawei_cloud_service.dart';

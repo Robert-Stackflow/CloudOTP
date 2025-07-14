@@ -15,8 +15,7 @@
 
 import 'dart:typed_data';
 
-import 'package:flutter_cloud/googledrive.dart';
-import 'package:flutter_cloud/googledrive_response.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/app_provider.dart';
@@ -27,8 +26,6 @@ import 'cloud_service.dart';
 class GoogleDriveCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.GoogleDrive;
-  static const String _redirectUrl =
-      'https://apps.cloudchewie.com/oauth/cloudotp/googledrive/callback';
   static const String _callbackUrl = 'cloudotp://auth/googledrive/callback';
   static const String _clientId =
       '547353482361-fi716v2qnfvh3aj515ok1r4cdqqhdqbh.apps.googleusercontent.com';
@@ -48,7 +45,6 @@ class GoogleDriveCloudService extends CloudService {
   @override
   Future<void> init() async {
     googledrive = GoogleDrive(
-      redirectUrl: _callbackUrl,
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
@@ -159,7 +155,7 @@ class GoogleDriveCloudService extends CloudService {
     GoogleDriveResponse response = await googledrive.push(
       fileData,
       fileName,
-      _googledrivePathName,
+      fileName: _googledrivePathName,
     );
     deleteOldBackup();
     return response.isSuccess;

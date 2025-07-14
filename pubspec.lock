@@ -140,6 +140,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  awesome_cloud:
+    dependency: "direct main"
+    description:
+      path: "third-party/tool/awesome_cloud"
+      relative: true
+    source: path
+    version: "1.6.2"
   biometric_storage:
     dependency: "direct main"
     description:
@@ -527,13 +534,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.4.1"
-  flutter_cloud:
-    dependency: "direct main"
-    description:
-      path: "third-party/tool/flutter_cloud"
-      relative: true
-    source: path
-    version: "1.6.2"
   flutter_context_menu:
     dependency: "direct main"
     description:

@@ -1,60 +1,24 @@
-import 'dart:typed_data';
+/*
+ * Copyright (c) 2025 Robert-Stackflow.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
 
-import 'package:flutter_cloud/status.dart';
-import 'package:http/http.dart' as http;
+import 'base_response.dart';
 
-class OneDriveResponse {
-  final ResponseStatus status;
-  final int? statusCode;
-  final String? body;
-  final String? message;
-  final bool isSuccess;
-  final Uint8List? bodyBytes;
-  final String? accessToken;
-  final OneDriveUserInfo? userInfo;
-  final List<OneDriveFileInfo> files;
+typedef OneDriveResponse
+    = BaseCloudResponse<OneDriveUserInfo, OneDriveFileInfo>;
 
-  OneDriveResponse({
-    this.status = ResponseStatus.success,
-    this.statusCode,
-    this.body,
-    this.message,
-    this.accessToken,
-    this.bodyBytes,
-    this.userInfo,
-    this.files = const [],
-    this.isSuccess = false,
-  });
-
-  OneDriveResponse.fromResponse({
-    required http.Response response,
-    this.userInfo,
-    this.message,
-    this.files = const [],
-  })  : body = response.body,
-        accessToken = "",
-        statusCode = response.statusCode,
-        bodyBytes = response.bodyBytes,
-        isSuccess = response.statusCode == 200 ||
-            response.statusCode == 201 ||
-            response.statusCode == 204,
-        status = ResponseStatus.values.firstWhere(
-            (element) => element.code == response.statusCode,
-            orElse: () => ResponseStatus.success);
-
-  @override
-  String toString() {
-    return "OneDriveResponse("
-        "statusCode: $statusCode, "
-        "body: $body, "
-        "bodyBytes: $bodyBytes, "
-        "message: $message, "
-        "isSuccess: $isSuccess"
-        ")";
-  }
-}
-
-class OneDriveUserInfo {
+class OneDriveUserInfo extends BaseCloudUserInfo {
   final String? email;
   final String? displayName;
   final int? total;
@@ -63,14 +27,15 @@ class OneDriveUserInfo {
   final int? remaining;
   final String? state;
 
-  OneDriveUserInfo(
-      {this.email,
-      this.displayName,
-      this.total,
-      this.used,
-      this.deleted,
-      this.remaining,
-      this.state});
+  OneDriveUserInfo({
+    this.email,
+    this.displayName,
+    this.total,
+    this.used,
+    this.deleted,
+    this.remaining,
+    this.state,
+  });
 
   factory OneDriveUserInfo.fromJson(Map<String, dynamic> json) {
     return OneDriveUserInfo(
@@ -97,7 +62,7 @@ class OneDriveUserInfo {
   }
 }
 
-class OneDriveFileInfo {
+class OneDriveFileInfo extends BaseCloudFileInfo {
   final String id;
   final String name;
   final int size;

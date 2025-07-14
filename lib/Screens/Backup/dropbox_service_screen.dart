@@ -19,7 +19,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/dropbox_response.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';

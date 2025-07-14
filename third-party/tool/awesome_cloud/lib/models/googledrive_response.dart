@@ -1,39 +1,9 @@
-import 'dart:typed_data';
+import 'package:awesome_cloud/models/base_response.dart';
 
-class GoogleDriveResponse {
-  final int? statusCode;
-  final String? body;
-  final String? message;
-  final bool isSuccess;
-  final Uint8List? bodyBytes;
-  final GoogleDriveUserInfo? userInfo;
-  final List<GoogleDriveFileInfo> files;
-  final String? parentId;
+typedef GoogleDriveResponse
+    = BaseCloudResponse<GoogleDriveUserInfo, GoogleDriveFileInfo>;
 
-  GoogleDriveResponse({
-    this.statusCode,
-    this.body,
-    this.message,
-    this.bodyBytes,
-    this.parentId,
-    this.userInfo,
-    this.files = const [],
-    this.isSuccess = false,
-  });
-
-  @override
-  String toString() {
-    return "GoogleDriveResponse("
-        "statusCode: $statusCode, "
-        "body: $body, "
-        "bodyBytes: $bodyBytes, "
-        "message: $message, "
-        "isSuccess: $isSuccess"
-        ")";
-  }
-}
-
-class GoogleDriveUserInfo {
+class GoogleDriveUserInfo extends BaseCloudUserInfo {
   final String? email;
   final String? displayName;
   final int? total;
@@ -66,7 +36,7 @@ class GoogleDriveUserInfo {
   }
 }
 
-class GoogleDriveFileInfo {
+class GoogleDriveFileInfo extends BaseCloudFileInfo {
   final String id;
   final String name;
   final int size;

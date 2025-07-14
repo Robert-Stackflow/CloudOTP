@@ -16,6 +16,7 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/dropbox_service_screen.dart';
+import 'package:cloudotp/Screens/Backup/huawei_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/onedrive_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/s3_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
@@ -46,7 +47,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
   void initState() {
     super.initState();
     tabController = TabController(
-      length: 4,
+      length: 5,
       vsync: this,
     );
     _typeController.selectIndex(_currentType.index);
@@ -84,6 +85,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
             controller: tabController,
             children: const [
               OneDriveServiceScreen(),
+              HuaweiCloudServiceScreen(),
               DropboxServiceScreen(),
               WebDavServiceScreen(),
               S3CloudServiceScreen(),

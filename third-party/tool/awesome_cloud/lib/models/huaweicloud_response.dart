@@ -1,39 +1,9 @@
-import 'dart:typed_data';
+import 'base_response.dart';
 
-class HuaweiCloudResponse {
-  final int? statusCode;
-  final String? body;
-  final String? message;
-  final bool isSuccess;
-  final Uint8List? bodyBytes;
-  final HuaweiCloudUserInfo? userInfo;
-  final List<HuaweiCloudFileInfo> files;
-  final String? parentId;
+typedef HuaweiCloudResponse
+    = BaseCloudResponse<HuaweiCloudUserInfo, HuaweiCloudFileInfo>;
 
-  HuaweiCloudResponse({
-    this.statusCode,
-    this.body,
-    this.parentId,
-    this.message,
-    this.bodyBytes,
-    this.userInfo,
-    this.files = const [],
-    this.isSuccess = false,
-  });
-
-  @override
-  String toString() {
-    return "HuaweiCloudResponse("
-        "statusCode: $statusCode, "
-        "body: $body, "
-        "bodyBytes: $bodyBytes, "
-        "message: $message, "
-        "isSuccess: $isSuccess"
-        ")";
-  }
-}
-
-class HuaweiCloudUserInfo {
+class HuaweiCloudUserInfo extends BaseCloudUserInfo {
   final String? email;
   final String? displayName;
   final int? total;
@@ -70,7 +40,7 @@ class HuaweiCloudUserInfo {
   }
 }
 
-class HuaweiCloudFileInfo {
+class HuaweiCloudFileInfo extends BaseCloudFileInfo {
   final String id;
   final String name;
   final int size;

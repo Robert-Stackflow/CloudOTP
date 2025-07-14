@@ -60,8 +60,8 @@ dependencies:
     path: third-party/tool/s3_storage
   webdav_client:
     path: third-party/tool/webdav_client
-  flutter_cloud:
-    path: third-party/tool/flutter_cloud
+  awesome_cloud:
+    path: third-party/tool/awesome_cloud
   # 工具
   intl_utils: ^2.8.7
   html: ^0.15.0
