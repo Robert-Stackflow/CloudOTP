@@ -19,6 +19,8 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/Cloud/googledrive_cloud_service.dart';
 
+import '../TokenUtils/Cloud/aliyunDrive_cloud_service.dart';
+import '../TokenUtils/Cloud/box_cloud_service.dart';
 import '../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../TokenUtils/Cloud/onedrive_cloud_service.dart';
@@ -32,7 +34,9 @@ enum CloudServiceType {
   GoogleDrive,
   Dropbox,
   S3Cloud,
-  HuaweiCloud;
+  HuaweiCloud,
+  Box,
+  AliyunDrive;
 
   String get label {
     switch (this) {
@@ -48,6 +52,10 @@ enum CloudServiceType {
         return S.current.cloudTypeS3Cloud;
       case CloudServiceType.HuaweiCloud:
         return S.current.cloudTypeHuaweiCloud;
+      case CloudServiceType.Box:
+        return S.current.cloudTypeBox;
+      case CloudServiceType.AliyunDrive:
+        return S.current.cloudTypeAliyunDrive;
     }
   }
 
@@ -58,10 +66,13 @@ enum CloudServiceType {
   static List<String> toEnableStrings() {
     return [
       CloudServiceType.OneDrive.label,
-      CloudServiceType.HuaweiCloud.label,
       CloudServiceType.Dropbox.label,
       CloudServiceType.Webdav.label,
       CloudServiceType.S3Cloud.label,
+      CloudServiceType.GoogleDrive.label,
+      CloudServiceType.Box.label,
+      CloudServiceType.AliyunDrive.label,
+      CloudServiceType.HuaweiCloud.label,
     ];
   }
 }
@@ -81,6 +92,10 @@ extension CloudServiceTypeExtensionOnint on int {
         return CloudServiceType.S3Cloud;
       case 5:
         return CloudServiceType.HuaweiCloud;
+      case 6:
+        return CloudServiceType.Box;
+      case 7:
+        return CloudServiceType.AliyunDrive;
       default:
         throw Exception('Invalid CloudServiceType');
     }
@@ -117,6 +132,8 @@ class CloudServiceConfig {
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:
       case CloudServiceType.HuaweiCloud:
+      case CloudServiceType.Box:
+      case CloudServiceType.AliyunDrive:
         return configured;
       case CloudServiceType.S3Cloud:
         return endpoint.notNullOrEmpty &&
@@ -140,6 +157,10 @@ class CloudServiceConfig {
         return HuaweiCloudService(this);
       case CloudServiceType.S3Cloud:
         return S3CloudService(this);
+      case CloudServiceType.Box:
+        return BoxCloudService(this);
+      case CloudServiceType.AliyunDrive:
+        return AliyunDriveCloudService(this);
     }
   }
 

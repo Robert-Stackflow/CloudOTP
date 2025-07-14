@@ -46,7 +46,6 @@ class DefaultTokenManager extends ITokenManager {
   Future<bool> persistToken(String respBody) async {
     Map body = jsonDecode(respBody);
     try {
-      debugPrint(respBody);
       String expireAt =
           DateTime.now().add(Duration(seconds: body['expires_in'])).toString();
       await secureStorage.write(key: expireAtKey, value: expireAt);

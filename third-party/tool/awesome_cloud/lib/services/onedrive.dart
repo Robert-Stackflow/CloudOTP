@@ -13,8 +13,6 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-library flutter_cloud;
-
 import 'dart:async';
 import 'dart:convert';
 

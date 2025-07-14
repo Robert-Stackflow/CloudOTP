@@ -168,4 +168,12 @@ class CloudServiceConfigDao {
   static Future<CloudServiceConfig?> getHuaweiCloudConfig() async {
     return getSpecifyConfig(CloudServiceType.HuaweiCloud);
   }
+
+  static Future<CloudServiceConfig?> getBoxConfig() async {
+    return getSpecifyConfig(CloudServiceType.Box);
+  }
+
+  static Future<CloudServiceConfig?> getAliyunDriveConfig() async {
+    return getSpecifyConfig(CloudServiceType.AliyunDrive);
+  }
 }

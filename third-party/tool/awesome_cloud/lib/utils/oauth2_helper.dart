@@ -13,19 +13,36 @@ class OAuth2Helper {
     return base64Url.encode(values);
   }
 
-  static String generateCodeVerifier() {
-    return myBase64Encode(randomBytes(32));
+  // static String generateCodeVerifier() {
+  //   return myBase64Encode(randomBytes(32));
+  // }
+  //
+  // static String myBase64Encode(List<int> input) {
+  //   return base64Encode(input)
+  //       .replaceAll("+", '-')
+  //       .replaceAll("/", '_')
+  //       .replaceAll("=", '');
+  // }
+  //
+  // static String generateCodeChallenge(String codeVerifier) {
+  //   return myBase64Encode(sha256.string(codeVerifier).bytes);
+  // }
+
+  static String generateCodeVerifier([bool keepPadding = false]) {
+    final random = Random.secure();
+    final bytes = List<int>.generate(32, (_) => random.nextInt(256));
+    return keepPadding
+        ? base64UrlEncode(bytes)
+        : base64UrlEncode(bytes).replaceAll('=', '');
   }
 
-  static String myBase64Encode(List<int> input) {
-    return base64Encode(input)
-        .replaceAll("+", '-')
-        .replaceAll("/", '_')
-        .replaceAll("=", '');
-  }
-
-  static String generateCodeChanllenge(String codeVerifier) {
-    return myBase64Encode(sha256.string(codeVerifier).bytes);
+  static String generateCodeChallenge(String codeVerifier,
+      [bool keepPadding = false]) {
+    final bytes = utf8.encode(codeVerifier);
+    final digest = sha256.convert(bytes);
+    return keepPadding
+        ? base64UrlEncode(digest.bytes)
+        : base64UrlEncode(digest.bytes).replaceAll('=', '');
   }
 
   static Future<String?> browserAuth({

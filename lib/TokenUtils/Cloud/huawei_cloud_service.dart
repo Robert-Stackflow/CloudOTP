@@ -26,9 +26,9 @@ class HuaweiCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.HuaweiCloud;
   static const String _customAuthEndpoint =
-      'http://localhost:3009/oauth/cloudotp/huaweicloud/login';
+      '${CloudService.serverEndpoint}/oauth/cloudotp/huaweicloud/login';
   static const String _customTokenEndpoint =
-      'http://localhost:3009/oauth/cloudotp/huaweicloud/token';
+      '${CloudService.serverEndpoint}/oauth/cloudotp/huaweicloud/token';
   static const String _callbackUrl = "cloudotp://auth/huaweicloud/callback";
   static const String _clientId = '114701957';
   static const String _huaweiCloudEmptyPath = '';

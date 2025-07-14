@@ -26,6 +26,8 @@ enum CloudServiceStatus {
 }
 
 abstract class CloudService {
+  static const String serverEndpoint = 'http://localhost:3009';
+
   CloudServiceType get type;
 
   Future<void> init();

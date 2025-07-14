@@ -173,6 +173,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
         title: S.current.enable + S.current.cloudTypeHuaweiCloud,
+        description: S.current.cloudTypeHuaweiCloudTip,
         value: _huaweiCloudCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {

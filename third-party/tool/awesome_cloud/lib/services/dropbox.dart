@@ -13,8 +13,6 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-library flutter_cloud;
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -35,13 +33,13 @@ class Dropbox extends BaseCloudService {
   String get authEndpoint => "https://www.dropbox.com/oauth2/authorize";
 
   @override
-  String get tokenEndpoint => "https://api.dropbox.com/oauth2/token";
+  String get tokenEndpoint => "https://proxy.cloudchewie.com/proxy/api.dropbox.com/oauth2/token";
 
   @override
-  String get revokeEndpoint => "https://api.dropboxapi.com/2/auth/token/revoke";
+  String get revokeEndpoint => "https://proxy.cloudchewie.com/proxy/api.dropboxapi.com/2/auth/token/revoke";
 
   @override
-  String get apiEndpoint => "https://api.dropboxapi.com/2";
+  String get apiEndpoint => "https://proxy.cloudchewie.com/proxy/api.dropboxapi.com/2";
 
   @override
   String get permission =>
@@ -134,7 +132,7 @@ class Dropbox extends BaseCloudService {
   @override
   Future<DropboxResponse> list(String remotePath) async {
     try {
-      final url = Uri.parse("$apiEndpoint//files/list_folder");
+      final url = Uri.parse("$apiEndpoint/files/list_folder");
       final resp = await post(
         url,
         headers: {

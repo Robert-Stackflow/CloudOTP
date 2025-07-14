@@ -1,5 +1,17 @@
-library flutter_cloud;
-
+/*
+ * Copyright (c) 2025 Robert-Stackflow.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
 import 'dart:async';
 import 'dart:convert';
 
@@ -42,7 +54,8 @@ class GoogleDrive extends BaseCloudService {
   String get revokeEndpoint => "https://www.googleapis.com/oauth2/v4/revoke";
 
   @override
-  String get apiEndpoint => "https://content.googleapis.com/drive/v3";
+  String get apiEndpoint =>
+      "https://proxy.cloudchewie.com/proxy/content.googleapis.com/drive/v3";
 
   @override
   String get permission => "https://www.googleapis.com/auth/drive.file";
@@ -63,7 +76,7 @@ class GoogleDrive extends BaseCloudService {
   String get rawRespKey => "__googledrive_rawResp";
 
   String get apiUploadEndpoint =>
-      "https://www.googleapis.com/upload/drive/v3/files";
+      "https://proxy.cloudchewie.com/proxy/www.googleapis.com/upload/drive/v3/files";
 
   GoogleDrive({
     required super.clientId,
@@ -72,13 +85,24 @@ class GoogleDrive extends BaseCloudService {
     ITokenManager? tokenManager,
   });
 
+  GoogleDrive.server({
+    required super.clientId,
+    required super.callbackUrl,
+    required super.customAuthEndpoint,
+    required super.customTokenEndpoint,
+    required super.customRevokeEndpoint,
+    String scopes = "",
+    ITokenManager? tokenManager,
+  }) : super.server();
+
   Future<drive.DriveApi> getClient() async {
     final accessToken = await tokenManager.getAccessToken();
 
     final authenticateClient = GoogleAuthClient({
       "Authorization": "Bearer $accessToken",
     });
-    final driveApi = drive.DriveApi(authenticateClient);
+    final driveApi = drive.DriveApi(authenticateClient,
+        rootUrl: "https://proxy.cloudchewie.com/proxy/www.googleapis.com/");
     return driveApi;
   }
 
@@ -101,18 +125,28 @@ class GoogleDrive extends BaseCloudService {
           message: "Get Info successfully.",
         );
       } else if (resp.statusCode == 404) {
+        CloudLogger.errorResponse(
+          serviceName,
+          "Get info failed: ${getInfoUri.toString()} not found.",
+          resp,
+        );
         return GoogleDriveResponse.fromResponse(
           response: resp,
           message: "${getInfoUri.toString()} not found.",
         );
       } else {
+        CloudLogger.errorResponse(
+          serviceName,
+          "Error while getting info: ${resp.statusCode} ${resp.body}",
+          resp,
+        );
         return GoogleDriveResponse.fromResponse(
           response: resp,
           message: "Error while get info.",
         );
       }
     } catch (err) {
-      debugPrint("# GoogleDrive -> getInfo: $err");
+      CloudLogger.error(serviceName, "Exception while getting info: $err");
       return GoogleDriveResponse.error(message: "Unexpected exception: $err");
     }
   }
@@ -121,6 +155,11 @@ class GoogleDrive extends BaseCloudService {
   Future<GoogleDriveResponse> list(String remotePath) async {
     try {
       drive.DriveApi driveApi = await getClient();
+
+      CloudLogger.info(
+        serviceName,
+        "Listing files in Google Drive at path: $remotePath",
+      );
 
       drive.FileList fileList = await driveApi.files.list(
         q: "mimeType='application/octet-stream' and trashed=false",
@@ -142,12 +181,23 @@ class GoogleDrive extends BaseCloudService {
           )
           .toList();
 
+      if (fileInfos.isEmpty) {
+        CloudLogger.info(serviceName, "No files found in Google Drive.");
+        return GoogleDriveResponse.success(
+          files: [],
+          message: "No files found.",
+        );
+      }
+      CloudLogger.info(
+        serviceName,
+        "List files successfully: ${fileInfos.length} files found.",
+      );
       return GoogleDriveResponse.success(
         files: fileInfos,
         message: "List files successfully.",
       );
     } catch (err) {
-      debugPrint("# GoogleDrive -> list: $err");
+      CloudLogger.error(serviceName, "Exception while listing files: $err");
       return GoogleDriveResponse.error(message: "Unexpected exception: $err");
     }
   }
@@ -157,17 +207,24 @@ class GoogleDrive extends BaseCloudService {
     try {
       drive.DriveApi driveApi = await getClient();
 
+      CloudLogger.info(serviceName, "Downloading file with ID: $id");
+
       drive.Media media = await driveApi.files.get(
         id,
         downloadOptions: drive.DownloadOptions.fullMedia,
       ) as drive.Media;
 
+      if (media.length == 0) {
+        CloudLogger.error(serviceName, "Media stream is null for file ID: $id");
+        return GoogleDriveResponse.error(message: "File not found or empty.");
+      }
+      CloudLogger.info(serviceName, "Download successfully for file ID: $id");
       return GoogleDriveResponse.success(
         message: "Download successfully.",
         bodyBytes: await (media.stream as http.ByteStream).toBytes(),
       );
     } catch (err) {
-      debugPrint("# GoogleDrive -> pull: $err");
+      CloudLogger.error(serviceName, "Exception while downloading file: $err");
       return GoogleDriveResponse.error(message: "Unexpected exception: $err");
     }
   }
@@ -177,11 +234,13 @@ class GoogleDrive extends BaseCloudService {
     try {
       drive.DriveApi driveApi = await getClient();
 
+      CloudLogger.info(serviceName, "Deleting file with ID: $id");
+
       await driveApi.files.delete(id);
 
       return GoogleDriveResponse.success(message: "Delete successfully.");
     } catch (err) {
-      debugPrint("# GoogleDrive -> delete: $err");
+      CloudLogger.error(serviceName, "Exception while deleting file: $err");
       return GoogleDriveResponse.error(message: "Unexpected exception: $err");
     }
   }
@@ -198,6 +257,9 @@ class GoogleDrive extends BaseCloudService {
 
       drive.DriveApi driveApi = await getClient();
 
+      CloudLogger.info(
+          serviceName, "Uploading file to Google Drive: $fileName");
+
       drive.File res = await driveApi.files.create(
         drive.File.fromJson({
           "name": fileName,
@@ -209,11 +271,16 @@ class GoogleDrive extends BaseCloudService {
           contentType: "application/octet-stream",
         ),
       );
-      debugPrint("# Upload response: ${res.id} ${res.name}");
 
+      if (res.id == null) {
+        CloudLogger.error(serviceName, "Upload failed: ${res.toJson()}");
+        return GoogleDriveResponse.error(message: "Upload failed.");
+      }
+      CloudLogger.info(
+          serviceName, "Upload successfully: ${res.id} ${res.name}");
       return GoogleDriveResponse.success(message: "Upload successfully.");
     } catch (err) {
-      debugPrint("# Upload error: $err");
+      CloudLogger.error(serviceName, "Exception while uploading file: $err");
       return GoogleDriveResponse.error(message: "Unexpected exception: $err");
     }
   }
@@ -230,6 +297,7 @@ class GoogleDrive extends BaseCloudService {
       if (fileList.files != null && fileList.files!.isNotEmpty) {
         for (var file in fileList.files!) {
           if (file.name == remotePath) {
+            CloudLogger.debug(serviceName, "Directory already exists.");
             return GoogleDriveResponse.success(
               parentId: file.id ?? "",
               message: "Directory already exists.",
@@ -249,26 +317,38 @@ class GoogleDrive extends BaseCloudService {
       );
 
       if (isSuccess(resp)) {
+        CloudLogger.infoResponse(
+          serviceName,
+          "Create directory successfully: ${jsonDecode(resp.body)["id"]}",
+          resp,
+        );
         return GoogleDriveResponse.fromResponse(
           response: resp,
           parentId: jsonDecode(resp.body)["id"],
           message: "Create directory successfully.",
         );
       } else if (resp.statusCode == 404) {
+        CloudLogger.error(serviceName, "Url not found: ${url.toString()}");
         return GoogleDriveResponse.fromResponse(
           response: resp,
           message: "Url not found.",
         );
       } else {
+        CloudLogger.error(
+          serviceName,
+          "Error while creating directory: ${resp.statusCode} ${resp.body}",
+        );
         return GoogleDriveResponse.fromResponse(
           response: resp,
           message: "Error while creating directory.",
         );
       }
     } catch (err) {
-      debugPrint("# GoogleDrive -> metadata: $err");
+      CloudLogger.error(
+        serviceName,
+        "Exception while checking folder: $err",
+      );
+      return GoogleDriveResponse.error(message: "Unexpected exception:$err");
     }
-
-    return GoogleDriveResponse.error(message: "Unexpected exception.");
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Robert-Stackflow.
+ * Copyright (c) 2024-2025 Robert-Stackflow.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 3 of the
@@ -15,48 +15,47 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
-import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
+import '../../TokenUtils/Cloud/aliyundrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
-import 'package:awesome_cloud/awesome_cloud.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
-import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
+import '../../Widgets/BottomSheet/Backups/aliyundrive_backups_bottom_sheet.dart';
 import '../../generated/l10n.dart';
 
-class GoogleDriveServiceScreen extends StatefulWidget {
-  const GoogleDriveServiceScreen({
+class AliyunDriveServiceScreen extends StatefulWidget {
+  const AliyunDriveServiceScreen({
     super.key,
   });
 
-  static const String routeName = "/service/googledrive";
+  static const String routeName = "/service/aliyunDrive";
 
   @override
-  State<GoogleDriveServiceScreen> createState() =>
-      _GoogleDriveServiceScreenState();
+  State<AliyunDriveServiceScreen> createState() => _AliyunDriveServiceScreenState();
 }
 
-class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
+class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  CloudServiceConfig? _googledriveCloudServiceConfig;
-  GoogleDriveCloudService? _googledriveCloudService;
+  CloudServiceConfig? _aliyunDriveCloudServiceConfig;
+  AliyunDriveCloudService? _aliyunDriveCloudService;
   bool inited = false;
 
-  CloudServiceConfig get currentConfig => _googledriveCloudServiceConfig!;
+  CloudServiceConfig get currentConfig => _aliyunDriveCloudServiceConfig!;
 
-  CloudService get currentService => _googledriveCloudService!;
+  CloudService get currentService => _aliyunDriveCloudService!;
 
   bool get _configInitialized {
-    return _googledriveCloudServiceConfig != null;
+    return _aliyunDriveCloudServiceConfig != null;
   }
 
   @override
@@ -66,62 +65,77 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
   }
 
   loadConfig() async {
-    _googledriveCloudServiceConfig =
-        await CloudServiceConfigDao.getGoogleDriveConfig();
-    if (_googledriveCloudServiceConfig != null) {
-      _sizeController.text = _googledriveCloudServiceConfig!.size;
-      _accountController.text = _googledriveCloudServiceConfig!.account ?? "";
-      _emailController.text = _googledriveCloudServiceConfig!.email ?? "";
-      _googledriveCloudService = GoogleDriveCloudService(
-        _googledriveCloudServiceConfig!,
+    _aliyunDriveCloudServiceConfig = await CloudServiceConfigDao.getAliyunDriveConfig();
+    if (_aliyunDriveCloudServiceConfig != null) {
+      _sizeController.text = _aliyunDriveCloudServiceConfig!.size;
+      _accountController.text = _aliyunDriveCloudServiceConfig!.account ?? "";
+      _emailController.text = _aliyunDriveCloudServiceConfig!.email ?? "";
+      _aliyunDriveCloudService = AliyunDriveCloudService(
+        _aliyunDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
     } else {
-      _googledriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.GoogleDrive);
-      await CloudServiceConfigDao.insertConfig(_googledriveCloudServiceConfig!);
-      _googledriveCloudService = GoogleDriveCloudService(
-        _googledriveCloudServiceConfig!,
+      _aliyunDriveCloudServiceConfig =
+          CloudServiceConfig.init(type: CloudServiceType.AliyunDrive);
+      await CloudServiceConfigDao.insertConfig(_aliyunDriveCloudServiceConfig!);
+      _aliyunDriveCloudService = AliyunDriveCloudService(
+        _aliyunDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
       );
     }
-    if (_googledriveCloudService != null) {
-      _googledriveCloudServiceConfig!.configured =
-          await _googledriveCloudService!.hasConfigured();
-      _googledriveCloudServiceConfig!.connected =
-          await _googledriveCloudService!.isConnected();
-      if (_googledriveCloudServiceConfig!.configured &&
-          !_googledriveCloudServiceConfig!.connected) {
+    if (_aliyunDriveCloudService != null) {
+      _aliyunDriveCloudServiceConfig!.configured =
+      await _aliyunDriveCloudService!.hasConfigured();
+      _aliyunDriveCloudServiceConfig!.connected = await _aliyunDriveCloudService!.isConnected();
+      if (_aliyunDriveCloudServiceConfig!.configured &&
+          !_aliyunDriveCloudServiceConfig!.connected) {
         IToast.showTop(S.current.cloudConnectionError);
       }
-      updateConfig(_googledriveCloudServiceConfig!);
+      updateConfig(_aliyunDriveCloudServiceConfig!);
     }
     inited = true;
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   updateConfig(CloudServiceConfig config) {
-    setState(() {
-      _googledriveCloudServiceConfig = config;
-    });
-    _sizeController.text = _googledriveCloudServiceConfig!.size;
-    _accountController.text = _googledriveCloudServiceConfig!.account ?? "";
-    _emailController.text = _googledriveCloudServiceConfig!.email ?? "";
-    CloudServiceConfigDao.updateConfig(_googledriveCloudServiceConfig!);
+    if (mounted) {
+      setState(() {
+        _aliyunDriveCloudServiceConfig = config;
+      });
+    }
+    _sizeController.text = _aliyunDriveCloudServiceConfig!.size;
+    _accountController.text = _aliyunDriveCloudServiceConfig!.account ?? "";
+    _emailController.text = _aliyunDriveCloudServiceConfig!.email ?? "";
+    CloudServiceConfigDao.updateConfig(_aliyunDriveCloudServiceConfig!);
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return inited
+    return ResponsiveUtil.isLinux()
+        ? _buildUnsupportBody()
+        : inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
-            context: context,
-            background: Colors.transparent,
-            text: S.current.cloudConnecting,
-            mainAxisAlignment: MainAxisAlignment.start,
-            topPadding: 100,
-          );
+      context: context,
+      background: Colors.transparent,
+      text: S.current.cloudConnecting,
+      mainAxisAlignment: MainAxisAlignment.start,
+      topPadding: 100,
+    );
+  }
+
+  _buildUnsupportBody() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 100),
+          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeAliyunDrive)),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
   }
 
   ping({
@@ -133,7 +147,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     }
     await currentService.authenticate().then((value) async {
       setState(() {
-        currentConfig.connected = value == CloudServiceStatus.success;
+        currentConfig.connected = (value == CloudServiceStatus.success);
       });
       if (!currentConfig.connected) {
         switch (value) {
@@ -148,8 +162,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             break;
         }
       } else {
-        _googledriveCloudServiceConfig!.configured = true;
-        updateConfig(_googledriveCloudServiceConfig!);
+        _aliyunDriveCloudServiceConfig!.configured = true;
+        updateConfig(_aliyunDriveCloudServiceConfig!);
         if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
       }
     });
@@ -173,16 +187,13 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeGoogleDrive,
-        description: S.current.cloudTypeGoogleDriveTip,
-        value: _googledriveCloudServiceConfig?.enabled ?? false,
+        title: S.current.enable + S.current.cloudTypeAliyunDrive,
+        value: _aliyunDriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
-            _googledriveCloudServiceConfig!.enabled =
-                !_googledriveCloudServiceConfig!.enabled;
+            _aliyunDriveCloudServiceConfig!.enabled = !_aliyunDriveCloudServiceConfig!.enabled;
             CloudServiceConfigDao.updateConfigEnabled(
-                _googledriveCloudServiceConfig!,
-                _googledriveCloudServiceConfig!.enabled);
+                _aliyunDriveCloudServiceConfig!, _aliyunDriveCloudServiceConfig!.enabled);
           });
         },
       ),
@@ -228,7 +239,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
           try {
             ping();
           } catch (e, t) {
-            ILogger.error("Failed to connect to google drive", e, t);
+            ILogger.error("Failed to connect to aliyunDrive", e, t);
             IToast.show(S.current.cloudConnectionError);
           }
         },
@@ -250,15 +261,15 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
               onPressed: () async {
                 CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
                 try {
-                  List<GoogleDriveFileInfo>? files =
-                      await _googledriveCloudService!.listBackups();
+                  List<AliyunDriveFileInfo>? files =
+                  await _aliyunDriveCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(S.current.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
-                      _googledriveCloudServiceConfig!);
+                      _aliyunDriveCloudServiceConfig!);
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>
                       b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
@@ -266,16 +277,15 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                     BottomSheetBuilder.showBottomSheet(
                       context,
                       responsive: true,
-                      (dialogContext) => GoogleDriveBackupsBottomSheet(
+                          (dialogContext) => AliyunDriveBackupsBottomSheet(
                         files: files,
-                        cloudService: _googledriveCloudService!,
+                        cloudService: _aliyunDriveCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
                             S.current.cloudPulling,
                             showProgress: true,
                           );
-                          Uint8List? res =
-                              await _googledriveCloudService!.downloadFile(
+                          Uint8List? res = await _aliyunDriveCloudService!.downloadFile(
                             selectedFile.id,
                             onProgress: (c, t) {
                               dialog.updateProgress(progress: c / t);
@@ -289,7 +299,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                     IToast.show(S.current.cloudNoBackupFile);
                   }
                 } catch (e, t) {
-                  ILogger.error("Failed to pull from google drive", e, t);
+                  ILogger.error("Failed to pull file from aliyunDrive", e, t);
                   CustomLoadingDialog.dismissLoading();
                   IToast.show(S.current.cloudPullFailed);
                 }
@@ -305,8 +315,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
-                  config: _googledriveCloudServiceConfig!,
-                  cloudService: _googledriveCloudService!,
+                  config: _aliyunDriveCloudServiceConfig!,
+                  cloudService: _aliyunDriveCloudService!,
                 );
               },
             ),
@@ -323,17 +333,20 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                     title: S.current.cloudLogout,
                     message: S.current.cloudLogoutMessage,
                     onTapConfirm: () async {
-                  await _googledriveCloudService!.signOut();
-                  setState(() {
-                    _googledriveCloudServiceConfig!.connected = false;
-                    _googledriveCloudServiceConfig!.account = "";
-                    _googledriveCloudServiceConfig!.email = "";
-                    _googledriveCloudServiceConfig!.totalSize =
-                        _googledriveCloudServiceConfig!.remainingSize =
-                            _googledriveCloudServiceConfig!.usedSize = -1;
-                    updateConfig(_googledriveCloudServiceConfig!);
-                  });
-                });
+                      CustomLoadingDialog.showLoading(
+                          title: S.current.cloudLoggingOut);
+                      await _aliyunDriveCloudService!.signOut();
+                      setState(() {
+                        _aliyunDriveCloudServiceConfig!.connected = false;
+                        _aliyunDriveCloudServiceConfig!.account = "";
+                        _aliyunDriveCloudServiceConfig!.email = "";
+                        _aliyunDriveCloudServiceConfig!.totalSize = _aliyunDriveCloudServiceConfig!
+                            .remainingSize = _aliyunDriveCloudServiceConfig!.usedSize = -1;
+                        updateConfig(_aliyunDriveCloudServiceConfig!);
+                      });
+                      CustomLoadingDialog.dismissLoading();
+                      IToast.show(S.current.cloudLogoutSuccess);
+                    });
               },
             ),
           ),

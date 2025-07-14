@@ -9,6 +9,8 @@ export "models/dropbox_response.dart";
 export "models/googledrive_response.dart";
 export "models/onedrive_response.dart";
 export "models/huaweicloud_response.dart";
+export "models/aliyundrive_response.dart";
+export "models/box_response.dart";
 export "utils/cloud_logger.dart";
 export "utils/my_multipart_request.dart";
 export "utils/oauth2_helper.dart";

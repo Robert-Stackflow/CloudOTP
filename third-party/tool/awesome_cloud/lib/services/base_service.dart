@@ -47,6 +47,8 @@ abstract class BaseCloudService with ChangeNotifier {
 
   String get rawRespKey;
 
+  bool get keepPadding => false;
+
   late final ITokenManager tokenManager;
   late final String callbackUrl;
   late final String scopes;
@@ -128,9 +130,10 @@ abstract class BaseCloudService with ChangeNotifier {
 
   Future<bool> connectPKCE() async {
     try {
-      String codeVerifier = OAuth2Helper.generateCodeVerifier();
+      String codeVerifier = OAuth2Helper.generateCodeVerifier(keepPadding);
 
-      String codeChanllenge = OAuth2Helper.generateCodeChanllenge(codeVerifier);
+      String codeChanllenge =
+          OAuth2Helper.generateCodeChallenge(codeVerifier, keepPadding);
 
       Uri uri = Uri.parse(authEndpoint);
       final authUri = Uri.https(uri.authority, uri.path, {

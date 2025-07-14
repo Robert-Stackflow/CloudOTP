@@ -13,8 +13,6 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-library flutter_cloud;
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -87,142 +85,119 @@ class HuaweiCloud extends BaseCloudService {
 
   @override
   Future<HuaweiCloudResponse> getInfo() async {
+    CloudLogger.info(serviceName, "Start get info");
     try {
-      final getInfoUri =
-          Uri.parse("$apiEndpoint/about?fields=*");
-
+      final getInfoUri = Uri.parse("$apiEndpoint/about?fields=*");
       final resp = await get(getInfoUri);
 
       if (isSuccess(resp)) {
         HuaweiCloudUserInfo userInfo =
             HuaweiCloudUserInfo.fromJson(jsonDecode(resp.body));
-        CloudLogger.infoResponse(
-            serviceName, "Get info successfully: $userInfo", resp);
+        CloudLogger.infoResponse(serviceName, "Get info successfully", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           userInfo: userInfo,
           message: "Get Info successfully.",
         );
-      } else if (resp.statusCode == 404) {
-        await disconnect();
-        CloudLogger.error(
-            serviceName, "Get info failed: ${resp.statusCode}", resp);
-        return HuaweiCloudResponse.fromResponse(
-          response: resp,
-          message: "${getInfoUri.toString()} not found.",
-        );
       } else {
         await disconnect();
-        CloudLogger.error(
-            serviceName, "Get info failed: ${resp.statusCode}", resp);
+        CloudLogger.errorResponse(serviceName, "Get info failed", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
-          message: "Error while get info.",
+          message: "Failed to get info.",
         );
       }
     } catch (err) {
-      debugPrint("# HuaweiCloud -> getInfo: $err");
+      CloudLogger.error(serviceName, "Get info error: $err", err);
       return HuaweiCloudResponse.error(message: "Unexpected exception: $err");
     }
   }
 
   @override
-  Future<HuaweiCloudResponse> list(
-    String remotePath, {
-    String? q,
-  }) async {
+  Future<HuaweiCloudResponse> list(String remotePath, {String? q}) async {
+    CloudLogger.info(serviceName, "Start listing files with query: $q");
     final listUri =
         Uri.https("driveapis.cloud.huawei.com.cn", "/drive/v1/files", {
       "fields": "*",
-      "q": q,
+      if (q != null) "q": q,
     });
 
     try {
       final resp = await get(listUri);
-
       if (isSuccess(resp)) {
         Map body = jsonDecode(resp.body);
         List<HuaweiCloudFileInfo> files = [];
         for (var item in body['files']) {
           files.add(HuaweiCloudFileInfo.fromJson(item));
         }
+        CloudLogger.infoResponse(serviceName, "List files successfully", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           files: files,
           message: "List files successfully.",
         );
-      } else if (resp.statusCode == 404) {
-        return HuaweiCloudResponse.fromResponse(
-          response: resp,
-          message: "Url not found.",
-        );
       } else {
+        CloudLogger.errorResponse(serviceName, "List files failed", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           message: "Error while listing files.",
         );
       }
     } catch (err) {
-      debugPrint("# HuaweiCloud -> list: $err");
+      CloudLogger.error(serviceName, "List files error: $err", err);
       return HuaweiCloudResponse.error(message: "Unexpected exception: $err");
     }
   }
 
   @override
   Future<HuaweiCloudResponse> pullById(String id) async {
+    CloudLogger.info(serviceName, "Start pull file by ID: $id");
     try {
       final pullUri = Uri.parse("$apiEndpoint/files/$id?form=content");
       final resp = await http.get(pullUri);
 
       if (isSuccess(resp)) {
+        CloudLogger.infoResponse(serviceName, "Pull file success", resp);
         return HuaweiCloudResponse.fromResponse(
           message: "Download successfully.",
           response: resp,
         );
-      } else if (resp.statusCode == 404) {
-        return HuaweiCloudResponse.fromResponse(
-          response: resp,
-          message: "File not found.",
-        );
       } else {
+        CloudLogger.errorResponse(serviceName, "Pull file failed", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           message: "Error when pulling file.",
         );
       }
     } catch (err) {
-      debugPrint("# HuaweiCloud -> pull: $err");
+      CloudLogger.error(serviceName, "Pull file error: $err", err);
       return HuaweiCloudResponse.error(message: "Unexpected exception: $err");
     }
   }
 
   @override
   Future<HuaweiCloudResponse> deleteById(String id) async {
+    CloudLogger.info(serviceName, "Start delete file by ID: $id");
     try {
       final deleteUri = Uri.parse("$apiEndpoint/files/$id");
       final resp = await delete(deleteUri);
 
-      debugPrint(
-          "# HuaweiCloud -> delete: ${resp.statusCode}\n# Body: ${resp.body}");
+      CloudLogger.infoResponse(serviceName, "Delete file response", resp);
 
       if (resp.statusCode == 200 || resp.statusCode == 204) {
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           message: "Delete successfully.",
         );
-      } else if (resp.statusCode == 404) {
-        return HuaweiCloudResponse.fromResponse(
-          response: resp,
-          message: "File not found.",
-        );
       } else {
+        CloudLogger.errorResponse(serviceName, "Delete file failed", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           message: "Error while deleting file.",
         );
       }
     } catch (err) {
-      debugPrint("# HuaweiCloud -> delete: $err");
+      CloudLogger.error(serviceName, "Delete file error: $err", err);
       return HuaweiCloudResponse.error(message: "Unexpected exception: $err");
     }
   }
@@ -232,14 +207,13 @@ class HuaweiCloud extends BaseCloudService {
     Uint8List bytes,
     String remotePath, {
     String fileName = "",
-    Function(int p1, int p2)? onProgress,
+    Function(int, int)? onProgress,
   }) async {
+    CloudLogger.info(
+        serviceName, "Start uploading file: $fileName to $remotePath");
+
     try {
       String parentId = (await checkFolder(remotePath)).parentId ?? "";
-
-      CloudLogger.info(
-          serviceName, "Push file to $remotePath with parentId: $parentId");
-
       var pushUri =
           Uri.parse("$uploadApiEndpoint?uploadType=multipart&fields=*");
 
@@ -259,32 +233,25 @@ class HuaweiCloud extends BaseCloudService {
         "parentFolder": [parentId],
       });
 
-      request.files.add(
-        http.MultipartFile.fromString(
-          "",
-          jsonPart,
-          contentType: MediaType("application", "json"),
-        ),
-      );
+      request.files.add(http.MultipartFile.fromString(
+        "",
+        jsonPart,
+        contentType: MediaType("application", "json"),
+      ));
 
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          '',
-          bytes,
-          contentType: MediaType('application', 'octet-stream'),
-        ),
-      );
+      request.files.add(http.MultipartFile.fromBytes(
+        '',
+        bytes,
+        contentType: MediaType('application', 'octet-stream'),
+      ));
 
       http.StreamedResponse resp = (await request.send());
-
       Uint8List bodyBytes = await resp.stream.toBytes();
-
       String body = utf8.decode(bodyBytes);
-
-      debugPrint("# Upload response: ${resp.statusCode}\n# Body: $body");
 
       if (isStreamSuccess(resp)) {
         onProgress?.call(1, 1);
+        CloudLogger.info(serviceName, "Upload finished: $fileName");
         return HuaweiCloudResponse.success(
           statusCode: resp.statusCode,
           body: body,
@@ -292,6 +259,7 @@ class HuaweiCloud extends BaseCloudService {
           message: "Upload finished.",
         );
       } else {
+        CloudLogger.error(serviceName, "Upload failed: $body");
         return HuaweiCloudResponse.error(
           statusCode: resp.statusCode,
           body: body,
@@ -300,13 +268,15 @@ class HuaweiCloud extends BaseCloudService {
         );
       }
     } catch (err, trace) {
-      debugPrint("# Upload error: $err\n$trace");
+      CloudLogger.error(serviceName, "Upload error: $err\n$trace", err);
       return HuaweiCloudResponse.error(message: "Unexpected exception: $err");
     }
   }
 
   @override
   Future<HuaweiCloudResponse> checkFolder(String remotePath) async {
+    CloudLogger.info(serviceName, "Start checking folder: $remotePath");
+
     try {
       HuaweiCloudResponse res = await list(
         "",
@@ -314,18 +284,19 @@ class HuaweiCloud extends BaseCloudService {
       );
 
       if (!res.isSuccess) {
+        CloudLogger.error(serviceName, "Failed to list folders");
         return res;
       }
 
-      if (res.files.isNotEmpty) {
-        for (var file in res.files) {
-          if (file.name == remotePath &&
-              file.fileMimeType == "application/vnd.huawei-apps.folder") {
-            return HuaweiCloudResponse.success(
-              parentId: file.id,
-              message: "Directory already exists.",
-            );
-          }
+      for (var file in res.files) {
+        if (file.name == remotePath &&
+            file.fileMimeType == "application/vnd.huawei-apps.folder") {
+          CloudLogger.info(
+              serviceName, "Folder exists: $remotePath -> ${file.id}");
+          return HuaweiCloudResponse.success(
+            parentId: file.id,
+            message: "Directory already exists.",
+          );
         }
       }
 
@@ -340,24 +311,22 @@ class HuaweiCloud extends BaseCloudService {
       );
 
       if (isSuccess(resp)) {
+        CloudLogger.infoResponse(
+            serviceName, "Created folder: $remotePath", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           parentId: jsonDecode(resp.body)["id"],
           message: "Create directory successfully.",
         );
-      } else if (resp.statusCode == 404) {
-        return HuaweiCloudResponse.fromResponse(
-          response: resp,
-          message: "Url not found.",
-        );
       } else {
+        CloudLogger.errorResponse(serviceName, "Create folder failed", resp);
         return HuaweiCloudResponse.fromResponse(
           response: resp,
           message: "Error while creating directory.",
         );
       }
     } catch (err) {
-      debugPrint("# HuaweiCloud -> createDir: $err");
+      CloudLogger.error(serviceName, "Check/create folder error: $err", err);
       return HuaweiCloudResponse.error(message: "Unexpected exception.");
     }
   }
