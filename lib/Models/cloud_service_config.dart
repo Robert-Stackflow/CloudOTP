@@ -167,7 +167,7 @@ class CloudServiceConfig {
   String get size {
     return totalSize < 0
         ? ""
-        : '${CacheUtil.renderSize(usedSize.toDouble())}/${CacheUtil.renderSize(totalSize.toDouble())}';
+        : '${CacheUtil.renderSize(usedSize.toDouble())}B / ${CacheUtil.renderSize(totalSize.toDouble())}B';
   }
 
   CloudServiceConfig({
