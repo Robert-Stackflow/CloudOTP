@@ -19,8 +19,6 @@ import 'dart:io';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
-import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
-import 'package:cloudotp/Screens/Setting/mobile_setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
@@ -206,7 +204,7 @@ class MainScreenState extends State<MainScreen>
     }
     ResponsiveUtil.checkSizeCondition();
     EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
-          backgroundColor: Theme.of(context).canvasColor,
+          backgroundColor: ChewieTheme.canvasColor,
           indicator:
               LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5),
           hapticFeedback: true,
@@ -669,7 +667,7 @@ class MainScreenState extends State<MainScreen>
                     iconSize: 22,
                     onPressed: () async {
                       DialogBuilder.showPageDialog(context,
-                          child: const CloudServiceScreen());
+                          child: const CloudServiceScreen(showBack: false));
                     },
                   ),
                 const Spacer(),

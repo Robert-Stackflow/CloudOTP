@@ -16,8 +16,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -55,7 +53,7 @@ class GoogleDrive extends BaseCloudService {
 
   @override
   String get apiEndpoint =>
-      "https://proxy.cloudchewie.com/proxy/content.googleapis.com/drive/v3";
+      "https://${BaseCloudService.proxyEndpoint}content.googleapis.com/drive/v3";
 
   @override
   String get permission => "https://www.googleapis.com/auth/drive.file";
@@ -76,7 +74,7 @@ class GoogleDrive extends BaseCloudService {
   String get rawRespKey => "__googledrive_rawResp";
 
   String get apiUploadEndpoint =>
-      "https://proxy.cloudchewie.com/proxy/www.googleapis.com/upload/drive/v3/files";
+      "https://${BaseCloudService.proxyEndpoint}www.googleapis.com/upload/drive/v3/files";
 
   GoogleDrive({
     required super.clientId,
@@ -102,7 +100,8 @@ class GoogleDrive extends BaseCloudService {
       "Authorization": "Bearer $accessToken",
     });
     final driveApi = drive.DriveApi(authenticateClient,
-        rootUrl: "https://proxy.cloudchewie.com/proxy/www.googleapis.com/");
+        rootUrl:
+            "https://${BaseCloudService.proxyEndpoint}www.googleapis.com/");
     return driveApi;
   }
 
@@ -248,8 +247,8 @@ class GoogleDrive extends BaseCloudService {
   @override
   Future<GoogleDriveResponse> push(
     Uint8List bytes,
-    String remotePath, {
-    String fileName = "",
+    String remotePath,
+    String fileName, {
     Function(int p1, int p2)? onProgress,
   }) async {
     try {

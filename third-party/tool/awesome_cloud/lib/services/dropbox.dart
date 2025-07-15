@@ -19,6 +19,7 @@ import 'dart:convert';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
 
 import 'base_service.dart';
 
@@ -33,13 +34,16 @@ class Dropbox extends BaseCloudService {
   String get authEndpoint => "https://www.dropbox.com/oauth2/authorize";
 
   @override
-  String get tokenEndpoint => "https://proxy.cloudchewie.com/proxy/api.dropbox.com/oauth2/token";
+  String get tokenEndpoint =>
+      "https://${BaseCloudService.proxyEndpoint}api.dropbox.com/oauth2/token";
 
   @override
-  String get revokeEndpoint => "https://proxy.cloudchewie.com/proxy/api.dropboxapi.com/2/auth/token/revoke";
+  String get revokeEndpoint =>
+      "https://${BaseCloudService.proxyEndpoint}api.dropboxapi.com/2/auth/token/revoke";
 
   @override
-  String get apiEndpoint => "https://proxy.cloudchewie.com/proxy/api.dropboxapi.com/2";
+  String get apiEndpoint =>
+      "https://${BaseCloudService.proxyEndpoint}api.dropboxapi.com/2";
 
   @override
   String get permission =>
@@ -129,6 +133,10 @@ class Dropbox extends BaseCloudService {
     }
   }
 
+  String removeLeadingSlash(String str) {
+    return str.replaceFirst(RegExp(r'^/+'), '');
+  }
+
   @override
   Future<DropboxResponse> list(String remotePath) async {
     try {
@@ -144,7 +152,7 @@ class Dropbox extends BaseCloudService {
           "include_media_info": false,
           "include_mounted_folders": true,
           "include_non_downloadable_files": true,
-          "path": remotePath,
+          "path": removeLeadingSlash(remotePath),
           "recursive": false
         }),
       );
@@ -278,7 +286,8 @@ class Dropbox extends BaseCloudService {
   @override
   Future<DropboxResponse> push(
     Uint8List bytes,
-    String remotePath, {
+    String remotePath,
+    String fileName, {
     Function(int p1, int p2)? onProgress,
   }) async {
     try {
@@ -291,7 +300,7 @@ class Dropbox extends BaseCloudService {
             "autorename": false,
             "mode": "add",
             "mute": false,
-            "path": remotePath,
+            "path": join(remotePath, fileName),
             "strict_conflict": false
           }),
           "Content-Type": "application/octet-stream",
@@ -299,7 +308,7 @@ class Dropbox extends BaseCloudService {
         body: bytes,
       );
 
-      if (resp.statusCode == 200 || resp.statusCode == 201) {
+      if (isSuccess(resp)) {
         onProgress?.call(1, 1);
         CloudLogger.infoResponse(serviceName, "Upload successfully", resp);
         return DropboxResponse.fromResponse(
@@ -307,7 +316,7 @@ class Dropbox extends BaseCloudService {
           message: "Upload finished.",
         );
       } else {
-        CloudLogger.error(serviceName, "Upload failed", resp);
+        CloudLogger.errorResponse(serviceName, "Upload failed", resp);
         return DropboxResponse.fromResponse(
           response: resp,
           message: "Upload failed.",

@@ -240,7 +240,7 @@ class ImportFromThirdPartyBottomSheetState
     }
     containUnsupportExt = containUnsupportExt && ResponsiveUtil.isAndroid();
     return Material(
-      color: Theme.of(context).canvasColor,
+      color: ChewieTheme.canvasColor,
       borderRadius: BorderRadius.circular(borderRadius),
       child: InkWell(
         onTap: useImport

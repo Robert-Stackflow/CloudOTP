@@ -25,14 +25,19 @@ import 'package:cloudotp/Screens/Backup/s3_service_screen.dart';
 import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../TokenUtils/Cloud/cloud_service.dart';
 import '../../generated/l10n.dart';
 import '../Setting/base_setting_screen.dart';
 
 class CloudServiceScreen extends BaseSettingScreen {
   const CloudServiceScreen({
     super.key,
+    this.showBack = true,
   });
+
+  final bool showBack;
 
   static const String routeName = "/service/cloud";
 
@@ -63,7 +68,8 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       padding: widget.padding,
       showTitleBar: widget.showTitleBar,
       title: S.current.cloudBackupServiceSetting,
-      showBack: true,
+      showBack: widget.showBack,
+      titleLeftMargin: widget.showBack ? 5 : 15,
       onTapBack: () {
         if (ResponsiveUtil.isLandscape()) {
           chewieProvider.dialogNavigatorState?.popPage();
@@ -72,6 +78,41 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
         }
       },
       overrideBody: _buildBody(),
+      desktopActions: [
+        ToolButton(
+          context: context,
+          icon: LucideIcons.info,
+          buttonSize: const Size(32, 32),
+          onPressed: _showServerInfo,
+          tooltipPosition: TooltipPosition.bottom,
+          tooltip: S.current.cloudOAuthDialogTitle,
+        ),
+      ],
+      actions: [
+        CircleIconButton(
+          icon: Icon(
+            LucideIcons.info,
+            color: ChewieTheme.iconColor,
+          ),
+          onTap: _showServerInfo,
+        ),
+      ],
+    );
+  }
+
+  _showServerInfo() {
+    DialogBuilder.showConfirmDialog(
+      context,
+      title: S.current.cloudOAuthDialogTitle,
+      message: S.current.cloudOAuthDialogMessage(CloudService.serverEndpoint,
+          CloudService.serverGithubUrl, CloudService.serverGithubRepoName),
+      renderHtml: true,
+      cancelButtonText: S.current.cloudOAuthDialogGoToRepo,
+      confirmButtonText: S.current.cloudOAuthDialogConfirm,
+      onTapConfirm: () {},
+      onTapCancel: () {
+        UriUtil.openExternal(CloudService.serverGithubUrl);
+      },
     );
   }
 

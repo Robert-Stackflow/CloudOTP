@@ -45,7 +45,6 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
   bool get wantKeepAlive => true;
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   CloudServiceConfig? _aliyunDriveCloudServiceConfig;
   AliyunDriveCloudService? _aliyunDriveCloudService;
   bool inited = false;
@@ -69,7 +68,6 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
     if (_aliyunDriveCloudServiceConfig != null) {
       _sizeController.text = _aliyunDriveCloudServiceConfig!.size;
       _accountController.text = _aliyunDriveCloudServiceConfig!.account ?? "";
-      _emailController.text = _aliyunDriveCloudServiceConfig!.email ?? "";
       _aliyunDriveCloudService = AliyunDriveCloudService(
         _aliyunDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -105,7 +103,6 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
     }
     _sizeController.text = _aliyunDriveCloudServiceConfig!.size;
     _accountController.text = _aliyunDriveCloudServiceConfig!.account ?? "";
-    _emailController.text = _aliyunDriveCloudServiceConfig!.email ?? "";
     CloudServiceConfigDao.updateConfig(_aliyunDriveCloudServiceConfig!);
   }
 
@@ -188,6 +185,8 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
         title: S.current.enable + S.current.cloudTypeAliyunDrive,
+        description: S.current.cloudOAuthSafeTip(
+            S.current.cloudTypeAliyunDrive, CloudService.serverEndpoint),
         value: _aliyunDriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -212,12 +211,6 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
             title: S.current.cloudDisplayName,
           ),
           InputItem(
-            controller: _emailController,
-            textInputAction: TextInputAction.next,
-            disabled: true,
-            title: S.current.cloudEmail,
-          ),
-          InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
             disabled: true,
@@ -233,7 +226,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
         text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           try {
@@ -256,7 +249,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
             child: RoundIconTextButton(
               text: S.current.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
                 CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
@@ -310,7 +303,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
+              background: ChewieTheme.primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {

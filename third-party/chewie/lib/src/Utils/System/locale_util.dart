@@ -1,7 +1,6 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
-
-import 'package:awesome_chewie/awesome_chewie.dart';
 
 class LocaleUtil with ChangeNotifier {
   static List<Tuple2<String, Locale?>> localeLabels = <Tuple2<String, Locale?>>[
@@ -16,6 +15,7 @@ class LocaleUtil with ChangeNotifier {
     const Tuple2("Українська", Locale("uk")),
     const Tuple2("简体中文", Locale("zh", "CN")),
     const Tuple2("繁體中文", Locale("zh", "TW")),
+    const Tuple2("日本語", Locale("ja", "JP")),
   ];
 
   static Tuple2<String, Locale?>? getTuple(Locale? locale) {

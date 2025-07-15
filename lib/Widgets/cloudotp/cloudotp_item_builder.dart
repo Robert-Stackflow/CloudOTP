@@ -217,7 +217,7 @@ class CloudOTPItemBuilder {
               ),
       maxLines: 1,
     );
-    Color fBackground = background ?? Theme.of(context).cardColor;
+    Color fBackground = background ?? ChewieTheme.cardColor;
     return PressableAnimation(
       child: Material(
         color: fBackground.withAlpha(fBackground.alpha ~/ (disabled ? 1.5 : 1)),
@@ -275,15 +275,23 @@ class QrcodeDialog {
     required List<String> qrcodes,
     Alignment align = Alignment.bottomCenter,
   }) =>
-      showDialog<T>(
+      showGeneralDialog(
+        barrierColor: ChewieTheme.barrierColor,
         barrierDismissible: true,
-        context: context,
-        builder: (context) => QrcodesDialogWidget(
-          title: title,
-          qrcodes: qrcodes,
-          message: message,
-          align: align,
-          asset: asset,
+        barrierLabel: "",
+        context: chewieProvider.rootContext,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const SizedBox.shrink(),
+        transitionBuilder: (context, animation, secondaryAnimation, _) =>
+            DialogAnimation(
+          animation: animation,
+          child: QrcodesDialogWidget(
+            title: title,
+            qrcodes: qrcodes,
+            message: message,
+            align: align,
+            asset: asset,
+          ),
         ),
       );
 
@@ -299,7 +307,7 @@ class QrcodeDialog {
         context: context,
         elevation: 0,
         enableDrag: true,
-        backgroundColor: Theme.of(context).canvasColor,
+        backgroundColor: ChewieTheme.canvasColor,
         builder: (context) => QrcodesDialogWidget(
           title: title,
           message: message,

@@ -29,7 +29,6 @@ class DropboxCloudService extends CloudService {
   CloudServiceType get type => CloudServiceType.Dropbox;
   static const String _callbackUrl = 'cloudotp://auth/dropbox/callback';
   static const String _clientId = 'ljyx5bk2jq92esr';
-  static const String _dropboxEmptyPath = '';
   static const String _dropboxPath = '/';
   final CloudServiceConfig _config;
   late Dropbox dropbox;
@@ -141,7 +140,7 @@ class DropboxCloudService extends CloudService {
 
   @override
   Future<List<DropboxFileInfo>?> listFiles() async {
-    DropboxResponse response = await dropbox.list(_dropboxEmptyPath);
+    DropboxResponse response = await dropbox.list(_dropboxPath);
     if (!response.isSuccess) return null;
     List<DropboxFileInfo> files = response.files;
     return files;
@@ -160,7 +159,8 @@ class DropboxCloudService extends CloudService {
   }) async {
     DropboxResponse response = await dropbox.push(
       fileData,
-      join(_dropboxPath, fileName),
+      _dropboxPath,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

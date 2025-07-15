@@ -1,10 +1,10 @@
+import 'package:awesome_chewie/src/Resources/theme.dart';
+import 'package:awesome_chewie/src/Widgets/Item/Animation/ink_animation.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Tile/searchable_stateful_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Animation/ink_animation.dart';
 import 'highlight_text.dart';
 
 class EntryItem extends SearchableStatefulWidget {
@@ -333,13 +333,15 @@ class SearchableCaptionItemState extends SearchableState<SearchableCaptionItem>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ChewieTheme.textDarkGreyColor,
-                    letterSpacing: 0.5,
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: ChewieTheme.textDarkGreyColor,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
                 RotationTransition(
@@ -464,13 +466,15 @@ class CaptionItemState extends State<CaptionItem>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ChewieTheme.textDarkGreyColor,
-                    letterSpacing: 0.5,
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: ChewieTheme.textDarkGreyColor,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
                 RotationTransition(

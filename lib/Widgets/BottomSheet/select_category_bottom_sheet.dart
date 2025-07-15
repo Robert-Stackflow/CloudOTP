@@ -77,7 +77,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
     });
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +167,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
             Expanded(
               flex: 1,
               child: RoundIconTextButton(
-                background: Theme.of(context).primaryColor,
+                background: ChewieTheme.primaryColor,
                 text:
                     widget.isEditingToken ? S.current.confirm : S.current.save,
                 onPressed: () async {

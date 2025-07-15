@@ -37,4 +37,7 @@ class ChewieDimens {
       BorderRadius.all(Radius.circular(dimen20));
   static const BorderRadius borderRadius50 =
       BorderRadius.all(Radius.circular(dimen50));
+
+  static const BorderRadius defaultBorderRadius = borderRadius12;
+  static const Radius defaultRadius = radius12;
 }

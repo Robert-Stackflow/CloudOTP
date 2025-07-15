@@ -46,7 +46,7 @@ class BoxBackupsBottomSheetState extends State<BoxBackupsBottomSheet> {
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +154,7 @@ class BoxBackupsBottomSheetState extends State<BoxBackupsBottomSheet> {
                 onTap: () async {
                   CustomLoadingDialog.showLoading(title: S.current.deleting);
                   try {
-                    await widget.cloudService.deleteFile(file.name);
+                    await widget.cloudService.deleteFile(file.id);
                     setState(() {
                       files.remove(file);
                     });

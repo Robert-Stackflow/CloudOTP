@@ -18,8 +18,6 @@ import 'dart:convert';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:awesome_cloud/services/base_service.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -44,7 +42,8 @@ class HuaweiCloud extends BaseCloudService {
   String get apiEndpoint => "https://driveapis.cloud.huawei.com.cn/drive/v1";
 
   @override
-  String get permission => "openid https://www.huawei.com/auth/drive.file";
+  String get permission =>
+      "openid email profile https://www.huawei.com/auth/drive https://www.huawei.com/auth/drive.file";
 
   @override
   String get expireInKey => "__huaweicloud_tokenExpire";
@@ -113,16 +112,105 @@ class HuaweiCloud extends BaseCloudService {
     }
   }
 
-  @override
-  Future<HuaweiCloudResponse> list(String remotePath, {String? q}) async {
-    CloudLogger.info(serviceName, "Start listing files with query: $q");
-    final listUri =
-        Uri.https("driveapis.cloud.huawei.com.cn", "/drive/v1/files", {
-      "fields": "*",
-      if (q != null) "q": q,
-    });
+  String buildQueryParam({
+    String? parentId,
+    bool? onlyFile,
+    bool? onlyFolder,
+    String? fileName,
+    String? nameContains,
+    bool? favorite,
+    bool? recycled,
+    bool? directlyRecycled,
+    DateTime? editedAfter,
+    DateTime? editedBefore,
+    List<String>? extraConditions,
+    String? q,
+  }) {
+    final List<String> conditions = [];
 
+    if (parentId != null && parentId.isNotEmpty) {
+      conditions.add("'$parentId' in parentFolder");
+    }
+
+    if (onlyFile == true) {
+      conditions.add("mimeType != 'application/vnd.huawei-apps.folder'");
+    }
+
+    if (onlyFolder == true) {
+      conditions.add("mimeType = 'application/vnd.huawei-apps.folder'");
+    }
+
+    if (fileName != null) {
+      conditions.add("fileName = '$fileName'");
+    } else if (nameContains != null) {
+      conditions.add("fileName contains '$nameContains'");
+    }
+
+    if (favorite != null) {
+      conditions.add("favorite = ${favorite.toString()}");
+    }
+
+    if (recycled != null) {
+      conditions.add("recycled = ${recycled.toString()}");
+    }
+
+    if (directlyRecycled != null) {
+      conditions.add("directlyRecycled = ${directlyRecycled.toString()}");
+    }
+
+    if (editedAfter != null) {
+      conditions
+          .add("editedTime >= '${editedAfter.toUtc().toIso8601String()}'");
+    }
+
+    if (editedBefore != null) {
+      conditions
+          .add("editedTime <= '${editedBefore.toUtc().toIso8601String()}'");
+    }
+
+    if (extraConditions != null && extraConditions.isNotEmpty) {
+      conditions.addAll(extraConditions);
+    }
+
+    if (q != null && q.trim().isNotEmpty) {
+      conditions.add("($q)");
+    }
+
+    return conditions.join(" and ");
+  }
+
+  @override
+  Future<HuaweiCloudResponse> list(
+    String remotePath, {
+    bool onlyFile = true,
+    bool onlyFolder = false,
+    String? q,
+  }) async {
     try {
+      String folderId = "";
+      if (remotePath.isNotEmpty) {
+        final folderResp = await checkFolder(remotePath);
+        if (!folderResp.isSuccess || folderResp.parentId == null) {
+          return HuaweiCloudResponse.error(message: "Folder not found.");
+        }
+        folderId = folderResp.parentId!;
+      }
+
+      final query = buildQueryParam(
+        parentId: folderId,
+        onlyFile: onlyFile,
+        onlyFolder: onlyFolder,
+        q: q,
+      );
+
+      CloudLogger.info(serviceName,
+          "Listing files from folder $folderId with query: $query");
+
+      final listUri = Uri.parse('$apiEndpoint/files').replace(queryParameters: {
+        "fields": "*",
+        "queryParam": query,
+      });
+
       final resp = await get(listUri);
       if (isSuccess(resp)) {
         Map body = jsonDecode(resp.body);
@@ -154,7 +242,7 @@ class HuaweiCloud extends BaseCloudService {
     CloudLogger.info(serviceName, "Start pull file by ID: $id");
     try {
       final pullUri = Uri.parse("$apiEndpoint/files/$id?form=content");
-      final resp = await http.get(pullUri);
+      final resp = await get(pullUri);
 
       if (isSuccess(resp)) {
         CloudLogger.infoResponse(serviceName, "Pull file success", resp);
@@ -205,8 +293,8 @@ class HuaweiCloud extends BaseCloudService {
   @override
   Future<HuaweiCloudResponse> push(
     Uint8List bytes,
+    String fileName,
     String remotePath, {
-    String fileName = "",
     Function(int, int)? onProgress,
   }) async {
     CloudLogger.info(
@@ -278,10 +366,8 @@ class HuaweiCloud extends BaseCloudService {
     CloudLogger.info(serviceName, "Start checking folder: $remotePath");
 
     try {
-      HuaweiCloudResponse res = await list(
-        "",
-        q: "mimeType='application/vnd.huawei-apps.folder'",
-      );
+      HuaweiCloudResponse res =
+          await list("", onlyFile: false, onlyFolder: true);
 
       if (!res.isSuccess) {
         CloudLogger.error(serviceName, "Failed to list folders");

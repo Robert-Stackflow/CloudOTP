@@ -46,7 +46,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
   late AnimationController _shakingController;
   late Animation<double> _shakingAnimation;
 
-  BorderRadius borderRadius = ChewieDimens.borderRadius8;
+  BorderRadius borderRadius = ChewieDimens.defaultBorderRadius;
 
   @override
   void initState() {

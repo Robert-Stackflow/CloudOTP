@@ -1,8 +1,7 @@
 import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-
 import 'package:awesome_chewie/src/Resources/theme.dart';
+import 'package:awesome_chewie/src/Widgets/Item/Animation/dialog_animation.dart';
+import 'package:flutter/material.dart';
 
 ProgressDialog showProgressDialog(
   String? msg, {
@@ -130,59 +129,73 @@ class ProgressDialog {
   }) {
     _dialogIsOpen = true;
     _data.value = _data.value.copyWith(msg: msg, showProgress: showProgress);
-    return showDialog(
+    return showGeneralDialog(
+      barrierColor: ChewieTheme.barrierColor,
       barrierDismissible: barrierDismissible,
-      context: _context,
-      builder: (context) => Stack(
-        alignment: Alignment.center,
-        children: [
-          PopScope(
-            canPop: barrierDismissible,
-            onPopInvoked: (_) {
-              if (barrierDismissible) {
-                _dialogIsOpen = false;
-              }
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: ChewieTheme.canvasColor,
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-              child: ValueListenableBuilder(
-                valueListenable: _data,
-                builder: (BuildContext context, LoadingDialogData value,
-                    Widget? child) {
-                  if (value.complete || value.error) {
-                    Future.delayed(_data.value.delayDuration, () {
-                      dismiss();
-                    });
-                  }
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      LoadingDialogIndicator(
-                        complete: _data.value.complete,
-                        error: _data.value.error,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '${_data.value.msg}${showProgress ? (_data.value.progress * 100).toStringAsFixed(1) : ''}%',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: ChewieTheme.labelLarge,
-                      ),
-                    ],
-                  );
-                },
+      barrierLabel: "",
+      context: chewieProvider.rootContext,
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const SizedBox.shrink(),
+      transitionBuilder: (context, animation, secondaryAnimation, _) =>
+          DialogAnimation(
+        animation: animation,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            PopScope(
+              canPop: barrierDismissible,
+              onPopInvoked: (_) {
+                if (barrierDismissible) {
+                  _dialogIsOpen = false;
+                }
+              },
+              child: Container(
+                decoration: ChewieTheme.defaultDecoration.copyWith(
+                  color: ChewieTheme.scaffoldBackgroundColor,
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+                child: ValueListenableBuilder(
+                  valueListenable: _data,
+                  builder: (BuildContext context, LoadingDialogData value,
+                      Widget? child) {
+                    if (value.complete || value.error) {
+                      Future.delayed(_data.value.delayDuration, () {
+                        dismiss();
+                      });
+                    }
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        LoadingDialogIndicator(
+                          complete: _data.value.complete,
+                          error: _data.value.error,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '${_data.value.msg}${showProgress ? (_data.value.progress * 100).toStringAsFixed(1) : ''}%',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: ChewieTheme.labelLarge,
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+    // return showDialog(
+    //   barrierColor: ChewieTheme.barrierColor,
+    //   barrierDismissible: barrierDismissible,
+    //   context: _context,
+    //   builder: (context) =>
+    // );
   }
 }
 

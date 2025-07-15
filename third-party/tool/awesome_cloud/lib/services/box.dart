@@ -19,7 +19,6 @@ import 'dart:typed_data';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/box_response.dart';
 import 'base_service.dart';
 
 class BoxCloud extends BaseCloudService {
@@ -177,11 +176,15 @@ class BoxCloud extends BaseCloudService {
           message: "Download success.",
           bodyBytes: binary.bodyBytes,
         );
+      } else if (isSuccess(resp)) {
+        CloudLogger.info(serviceName, "Downloaded file");
+        return BoxResponse.fromResponse(
+          response: resp,
+          message: "Downloaded file.",
+        );
       }
-      CloudLogger.error(
-        serviceName,
-        "Failed to get file download URL: ${resp.statusCode} ${resp.reasonPhrase}",
-      );
+      CloudLogger.errorResponse(
+          serviceName, "Failed to get file download URL", resp);
       return BoxResponse.fromResponse(
         response: resp,
         message: "Failed to get file download URL.",
@@ -200,6 +203,7 @@ class BoxCloud extends BaseCloudService {
       final resp = await delete(url);
 
       if (resp.statusCode == 204) {
+        CloudLogger.infoResponse(serviceName, "File deleted.", resp);
         return BoxResponse.success(message: "File deleted.");
       }
       CloudLogger.errorResponse(serviceName, "Failed to delete file", resp);
@@ -216,8 +220,8 @@ class BoxCloud extends BaseCloudService {
   @override
   Future<BoxResponse> push(
     Uint8List bytes,
-    String remotePath, {
-    String fileName = "",
+    String remotePath,
+    String fileName, {
     Function(int p1, int p2)? onProgress,
   }) async {
     try {

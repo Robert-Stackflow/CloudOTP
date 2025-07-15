@@ -17,6 +17,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Lock/pin_verify_screen.dart';
@@ -26,7 +27,6 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -56,6 +56,8 @@ Future<void> main(List<String> args) async {
 Future<void> runMyApp(List<String> args) async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await initApp(widgetsBinding);
+  ILogger.debug(
+      "http proxy: ${Platform.environment['http_proxy']}, https proxy: ${Platform.environment['https_proxy']}");
   late Widget home;
   if (!DatabaseManager.initialized) {
     home = const DatabaseDecryptScreen();
@@ -70,6 +72,7 @@ Future<void> runMyApp(List<String> args) async {
     home = AppShortcuts(child: MainScreen(key: mainScreenKey));
   }
   runApp(MyApp(home: home));
+  IToast.showTop("Initialized");
   FlutterNativeSplash.remove();
 }
 

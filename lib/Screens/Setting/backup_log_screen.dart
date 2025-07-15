@@ -166,13 +166,13 @@ class BackupLogScreenState extends State<BackupLogScreen> {
           Column(
             children: [
               Text(
-                S.current.haveNotSetBckupPassword,
-                style: Theme.of(context).textTheme.bodyMedium,
+                S.current.haveNotSetBackupPassword,
+                style: ChewieTheme.bodyMedium,
               ),
               const SizedBox(height: 10),
               RoundIconTextButton(
                 text: S.current.goToSetBackupPassword,
-                background: Theme.of(context).primaryColor,
+                background: ChewieTheme.primaryColor,
                 onPressed: () {
                   if (widget.isOverlay) {
                     RouteUtil.pushDialogRoute(
@@ -239,7 +239,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                   children: [
                     Text(
                       widget.log.triggerType.label,
-                      style: Theme.of(context).textTheme.bodyMedium?.apply(
+                      style: ChewieTheme.bodyMedium.apply(
                             fontSizeDelta: widget.isOverlay ? 0 : 1,
                           ),
                     ),

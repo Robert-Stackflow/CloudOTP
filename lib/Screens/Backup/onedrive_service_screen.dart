@@ -243,7 +243,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
         text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           try {
@@ -266,7 +266,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               text: S.current.cloudPullBackup,
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
                 CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
@@ -321,7 +321,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
+              background: ChewieTheme.primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {

@@ -16,6 +16,7 @@
 import 'dart:typed_data';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
+import 'package:http/http.dart' as http;
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
@@ -31,7 +32,6 @@ class HuaweiCloudService extends CloudService {
       '${CloudService.serverEndpoint}/oauth/cloudotp/huaweicloud/token';
   static const String _callbackUrl = "cloudotp://auth/huaweicloud/callback";
   static const String _clientId = '114701957';
-  static const String _huaweiCloudEmptyPath = '';
   static const String _huaweiCloudPath = 'CloudOTP';
   final CloudServiceConfig _config;
   late HuaweiCloud huaweiCloud;
@@ -42,6 +42,16 @@ class HuaweiCloudService extends CloudService {
     this.onConfigChanged,
   }) {
     init();
+  }
+
+  @override
+  Future<bool> checkServer() async {
+    try {
+      final response = await http.head(Uri.parse(_customAuthEndpoint));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -140,8 +150,7 @@ class HuaweiCloudService extends CloudService {
 
   @override
   Future<List<HuaweiCloudFileInfo>?> listFiles() async {
-    HuaweiCloudResponse response =
-        await huaweiCloud.list(_huaweiCloudEmptyPath);
+    HuaweiCloudResponse response = await huaweiCloud.list(_huaweiCloudPath);
     if (!response.isSuccess) return null;
     List<HuaweiCloudFileInfo> files = response.files;
     return files;
@@ -161,7 +170,7 @@ class HuaweiCloudService extends CloudService {
     HuaweiCloudResponse response = await huaweiCloud.push(
       fileData,
       _huaweiCloudPath,
-      fileName: fileName,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

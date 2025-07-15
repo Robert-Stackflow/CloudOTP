@@ -290,7 +290,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
         text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           if (await isValid()) {
@@ -317,7 +317,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             child: RoundIconTextButton(
               text: S.current.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
                 CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
@@ -371,7 +371,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
+              background: ChewieTheme.primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {

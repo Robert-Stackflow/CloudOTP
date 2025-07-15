@@ -13,10 +13,10 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
-import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
@@ -27,7 +27,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/hive_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/BottomSheet/Backups/local_backups_bottom_sheet.dart';
 import '../../generated/l10n.dart';
 import 'base_setting_screen.dart';
@@ -60,6 +59,7 @@ extension GetOffset on Widget {
 
 class _BackupSettingScreenState extends State<BackupSettingScreen>
     with TickerProviderStateMixin {
+  bool inited = false;
   bool _enableAutoBackup =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableAutoBackupKey);
   bool _enableLocalBackup =
@@ -81,6 +81,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
     ConfigDao.getConfig().then((config) {
       setState(() {
         _autoBackupPassword = config.backupPassword;
+        inited = true;
       });
     });
     CloudOTPHiveUtil.getBackupPath().then((path) {
@@ -115,6 +116,10 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
       showBack: !ResponsiveUtil.isLandscape(),
       padding: widget.padding,
       children: [
+        if (inited && !canBackup) ...[
+          const SizedBox(height: 10),
+          TipBanner(message: S.current.notSetBackupPasswordTip),
+        ],
         ..._backupSettings(),
         const SizedBox(height: 30),
       ],

@@ -164,7 +164,7 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
                   color: currentIndex == 0
                       ? Colors.black.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.4),
-                  borderRadius: ChewieDimens.borderRadius20,
+                  borderRadius: ChewieDimens.defaultBorderRadius,
                 ),
                 child: GestureDetector(
                   onTap: () {
@@ -196,7 +196,7 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
                   color: currentIndex == imageUrls.length - 1
                       ? Colors.black.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.4),
-                  borderRadius: ChewieDimens.borderRadius20,
+                  borderRadius: ChewieDimens.defaultBorderRadius,
                 ),
                 child: GestureDetector(
                   onTap: () {

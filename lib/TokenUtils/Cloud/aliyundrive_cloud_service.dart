@@ -16,7 +16,6 @@
 import 'dart:typed_data';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
-import 'package:awesome_cloud/models/aliyundrive_response.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/app_provider.dart';
@@ -35,7 +34,6 @@ class AliyunDriveCloudService extends CloudService {
   static const String _callbackUrl = 'cloudotp://auth/aliyundrive/callback';
   static const String _clientId = '90f68e6d90d147109e35c72fdd039960';
   static const String _aliyunDrivePath = 'CloudOTP';
-  static const String _aliyunDrivePathName = 'CloudOTP';
 
   final CloudServiceConfig _config;
   late AliyunDriveCloud aliyunDrive;
@@ -50,10 +48,10 @@ class AliyunDriveCloudService extends CloudService {
 
   @override
   Future<void> init() async {
-    aliyunDrive = AliyunDriveCloud(
-      // customAuthEndpoint: _customAuthEndpoint,
-      // customTokenEndpoint: _customTokenEndpoint,
-      // customRevokeEndpoint: '',
+    aliyunDrive = AliyunDriveCloud.server(
+      customAuthEndpoint: _customAuthEndpoint,
+      customTokenEndpoint: _customTokenEndpoint,
+      customRevokeEndpoint: '',
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
@@ -82,6 +80,7 @@ class AliyunDriveCloudService extends CloudService {
       _config.account = userInfo.name ?? "";
       _config.totalSize = userInfo.spaceAmount ?? 0;
       _config.usedSize = userInfo.spaceUsed ?? 0;
+      _config.remark = userInfo.toJson();
       onConfigChanged?.call(_config);
     }
     return userInfo;
@@ -99,7 +98,11 @@ class AliyunDriveCloudService extends CloudService {
 
   @override
   Future<bool> deleteFile(String path) async {
-    final response = await aliyunDrive.deleteById(path);
+    final response = await aliyunDrive.deleteById(
+      path,
+      driveId: driveId,
+      remotePath: _aliyunDrivePath,
+    );
     return response.isSuccess;
   }
 
@@ -123,9 +126,15 @@ class AliyunDriveCloudService extends CloudService {
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    final response = await aliyunDrive.pullById(path);
+    final response = await aliyunDrive.pullById(
+      path,
+      driveId: driveId,
+      remotePath: _aliyunDrivePath,
+    );
     return response.isSuccess ? response.bodyBytes : null;
   }
+
+  String get driveId => _config.remark["drive"]["default_drive_id"];
 
   @override
   Future<int> getBackupsCount() async {
@@ -144,7 +153,10 @@ class AliyunDriveCloudService extends CloudService {
 
   @override
   Future<List<AliyunDriveFileInfo>?> listFiles() async {
-    final response = await aliyunDrive.list(_aliyunDrivePath);
+    final response = await aliyunDrive.list(
+      _aliyunDrivePath,
+      driveId: driveId,
+    );
     return response.isSuccess ? response.files : null;
   }
 
@@ -161,8 +173,9 @@ class AliyunDriveCloudService extends CloudService {
   }) async {
     final response = await aliyunDrive.push(
       fileData,
-      _aliyunDrivePathName,
-      fileName: fileName,
+      _aliyunDrivePath,
+      fileName,
+      driveId: driveId,
     );
     deleteOldBackup();
     return response.isSuccess;

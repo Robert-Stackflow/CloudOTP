@@ -37,7 +37,7 @@ import '../Utils/hive_util.dart';
 enum EncryptDatabaseStatus { defaultPassword, customPassword }
 
 class DatabaseManager {
-  static const _dbName = "cloudotp.db";
+  static const _dbName = "cloudotps.db";
   static const _unencrypedFileHeader = "SQLite format 3";
   static const _dbVersion = 6;
   static Database? _database;

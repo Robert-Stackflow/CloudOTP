@@ -71,7 +71,7 @@ class _CategoryScreenState extends State<CategoryScreen>
         actions: [
           CircleIconButton(
             icon: Icon(LucideIcons.plus,
-                color: Theme.of(context).iconTheme.color),
+                color: ChewieTheme.iconColor),
             onTap: _add,
           ),
         ],
@@ -169,7 +169,7 @@ class _CategoryScreenState extends State<CategoryScreen>
       margin: const EdgeInsets.symmetric(vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).canvasColor,
+        color: ChewieTheme.canvasColor,
         borderRadius: ChewieDimens.borderRadius8,
         // border: Border.all(color: Theme.of(context).dividerColor, width: 0.5),
       ),

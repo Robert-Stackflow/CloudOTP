@@ -18,7 +18,6 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
-import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:flutter/material.dart';
 import 'package:queue/queue.dart';
 
@@ -232,7 +231,7 @@ class AppProvider with ChangeNotifier {
 
   bool _showCloudBackupButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showCloudBackupButtonKey,
-      defaultValue: ResponsiveUtil.isLandscape(false));
+      defaultValue: true);
 
   bool get showCloudBackupButton => _showCloudBackupButton;
 

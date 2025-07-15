@@ -16,11 +16,11 @@
 import 'dart:typed_data';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:awesome_cloud/models/box_response.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
-import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/box_cloud_service.dart';
@@ -146,26 +146,33 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
     }
-    await currentService.authenticate().then((value) async {
-      setState(() {
-        currentConfig.connected = (value == CloudServiceStatus.success);
-      });
-      if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(S.current.cloudConnectionError);
-            break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.cloudOauthFailed);
-            break;
-          default:
-            IToast.show(S.current.cloudUnknownError);
-            break;
-        }
+    await currentService.checkServer().then((value) async {
+      if (!value) {
+        IToast.show(
+            S.current.cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
-        _boxCloudServiceConfig!.configured = true;
-        updateConfig(_boxCloudServiceConfig!);
-        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+        await currentService.authenticate().then((value) async {
+          setState(() {
+            currentConfig.connected = (value == CloudServiceStatus.success);
+          });
+          if (!currentConfig.connected) {
+            switch (value) {
+              case CloudServiceStatus.connectionError:
+                IToast.show(S.current.cloudConnectionError);
+                break;
+              case CloudServiceStatus.unauthorized:
+                IToast.show(S.current.cloudOauthFailed);
+                break;
+              default:
+                IToast.show(S.current.cloudUnknownError);
+                break;
+            }
+          } else {
+            _boxCloudServiceConfig!.configured = true;
+            updateConfig(_boxCloudServiceConfig!);
+            if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+          }
+        });
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -189,7 +196,8 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
         title: S.current.enable + S.current.cloudTypeBox,
-        description: S.current.cloudTypeBoxTip,
+        description: S.current.cloudOAuthSafeTip(
+            S.current.cloudTypeBox, CloudService.serverEndpoint),
         value: _boxCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -235,7 +243,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
         text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           try {
@@ -258,7 +266,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
             child: RoundIconTextButton(
               text: S.current.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
                 CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
@@ -312,7 +320,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
+              background: ChewieTheme.primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {

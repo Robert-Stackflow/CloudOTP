@@ -23,6 +23,8 @@ import '../utils/oauth2_helper.dart';
 import '../utils/token_manager.dart';
 
 abstract class BaseCloudService with ChangeNotifier {
+  static const String proxyEndpoint = "";
+
   String get serviceId;
 
   String get serviceName;
@@ -324,7 +326,7 @@ abstract class BaseCloudService with ChangeNotifier {
 
   Future<dynamic> deleteById(String id);
 
-  Future<dynamic> push(Uint8List bytes, String remotePath);
+  Future<dynamic> push(Uint8List bytes, String remotePath, String fileName);
 
   Future<void> checkFolder(String remotePath);
 }

@@ -54,7 +54,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       defaultValue: ResponsiveUtil.isLandscape());
   bool showCloudBackupButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showCloudBackupButtonKey,
-      defaultValue: ResponsiveUtil.isLandscape());
+      defaultValue: true);
 
   bool enableFrostedGlassEffect = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.enableFrostedGlassEffectKey,

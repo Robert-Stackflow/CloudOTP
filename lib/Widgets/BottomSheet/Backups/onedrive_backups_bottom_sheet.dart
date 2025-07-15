@@ -48,7 +48,7 @@ class OneDriveBackupsBottomSheetState
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {

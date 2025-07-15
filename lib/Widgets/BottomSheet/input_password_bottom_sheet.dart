@@ -53,7 +53,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
     });
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +148,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
           if (widget.message.notNullOrEmpty)
             Text(
               widget.message,
-              style: Theme.of(context).textTheme.bodyMedium?.apply(
+              style: ChewieTheme.bodyMedium.apply(
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
             ),
@@ -183,7 +183,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
             child: SizedBox(
               height: 45,
               child: RoundIconTextButton(
-                background: Theme.of(context).primaryColor,
+                background: ChewieTheme.primaryColor,
                 color: Colors.white,
                 text: S.current.confirm,
                 onPressed: () async {

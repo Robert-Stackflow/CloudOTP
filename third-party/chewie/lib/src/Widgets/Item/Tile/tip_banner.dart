@@ -1,8 +1,7 @@
 import 'package:awesome_chewie/src/Resources/dimens.dart';
+import 'package:awesome_chewie/src/Utils/General/color_util.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-
-import 'package:awesome_chewie/src/Utils/General/color_util.dart';
 
 enum TipBannerType { info, success, warning, error }
 
@@ -12,6 +11,9 @@ class TipBanner extends StatelessWidget {
   final IconData? customIcon;
   final Color? backgroundColor;
   final Color? textColor;
+  final EdgeInsetsGeometry padding;
+
+  final EdgeInsetsGeometry margin;
 
   const TipBanner({
     super.key,
@@ -20,6 +22,8 @@ class TipBanner extends StatelessWidget {
     this.customIcon,
     this.backgroundColor,
     this.textColor,
+    this.padding = const EdgeInsets.all(12),
+    this.margin = const EdgeInsets.symmetric(horizontal: 8),
   });
 
   factory TipBanner.info(
@@ -135,7 +139,8 @@ class TipBanner extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: padding,
+      margin: margin,
       decoration: BoxDecoration(
         color: backgroundColor ?? background,
         borderRadius: ChewieDimens.borderRadius8,

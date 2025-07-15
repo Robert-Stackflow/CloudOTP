@@ -1,22 +1,22 @@
 import 'dart:math';
 
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
-import 'package:awesome_chewie/src/Widgets/Selectable/my_context_menu_item.dart';
-import 'package:flutter/material.dart';
-import 'package:group_button/group_button.dart';
-
 import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 import 'package:awesome_chewie/src/Resources/dimens.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Utils/System/route_util.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Component/my_cached_network_image.dart';
 import 'package:awesome_chewie/src/Widgets/Custom/hero_photo_view_screen.dart';
+import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
+import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
 import 'package:awesome_chewie/src/Widgets/Module/EasyRefresh/easy_refresh.dart';
+import 'package:awesome_chewie/src/Widgets/Selectable/my_context_menu_item.dart';
 import 'package:awesome_chewie/src/Widgets/Selectable/my_selection_toolbar.dart';
+import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:flutter/material.dart';
+import 'package:group_button/group_button.dart';
+
 import 'General/clickable_wrapper.dart';
 import 'General/responsive_app_bar.dart';
 
@@ -33,6 +33,8 @@ class ItemBuilder {
     bool showBorder = true,
     Function()? onTapBack,
     Widget? overrideBody,
+    List<Widget> desktopActions = const [],
+    List<Widget> actions = const [],
   }) {
     return Scaffold(
       appBar: showTitleBar
@@ -43,6 +45,8 @@ class ItemBuilder {
               backgroundColor: backgroundColor,
               showBorder: showBorder,
               onTapBack: onTapBack,
+              actions: actions,
+              desktopActions: desktopActions,
             )
           : null,
       body: overrideBody ??

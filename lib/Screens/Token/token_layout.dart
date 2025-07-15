@@ -192,20 +192,21 @@ class TokenLayoutState extends State<TokenLayout>
           onPressed: _processViewQrCode,
         ),
         FlutterContextMenuItem.divider(),
+        FlutterContextMenuItem(
+          iconData: LucideIcons.blend,
+          S.current.editTokenIcon,
+          onPressed: _processEditIcon,
+        ),
+        FlutterContextMenuItem(
+          iconData: LucideIcons.shapes,
+          S.current.editTokenCategory,
+          onPressed: _processEditCategory,
+        ),
+        FlutterContextMenuItem.divider(),
         FlutterContextMenuItem.submenu(
           S.current.moreOptionShort,
           iconData: LucideIcons.ellipsis,
           items: [
-            FlutterContextMenuItem(
-              iconData: LucideIcons.blend,
-              S.current.editTokenIcon,
-              onPressed: _processEditIcon,
-            ),
-            FlutterContextMenuItem(
-              iconData: LucideIcons.shapes,
-              S.current.editTokenCategory,
-              onPressed: _processEditCategory,
-            ),
             FlutterContextMenuItem(
               iconData: LucideIcons.text,
               S.current.copyTokenUri,
@@ -239,6 +240,7 @@ class TokenLayoutState extends State<TokenLayout>
     return ContextMenuRegion(
       key: ValueKey("contextMenuRegion${widget.token.keyString}"),
       enable: ResponsiveUtil.isDesktop(),
+      enableOnLongPress: false,
       contextMenu: _buildContextMenuButtons(),
       child: Selector<AppProvider, bool>(
         selector: (context, provider) => provider.dragToReorder,
@@ -249,7 +251,7 @@ class TokenLayoutState extends State<TokenLayout>
                   HapticFeedback.lightImpact();
                 }
               : null,
-          child: _buildBody(),
+          child: PressableAnimation(child: _buildBody()),
         ),
       ),
     );
@@ -271,10 +273,10 @@ class TokenLayoutState extends State<TokenLayout>
           SlidableAction(
             onPressed: (context) => _processPin(),
             backgroundColor: widget.token.pinned
-                ? Theme.of(context).primaryColor
-                : Theme.of(context).cardColor,
+                ? ChewieTheme.primaryColor
+                : ChewieTheme.cardColor,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            foregroundColor: Theme.of(context).primaryColor,
+            foregroundColor: ChewieTheme.primaryColor,
             icon: widget.token.pinned
                 ? Icons.push_pin_rounded
                 : Icons.push_pin_outlined,
@@ -296,9 +298,9 @@ class TokenLayoutState extends State<TokenLayout>
           const SizedBox(width: 6),
           SlidableAction(
             onPressed: (context) => _processViewQrCode(),
-            backgroundColor: Theme.of(context).cardColor,
+            backgroundColor: ChewieTheme.cardColor,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            foregroundColor: Theme.of(context).primaryColor,
+            foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.qrCode,
             label: S.current.viewTokenQrCodeShort,
             spacing: 8,
@@ -308,9 +310,9 @@ class TokenLayoutState extends State<TokenLayout>
           const SizedBox(width: 6),
           SlidableAction(
             onPressed: (context) => _processEdit(),
-            backgroundColor: Theme.of(context).cardColor,
+            backgroundColor: ChewieTheme.cardColor,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            foregroundColor: Theme.of(context).primaryColor,
+            foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.pencilLine,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             label: S.current.editTokenShort,
@@ -320,9 +322,9 @@ class TokenLayoutState extends State<TokenLayout>
           const SizedBox(width: 6),
           SlidableAction(
             onPressed: (context) => showContextMenu(),
-            backgroundColor: Theme.of(context).cardColor,
+            backgroundColor: ChewieTheme.cardColor,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            foregroundColor: Theme.of(context).primaryColor,
+            foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.ellipsisVertical,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             label: S.current.moreOptionShort,
@@ -334,7 +336,7 @@ class TokenLayoutState extends State<TokenLayout>
             onPressed: (context) => _processDelete(),
             backgroundColor: Colors.red,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
-            foregroundColor: Theme.of(context).primaryColor,
+            foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.trash2,
             simple: simple,
             label: S.current.deleteTokenShort,
@@ -514,21 +516,19 @@ class TokenLayoutState extends State<TokenLayout>
         return Selector<AppProvider, bool>(
           selector: (context, provider) => provider.showEye,
           builder: (context, showEye, child) => showEye
-              ? Container(
-                  child: CircleIconButton(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      tokenLayoutNotifier.codeVisiable =
-                          !tokenLayoutNotifier.codeVisiable;
-                      setState(() {});
-                    },
-                    padding: EdgeInsets.all(padding),
-                    icon: Icon(
-                      LucideIcons.eye,
-                      size: 20,
-                      color: color ??
-                          Theme.of(context).textTheme.labelMedium?.color,
-                    ),
+              ? CircleIconButton(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    tokenLayoutNotifier.codeVisiable =
+                        !tokenLayoutNotifier.codeVisiable;
+                    setState(() {});
+                  },
+                  padding: EdgeInsets.all(padding),
+                  icon: Icon(
+                    LucideIcons.eye,
+                    size: 20,
+                    color:
+                        color ?? Theme.of(context).textTheme.labelMedium?.color,
                   ),
                 )
               : emptyWidget,
@@ -547,24 +547,22 @@ class TokenLayoutState extends State<TokenLayout>
         selector: (context, tokenLayoutNotifier) =>
             tokenLayoutNotifier.haveToResetHOTP,
         builder: (context, haveToResetHOTP, child) => haveToResetHOTP
-            ? Container(
-                child: CircleIconButton(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    widget.token.counterString =
-                        (widget.token.counter + 1).toString();
-                    TokenDao.updateTokenCounter(widget.token);
-                    tokenLayoutNotifier.codeVisiable = true;
-                    resetTimer();
-                    setState(() {});
-                  },
-                  padding: EdgeInsets.all(padding),
-                  icon: Icon(
-                    Icons.refresh_rounded,
-                    size: 20,
-                    color:
-                        color ?? Theme.of(context).textTheme.labelMedium?.color,
-                  ),
+            ? CircleIconButton(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  widget.token.counterString =
+                      (widget.token.counter + 1).toString();
+                  TokenDao.updateTokenCounter(widget.token);
+                  tokenLayoutNotifier.codeVisiable = true;
+                  resetTimer();
+                  setState(() {});
+                },
+                padding: EdgeInsets.all(padding),
+                icon: Icon(
+                  Icons.refresh_rounded,
+                  size: 20,
+                  color:
+                      color ?? Theme.of(context).textTheme.labelMedium?.color,
                 ),
               )
             : emptyWidget,
@@ -595,7 +593,7 @@ class TokenLayoutState extends State<TokenLayout>
                     fontWeight: FontWeight.w600,
                     fontSize: fontSize,
                     letterSpacing: letterSpacing,
-                    color: Theme.of(context).primaryColor,
+                    color: ChewieTheme.primaryColor,
                   ),
               maxLines: 1,
             ),
@@ -617,7 +615,7 @@ class TokenLayoutState extends State<TokenLayout>
                   value: progress,
                   minHeight: 2,
                   color: progress > autoCopyNextCodeProgressThrehold
-                      ? Theme.of(context).primaryColor
+                      ? ChewieTheme.primaryColor
                       : Colors.red,
                   borderRadius: BorderRadius.circular(5),
                   backgroundColor: Colors.grey.withOpacity(0.3),
@@ -645,7 +643,7 @@ class TokenLayoutState extends State<TokenLayout>
                         value: progressNotifier.value,
                         color: progressNotifier.value >
                                 autoCopyNextCodeProgressThrehold
-                            ? Theme.of(context).primaryColor
+                            ? ChewieTheme.primaryColor
                             : Colors.red,
                         backgroundColor: Colors.grey.withOpacity(0.3),
                         strokeCap: StrokeCap.round,
@@ -658,10 +656,10 @@ class TokenLayoutState extends State<TokenLayout>
                       builder: (context, value, child) {
                         return Text(
                           (remainingMilliseconds / 1000).toStringAsFixed(0),
-                          style: Theme.of(context).textTheme.bodyMedium?.apply(
+                          style: ChewieTheme.bodyMedium.apply(
                                 color: currentProgress >
                                         autoCopyNextCodeProgressThrehold
-                                    ? Theme.of(context).primaryColor
+                                    ? ChewieTheme.primaryColor
                                     : Colors.red,
                                 fontSizeDelta: -3,
                               ),
@@ -719,19 +717,20 @@ class TokenLayoutState extends State<TokenLayout>
     return ClickableWrapper(
       child: Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.15)
-            : Theme.of(context).canvasColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ? ChewieTheme.primaryColor.withOpacity(0.15)
+            : ChewieTheme.canvasColor,
+        shape: const RoundedRectangleBorder(
+            borderRadius: ChewieDimens.defaultBorderRadius),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: _processTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: ChewieDimens.defaultBorderRadius,
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: [
               Container(
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(12)),
+                decoration: const BoxDecoration(
+                    borderRadius: ChewieDimens.defaultBorderRadius),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Column(
                   children: [
@@ -786,21 +785,21 @@ class TokenLayoutState extends State<TokenLayout>
     return ClickableWrapper(
       child: Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.15)
-            : Theme.of(context).canvasColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ? ChewieTheme.primaryColor.withOpacity(0.15)
+            : ChewieTheme.canvasColor,
+        shape: const RoundedRectangleBorder(
+            borderRadius: ChewieDimens.defaultBorderRadius),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: _processTap,
-          customBorder:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          customBorder: const RoundedRectangleBorder(
+              borderRadius: ChewieDimens.defaultBorderRadius),
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: [
               Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: const BoxDecoration(
+                    borderRadius: ChewieDimens.defaultBorderRadius),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Column(
                   children: [
@@ -875,15 +874,17 @@ class TokenLayoutState extends State<TokenLayout>
     return ClickableWrapper(
       child: Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.15)
-            : Theme.of(context).canvasColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ? ChewieTheme.primaryColor.withOpacity(0.15)
+            : ChewieTheme.canvasColor,
+        shape: const RoundedRectangleBorder(
+            borderRadius: ChewieDimens.defaultBorderRadius),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: _processTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: ChewieDimens.defaultBorderRadius,
           child: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+            decoration: const BoxDecoration(
+                borderRadius: ChewieDimens.defaultBorderRadius),
             padding:
                 const EdgeInsets.only(left: 12, right: 12, top: 15, bottom: 8),
             child: Row(
@@ -950,15 +951,17 @@ class TokenLayoutState extends State<TokenLayout>
     return ClickableWrapper(
       child: Material(
         color: widget.token.pinned
-            ? Theme.of(context).primaryColor.withOpacity(0.15)
-            : Theme.of(context).canvasColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ? ChewieTheme.primaryColor.withOpacity(0.15)
+            : ChewieTheme.canvasColor,
+        shape: const RoundedRectangleBorder(
+            borderRadius: ChewieDimens.defaultBorderRadius),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
           onTap: _processTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: ChewieDimens.defaultBorderRadius,
           child: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+            decoration: const BoxDecoration(
+                borderRadius: ChewieDimens.defaultBorderRadius),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Row(
               children: [
@@ -978,14 +981,13 @@ class TokenLayoutState extends State<TokenLayout>
                 _buildCodeLayout(),
                 const SizedBox(width: 4),
                 if (!isHOTP)
-                  _buildEyeButton(
-                      padding: 6, color: Theme.of(context).primaryColor),
+                  _buildEyeButton(padding: 6, color: ChewieTheme.primaryColor),
                 if (!isHOTP)
                   _buildVisibleLayoutWithEye((codeVisible) =>
                       codeVisible ? _buildCircleProgress() : emptyWidget),
                 if (isHOTP)
                   _buildHOTPRefreshButton(
-                      padding: 6, color: Theme.of(context).primaryColor),
+                      padding: 6, color: ChewieTheme.primaryColor),
               ],
             ),
           ),

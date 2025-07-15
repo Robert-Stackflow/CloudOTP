@@ -148,7 +148,7 @@ class ChewieTheme {
       color: ChewieTheme.canvasColor,
       border: ChewieTheme.border,
       boxShadow: ChewieTheme.defaultBoxShadow,
-      borderRadius: ChewieDimens.borderRadius8,
+      borderRadius: ChewieDimens.defaultBorderRadius,
     );
   }
 

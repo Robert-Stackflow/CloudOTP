@@ -16,7 +16,6 @@
 import 'dart:typed_data';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
-import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/app_provider.dart';
@@ -154,7 +153,8 @@ class OneDriveCloudService extends CloudService {
   }) async {
     OneDriveResponse response = await onedrive.push(
       fileData,
-      join(_onedrivePath, fileName),
+      _onedrivePath,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

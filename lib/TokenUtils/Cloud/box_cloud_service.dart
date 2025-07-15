@@ -16,7 +16,7 @@
 import 'dart:typed_data';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
-import 'package:awesome_cloud/models/box_response.dart';
+import 'package:http/http.dart' as http;
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/app_provider.dart';
@@ -35,7 +35,6 @@ class BoxCloudService extends CloudService {
   static const String _callbackUrl = 'cloudotp://auth/box/callback';
   static const String _clientId = 'ivmfg11xn0cllzc08j8hj06e1ef5zqtr';
   static const String _boxPath = 'CloudOTP';
-  static const String _boxPathName = 'CloudOTP';
 
   final CloudServiceConfig _config;
   late BoxCloud box;
@@ -57,6 +56,16 @@ class BoxCloudService extends CloudService {
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
+  }
+
+  @override
+  Future<bool> checkServer() async {
+    try {
+      final response = await http.head(Uri.parse(_customAuthEndpoint));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -161,8 +170,8 @@ class BoxCloudService extends CloudService {
   }) async {
     final response = await box.push(
       fileData,
-      _boxPathName,
-      fileName: fileName,
+      _boxPath,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

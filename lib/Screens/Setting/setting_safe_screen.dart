@@ -100,7 +100,11 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
       showBack: !ResponsiveUtil.isLandscape(),
       padding: widget.padding,
       children: [
-        _databaseSettings(),
+        if (!DatabaseManager.isDatabaseEncrypted) ...[
+          const SizedBox(height: 10),
+          TipBanner(message: S.current.databaseNotEncrypted),
+        ],
+        if (DatabaseManager.isDatabaseEncrypted) _databaseSettings(),
         _gestureSettings(),
         if (_autoLockAvailable) _autoLockSettings(),
         if (ResponsiveUtil.isMobile()) _safeModeSettings(),

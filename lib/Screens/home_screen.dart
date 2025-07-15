@@ -370,7 +370,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       },
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: ChewieTheme.primaryColor,
       child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 28),
     );
     return Selector<AppProvider, bool>(
@@ -400,7 +400,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
               builder: (context, autoBackupLoadingStatus, child) => LoadingIcon(
                 status: autoBackupLoadingStatus,
                 normalIcon: Icon(Icons.history_rounded,
-                    color: Theme.of(context).iconTheme.color),
+                    color: ChewieTheme.iconColor),
               ),
             ),
             onTap: () {
@@ -537,7 +537,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                           CircleIconButton(
                             icon: Icon(
                               Icons.arrow_back_rounded,
-                              color: Theme.of(context).iconTheme.color,
+                              color: ChewieTheme.iconColor,
                             ),
                             onTap: () {
                               changeSearchBar(false);
@@ -755,7 +755,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       unselectedLabelStyle:
           Theme.of(context).textTheme.titleMedium?.apply(color: Colors.grey),
       indicator: UnderlinedTabIndicator(
-        borderColor: Theme.of(context).primaryColor,
+        borderColor: ChewieTheme.primaryColor,
       ),
       onTap: (index) {
         if (_nestScrollController.hasClients) {

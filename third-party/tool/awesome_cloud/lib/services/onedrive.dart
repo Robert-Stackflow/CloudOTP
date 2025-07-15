@@ -20,6 +20,7 @@ import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:awesome_cloud/services/base_service.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
 
 class OneDrive extends BaseCloudService {
   @override
@@ -108,10 +109,14 @@ class OneDrive extends BaseCloudService {
   @override
   Future<OneDriveResponse> list(String remotePath) async {
     try {
-      await checkFolder(remotePath);
+      var subPath = "";
+      if (remotePath.isNotEmpty) {
+        await checkFolder(remotePath);
+        subPath = ":$remotePath:";
+      }
 
       final listUri = Uri.parse(
-          "$apiEndpoint/me/drive/${_getRootFolder()}:$remotePath:/children?select=id,name,size,createdDateTime,lastModifiedDateTime,file,description");
+          "$apiEndpoint/me/drive/${_getRootFolder()}$subPath/children?select=id,name,size,createdDateTime,lastModifiedDateTime,file,description");
 
       final resp = await get(listUri);
 
@@ -199,7 +204,8 @@ class OneDrive extends BaseCloudService {
   @override
   Future<OneDriveResponse> push(
     Uint8List bytes,
-    String remotePath, {
+    String remotePath,
+    String fileName, {
     Function(int p1, int p2)? onProgress,
   }) async {
     try {
@@ -210,7 +216,7 @@ class OneDrive extends BaseCloudService {
 
       var now = DateTime.now();
       var pushUri = Uri.parse(
-          "$apiEndpoint/me/drive/${_getRootFolder()}:$remotePath:/createUploadSession");
+          "$apiEndpoint/me/drive/${_getRootFolder()}:${join(remotePath, fileName)}:/createUploadSession");
 
       var resp = await post(pushUri);
 
@@ -285,6 +291,25 @@ class OneDrive extends BaseCloudService {
   @override
   Future<void> checkFolder(String remotePath) async {
     try {
+      CloudLogger.info(serviceName, "Start checking folder $remotePath");
+
+      OneDriveResponse res = await list("");
+
+      if (!res.isSuccess) {
+        CloudLogger.error(serviceName, "Failed to list folders");
+        return;
+      }
+
+      var remotePathWithoutSlash = remotePath.replaceAll("/", "");
+
+      for (var file in res.files) {
+        if (file.name == remotePathWithoutSlash && file.fileMimeType == "") {
+          CloudLogger.info(
+              serviceName, "Folder exists: $remotePath -> ${file.id}");
+          return;
+        }
+      }
+
       final checkFolderUri =
           Uri.parse("$apiEndpoint/me/drive/${_getRootFolder()}/children");
 
@@ -292,7 +317,7 @@ class OneDrive extends BaseCloudService {
         checkFolderUri,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "name": remotePath.replaceAll("/", ""),
+          "name": remotePathWithoutSlash,
           "folder": {},
           "@microsoft.graph.conflictBehavior": "replace",
         }),

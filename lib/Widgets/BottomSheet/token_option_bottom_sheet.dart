@@ -113,7 +113,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
     }
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +176,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                           fontWeight: FontWeight.w600,
                           fontSize: 24,
                           letterSpacing: 10,
-                          color: Theme.of(context).primaryColor,
+                          color: ChewieTheme.primaryColor,
                         ),
                     maxLines: 1,
                   ),
@@ -206,7 +206,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                         icon: Icon(
                           Icons.refresh_rounded,
                           size: 20,
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          color: ChewieTheme.bodyMedium.color,
                         ),
                       )
                     : const SizedBox.shrink(),
@@ -224,7 +224,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                       return CircularProgressIndicator(
                         value: value,
                         color: value > autoCopyNextCodeProgressThrehold
-                            ? Theme.of(context).primaryColor
+                            ? ChewieTheme.primaryColor
                             : Colors.red,
                         backgroundColor: Colors.grey.withOpacity(0.3),
                         strokeCap: StrokeCap.round,
@@ -237,12 +237,12 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                       builder: (context, value, child) {
                         return Text(
                           (remainingMilliseconds / 1000).toStringAsFixed(0),
-                          style: Theme.of(context).textTheme.bodyMedium?.apply(
-                                color: value > autoCopyNextCodeProgressThrehold
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.red,
-                                fontWeightDelta: 2,
-                              ),
+                          style: ChewieTheme.bodyMedium.apply(
+                            color: value > autoCopyNextCodeProgressThrehold
+                                ? ChewieTheme.primaryColor
+                                : Colors.red,
+                            fontWeightDelta: 2,
+                          ),
                         );
                       },
                     ),
@@ -300,10 +300,8 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               : Icons.push_pin_outlined,
           title:
               widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
-          titleColor:
-              widget.token.pinned ? Theme.of(context).primaryColor : null,
-          leadingColor:
-              widget.token.pinned ? Theme.of(context).primaryColor : null,
+          titleColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
+          leadingColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
           onTap: () async {
             Navigator.pop(context);
             await TokenDao.updateTokenPinned(
@@ -440,38 +438,36 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
     Color? backgroundColor,
     Function()? onTap,
   }) {
-    return Material(
-      color: backgroundColor ?? Theme.of(context).cardColor,
-      borderRadius: ChewieDimens.borderRadius8,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: ChewieDimens.borderRadius8,
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: ChewieDimens.borderRadius8,
-          ),
-          child: Column(
-            children: [
-              Icon(
-                leading,
-                size: 24,
-                color: leadingColor ??
-                    Theme.of(context).textTheme.bodyMedium?.color,
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 20,
-                child: AutoSizeText(
-                  title,
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: titleColor ??
-                            Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
+    return PressableAnimation(
+      child: Material(
+        color: backgroundColor ?? ChewieTheme.cardColor,
+        borderRadius: ChewieDimens.defaultBorderRadius,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: ChewieDimens.defaultBorderRadius,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration:
+                const BoxDecoration(borderRadius: ChewieDimens.defaultBorderRadius),
+            child: Column(
+              children: [
+                Icon(
+                  leading,
+                  size: 24,
+                  color: leadingColor ?? ChewieTheme.bodyMedium.color,
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 20,
+                  child: AutoSizeText(
+                    title,
+                    maxLines: 1,
+                    style: ChewieTheme.bodyMedium.copyWith(
+                        color: titleColor ?? ChewieTheme.bodyMedium.color),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

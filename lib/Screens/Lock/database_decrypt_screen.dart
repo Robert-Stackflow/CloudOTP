@@ -324,7 +324,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
             RoundIconTextButton(
               text: S.current.confirm,
               fontSizeDelta: 2,
-              background: Theme.of(context).primaryColor,
+              background: ChewieTheme.primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
               onPressed: onSubmit,
             ),
@@ -363,7 +363,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           text: S.current.loadSqlcipherFailedLearnMore,
           fontSizeDelta: 2,
           height: 48,
-          background: Theme.of(context).primaryColor,
+          background: ChewieTheme.primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
           onPressed: () {
             UriUtil.launchUrlUri(context, sqlcipherLearnMore);

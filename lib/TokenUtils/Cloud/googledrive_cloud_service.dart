@@ -16,6 +16,7 @@
 import 'dart:typed_data';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
+import 'package:http/http.dart' as http;
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/app_provider.dart';
@@ -55,6 +56,16 @@ class GoogleDriveCloudService extends CloudService {
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
+  }
+
+  @override
+  Future<bool> checkServer() async {
+    try {
+      final response = await http.head(Uri.parse(_customAuthEndpoint));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -162,7 +173,7 @@ class GoogleDriveCloudService extends CloudService {
     GoogleDriveResponse response = await googledrive.push(
       fileData,
       _googledrivePathName,
-      fileName: fileName,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

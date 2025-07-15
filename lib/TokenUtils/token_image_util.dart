@@ -32,9 +32,12 @@ class TokenImageUtil {
     final Map<String, dynamic> manifestMap = json.decode(manifestContent);
     final brandFiles = manifestMap.keys
         .where((String key) =>
-            key.startsWith('assets/brand/') && key.endsWith('.png'))
+    key.startsWith('assets/brand/') && key.endsWith('.png'))
         .toList();
-    brandLogos = brandFiles.map((file) => file.split('/').last).toList();
+    brandLogos = brandFiles.map((file) =>
+    file
+        .split('/')
+        .last).toList();
     for (var logo in brandLogos) {
       if (logo.endsWith("_dark.png")) {
         darkBrandLogos.add(logo);
@@ -112,8 +115,10 @@ class TokenImageUtil {
 
       final bool containsEither =
           issuer.contains(brand) || brand.contains(issuer);
-
-      if (containsEither || lcs >= substringMatchThreshold) {
+      final bool equal = issuer == brand;
+      if (equal) {
+        matches.add(MapEntry(logo, 10000));
+      } else if (containsEither || lcs >= substringMatchThreshold) {
         matches.add(MapEntry(logo, lcs));
       }
     }

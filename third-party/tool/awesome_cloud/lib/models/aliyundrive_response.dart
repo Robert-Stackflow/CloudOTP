@@ -81,6 +81,29 @@ class AliyunDriveUserInfo extends BaseCloudUserInfo {
         'spaceAmount: $spaceAmount, '
         '}';
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user': {
+        'id': id,
+        'name': name,
+        'avatar': avatarUrl,
+        'phone': phone,
+      },
+      'drive': {
+        'default_drive_id': defaultDriveId,
+        'resource_drive_id': resourceDriveId,
+        'backup_drive_id': backupDriveId,
+        'folder_id': folderId,
+      },
+      'space': {
+        'personal_space_info': {
+          'used_size': spaceUsed,
+          'total_size': spaceAmount,
+        },
+      },
+    };
+  }
 }
 
 class AliyunDriveFileInfo extends BaseCloudFileInfo {
@@ -104,17 +127,17 @@ class AliyunDriveFileInfo extends BaseCloudFileInfo {
 
   factory AliyunDriveFileInfo.fromJson(Map<String, dynamic> json) {
     return AliyunDriveFileInfo(
-      id: json['id'],
+      id: json['file_id'],
       name: json['name'],
       size: json['size'] ?? 0,
       createdDateTime: json['created_at'] != null
           ? DateTime.parse(json['created_at']).millisecondsSinceEpoch
           : 0,
-      lastModifiedDateTime: json['modified_at'] != null
-          ? DateTime.parse(json['modified_at']).millisecondsSinceEpoch
+      lastModifiedDateTime: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at']).millisecondsSinceEpoch
           : 0,
       description: "",
-      fileMimeType: json['type'] ?? "file",
+      fileMimeType: json['file_extension'] ?? "",
     );
   }
 

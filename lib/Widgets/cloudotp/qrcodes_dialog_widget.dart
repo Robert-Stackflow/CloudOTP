@@ -14,6 +14,7 @@
  */
 
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
@@ -58,179 +59,182 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
   @override
   Widget build(BuildContext context) {
     double maxHeight = min(360, MediaQuery.sizeOf(context).width - 90);
-    return Align(
-      alignment: widget.align,
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          constraints: ResponsiveUtil.isWideLandscape()
-              ? const BoxConstraints(maxWidth: 430)
-              : null,
-          margin: ResponsiveUtil.isWideLandscape()
-              ? const EdgeInsets.all(24)
-              : EdgeInsets.zero,
-          decoration: BoxDecoration(
-            color: ChewieTheme.scaffoldBackgroundColor,
-            borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(20)
-                    : Radius.zero),
-          ),
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            shrinkWrap: true,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (widget.title != null)
-                      Text(
-                        widget.title ?? "",
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.apply(fontSizeDelta: 1),
-                        textAlign: TextAlign.center,
-                      ),
-                    if (widget.title.notNullOrEmpty) const SizedBox(height: 20),
-                    if (widget.message != null)
-                      Text(
-                        widget.message ?? "",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                    if (widget.message.notNullOrEmpty)
-                      const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: maxHeight,
-                child: PageView.builder(
-                  controller: controller,
-                  itemCount: widget.qrcodes.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: ColorUtil.isDark(context)
-                            ? Colors.white
-                            : ChewieTheme.canvasColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.center,
-                      margin: EdgeInsets.symmetric(
-                          horizontal: ResponsiveUtil.isWideLandscape()
-                              ? 30
-                              : (MediaQuery.sizeOf(context).width - maxHeight) /
-                                  2),
-                      padding: const EdgeInsets.all(20),
-                      child: PrettyQrView.data(
-                        data: widget.qrcodes[index],
-                        errorCorrectLevel: QrErrorCorrectLevel.M,
-                        errorBuilder: (context, error, stacktrace) {
-                          return Text(
-                            S.current.errorQrCode + error.toString(),
-                            textAlign: TextAlign.center,
-                          );
-                        },
-                        decoration: PrettyQrDecoration(
-                          // shape: PrettyQrSmoothSymbol(
-                          // roundFactor: 1,
-                          // color: PrettyQrBrush.gradient(
-                          //   gradient: LinearGradient(
-                          //     begin: Alignment.topCenter,
-                          //     end: Alignment.bottomCenter,
-                          //     colors: [
-                          //       Theme.of(context).primaryColor,
-                          //       Colors.blue[200]!,
-                          //       Colors.teal[200]!,
-                          //       Colors.red[200]!,
-                          //     ],
-                          //   ),
-                          // ),
-                          // ),
-                          image:
-                              widget.asset != null && widget.asset!.isNotEmpty
-                                  ? PrettyQrDecorationImage(
-                                      scale: 0.15,
-                                      isAntiAlias: true,
-                                      padding: const EdgeInsets.all(20),
-                                      filterQuality: FilterQuality.high,
-                                      image: AssetImage(widget.asset!),
-                                    )
-                                  : null,
+    return BackdropFilter(
+      filter: ResponsiveUtil.isDesktop()
+          ? ImageFilter.blur(sigmaX: 2, sigmaY: 2)
+          : ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+      child: Align(
+        alignment: widget.align,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: ResponsiveUtil.isWideLandscape()
+                ? const BoxConstraints(maxWidth: 430)
+                : null,
+            margin: ResponsiveUtil.isWideLandscape()
+                ? const EdgeInsets.all(24)
+                : EdgeInsets.zero,
+            decoration: ChewieTheme.defaultDecoration.copyWith(
+              color: ChewieTheme.scaffoldBackgroundColor,
+            ),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              shrinkWrap: true,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (widget.title != null)
+                        Text(
+                          widget.title ?? "",
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.apply(fontSizeDelta: 1),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
-                    );
-                  },
+                      if (widget.title.notNullOrEmpty)
+                        const SizedBox(height: 20),
+                      if (widget.message != null)
+                        Text(
+                          widget.message ?? "",
+                          style: ChewieTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      if (widget.message.notNullOrEmpty)
+                        const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: widget.qrcodes.length == 1
-                    ? RoundIconTextButton(
-                        text: S.current.confirm,
-                        fontSizeDelta: 2,
-                        background: Theme.of(context).primaryColor,
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    : Row(
-                        children: [
-                          RoundIconTextButton(
-                            fontSizeDelta: 2,
-                            disabled: currentPage <= 0,
-                            icon: Icon(
-                              Icons.arrow_back_rounded,
-                              color: currentPage <= 0 ? Colors.grey : null,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 31, vertical: 8),
-                            onPressed: currentPage <= 0
-                                ? null
-                                : () {
-                                    controller.previousPage(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                    );
-                                  },
-                          ),
-                          Expanded(
-                            child: Text(
-                              "${currentPage + 1}/${widget.qrcodes.length}",
+                SizedBox(
+                  height: maxHeight,
+                  child: PageView.builder(
+                    controller: controller,
+                    itemCount: widget.qrcodes.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: ColorUtil.isDark(context)
+                              ? Colors.white
+                              : ChewieTheme.canvasColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: ResponsiveUtil.isWideLandscape()
+                                ? 30
+                                : (MediaQuery.sizeOf(context).width -
+                                        maxHeight) /
+                                    2),
+                        padding: const EdgeInsets.all(20),
+                        child: PrettyQrView.data(
+                          data: widget.qrcodes[index],
+                          errorCorrectLevel: QrErrorCorrectLevel.M,
+                          errorBuilder: (context, error, stacktrace) {
+                            return Text(
+                              S.current.errorQrCode + error.toString(),
                               textAlign: TextAlign.center,
-                            ),
+                            );
+                          },
+                          decoration: PrettyQrDecoration(
+                            // shape: PrettyQrSmoothSymbol(
+                            // roundFactor: 1,
+                            // color: PrettyQrBrush.gradient(
+                            //   gradient: LinearGradient(
+                            //     begin: Alignment.topCenter,
+                            //     end: Alignment.bottomCenter,
+                            //     colors: [
+                            //       ChewieTheme.primaryColor,
+                            //       Colors.blue[200]!,
+                            //       Colors.teal[200]!,
+                            //       Colors.red[200]!,
+                            //     ],
+                            //   ),
+                            // ),
+                            // ),
+                            image:
+                                widget.asset != null && widget.asset!.isNotEmpty
+                                    ? PrettyQrDecorationImage(
+                                        scale: 0.15,
+                                        isAntiAlias: true,
+                                        padding: const EdgeInsets.all(20),
+                                        filterQuality: FilterQuality.high,
+                                        image: AssetImage(widget.asset!),
+                                      )
+                                    : null,
                           ),
-                          currentPage == widget.qrcodes.length - 1
-                              ? RoundIconTextButton(
-                                  text: S.current.complete,
-                                  background: Theme.of(context).primaryColor,
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                )
-                              : RoundIconTextButton(
-                                  icon: const Icon(Icons.arrow_forward_rounded),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 31, vertical: 8),
-                                  onPressed: () {
-                                    controller.nextPage(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                    );
-                                  },
-                                ),
-                        ],
-                      ),
-              ),
-            ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: widget.qrcodes.length == 1
+                      ? RoundIconTextButton(
+                          text: S.current.confirm,
+                          fontSizeDelta: 2,
+                          background: ChewieTheme.primaryColor,
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        )
+                      : Row(
+                          children: [
+                            RoundIconTextButton(
+                              fontSizeDelta: 2,
+                              disabled: currentPage <= 0,
+                              icon: Icon(
+                                Icons.arrow_back_rounded,
+                                color: currentPage <= 0 ? Colors.grey : null,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 31, vertical: 8),
+                              onPressed: currentPage <= 0
+                                  ? null
+                                  : () {
+                                      controller.previousPage(
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                      );
+                                    },
+                            ),
+                            Expanded(
+                              child: Text(
+                                "${currentPage + 1}/${widget.qrcodes.length}",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            currentPage == widget.qrcodes.length - 1
+                                ? RoundIconTextButton(
+                                    text: S.current.complete,
+                                    background: ChewieTheme.primaryColor,
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                : RoundIconTextButton(
+                                    icon:
+                                        const Icon(Icons.arrow_forward_rounded),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 31, vertical: 8),
+                                    onPressed: () {
+                                      controller.nextPage(
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                      );
+                                    },
+                                  ),
+                          ],
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -201,7 +201,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
                         padding: 60,
                         roundSpace: 40,
                         defaultColor: Colors.grey.withOpacity(0.5),
-                        selectedColor: Theme.of(context).primaryColor,
+                        selectedColor: ChewieTheme.primaryColor,
                         failedColor: Colors.redAccent,
                         disableColor: Colors.grey,
                         solidRadiusRatio: 0.3,

@@ -254,7 +254,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       child: RoundIconTextButton(
         text: S.current.cloudSignin,
         width: double.infinity,
-        background: Theme.of(context).primaryColor,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           if (await isValid()) {
@@ -282,7 +282,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             child: RoundIconTextButton(
               text: S.current.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
                 CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
@@ -336,7 +336,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
+              background: ChewieTheme.primaryColor,
               text: S.current.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {

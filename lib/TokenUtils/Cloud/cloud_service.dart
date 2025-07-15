@@ -26,7 +26,11 @@ enum CloudServiceStatus {
 }
 
 abstract class CloudService {
-  static const String serverEndpoint = 'http://localhost:3009';
+  // static const String serverEndpoint = 'http://localhost:3009';
+  static const String serverEndpoint = 'https://api.cloudchewie.com';
+  static const String serverGithubUrl =
+      'https://github.com/Robert-Stackflow/CloudOTP-OAuth';
+  static const String serverGithubRepoName = ' CloudOTP-OAuth ';
 
   CloudServiceType get type;
 
@@ -60,4 +64,8 @@ abstract class CloudService {
   Future<bool> hasConfigured();
 
   Future<void> signOut();
+
+  Future<bool> checkServer() async {
+    return true;
+  }
 }

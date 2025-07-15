@@ -186,7 +186,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           CircleIconButton(
             icon: Icon(
               LucideIcons.check,
-              color: Theme.of(context).iconTheme.color,
+              color: ChewieTheme.iconColor,
             ),
             onTap: () {
               processDone();
@@ -444,7 +444,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                         radius: 6,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
-                        background: Theme.of(context).primaryColor,
+                        background: ChewieTheme.primaryColor,
                         text: categories
                             .firstWhere((element) => element.uid == e)
                             .title,
@@ -495,7 +495,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       margin: const EdgeInsets.only(top: 5),
       child: RoundIconTextButton(
         width: double.infinity,
-        background: Theme.of(context).canvasColor,
+        background: ChewieTheme.canvasColor,
         radius: 12,
         text: S.current.showAdvancedInfo,
         icon: Icon(
@@ -612,7 +612,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             margin: const EdgeInsets.symmetric(vertical: 5),
             width: double.infinity,
             child: RoundIconTextButton(
-              background: Theme.of(context).canvasColor,
+              background: ChewieTheme.canvasColor,
               radius: 12,
               text: S.current.hideAdvancedInfo,
               icon: Icon(

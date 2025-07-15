@@ -108,7 +108,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
                 size: 30,
                 roundSpace: 4,
                 defaultColor: Colors.grey.withOpacity(0.5),
-                selectedColor: Theme.of(context).primaryColor.withOpacity(0.6),
+                selectedColor: ChewieTheme.primaryColor.withOpacity(0.6),
               ),
               Flexible(
                 child: GestureUnlockView(
@@ -117,7 +117,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
                   padding: 60,
                   roundSpace: 40,
                   defaultColor: Colors.grey.withOpacity(0.5),
-                  selectedColor: Theme.of(context).primaryColor,
+                  selectedColor: ChewieTheme.primaryColor,
                   failedColor: Theme.of(context).colorScheme.error,
                   disableColor: Colors.grey,
                   solidRadiusRatio: 0.3,
