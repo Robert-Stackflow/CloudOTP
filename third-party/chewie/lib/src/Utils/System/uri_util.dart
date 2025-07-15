@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -162,6 +163,15 @@ class UriUtil {
 
   static void launchUri(Uri uri) async {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  static Future<void> openGooglePlayStore() async {
+    String packageName = (await PackageInfo.fromPlatform()).packageName;
+    final Uri playStoreUri =
+        Uri.parse("https://play.google.com/store/apps/details?id=$packageName");
+    if (await canLaunchUrl(playStoreUri)) {
+      await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
+    }
   }
 
   static Future<dynamic> getRedirectUrl(String url) async {

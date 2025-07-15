@@ -1,7 +1,6 @@
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Utils/General/string_util.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:install_plugin/install_plugin.dart';
 
 class NotificationUtil {
   static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -18,9 +17,9 @@ class NotificationUtil {
     await flutterLocalNotificationsPlugin.initialize(
       InitializationSettings(android: android),
       onDidReceiveNotificationResponse: (respose) async {
-        if (respose.id == 1 && respose.payload.notNullOrEmpty) {
-          await InstallPlugin.install(respose.payload!);
-        }
+        // if (respose.id == 1 && respose.payload.notNullOrEmpty) {
+        //   await InstallPlugin.install(respose.payload!);
+        // }
       },
     );
     flutterLocalNotificationsPlugin

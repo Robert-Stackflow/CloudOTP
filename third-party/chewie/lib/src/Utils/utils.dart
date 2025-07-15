@@ -227,16 +227,7 @@ class ChewieUtils {
               cancelButtonText: ChewieS.current.updateLater,
               onTapConfirm: () async {
                 if (ResponsiveUtil.isAndroid()) {
-                  ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
-                      latestVersion, latestReleaseItem!);
-                  ILogger.info(ResponsiveUtil.appName,
-                      "Get android asset: $androidAssset");
-                  FileUtil.downloadAndUpdate(
-                    context,
-                    androidAssset.pkgsDownloadUrl,
-                    latestReleaseItem.htmlUrl,
-                    version: latestVersion,
-                  );
+                  UriUtil.openGooglePlayStore();
                 } else {
                   UriUtil.openExternal(latestReleaseItem!.htmlUrl);
                   return;
