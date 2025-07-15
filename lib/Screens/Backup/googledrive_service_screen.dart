@@ -25,6 +25,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
 import '../../generated/l10n.dart';
 
@@ -63,6 +64,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
   void initState() {
     super.initState();
     loadConfig();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => Utils.showQAuthDialog(context));
   }
 
   loadConfig() async {
@@ -133,7 +136,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     }
     await currentService.checkServer().then((value) async {
       if (!value) {
-        IToast.show(S.current.cloudOAuthUnavailable(CloudService.serverEndpoint));
+        IToast.show(
+            S.current.cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
         await currentService.authenticate().then((value) async {
           setState(() {

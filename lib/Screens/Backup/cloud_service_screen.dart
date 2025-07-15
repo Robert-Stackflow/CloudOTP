@@ -28,6 +28,7 @@ import 'package:group_button/group_button.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../TokenUtils/Cloud/cloud_service.dart';
+import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import '../Setting/base_setting_screen.dart';
 
@@ -81,7 +82,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       desktopActions: [
         ToolButton(
           context: context,
-          icon: LucideIcons.info,
+          icon: LucideIcons.shieldCheck,
           buttonSize: const Size(32, 32),
           onPressed: _showServerInfo,
           tooltipPosition: TooltipPosition.bottom,
@@ -91,7 +92,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       actions: [
         CircleIconButton(
           icon: Icon(
-            LucideIcons.info,
+            LucideIcons.shieldCheck,
             color: ChewieTheme.iconColor,
           ),
           onTap: _showServerInfo,
@@ -101,19 +102,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
   }
 
   _showServerInfo() {
-    DialogBuilder.showConfirmDialog(
-      context,
-      title: S.current.cloudOAuthDialogTitle,
-      message: S.current.cloudOAuthDialogMessage(CloudService.serverEndpoint,
-          CloudService.serverGithubUrl, CloudService.serverGithubRepoName),
-      renderHtml: true,
-      cancelButtonText: S.current.cloudOAuthDialogGoToRepo,
-      confirmButtonText: S.current.cloudOAuthDialogConfirm,
-      onTapConfirm: () {},
-      onTapCancel: () {
-        UriUtil.openExternal(CloudService.serverGithubUrl);
-      },
-    );
+    Utils.showQAuthDialog(context, true);
   }
 
   _buildBody() {

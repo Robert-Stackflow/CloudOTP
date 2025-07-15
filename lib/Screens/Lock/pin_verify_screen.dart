@@ -122,8 +122,10 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
     windowManager.addListener(this);
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-          LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
+      if (mounted) {
+        chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+            LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
+      }
     });
     Utils.initSimpleTray();
     initBiometricAuthentication();
@@ -166,7 +168,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
               ? ResponsiveAppBar(
                   title: S.current.verifyGestureLock,
                   showBack: false,
-                  titleLeftMargin: 12,
+                  titleLeftMargin: 15,
                   actions: const [
                     BlankIconButton(),
                   ],

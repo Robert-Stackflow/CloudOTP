@@ -82,6 +82,7 @@ class CloudOTPHiveUtil {
 
   //System
   static const String oldVersionKey = "oldVersion";
+  static const String haveShowQAuthDialogKey = "haveShowQAuthDialog";
 
   static initConfig() async {
     await ChewieHiveUtil.put(

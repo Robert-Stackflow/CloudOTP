@@ -220,7 +220,7 @@
   "cloudOAuthSafeTip": "出于安全考虑，{service}的授权流程及后续的 Token 获取将通过服务器地址 {server} 完成跳转与处理；服务无法保证，请优先选择其他无需中转服务器的云服务",
   "cloudOAuthUnavailable": "授权服务器 {server} 暂不可用，请选择其他无需中转服务器的云服务",
   "cloudOAuthDialogTitle": "关于授权服务器",
-  "cloudOAuthDialogMessage":"由于 <strong>Google Drive</strong>、<strong>华为云</strong> 和 <strong>Box</strong> 等服务的限制，OAuth 授权流程需通过服务器 <strong>{serverEndpoint}</strong> 进行中转，以确保功能正常运行。该服务器由 <strong>Node.js</strong> 构建，相关代码已开源并托管在 GitHub 上的<a href=\"{serverGithubUrl}\" target=\"_blank\">{serverGithubRepoName}</a>，您可自由查阅和审查，以确保服务透明可信。",
+  "cloudOAuthDialogMessage":"由于 <strong>Google Drive</strong>、<strong>华为云</strong> 和 <strong>Box</strong> 等服务的限制，OAuth 授权流程需通过服务器 <strong>{serverEndpoint}</strong> 进行中转，以确保功能正常运行。该服务器由 <strong>Node.js</strong> 构建，相关代码已开源并托管在 GitHub 上的<a href=\"{serverGithubUrl}\" target=\"_blank\"><strong>{serverGithubRepoName}</strong></a>，您可自由查阅和审查，以确保服务透明可信。",
   "cloudOAuthDialogGoToRepo": "前往仓库",
   "cloudOAuthDialogConfirm": "我已知晓",
   "cloudTypeBox": "Box",

@@ -25,6 +25,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/huawei_backups_bottom_sheet.dart';
 import '../../generated/l10n.dart';
 
@@ -62,6 +63,8 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
   void initState() {
     super.initState();
     loadConfig();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => Utils.showQAuthDialog(context));
   }
 
   loadConfig() async {

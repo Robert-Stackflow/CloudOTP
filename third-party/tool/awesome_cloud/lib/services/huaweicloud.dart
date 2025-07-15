@@ -42,8 +42,7 @@ class HuaweiCloud extends BaseCloudService {
   String get apiEndpoint => "https://driveapis.cloud.huawei.com.cn/drive/v1";
 
   @override
-  String get permission =>
-      "openid email profile https://www.huawei.com/auth/drive https://www.huawei.com/auth/drive.file";
+  String get permission => "openid https://www.huawei.com/auth/drive.file";
 
   @override
   String get expireInKey => "__huaweicloud_tokenExpire";

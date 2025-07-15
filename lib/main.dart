@@ -72,7 +72,6 @@ Future<void> runMyApp(List<String> args) async {
     home = AppShortcuts(child: MainScreen(key: mainScreenKey));
   }
   runApp(MyApp(home: home));
-  IToast.showTop("Initialized");
   FlutterNativeSplash.remove();
 }
 

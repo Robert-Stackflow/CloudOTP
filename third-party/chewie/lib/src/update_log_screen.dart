@@ -17,6 +17,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../awesome_chewie.dart';
+
 class UpdateLogScreen extends StatefulWidget {
   const UpdateLogScreen({
     super.key,
@@ -83,8 +85,14 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
       appBar: widget.showTitleBar
           ? ResponsiveAppBar(
               title: ChewieS.current.changelog,
-              titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-              showBack: !ResponsiveUtil.isLandscape(),
+              showBack: true,
+              onTapBack: () {
+                if (ResponsiveUtil.isLandscape()) {
+                  chewieProvider.dialogNavigatorState?.popPage();
+                } else {
+                  Navigator.pop(context);
+                }
+              },
               backgroundColor: ResponsiveUtil.isLandscape()
                   ? ChewieTheme.canvasColor
                   : ChewieTheme.scaffoldBackgroundColor,

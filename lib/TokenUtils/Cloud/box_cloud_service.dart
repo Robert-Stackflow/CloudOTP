@@ -15,6 +15,7 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:http/http.dart' as http;
 
@@ -61,7 +62,8 @@ class BoxCloudService extends CloudService {
   @override
   Future<bool> checkServer() async {
     try {
-      final response = await http.head(Uri.parse(_customAuthEndpoint));
+      final response = await http.head(Uri.parse(CloudService.serverEndpoint));
+      ILogger.info('Box Cloud service availability response for $_customAuthEndpoint: ${response.statusCode}');
       return response.statusCode == 200;
     } catch (e) {
       return false;

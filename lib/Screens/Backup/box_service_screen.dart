@@ -26,6 +26,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/box_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/box_backups_bottom_sheet.dart';
 import '../../generated/l10n.dart';
 
@@ -63,6 +64,8 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
   void initState() {
     super.initState();
     loadConfig();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => Utils.showQAuthDialog(context));
   }
 
   loadConfig() async {

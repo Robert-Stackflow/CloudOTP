@@ -83,7 +83,6 @@ class _UpdateScreenState extends State<UpdateScreen>
   }
 
   _buildItem(ReleaseItem item) {
-    print(jsonEncode(item.body));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       width: double.infinity,

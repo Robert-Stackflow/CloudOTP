@@ -177,6 +177,7 @@ class MainScreenState extends State<MainScreen>
     });
     fetchReleases();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      IToast.showTop("Initialized");
       if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
           defaultValue: false)) {
         ShortcutsUtil.focusSearch();

@@ -34,6 +34,7 @@ import '../Screens/Setting/about_setting_screen.dart';
 import '../Screens/Setting/mobile_setting_navigation_screen.dart';
 import '../Screens/Setting/setting_navigation_screen.dart';
 import '../Screens/Setting/setting_safe_screen.dart';
+import '../TokenUtils/Cloud/cloud_service.dart';
 import '../TokenUtils/code_generator.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import '../generated/l10n.dart';
@@ -42,6 +43,26 @@ import 'constant.dart';
 import 'hive_util.dart';
 
 class Utils {
+  static showQAuthDialog(BuildContext context, [bool force = false]) {
+    bool haveShowQAuthDialog = ChewieHiveUtil.getBool(
+        CloudOTPHiveUtil.haveShowQAuthDialogKey,
+        defaultValue: false);
+    if (force || !haveShowQAuthDialog) {
+      DialogBuilder.showInfoDialog(
+        context,
+        title: S.current.cloudOAuthDialogTitle,
+        message: S.current.cloudOAuthDialogMessage(CloudService.serverEndpoint,
+            CloudService.serverGithubUrl, CloudService.serverGithubRepoName),
+        renderHtml: true,
+        // cancelButtonText: S.current.cloudOAuthDialogGoToRepo,
+        buttonText: S.current.cloudOAuthDialogConfirm,
+        onTapDismiss: () {
+          ChewieHiveUtil.put(CloudOTPHiveUtil.haveShowQAuthDialogKey, true);
+        },
+      );
+    }
+  }
+
   static Future<Rect> getWindowRect(BuildContext context) async {
     Display primaryDisplay = await screenRetriever.getPrimaryDisplay();
     return Rect.fromLTWH(

@@ -220,7 +220,7 @@
   "cloudOAuthSafeTip": "セキュリティ上の理由から、{service} の認証プロセスおよびその後のトークン取得はサーバー {server} を経由して処理されます。このサービスの安全性は保証できませんので、中継サーバーを必要としない他のクラウドサービスのご利用をおすすめします。",
   "cloudOAuthUnavailable": "認証サーバー {server} は現在利用できません。中継サーバーを必要としない他のクラウドサービスを選択してください。",
   "cloudOAuthDialogTitle": "認証サーバーについて",
-  "cloudOAuthDialogMessage": "<strong>Google Drive</strong>、<strong>Huawei Cloud</strong>、<strong>Box</strong> などのサービス制限により、OAuth 認証プロセスは <strong>{serverEndpoint}</strong> サーバーを経由して行う必要があります。これにより機能が正しく動作します。このサーバーは <strong>Node.js</strong> で構築されており、ソースコードは GitHub 上の <a href=\"{serverGithubUrl}\" target=\"_blank\">{serverGithubRepoName}</a> にて公開されています。透明性と信頼性の確保のため、ぜひご確認ください。",
+  "cloudOAuthDialogMessage": "<strong>Google Drive</strong>、<strong>Huawei Cloud</strong>、<strong>Box</strong> などのサービス制限により、OAuth 認証プロセスは <strong>{serverEndpoint}</strong> サーバーを経由して行う必要があります。これにより機能が正しく動作します。このサーバーは <strong>Node.js</strong> で構築されており、ソースコードは GitHub 上の <a href=\"{serverGithubUrl}\" target=\"_blank\"><strong>{serverGithubRepoName}</strong></a> にて公開されています。透明性と信頼性の確保のため、ぜひご確認ください。",
   "cloudOAuthDialogGoToRepo": "リポジトリへ",
   "cloudOAuthDialogConfirm": "了承しました",
   "cloudTypeBox": "Box",

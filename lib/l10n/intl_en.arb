@@ -220,7 +220,7 @@
   "cloudOAuthSafeTip": "For security reasons, the authorization process and subsequent token retrieval for {service} will be redirected and handled via the server {server}. This service cannot be guaranteed; please consider using other cloud services that do not require an intermediate server.",
   "cloudOAuthUnavailable": "The authorization server {server} is currently unavailable. Please choose another cloud service that does not require an intermediate server.",
   "cloudOAuthDialogTitle": "About the Authorization Server",
-  "cloudOAuthDialogMessage": "Due to limitations of services like <strong>Google Drive</strong>, <strong>Huawei Cloud</strong>, and <strong>Box</strong>, the OAuth process must be relayed through the server <strong>{serverEndpoint}</strong> to ensure proper functionality.This server is built with <strong>Node.js</strong>, and its source code is openly available on GitHub at <a href=\"{serverGithubUrl}\" target=\"_blank\">{serverGithubRepoName}</a>. You are welcome to review it to ensure transparency and trust.",
+  "cloudOAuthDialogMessage": "Due to limitations of services like <strong>Google Drive</strong>, <strong>Huawei Cloud</strong>, and <strong>Box</strong>, the OAuth process must be relayed through the server <strong>{serverEndpoint}</strong> to ensure proper functionality.This server is built with <strong>Node.js</strong>, and its source code is openly available on GitHub at <a href=\"{serverGithubUrl}\" target=\"_blank\"><strong>{serverGithubRepoName}</strong></a>. You are welcome to review it to ensure transparency and trust.",
   "cloudOAuthDialogGoToRepo": "To Repository",
   "cloudOAuthDialogConfirm": "I Understand",
   "cloudTypeBox": "Box",
