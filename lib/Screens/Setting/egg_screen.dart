@@ -117,7 +117,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
                         horizontal: 10, vertical: 10),
                     child: CustomHtmlWidget(
                       content: S.current.eggEssay,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: ChewieTheme.bodyLarge,
                     ),
                   ),
                 ),

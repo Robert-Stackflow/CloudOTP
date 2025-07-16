@@ -188,7 +188,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
       alignment: Alignment.center,
       child: Text(
         S.current.scanToken,
-        style: Theme.of(context).textTheme.titleLarge,
+        style: ChewieTheme.titleLarge,
       ),
     );
   }

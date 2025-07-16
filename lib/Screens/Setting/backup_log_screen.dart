@@ -250,7 +250,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       text: widget.log.lastStatusItem.labelShort,
-                      textStyle: Theme.of(context).textTheme.labelSmall?.apply(
+                      textStyle: ChewieTheme.labelSmall?.apply(
                           color: Colors.white,
                           fontSizeDelta: widget.isOverlay ? 0 : 1),
                       background: widget.log.lastStatus.color,
@@ -263,7 +263,7 @@ class BackupLogItemState extends State<BackupLogItem> {
                               ? Icons.keyboard_arrow_up_rounded
                               : Icons.keyboard_arrow_down_rounded,
                           size: 16,
-                          color: Theme.of(context).textTheme.labelSmall?.color),
+                          color: ChewieTheme.labelSmall?.color),
                       onTap: () {
                         setState(() {
                           expanded = !expanded;

@@ -142,14 +142,14 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
           if (widget.title.notNullOrEmpty)
             Text(
               widget.title,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: ChewieTheme.titleLarge,
             ),
           if (widget.message.notNullOrEmpty) const SizedBox(height: 8),
           if (widget.message.notNullOrEmpty)
             Text(
               widget.message,
               style: ChewieTheme.bodyMedium.apply(
-                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    color: ChewieTheme.bodySmall?.color,
                   ),
             ),
         ],

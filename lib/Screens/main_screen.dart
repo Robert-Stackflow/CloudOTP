@@ -165,7 +165,6 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void initState() {
-    _oldOrientation = MediaQuery.of(chewieProvider.rootContext).orientation;
     super.initState();
     if (ResponsiveUtil.isDesktop() && !ResponsiveUtil.isLinux()) {
       protocolHandler.addListener(this);
@@ -177,6 +176,8 @@ class MainScreenState extends State<MainScreen>
     });
     fetchReleases();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _oldOrientation = MediaQuery.of(context).orientation;
+      chewieProvider.rootContext = context;
       if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
           defaultValue: false)) {
         ShortcutsUtil.focusSearch();
@@ -254,12 +255,6 @@ class MainScreenState extends State<MainScreen>
       _oldOrientation = ori;
       return _buildBodyByPlatform();
     });
-  }
-
-  goHome() {
-    while (Navigator.of(chewieProvider.rootContext).canPop()) {
-      Navigator.of(chewieProvider.rootContext).pop();
-    }
   }
 
   _buildBodyByPlatform() {
@@ -747,19 +742,6 @@ class MainScreenState extends State<MainScreen>
                         context, const SettingNavigationScreen());
                   },
                 ),
-                // const SizedBox(height: 4),
-                // ToolButton(
-                //   context: context,
-                //   tooltip: S.current.about,
-                //   icon: LucideIcons.info,
-                //   tooltipPosition: TooltipPosition.right,
-                //   padding: const EdgeInsets.all(8),
-                //   iconSize: 22,
-                //   onPressed: () async {
-                //     RouteUtil.pushDialogRoute(
-                //         context, const AboutSettingScreen());
-                //   },
-                // ),
                 const SizedBox(height: 8),
               ],
             ),

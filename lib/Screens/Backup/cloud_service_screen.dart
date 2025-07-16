@@ -27,7 +27,6 @@ import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../TokenUtils/Cloud/cloud_service.dart';
 import '../../Utils/utils.dart';
 import '../../generated/l10n.dart';
 import '../Setting/base_setting_screen.dart';
@@ -72,11 +71,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       showBack: widget.showBack,
       titleLeftMargin: widget.showBack ? 5 : 15,
       onTapBack: () {
-        if (ResponsiveUtil.isLandscape()) {
-          chewieProvider.dialogNavigatorState?.popPage();
-        } else {
-          Navigator.pop(context);
-        }
+        DialogNavigatorHelper.responsivePopPage();
       },
       overrideBody: _buildBody(),
       desktopActions: [

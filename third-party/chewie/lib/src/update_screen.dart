@@ -1,24 +1,9 @@
-import 'dart:convert';
-
-import 'package:awesome_chewie/src/Models/github_response.dart';
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
-import 'package:awesome_chewie/src/Utils/System/file_util.dart';
-import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
-import 'package:awesome_chewie/src/Widgets/Component/markdown_widget.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/responsive_app_bar.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/selectable_area_wrapper.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:process_run/process_run.dart';
+
+import '../awesome_chewie.dart';
 
 class UpdateScreen extends StatefulWidget {
   const UpdateScreen({
@@ -26,13 +11,11 @@ class UpdateScreen extends StatefulWidget {
     required this.latestReleaseItem,
     required this.latestVersion,
     required this.currentVersion,
-    this.overrideDialogNavigatorKey,
   });
 
   final String latestVersion;
   final String currentVersion;
   final ReleaseItem latestReleaseItem;
-  final GlobalKey<DialogWrapperWidgetState>? overrideDialogNavigatorKey;
 
   @override
   State<UpdateScreen> createState() => _UpdateScreenState();
@@ -119,11 +102,7 @@ class _UpdateScreenState extends State<UpdateScreen>
           RoundIconTextButton(
             text: ChewieS.current.updateLater,
             onPressed: () {
-              if (widget.overrideDialogNavigatorKey != null) {
-                widget.overrideDialogNavigatorKey?.currentState?.popPage();
-              } else {
-                chewieProvider.dialogNavigatorState?.popPage();
-              }
+              DialogNavigatorHelper.popPage();
             },
             fontSizeDelta: 2,
           ),

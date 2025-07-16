@@ -1,10 +1,6 @@
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/dialog_builder.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
-import 'package:awesome_chewie/src/Widgets/Scaffold/custom_cupertino_route.dart';
+import '../../../awesome_chewie.dart';
 
 class RouteUtil {
   static pushMaterialRoute(
@@ -86,14 +82,12 @@ class RouteUtil {
     double? preferMinWidth,
     double? preferMinHeight,
     Function(dynamic)? onThen,
-    GlobalKey<DialogWrapperWidgetState>? overrideDialogNavigatorKey,
     bool useFade = false,
     bool popAll = false,
   }) {
     if (ResponsiveUtil.isLandscape()) {
-      if (overrideDialogNavigatorKey == null &&
-          chewieProvider.dialogNavigatorState != null) {
-        chewieProvider.dialogNavigatorState!.pushPage(page);
+      if (DialogNavigatorHelper.isMounted()) {
+        DialogNavigatorHelper.pushPage(page);
       } else {
         DialogBuilder.showPageDialog(
           context,
@@ -104,7 +98,6 @@ class RouteUtil {
           onThen: onThen,
           preferMinWidth: preferMinWidth,
           preferMinHeight: preferMinHeight,
-          overrideDialogNavigatorKey: overrideDialogNavigatorKey,
         );
       }
     } else {

@@ -193,7 +193,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
                     const SizedBox(height: 50),
                     Text(
                       _notifier.gestureText,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     const SizedBox(height: 30),
                     Flexible(

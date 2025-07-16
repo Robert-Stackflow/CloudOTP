@@ -183,7 +183,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
         alignment: Alignment.center,
         child: Text(
           appName,
-          style: Theme.of(context).textTheme.titleLarge,
+          style: ChewieTheme.titleLarge,
         ),
       ),
       Container(
@@ -191,7 +191,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
         alignment: Alignment.center,
         child: Text(
           versionDetail,
-          style: Theme.of(context).textTheme.bodySmall,
+          style: ChewieTheme.bodySmall,
         ),
       ),
       Container(
@@ -199,7 +199,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
         alignment: Alignment.center,
         child: Text(
           S.current.licenseDetail(appLicense),
-          style: Theme.of(context).textTheme.bodySmall,
+          style: ChewieTheme.bodySmall,
         ),
       ),
     ];

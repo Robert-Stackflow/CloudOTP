@@ -94,7 +94,7 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
       child: Text(
         S.current.cloudBackupFiles(widget.files.length),
         style:
-            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -134,11 +134,11 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
                   children: [
                     Text(
                       file.name,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     Text(
                       "$time    $size",
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),

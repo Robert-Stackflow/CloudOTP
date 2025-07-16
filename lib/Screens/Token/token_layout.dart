@@ -528,7 +528,7 @@ class TokenLayoutState extends State<TokenLayout>
                     LucideIcons.eye,
                     size: 20,
                     color:
-                        color ?? Theme.of(context).textTheme.labelMedium?.color,
+                        color ?? ChewieTheme.labelMedium?.color,
                   ),
                 )
               : emptyWidget,
@@ -562,7 +562,7 @@ class TokenLayoutState extends State<TokenLayout>
                   Icons.refresh_rounded,
                   size: 20,
                   color:
-                      color ?? Theme.of(context).textTheme.labelMedium?.color,
+                      color ?? ChewieTheme.labelMedium?.color,
                 ),
               )
             : emptyWidget,
@@ -589,7 +589,7 @@ class TokenLayoutState extends State<TokenLayout>
                   : (isHOTP ? hotpPlaceholderText : placeholderText) *
                       widget.token.digits.digit,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              style: ChewieTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: fontSize,
                     letterSpacing: letterSpacing,
@@ -823,7 +823,7 @@ class TokenLayoutState extends State<TokenLayout>
                                 widget.token.account,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall,
+                                style: ChewieTheme.bodySmall,
                               ),
                             ],
                           ),
@@ -847,7 +847,7 @@ class TokenLayoutState extends State<TokenLayout>
                             icon: Icon(
                               LucideIcons.ellipsisVertical,
                               color:
-                                  Theme.of(context).textTheme.labelSmall?.color,
+                                  ChewieTheme.labelSmall?.color,
                               size: 20,
                             ),
                             onTap: showContextMenu,
@@ -918,7 +918,7 @@ class TokenLayoutState extends State<TokenLayout>
                             widget.token.account,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: ChewieTheme.bodySmall,
                           ),
                         Container(
                           constraints: const BoxConstraints(

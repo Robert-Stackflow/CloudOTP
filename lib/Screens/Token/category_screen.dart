@@ -186,7 +186,7 @@ class _CategoryScreenState extends State<CategoryScreen>
           Expanded(
             child: Text(
               category.title,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: ChewieTheme.titleMedium,
             ),
           ),
           CircleIconButton(

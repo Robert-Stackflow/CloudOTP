@@ -1,17 +1,16 @@
+import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Utils/General/string_util.dart';
+import 'package:awesome_chewie/src/Widgets/Component/Notification/floating_notification.dart';
 import 'package:awesome_chewie/src/Widgets/Component/Notification/notification_manager.dart';
+import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:smart_snackbars/enums/animate_from.dart';
 import 'package:smart_snackbars/smart_snackbars.dart';
 import 'package:smart_snackbars/widgets/snackbars/base_snackbar.dart';
-
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Widgets/Component/Notification/floating_notification.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
 
 class IToast {
   static FToast? show(
@@ -38,7 +37,7 @@ class IToast {
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: Theme.of(chewieProvider.rootContext).textTheme.bodyMedium,
+            style: ChewieTheme.bodyMedium,
           ),
         ),
         gravity: gravity,
@@ -158,7 +157,7 @@ class IToast {
           const SizedBox(width: 12),
           Text(
             message,
-            style: Theme.of(chewieProvider.rootContext).textTheme.titleMedium,
+            style: ChewieTheme.titleMedium,
           ),
           const Spacer(),
           if (buttonText.notNullOrEmpty)
@@ -189,8 +188,7 @@ class IToast {
         width: 20,
         height: 20,
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation(
-              Theme.of(chewieProvider.rootContext).textTheme.titleLarge?.color),
+          valueColor: AlwaysStoppedAnimation(ChewieTheme.titleLarge.color),
           strokeWidth: 3,
           strokeCap: StrokeCap.round,
         ),

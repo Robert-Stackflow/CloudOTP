@@ -100,7 +100,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
               const SizedBox(height: 50),
               Text(
                 _notifier.gestureText,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: ChewieTheme.titleMedium,
               ),
               const SizedBox(height: 30),
               GestureUnlockIndicator(

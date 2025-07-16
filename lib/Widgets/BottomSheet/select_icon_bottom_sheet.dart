@@ -151,7 +151,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
         },
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         textStyle:
-            Theme.of(context).textTheme.titleSmall?.apply(fontSizeDelta: 1),
+            ChewieTheme.titleSmall?.apply(fontSizeDelta: 1),
       ),
       itemCount: icons.length,
     );
@@ -166,7 +166,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
         widget.token.issuer.isNotEmpty
             ? S.current.setIconForTokenDetail(widget.token.issuer)
             : S.current.setIconForToken,
-        style: Theme.of(context).textTheme.titleLarge,
+        style: ChewieTheme.titleLarge,
       ),
     );
   }

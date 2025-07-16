@@ -49,11 +49,7 @@ class ImportFromThirdPartyBottomSheetState
         showBack: !ResponsiveUtil.isLandscape(),
         titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
         onTapBack: () {
-          if (ResponsiveUtil.isLandscape()) {
-            chewieProvider.dialogNavigatorState?.popPage();
-          } else {
-            Navigator.pop(context);
-          }
+          DialogNavigatorHelper.responsivePopPage();
         },
         title: S.current.importFromThirdParty,
         actions: ResponsiveUtil.isLandscape()
@@ -90,7 +86,7 @@ class ImportFromThirdPartyBottomSheetState
           onImport: (path) {
             if (ResponsiveUtil.isMobile()) {
               BottomSheetBuilder.showBottomSheet(
-                chewieProvider.rootContext,
+                context,
                 enableDrag: false,
                 responsive: true,
                 (context) => const AddBottomSheet(onlyShowScanner: true),
@@ -284,12 +280,12 @@ class ImportFromThirdPartyBottomSheetState
                     AutoSizeText(
                       title,
                       maxLines: 1,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     const SizedBox(height: 3),
                     Text(
                       description,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),

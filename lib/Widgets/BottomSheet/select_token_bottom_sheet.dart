@@ -110,7 +110,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
       child: Text(
         textAlign: TextAlign.center,
         S.current.setTokenForCategory(widget.category.title),
-        style: Theme.of(context).textTheme.titleLarge,
+        style: ChewieTheme.titleLarge,
       ),
     );
   }

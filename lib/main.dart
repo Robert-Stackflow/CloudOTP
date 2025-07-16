@@ -69,7 +69,8 @@ Future<void> runMyApp(List<String> args) async {
       showWindowTitle: true,
     );
   } else {
-    home = AppShortcuts(child: MainScreen(key: mainScreenKey));
+    home = AppShortcuts(child: Consumer<AppProvider>(
+        builder: (context, provider, child) =>MainScreen(key: mainScreenKey)));
   }
   runApp(MyApp(home: home));
   FlutterNativeSplash.remove();
@@ -226,7 +227,6 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AppProvider>(
         builder: (context, appProvider, child) => MaterialApp(
-          navigatorKey: chewieProvider.globalNavigatorKey,
           navigatorObservers: [chewieProvider.routeObserver],
           title: title,
           themeMode: appProvider.themeMode.themeMode,
@@ -263,6 +263,7 @@ class MyApp extends StatelessWidget {
           },
           home: CustomMouseRegion(child: home),
           builder: (context, widget) {
+            chewieProvider.initRootContext(context);
             return Overlay(
               initialEntries: [
                 if (widget != null) ...[

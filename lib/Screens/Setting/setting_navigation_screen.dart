@@ -14,13 +14,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../Utils/app_provider.dart';
-
-class SettingNavigationItem {
-  final String title;
-  final IconData icon;
-
-  const SettingNavigationItem({required this.title, required this.icon});
-}
+import '../../Widgets/cloudotp/navigation_bar.dart';
 
 class SettingNavigationScreen extends StatefulWidget {
   final int initPageIndex;
@@ -43,7 +37,21 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   final SearchConfig _searchConfig = SearchConfig();
   Timer? _debounceTimer;
 
-  List<SettingNavigationItem> _navigationItems = [];
+  List<SettingNavigationItem> _navigationItems = [
+    SettingNavigationItem(
+        title: () => S.current.generalSetting, icon: LucideIcons.settings2),
+    SettingNavigationItem(
+        title: () => S.current.appearanceSetting,
+        icon: LucideIcons.paintbrushVertical),
+    SettingNavigationItem(
+        title: () => S.current.operationSetting, icon: LucideIcons.pointer),
+    SettingNavigationItem(
+        title: () => S.current.backupSetting, icon: LucideIcons.cloudUpload),
+    SettingNavigationItem(
+        title: () => S.current.safeSetting, icon: LucideIcons.shieldCheck),
+    SettingNavigationItem(
+        title: () => S.current.about, icon: LucideIcons.info),
+  ];
 
   final List<Widget?> _pageCache = List.filled(8, null);
 
@@ -134,20 +142,6 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    _navigationItems = [
-      SettingNavigationItem(
-          title: S.current.generalSetting, icon: LucideIcons.settings2),
-      SettingNavigationItem(
-          title: S.current.appearanceSetting,
-          icon: LucideIcons.paintbrushVertical),
-      SettingNavigationItem(
-          title: S.current.operationSetting, icon: LucideIcons.pointer),
-      SettingNavigationItem(
-          title: S.current.backupSetting, icon: LucideIcons.cloudUpload),
-      SettingNavigationItem(
-          title: S.current.safeSetting, icon: LucideIcons.shieldCheck),
-      SettingNavigationItem(title: S.current.about, icon: LucideIcons.info),
-    ];
     return Consumer<AppProvider>(
       builder: (context, provider, child) => Scaffold(
         appBar: ResponsiveAppBar(
@@ -157,33 +151,14 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
         ),
         body: Row(
           children: [
-            Container(
-              width: 144,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: ChewieTheme.canvasColor,
-                border: ChewieTheme.rightDivider,
-              ),
-              child: ListView.builder(
-                itemCount: _navigationItems.length,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                itemBuilder: (context, index) {
-                  final item = _navigationItems[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 4),
-                    child: SettingNavigationItemWidget(
-                      title: item.title,
-                      icon: item.icon,
-                      selected: index == _selectedIndex,
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
+            MyNavigationBar(
+              items: _navigationItems,
+              selectedIndex: _selectedIndex,
+              onSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
             ),
             Expanded(
               child: Column(
@@ -264,53 +239,6 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
           },
         )
       ],
-    );
-  }
-}
-
-class SettingNavigationItemWidget extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const SettingNavigationItemWidget({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = selected ? ChewieTheme.primaryColor : Colors.transparent;
-    final textColor = selected ? ChewieTheme.primaryButtonColor : null;
-
-    return PressableAnimation(
-      onTap: onTap,
-      child: InkAnimation(
-        color: bgColor,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            children: [
-              // Icon(icon, color: textColor),
-              // const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: ChewieTheme.bodyMedium.copyWith(
-                    color: textColor,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

@@ -265,7 +265,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       children: [
         const Spacer(),
         Text(S.current.decryptDatabasePassword,
-            style: Theme.of(context).textTheme.titleLarge),
+            style: ChewieTheme.titleLarge),
         const SizedBox(height: 30),
         Container(
           constraints: const BoxConstraints(maxWidth: 400),
@@ -344,7 +344,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           child: Text(
             S.current.loadSqlcipherFailed,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: ChewieTheme.titleLarge,
           ),
         ),
         const SizedBox(height: 30),
@@ -354,7 +354,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
             child: Text(
               S.current.loadSqlcipherFailedMessage,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: ChewieTheme.titleMedium,
             ),
           ),
         ),

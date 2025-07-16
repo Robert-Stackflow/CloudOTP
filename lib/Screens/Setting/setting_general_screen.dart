@@ -61,6 +61,9 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   String _cacheSize = "";
   String _logSize = "";
   bool inAppBrowser = ChewieHiveUtil.getBool(ChewieHiveUtil.inappWebviewKey);
+  Locale? _lastLocale;
+
+  late SelectionItemModel<int> _currentTrayOption;
 
   @override
   void initState() {
@@ -69,6 +72,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
     fetchReleases(false);
     getLogSize();
     filterLocale();
+    _currentTrayOption = getTrayOption();
   }
 
   refreshLauchAtStartup() {
@@ -76,6 +80,17 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
       launchAtStartup =
           ChewieHiveUtil.getBool(ChewieHiveUtil.launchAtStartupKey);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLocale = Localizations.localeOf(context);
+    if (_lastLocale != currentLocale) {
+      _lastLocale = currentLocale;
+      _currentTrayOption = getTrayOption();
+      setState(() {});
+    }
   }
 
   @override
@@ -245,11 +260,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
               SelectionItemModel(S.current.exitApp, 1),
             ],
             hint: S.current.chooseCloseWindowOption,
-            selected: SelectionItemModel(
-                enableMinimizeToTray
-                    ? S.current.minimizeToTray
-                    : S.current.exitApp,
-                enableMinimizeToTray ? 0 : 1),
+            selected: _currentTrayOption,
             onChanged: (item) {
               if (item?.value == 0) {
                 setState(() {
@@ -281,6 +292,13 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           },
         ),
       ],
+    );
+  }
+
+  SelectionItemModel<int> getTrayOption() {
+    return SelectionItemModel(
+      enableMinimizeToTray ? S.current.minimizeToTray : S.current.exitApp,
+      enableMinimizeToTray ? 0 : 1,
     );
   }
 

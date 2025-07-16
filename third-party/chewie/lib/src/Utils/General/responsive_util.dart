@@ -1,15 +1,14 @@
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:shell_executor/shell_executor.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:restart_app/restart_app.dart';
+import 'package:shell_executor/shell_executor.dart';
 import 'package:window_manager/window_manager.dart';
-
-import 'package:awesome_chewie/awesome_chewie.dart';
 
 enum LinuxOSType {
   Gnome,
@@ -32,6 +31,7 @@ class ResponsiveUtil {
   static String packageName = "";
   static String deviceName = "";
   static String deviceDescription = "";
+  static const buildType = String.fromEnvironment('BUILD_TYPE');
 
   static String get platformName {
     if (Platform.isAndroid) {
@@ -46,6 +46,20 @@ class ResponsiveUtil {
       return "Linux";
     } else {
       return "Unknown";
+    }
+  }
+
+  static bool isAppBundle() {
+    ILogger.debug("BUILD_TYPE is $buildType");
+    if (Platform.isAndroid) {
+      if (buildType == 'appbundle') {
+        ILogger.debug("Building appbundle for google play store");
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 

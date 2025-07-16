@@ -77,6 +77,7 @@ export 'src/Widgets/Custom/marquee_widget.dart';
 export 'src/Widgets/Custom/mouse_state_builder.dart';
 export 'src/Widgets/Custom/multi_tappable.dart';
 export 'src/Widgets/Custom/no_shadow_scroll_behavior.dart';
+export 'src/Widgets/Dialog/widgets/dialog_navigator_helper.dart';
 export 'src/Widgets/Dialog/animations.dart';
 export 'src/Widgets/Dialog/colors.dart';
 export 'src/Widgets/Dialog/custom_dialog.dart';

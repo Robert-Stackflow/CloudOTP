@@ -122,7 +122,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
         widget.token.issuer.isNotEmpty
             ? S.current.setCategoryForTokenDetail(widget.token.issuer)
             : S.current.setCategoryForToken,
-        style: Theme.of(context).textTheme.titleLarge,
+        style: ChewieTheme.titleLarge,
       ),
     );
   }

@@ -44,11 +44,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
       showBack: true,
       padding: widget.padding,
       onTapBack: () {
-        if (ResponsiveUtil.isLandscape()) {
-          chewieProvider.dialogNavigatorState?.popPage();
-        } else {
-          Navigator.pop(context);
-        }
+        DialogNavigatorHelper.responsivePopPage();
       },
       children: [
         CaptionItem(

@@ -26,6 +26,7 @@ class EntryItem extends SearchableStatefulWidget {
   final bool dividerPadding;
   final IconData trailing;
   final double tipWidth;
+  final double minTipWidth;
   final Widget? tipWidget;
   final bool ink;
 
@@ -48,7 +49,8 @@ class EntryItem extends SearchableStatefulWidget {
     this.trailingLeftMargin = 5,
     this.dividerPadding = true,
     this.trailing = LucideIcons.chevronRight,
-    this.tipWidth = 80,
+    this.tipWidth = 140,
+    this.minTipWidth = 80,
     this.tipWidget,
     this.ink = true,
     required super.title,
@@ -185,9 +187,15 @@ class EntryItemState extends SearchableState<EntryItem> {
   Widget _buildTipWidget() {
     return widget.tip.isNotEmpty
         ? Container(
-            constraints: const BoxConstraints(minWidth: 100),
+            constraints: BoxConstraints(
+              minWidth: widget.minTipWidth,
+              maxWidth: widget.description.isNotEmpty
+                  ? widget.tipWidth
+                  : widget.tipWidth + 40,
+            ),
             child: RoundIconTextButton(
-              height: 32,
+              height: null,
+              minHeight: 32,
               onPressed: widget.onTap,
               text: widget.tip,
               textStyle: ChewieTheme.bodyMedium
@@ -199,6 +207,7 @@ class EntryItemState extends SearchableState<EntryItem> {
           )
         : RoundIconTextButton(
             height: 32,
+            minHeight: 32,
             onPressed: widget.onTap,
             icon: Icon(
               widget.trailing,
@@ -214,6 +223,7 @@ class EntryItemState extends SearchableState<EntryItem> {
   Widget _buildCustomTipWidget() {
     return Container(
       constraints: BoxConstraints(
+        minWidth: widget.minTipWidth,
         maxWidth: widget.description.isNotEmpty
             ? widget.tipWidth
             : widget.tipWidth + 40,

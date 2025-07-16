@@ -314,7 +314,7 @@ class ShortcutsUtil {
         callbackOnHide: () {},
         title: Text(
           S.current.shortcut,
-          style: Theme.of(chewieProvider.rootContext).textTheme.titleLarge,
+          style: ChewieTheme.titleLarge,
         ),
       ),
     );

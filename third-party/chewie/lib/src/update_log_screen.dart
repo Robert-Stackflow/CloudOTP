@@ -88,7 +88,7 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
               showBack: true,
               onTapBack: () {
                 if (ResponsiveUtil.isLandscape()) {
-                  chewieProvider.dialogNavigatorState?.popPage();
+                  DialogNavigatorHelper.popPage();
                 } else {
                   Navigator.pop(context);
                 }

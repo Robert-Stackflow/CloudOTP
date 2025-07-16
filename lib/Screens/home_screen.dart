@@ -78,6 +78,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   late AnimationController _animationController;
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
+  Locale? _lastLocale;
 
   bool get hasSearchFocus => appProvider.searchFocusNode.hasFocus;
 
@@ -266,6 +267,16 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLocale = Localizations.localeOf(context);
+    if (_lastLocale != currentLocale) {
+      _lastLocale = currentLocale;
+      initTab();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MyScaffold(
       resizeToAvoidBottomInset: false,
@@ -360,7 +371,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       heroTag: "Hero-${categories.length}",
       onPressed: () {
         BottomSheetBuilder.showBottomSheet(
-          chewieProvider.rootContext,
+          context,
           enableDrag: false,
           responsive: true,
           (context) => AddBottomSheet(
@@ -399,8 +410,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   appProvider.autoBackupLoadingStatus,
               builder: (context, autoBackupLoadingStatus, child) => LoadingIcon(
                 status: autoBackupLoadingStatus,
-                normalIcon: Icon(Icons.history_rounded,
-                    color: ChewieTheme.iconColor),
+                normalIcon:
+                    Icon(Icons.history_rounded, color: ChewieTheme.iconColor),
               ),
             ),
             onTap: () {
@@ -519,10 +530,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                       },
                       child: Text(
                         ResponsiveUtil.appName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .apply(fontWeightDelta: 2),
+                        style:
+                            ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
                       ),
                     ),
                   );
@@ -701,7 +710,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(chewieProvider.rootContext).shadowColor,
+                      color: ChewieTheme.shadowColor,
                       offset: const Offset(0, 4),
                       blurRadius: 10,
                       spreadRadius: 1,
@@ -750,10 +759,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       padding: padding,
       tabAlignment: TabAlignment.start,
       physics: const ClampingScrollPhysics(),
-      labelStyle:
-          Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
-      unselectedLabelStyle:
-          Theme.of(context).textTheme.titleMedium?.apply(color: Colors.grey),
+      labelStyle: ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
+      unselectedLabelStyle: ChewieTheme.titleMedium?.apply(color: Colors.grey),
       indicator: UnderlinedTabIndicator(
         borderColor: ChewieTheme.primaryColor,
       ),
@@ -771,19 +778,6 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   _buildTab(TokenCategory? category) {
-    // {
-    // bool normalUserBold = false,
-    // bool sameFontSize = false,
-    // double fontSizeDelta = 0,
-    // }) {
-    // TextStyle normalStyle = Theme.of(context).textTheme.titleLarge!.apply(
-    //       color: Colors.grey,
-    //       fontSizeDelta: fontSizeDelta - (sameFontSize ? 0 : 1),
-    //       fontWeightDelta: normalUserBold ? 0 : -2,
-    //     );
-    // TextStyle selectedStyle = Theme.of(context).textTheme.titleLarge!.apply(
-    //       fontSizeDelta: fontSizeDelta + (sameFontSize ? 0 : 1),
-    //     );
     return Tab(
       child: ContextMenuRegion(
         contextMenu: _buildTabContextMenuButtons(category),
@@ -798,19 +792,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
               );
             }
           },
-          // child: AnimatedDefaultTextStyle(
-          //   style: (category == null
-          //           ? _currentTabIndex == 0
-          //           : currentCategoryId == category.id)
-          //       ? selectedStyle
-          //       : normalStyle,
-          //   duration: const Duration(milliseconds: 100),
-          //   child: Container(
-          //     alignment: Alignment.center,
-          child: Text(category?.title ?? S.current.allTokens),
+          child: Text(category?.title ?? (() => S.current.allTokens)()),
         ),
-        // ),
-        // ),
       ),
     );
   }
@@ -908,6 +891,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         entries: [
           FlutterContextMenuItem(
             S.current.addCategory,
+            iconData: LucideIcons.plus,
             onPressed: () {
               addCategory(context);
             },
@@ -917,23 +901,36 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     }
     return FlutterContextMenu(
       entries: [
-        FlutterContextMenuItem(S.current.editCategoryName, onPressed: () {
-          processEditCategory(category);
-        }),
-        FlutterContextMenuItem(S.current.editCategoryTokens, onPressed: () {
-          BottomSheetBuilder.showBottomSheet(
-            context,
-            responsive: true,
-            (context) => SelectTokenBottomSheet(category: category),
-          );
-        }),
+        FlutterContextMenuItem(
+          S.current.editCategoryName,
+          iconData: LucideIcons.pencilLine,
+          onPressed: () {
+            processEditCategory(category);
+          },
+        ),
+        FlutterContextMenuItem(
+          S.current.editCategoryTokens,
+          iconData: LucideIcons.coins,
+          onPressed: () {
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              responsive: true,
+              (context) => SelectTokenBottomSheet(category: category),
+            );
+          },
+        ),
         FlutterContextMenuItem.divider(),
-        FlutterContextMenuItem(S.current.addCategory, onPressed: () {
-          addCategory(context);
-        }),
+        FlutterContextMenuItem(
+          S.current.addCategory,
+          iconData: LucideIcons.plus,
+          onPressed: () {
+            addCategory(context);
+          },
+        ),
         FlutterContextMenuItem(
           S.current.deleteCategory,
-          status: MenuItemStatus.warning,
+          iconData: LucideIcons.trash2,
+          status: MenuItemStatus.error,
           onPressed: () {
             DialogBuilder.showConfirmDialog(
               context,

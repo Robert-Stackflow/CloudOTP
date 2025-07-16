@@ -1,9 +1,6 @@
 import 'dart:async';
 
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
-import 'package:awesome_chewie/src/Utils/System/file_util.dart';
-import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
@@ -13,18 +10,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:screen_protector/screen_protector.dart';
 import 'package:window_manager/window_manager.dart';
-
-import 'package:awesome_chewie/src/Api/github_api.dart';
-import 'package:awesome_chewie/src/Models/github_response.dart';
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/dialog_builder.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
-import 'package:awesome_chewie/src/update_screen.dart';
-import 'constant.dart';
-import 'ilogger.dart';
-import 'itoast.dart';
 
 class ChewieUtils {
   static Future<void> setSafeMode(bool enabled) async {
@@ -41,7 +26,7 @@ class ChewieUtils {
     await ScreenProtector.preventScreenshotOn();
     await ScreenProtector.protectDataLeakageOn();
     await ScreenProtector.protectDataLeakageWithColor(
-        Theme.of(chewieProvider.rootContext).scaffoldBackgroundColor);
+        ChewieTheme.scaffoldBackgroundColor);
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }
@@ -171,6 +156,7 @@ class ChewieUtils {
     String userName = "Robert-Stackflow",
     String? repoName,
   }) async {
+    ResponsiveUtil.isAppBundle();
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: ChewieS.current.checkingUpdates);
     }
@@ -212,7 +198,7 @@ class ChewieUtils {
         onUpdate?.call(latestVersion, latestReleaseItem!);
         chewieProvider.latestVersion = latestVersion;
         if (showUpdateDialog && latestReleaseItem != null) {
-          if (ResponsiveUtil.isMobile()) {
+          if (!ResponsiveUtil.isMobile()) {
             DialogBuilder.showConfirmDialog(
               context,
               renderHtml: true,
@@ -226,27 +212,22 @@ class ChewieUtils {
                   : ChewieS.current.goToUpdate,
               cancelButtonText: ChewieS.current.updateLater,
               onTapConfirm: () async {
-                if (ResponsiveUtil.isAndroid()) {
-                  UriUtil.openGooglePlayStore();
+                if (ResponsiveUtil.isAppBundle()) {
+                  UriUtil.launchUri(await UriUtil.getGooglePlayStoreUrl());
                 } else {
                   UriUtil.openExternal(latestReleaseItem!.htmlUrl);
-                  return;
                 }
               },
               onTapCancel: () {},
             );
           } else {
             showDialog(ReleaseItem latestReleaseItem) {
-              GlobalKey<DialogWrapperWidgetState> overrideDialogNavigatorKey =
-                  GlobalKey();
               DialogBuilder.showPageDialog(
                 context,
-                overrideDialogNavigatorKey: overrideDialogNavigatorKey,
                 child: UpdateScreen(
                   currentVersion: currentVersion,
                   latestReleaseItem: latestReleaseItem,
                   latestVersion: latestVersion,
-                  overrideDialogNavigatorKey: overrideDialogNavigatorKey,
                 ),
               );
               ChewieUtils.displayApp();

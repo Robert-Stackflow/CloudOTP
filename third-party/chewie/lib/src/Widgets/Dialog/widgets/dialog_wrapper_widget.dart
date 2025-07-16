@@ -1,13 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Utils/System/route_util.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/window_button.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class DialogWrapperWidget extends StatefulWidget {
@@ -34,15 +29,8 @@ class DialogWrapperWidget extends StatefulWidget {
 
 class DialogWrapperWidgetState extends State<DialogWrapperWidget>
     with SingleTickerProviderStateMixin {
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-
-  NavigatorState? get _navigatorState => _navigatorKey.currentState;
-
-  NavigatorState? get navigatorState => _navigatorState;
-
   bool canNavigatorPop = true;
 
-  // 动画控制器
   late AnimationController _shakingController;
   late Animation<double> _shakingAnimation;
 
@@ -85,22 +73,6 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
     }
   }
 
-  pushPage(Widget page) {
-    _navigatorState?.push(RouteUtil.getFadeRoute(page));
-  }
-
-  popAll() {
-    if (mounted) Navigator.pop(context);
-  }
-
-  popPage() {
-    if (_navigatorState!.canPop() && ResponsiveUtil.isLandscape()) {
-      _navigatorState?.pop();
-    } else {
-      if (mounted) Navigator.pop(context);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width - 60;
@@ -130,9 +102,9 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
             onPopInvokedWithResult: (didPop, result) {
               if (didPop) return;
               setState(() {
-                canNavigatorPop = _navigatorState?.canPop() ?? false;
+                canNavigatorPop = DialogNavigatorHelper.canPop();
               });
-              popPage();
+              DialogNavigatorHelper.popPage();
             },
             child: Container(
               color: widget.barrierDismissible ? null : Colors.transparent,
@@ -149,8 +121,6 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
                     borderRadius: borderRadius,
                     boxShadow: ChewieTheme.defaultBoxShadow,
                     border: widget.fullScreen ? null : ChewieTheme.border,
-                    // boxShadow:
-                    //     widget.fullScreen ? null : ChewieTheme.defaultBoxShadow,
                   ),
                   child: ClipRRect(
                     borderRadius: widget.fullScreen
@@ -159,9 +129,15 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
                     child: Stack(
                       children: [
                         Navigator(
-                          key: _navigatorKey,
-                          onGenerateRoute: (settings) =>
-                              RouteUtil.getFadeRoute(widget.child),
+                          key: ValueKey(chewieProvider.themeMode),
+                          onGenerateRoute: (settings) => RouteUtil.getFadeRoute(
+                            Builder(
+                              builder: (context) {
+                                DialogNavigatorHelper.init(context);
+                                return widget.child;
+                              },
+                            ),
+                          ),
                         ),
                         if (widget.showCloseButton)
                           Positioned(
@@ -172,7 +148,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
                               buttonSize: const Size(32, 32),
                               icon: LucideIcons.x,
                               onPressed: () {
-                                popPage();
+                                DialogNavigatorHelper.popPage();
                               },
                             ),
                           ),

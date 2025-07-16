@@ -172,7 +172,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                         ? code
                         : (isHOTP ? hotpPlaceholderText : placeholderText) *
                             widget.token.digits.digit,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: ChewieTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           fontSize: 24,
                           letterSpacing: 10,

@@ -238,11 +238,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           newSelectedCategoryUids,
         );
         if (success) {
-          if (ResponsiveUtil.isLandscape()) {
-            chewieProvider.dialogNavigatorState?.popPage();
-          } else {
-            Navigator.pop(context);
-          }
+          DialogNavigatorHelper.responsivePopPage();
         }
       }
     }
@@ -500,9 +496,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         text: S.current.showAdvancedInfo,
         icon: Icon(
           Icons.keyboard_arrow_down_rounded,
-          color: Theme.of(context).textTheme.bodySmall?.color,
+          color: ChewieTheme.bodySmall?.color,
         ),
-        textStyle: Theme.of(context).textTheme.titleMedium,
+        textStyle: ChewieTheme.titleMedium,
         fontSizeDelta: 2,
         onPressed: () {
           setState(() {
@@ -617,9 +613,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               text: S.current.hideAdvancedInfo,
               icon: Icon(
                 Icons.keyboard_arrow_up_rounded,
-                color: Theme.of(context).textTheme.bodySmall?.color,
+                color: ChewieTheme.bodySmall?.color,
               ),
-              textStyle: Theme.of(context).textTheme.titleMedium,
+              textStyle: ChewieTheme.titleMedium,
               fontSizeDelta: 2,
               onPressed: () {
                 setState(() {
@@ -683,7 +679,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                   message: S.current.deleteTokenMessage(_otpToken.title),
                   onTapConfirm: () async {
                     await TokenDao.deleteToken(_otpToken);
-                    chewieProvider.dialogNavigatorState?.popPage();
+                    DialogNavigatorHelper.responsivePopPage();
                     IToast.showTop(
                         S.current.deleteTokenSuccess(_otpToken.title));
                     homeScreenState?.removeToken(_otpToken);

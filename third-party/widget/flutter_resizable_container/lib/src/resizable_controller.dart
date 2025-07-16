@@ -61,7 +61,6 @@ class ResizableController with ChangeNotifier {
     }
 
     _sizes = sizes;
-    print("updateeeeeee");
     _needsLayout = true;
     notifyListeners();
   }

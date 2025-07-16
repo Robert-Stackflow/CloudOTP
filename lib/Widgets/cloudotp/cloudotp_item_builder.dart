@@ -205,13 +205,13 @@ class CloudOTPItemBuilder {
       text ?? "",
       textAlign: TextAlign.center,
       style: textStyle ??
-          Theme.of(context).textTheme.titleSmall?.apply(
+          ChewieTheme.titleSmall?.apply(
                 color: color ??
                     (background != null
                         ? Colors.white
                         : disabled
                             ? Colors.grey
-                            : Theme.of(context).textTheme.titleSmall?.color),
+                            : ChewieTheme.titleSmall?.color),
                 fontWeightDelta: 2,
                 fontSizeDelta: fontSizeDelta,
               ),
@@ -279,7 +279,7 @@ class QrcodeDialog {
         barrierColor: ChewieTheme.barrierColor,
         barrierDismissible: true,
         barrierLabel: "",
-        context: chewieProvider.rootContext,
+        context: context,
         pageBuilder: (context, animation, secondaryAnimation) =>
             const SizedBox.shrink(),
         transitionBuilder: (context, animation, secondaryAnimation, _) =>

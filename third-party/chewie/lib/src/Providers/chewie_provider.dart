@@ -47,17 +47,16 @@ class ChewieProvider with ChangeNotifier {
 
   RouteObserver routeObserver = RouteObserver();
 
-  GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
+  late BuildContext rootContext;
 
-  NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
+  bool initedRootContext = false;
 
-  BuildContext get rootContext => globalNavigatorState!.context;
-
-  GlobalKey<DialogWrapperWidgetState> dialogNavigatorKey =
-      GlobalKey<DialogWrapperWidgetState>();
-
-  DialogWrapperWidgetState? get dialogNavigatorState =>
-      dialogNavigatorKey.currentState;
+  void initRootContext(BuildContext context) {
+    if (!initedRootContext) {
+      rootContext = context;
+      initedRootContext = true;
+    }
+  }
 
   GlobalKey<BasePanelScreenState> panelScreenKey =
       GlobalKey<BasePanelScreenState>();

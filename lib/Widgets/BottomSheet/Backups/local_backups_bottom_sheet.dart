@@ -100,7 +100,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
         S.current
             .cloudBackupFiles(files.length + defaultPathBackupFiles.length),
         style:
-            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -147,11 +147,11 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                   children: [
                     Text(
                       FileUtil.getFileNameWithExtension(file.path),
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     Text(
                       "$time    $size${isDefaultPath ? "    ${S.current.fromInternalBackupPath}" : ""}",
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),
