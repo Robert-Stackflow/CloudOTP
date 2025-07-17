@@ -105,6 +105,12 @@ class ChewieProvider with ChangeNotifier {
   }
 
   static List<SelectionItemModel<ActiveThemeMode>> getSupportedThemeMode() {
+    final locale = Localizations.localeOf(chewieProvider.rootContext);
+    print("Locale: $locale");
+    ChewieS.load(locale).then((s) {
+      print("followSystem: ${s.followSystem}");
+      print("themePureWhite: ${s.themePureWhite}");
+    });
     return [
       SelectionItemModel(ChewieS.current.followSystem, ActiveThemeMode.system),
       SelectionItemModel(ChewieS.current.lightTheme, ActiveThemeMode.light),

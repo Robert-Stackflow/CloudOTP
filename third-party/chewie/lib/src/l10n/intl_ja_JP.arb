@@ -172,5 +172,11 @@
   "enter": "入る",
   "searchInApp": "アプリ内検索",
   "retry": "再試行",
-  "tenThousand": "万"
+  "tenThousand": "万",
+  "themePureWhite": "ピュアホワイト",
+  "themeSoftLight": "ソフトライト",
+  "themeGitHubLight": "GitHub ライト",
+  "themePureBlack": "ピュアブラック",
+  "themeBlueIron": "ブルーアイアン",
+  "themeGitHubDark": "GitHub ダーク"
 }

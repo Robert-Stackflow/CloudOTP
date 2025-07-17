@@ -63,7 +63,7 @@ class _ThemeItemState extends State<ThemeItem> {
           ),
           const SizedBox(height: 8),
           Text(
-            widget.themeColorData.name,
+            widget.themeColorData.i18nName(context),
             style: ChewieTheme.bodySmall,
           ),
         ],

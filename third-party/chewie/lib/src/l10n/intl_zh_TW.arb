@@ -172,5 +172,11 @@
   "enter": "進入",
   "searchInApp": "應用內搜尋",
   "retry": "重試",
-  "tenThousand": "萬"
+  "tenThousand": "萬",
+  "themePureWhite": "純白",
+  "themeSoftLight": "柔光",
+  "themeGitHubLight": "GitHub 淺色",
+  "themePureBlack": "純黑",
+  "themeBlueIron": "藍鐵",
+  "themeGitHubDark": "GitHub 深色"
 }

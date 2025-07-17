@@ -138,7 +138,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
                 Selector<AppProvider, ChewieThemeColorData>(
               selector: (context, appProvider) => appProvider.darkTheme,
               builder: (context, darkTheme, child) => EntryItem(
-                tip: "${lightTheme.name}/${darkTheme.name}",
+                tip: "${lightTheme.i18nName(context)}/${darkTheme.i18nName(context)}",
                 title: title,
                 searchConfig: searchConfig,
                 searchText: searchText,

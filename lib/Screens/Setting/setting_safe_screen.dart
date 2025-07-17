@@ -104,7 +104,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
           const SizedBox(height: 10),
           TipBanner(message: S.current.databaseNotEncrypted),
         ],
-        if (true) _databaseSettings(),
+        if (DatabaseManager.isDatabaseEncrypted) _databaseSettings(),
         _gestureSettings(),
         if (_autoLockAvailable) _autoLockSettings(),
         if (ResponsiveUtil.isMobile()) _safeModeSettings(),
@@ -156,7 +156,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
       title: S.current.databaseEncryptionSettings,
       children: [
         Visibility(
-          visible: true,
+          visible: DatabaseManager.isDatabaseEncrypted,
           child: EntryItem(
             title: S.current.editEncryptDatabasePassword,
             description: S.current.encryptDatabaseTip,

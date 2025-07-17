@@ -240,8 +240,11 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          locale: appProvider.locale,
-          supportedLocales: S.delegate.supportedLocales,
+          locale: context.watch<AppProvider>().locale,
+          supportedLocales: [
+            ...S.delegate.supportedLocales,
+            ...ChewieS.delegate.supportedLocales,
+          ],
           localeResolutionCallback: (locale, supportedLocales) {
             ILogger.debug("CloudOTP",
                 "Locale: $locale, Supported: $supportedLocales, appProvider.locale: ${appProvider.locale}");
@@ -263,6 +266,7 @@ class MyApp extends StatelessWidget {
           },
           home: CustomMouseRegion(child: home),
           builder: (context, widget) {
+            print(ChewieS.of(context).themePureWhite);
             chewieProvider.initRootContext(context);
             return Overlay(
               initialEntries: [

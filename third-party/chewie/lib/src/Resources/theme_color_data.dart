@@ -15,9 +15,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Resources/colors.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Resources/fonts.dart';
+import '../../awesome_chewie.dart';
 
 class ChewieThemeColorData {
   bool isDarkMode;
@@ -99,6 +97,26 @@ class ChewieThemeColorData {
   Color warningColor;
 
   Color errorColor;
+
+  String i18nName(BuildContext context) {
+    switch (id.toLowerCase()) {
+      case 'purewhite':
+        print(ChewieS.of(context).themePureWhite);
+        return ChewieS.of(context).themePureWhite;
+      case 'softlight':
+        return ChewieS.current.themeSoftLight;
+      case 'githublight':
+        return ChewieS.current.themeGitHubLight;
+      case 'pureblack':
+        return ChewieS.current.themePureBlack;
+      case 'blueiron':
+        return ChewieS.current.themeBlueIron;
+      case 'githubdark':
+        return ChewieS.current.themeGitHubDark;
+      default:
+        return name;
+    }
+  }
 
   ChewieThemeColorData({
     this.isDarkMode = false,
