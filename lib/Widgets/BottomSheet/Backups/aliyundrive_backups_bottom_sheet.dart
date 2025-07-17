@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/Cloud/aliyundrive_cloud_service.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class AliyunDriveBackupsBottomSheet extends StatefulWidget {
   const AliyunDriveBackupsBottomSheet({
@@ -39,7 +39,7 @@ class AliyunDriveBackupsBottomSheet extends StatefulWidget {
 }
 
 class AliyunDriveBackupsBottomSheetState
-    extends State<AliyunDriveBackupsBottomSheet> {
+    extends BaseDynamicState<AliyunDriveBackupsBottomSheet> {
   late List<AliyunDriveFileInfo> files;
 
   @override
@@ -91,7 +91,7 @@ class AliyunDriveBackupsBottomSheetState
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(widget.files.length),
+        appLocalizations.cloudBackupFiles(widget.files.length),
         style:
             ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
@@ -154,17 +154,17 @@ class AliyunDriveBackupsBottomSheetState
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.id);
                     setState(() {
                       files.remove(file);
                     });
-                    IToast.showTop(S.current.deleteSuccess);
+                    IToast.showTop(appLocalizations.deleteSuccess);
                   } catch (e, t) {
                     ILogger.error(
                         "Failed to delete backup file from aliyunDrive", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

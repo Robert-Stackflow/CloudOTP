@@ -11,7 +11,7 @@ import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detect
 import 'package:awesome_chewie/src/Widgets/Item/General/responsive_app_bar.dart';
 import 'package:awesome_chewie/src/Widgets/Item/General/selectable_area_wrapper.dart';
 import 'package:awesome_chewie/src/Widgets/Module/EasyRefresh/easy_refresh.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -33,7 +33,7 @@ class UpdateLogScreen extends StatefulWidget {
   State<UpdateLogScreen> createState() => _UpdateLogScreenState();
 }
 
-class _UpdateLogScreenState extends State<UpdateLogScreen>
+class _UpdateLogScreenState extends BaseDynamicState<UpdateLogScreen>
     with TickerProviderStateMixin {
   List<ReleaseItem> releaseItems = [];
   final EasyRefreshController _refreshController = EasyRefreshController();
@@ -60,7 +60,7 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
       showLoading: false,
       showUpdateDialog: false,
       showLatestToast: false,
-      noUpdateToastText: ChewieS.current.failedToGetChangelog,
+      noUpdateToastText: chewieLocalizations.failedToGetChangelog,
       onGetCurrentVersion: (currentVersion) {
         setState(() {
           this.currentVersion = currentVersion;
@@ -84,7 +84,7 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
     return Scaffold(
       appBar: widget.showTitleBar
           ? ResponsiveAppBar(
-              title: ChewieS.current.changelog,
+              title: chewieLocalizations.changelog,
               showBack: true,
               onTapBack: () {
                 if (ResponsiveUtil.isLandscape()) {
@@ -176,7 +176,7 @@ class _UpdateLogScreenState extends State<UpdateLogScreen>
                       if (isCurrent)
                         RoundIconTextButton(
                           height: 20,
-                          text: ChewieS.current.currentVersion,
+                          text: chewieLocalizations.currentVersion,
                           background: ChewieTheme.primaryColor,
                           textStyle: ChewieTheme.labelMedium.apply(
                             color: ChewieTheme.primaryButtonColor,

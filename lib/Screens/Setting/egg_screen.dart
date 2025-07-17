@@ -17,7 +17,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 
 import '../../Utils/lottie_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class EggScreen extends StatefulWidget {
   const EggScreen({super.key});
@@ -28,7 +28,7 @@ class EggScreen extends StatefulWidget {
   State<EggScreen> createState() => _EggScreenState();
 }
 
-class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
+class _EggScreenState extends BaseDynamicState<EggScreen> with TickerProviderStateMixin {
   Widget? celebrateWidget;
   bool _showCelebrate = false;
   late AnimationController _celebrateController;
@@ -116,7 +116,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 10),
                     child: CustomHtmlWidget(
-                      content: S.current.eggEssay,
+                      content: appLocalizations.eggEssay,
                       style: ChewieTheme.bodyLarge,
                     ),
                   ),

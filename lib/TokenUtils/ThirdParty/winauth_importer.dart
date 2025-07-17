@@ -23,7 +23,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../Models/opt_token.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../import_token_util.dart';
 
 class WinauthTokenImporter implements BaseTokenImporter {
@@ -79,19 +79,19 @@ class WinauthTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(S.current.importing, showProgress: false);
+      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
       } else if (FileUtil.getFileExtension(path) == 'txt') {
         var content = file.readAsStringSync();
         List<OtpToken> tokens =
             await ImportTokenUtil.importText(content, showToast: false);
         await import(tokens);
       } else if (FileUtil.getFileExtension(path) == 'zip') {
-        IToast.showTop(S.current.importFromWinauthNotSupportZip);
+        IToast.showTop(appLocalizations.importFromWinauthNotSupportZip);
         return;
         var bytes = file.readAsBytesSync();
         if (showLoading) dialog.dismiss();
@@ -100,10 +100,10 @@ class WinauthTokenImporter implements BaseTokenImporter {
           listen: false,
           validator: (text) async {
             if (text.isEmpty) {
-              return S.current.autoBackupPasswordCannotBeEmpty;
+              return appLocalizations.autoBackupPasswordCannotBeEmpty;
             }
             if (showLoading) {
-              dialog.show(msg: S.current.importing, showProgress: false);
+              dialog.show(msg: appLocalizations.importing, showProgress: false);
             }
             var res = await compute(
               (receiveMessage) {
@@ -128,12 +128,12 @@ class WinauthTokenImporter implements BaseTokenImporter {
               if (showLoading) {
                 dialog.dismiss();
               }
-              return S.current.noFileInZip;
+              return appLocalizations.noFileInZip;
             } else {
               if (showLoading) {
                 dialog.dismiss();
               }
-              return S.current.invalidPasswordOrDataCorrupted;
+              return appLocalizations.invalidPasswordOrDataCorrupted;
             }
           },
           controller: TextEditingController(),
@@ -145,15 +145,15 @@ class WinauthTokenImporter implements BaseTokenImporter {
           (context) => InputBottomSheet(
             validator: (value) {
               if (value.isEmpty) {
-                return S.current.autoBackupPasswordCannotBeEmpty;
+                return appLocalizations.autoBackupPasswordCannotBeEmpty;
               }
               return null;
             },
             checkSyncValidator: false,
             validateAsyncController: validateAsyncController,
-            title: S.current.inputImportPasswordTitle,
-            message: S.current.inputImportPasswordTip,
-            hint: S.current.inputImportPasswordHint,
+            title: appLocalizations.inputImportPasswordTitle,
+            message: appLocalizations.inputImportPasswordTip,
+            hint: appLocalizations.inputImportPasswordHint,
             inputFormatters: [
               RegexInputFormatter.onlyNumberAndLetterAndSymbol,
             ],
@@ -166,7 +166,7 @@ class WinauthTokenImporter implements BaseTokenImporter {
       }
     } catch (e, t) {
       ILogger.error("Failed to import from Winauth", e, t);
-      IToast.showTop(S.current.importFailed);
+      IToast.showTop(appLocalizations.importFailed);
     } finally {
       if (showLoading) {
         dialog.dismiss();

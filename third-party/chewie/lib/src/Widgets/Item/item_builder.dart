@@ -13,7 +13,7 @@ import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detect
 import 'package:awesome_chewie/src/Widgets/Module/EasyRefresh/easy_refresh.dart';
 import 'package:awesome_chewie/src/Widgets/Selectable/my_context_menu_item.dart';
 import 'package:awesome_chewie/src/Widgets/Selectable/my_selection_toolbar.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:group_button/group_button.dart';
 
@@ -178,7 +178,7 @@ class ItemBuilder {
               chewieProvider.loadingWidgetBuilder(size, forceDark),
               if (showText) const SizedBox(height: 10),
               if (showText)
-                Text(text ?? ChewieS.current.loading,
+                Text(text ?? chewieLocalizations.loading,
                     style: ChewieTheme.labelLarge),
               SizedBox(height: bottomPadding),
             ],
@@ -279,16 +279,16 @@ class ItemBuilder {
     required BuildContext context,
   }) {
     Map<ContextMenuButtonType, String> typeToString = {
-      ContextMenuButtonType.copy: ChewieS.current.copy,
-      ContextMenuButtonType.cut: ChewieS.current.cut,
-      ContextMenuButtonType.paste: ChewieS.current.paste,
-      ContextMenuButtonType.selectAll: ChewieS.current.selectAll,
-      ContextMenuButtonType.searchWeb: ChewieS.current.search,
-      ContextMenuButtonType.share: ChewieS.current.share,
-      ContextMenuButtonType.lookUp: ChewieS.current.search,
-      ContextMenuButtonType.delete: ChewieS.current.delete,
-      ContextMenuButtonType.liveTextInput: ChewieS.current.input,
-      ContextMenuButtonType.custom: ChewieS.current.custom,
+      ContextMenuButtonType.copy: chewieLocalizations.copy,
+      ContextMenuButtonType.cut: chewieLocalizations.cut,
+      ContextMenuButtonType.paste: chewieLocalizations.paste,
+      ContextMenuButtonType.selectAll: chewieLocalizations.selectAll,
+      ContextMenuButtonType.searchWeb: chewieLocalizations.search,
+      ContextMenuButtonType.share: chewieLocalizations.share,
+      ContextMenuButtonType.lookUp: chewieLocalizations.search,
+      ContextMenuButtonType.delete: chewieLocalizations.delete,
+      ContextMenuButtonType.liveTextInput: chewieLocalizations.input,
+      ContextMenuButtonType.custom: chewieLocalizations.custom,
     };
     List<MyContextMenuItem> items = [];
     // int start = details.textEditingValue.selection.start <= -1

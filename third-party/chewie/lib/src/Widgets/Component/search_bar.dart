@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Tile/input_item.dart';
 import 'package:awesome_chewie/src/Widgets/Item/item_builder.dart';
@@ -116,7 +116,7 @@ class MySearchBarState extends State<MySearchBar> {
             background: ChewieTheme.canvasColor,
             border: ChewieTheme.borderWithWidth(1),
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            tooltip: ChewieS.current.search,
+            tooltip: chewieLocalizations.search,
             icon: Icon(
               LucideIcons.search,
               color: ChewieTheme.iconColor,

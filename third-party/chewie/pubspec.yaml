@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   # 控件
   fluttertoast: ^8.2.12
   flutter_animate: ^4.5.2
@@ -61,7 +63,6 @@ dependencies:
   flutter_inappwebview: 6.0.0
   # 工具
   intl: ^0.19.0
-  intl_utils: ^2.8.7
   html: ^0.15.5+1
   uuid: ^4.4.2
   tuple: ^2.0.0
@@ -80,7 +81,7 @@ dependencies:
   local_notifier: ^0.1.6
   flutter_local_notifications: ^17.2.1+2
   screen_protector: ^1.4.2+1
-  shell_executor: ^0.1.6 # 执行命令
+  shell_executor: ^0.1.6
 
 dependency_overrides:
   webview_flutter_android: 3.16.1
@@ -92,9 +93,5 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   json_serializable: ^6.7.1
 
-flutter_intl:
-  enabled: true
-  class_name: ChewieS
-  main_locale: en
-  arb_dir: lib/src/l10n
-  output_dir: lib/src/generated
+flutter:
+  generate: true

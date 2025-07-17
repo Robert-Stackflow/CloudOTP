@@ -41,7 +41,7 @@ import '../Utils/hive_util.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/import_from_third_party_bottom_sheet.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'Backup/cloud_service_screen.dart';
 import 'Lock/pin_verify_screen.dart';
 import 'Setting/backup_log_screen.dart';
@@ -61,7 +61,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => MainScreenState();
 }
 
-class MainScreenState extends State<MainScreen>
+class MainScreenState extends BaseDynamicState<MainScreen>
     with
         WidgetsBindingObserver,
         TickerProviderStateMixin,
@@ -321,63 +321,63 @@ class MainScreenState extends State<MainScreen>
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem.checkbox(
-          S.current.defaultOrder,
+          appLocalizations.defaultOrder,
           checked: homeScreenState?.orderType == OrderType.Default,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.Default);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.alphabeticalASCOrder,
+          appLocalizations.alphabeticalASCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.AlphabeticalASC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.alphabeticalDESCOrder,
+          appLocalizations.alphabeticalDESCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.AlphabeticalDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.copyTimesDESCOrder,
+          appLocalizations.copyTimesDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CopyTimesDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.copyTimesASCOrder,
+          appLocalizations.copyTimesASCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CopyTimesASC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.lastCopyTimeDESCOrder,
+          appLocalizations.lastCopyTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.lastCopyTimeASCOrder,
+          appLocalizations.lastCopyTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeASC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.createTimeDESCOrder,
+          appLocalizations.createTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CreateTimeDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.createTimeASCOrder,
+          appLocalizations.createTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CreateTimeASC);
@@ -391,35 +391,35 @@ class MainScreenState extends State<MainScreen>
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem.checkbox(
-          S.current.simpleLayoutType,
+          appLocalizations.simpleLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Simple,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.Simple);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.compactLayoutType,
+          appLocalizations.compactLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Compact,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.Compact);
           },
         ),
         // ContextMenuButtonConfig.checkbox(
-        //   S.current.tileLayoutType,
+        //   appLocalizations.tileLayoutType,
         //   checked: homeScreenState?.layoutType == LayoutType.Tile,
         //   onPressed: () {
         //     homeScreenState?.changeLayoutType(LayoutType.Tile);
         //   },
         // ),
         FlutterContextMenuItem.checkbox(
-          S.current.listLayoutType,
+          appLocalizations.listLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.List,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.List);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.spotlightLayoutType,
+          appLocalizations.spotlightLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Spotlight,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.Spotlight);
@@ -433,7 +433,7 @@ class MainScreenState extends State<MainScreen>
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem(
-          S.current.scanFromImageFile,
+          appLocalizations.scanFromImageFile,
           iconData: LucideIcons.fileImage,
           onPressed: () async {
             FilePickerResult? result = await FileUtil.pickFiles(
@@ -448,7 +448,7 @@ class MainScreenState extends State<MainScreen>
           },
         ),
         FlutterContextMenuItem(
-          S.current.scanFromClipboard,
+          appLocalizations.scanFromClipboard,
           iconData: LucideIcons.clipboardList,
           onPressed: () {
             ScreenCapturerPlatform.instance
@@ -457,28 +457,28 @@ class MainScreenState extends State<MainScreen>
               if (value != null) {
                 ImportTokenUtil.analyzeImage(value, context: context);
               } else {
-                IToast.showTop(S.current.clipboardNoImage);
+                IToast.showTop(appLocalizations.clipboardNoImage);
               }
             });
           },
         ),
         FlutterContextMenuItem.divider(),
         FlutterContextMenuItem(
-          S.current.scanFromRegionCapture,
+          appLocalizations.scanFromRegionCapture,
           iconData: LucideIcons.scanQrCode,
           onPressed: () async {
             await capture(CaptureMode.region);
           },
         ),
         FlutterContextMenuItem(
-          S.current.scanFromWindowCapture,
+          appLocalizations.scanFromWindowCapture,
           iconData: LucideIcons.scanSearch,
           onPressed: () async {
             await capture(CaptureMode.window);
           },
         ),
         FlutterContextMenuItem(
-          S.current.scanFromScreenCapture,
+          appLocalizations.scanFromScreenCapture,
           iconData: LucideIcons.fullscreen,
           onPressed: () async {
             await capture(CaptureMode.screen);
@@ -505,7 +505,7 @@ class MainScreenState extends State<MainScreen>
         silent: true,
       );
       windowManager.restore();
-      CustomLoadingDialog.showLoading(title: S.current.analyzing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.analyzing);
       Uint8List? imageBytes = capturedData?.imageBytes;
       File file = File(imagePath);
       if (imageBytes == null) {
@@ -528,7 +528,7 @@ class MainScreenState extends State<MainScreen>
         }
       }
       if (imageBytes == null) {
-        IToast.showTop(S.current.captureFailed);
+        IToast.showTop(appLocalizations.captureFailed);
         CustomLoadingDialog.dismissLoading();
         return;
       }
@@ -547,7 +547,7 @@ class MainScreenState extends State<MainScreen>
         if (ResponsiveUtil.isLinux()) {
           LinuxOSType osType = ResponsiveUtil.getLinuxOSType();
           IToast.showTop(
-              S.current.captureFailedNoProcess(osType.captureProcessName));
+              appLocalizations.captureFailedNoProcess(osType.captureProcessName));
         }
       }
     }
@@ -582,7 +582,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 8),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.addToken,
+                  tooltip: appLocalizations.addToken,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
                   iconSize: 22,
@@ -595,7 +595,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.category,
+                  tooltip: appLocalizations.category,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
                   iconSize: 22,
@@ -610,7 +610,7 @@ class MainScreenState extends State<MainScreen>
                 if (!ResponsiveUtil.isLandscapeTablet())
                   ToolButton(
                     context: context,
-                    tooltip: S.current.scanToken,
+                    tooltip: appLocalizations.scanToken,
                     tooltipPosition: TooltipPosition.right,
                     padding: const EdgeInsets.all(8),
                     iconSize: 22,
@@ -623,7 +623,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.exportImport,
+                  tooltip: appLocalizations.exportImport,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
                   iconSize: 22,
@@ -638,7 +638,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.importFromThirdParty,
+                  tooltip: appLocalizations.importFromThirdParty,
                   icon: LucideIcons.waypoints,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
@@ -655,7 +655,7 @@ class MainScreenState extends State<MainScreen>
                     provider.showCloudBackupButton)
                   ToolButton(
                     context: context,
-                    tooltip: S.current.cloudBackupServiceSetting,
+                    tooltip: appLocalizations.cloudBackupServiceSetting,
                     icon: LucideIcons.cloudUpload,
                     tooltipPosition: TooltipPosition.right,
                     padding: const EdgeInsets.all(8),
@@ -669,7 +669,7 @@ class MainScreenState extends State<MainScreen>
                 if (provider.showBackupLogButton) ...[
                   ToolButton(
                     context: context,
-                    tooltip: S.current.backupLogs,
+                    tooltip: appLocalizations.backupLogs,
                     tooltipPosition: TooltipPosition.right,
                     iconBuilder: (buttonContext) =>
                         Selector<AppProvider, LoadingStatus>(
@@ -721,7 +721,7 @@ class MainScreenState extends State<MainScreen>
                   const SizedBox(height: 4),
                 ],
                 ToolButton.dynamicButton(
-                  tooltip: S.current.themeMode,
+                  tooltip: appLocalizations.themeMode,
                   iconBuilder: (context, isDark) =>
                       isDark ? LucideIcons.sun : LucideIcons.moon,
                   onTap: changeMode,
@@ -732,7 +732,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.setting,
+                  tooltip: appLocalizations.setting,
                   tooltipPosition: TooltipPosition.right,
                   icon: LucideIcons.bolt,
                   padding: const EdgeInsets.all(8),

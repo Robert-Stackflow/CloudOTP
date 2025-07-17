@@ -20,7 +20,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class QrcodesDialogWidget extends StatefulWidget {
   final List<String> qrcodes;
@@ -42,7 +42,7 @@ class QrcodesDialogWidget extends StatefulWidget {
   QrcodesDialogWidgetState createState() => QrcodesDialogWidgetState();
 }
 
-class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
+class QrcodesDialogWidgetState extends BaseDynamicState<QrcodesDialogWidget> {
   PageController controller = PageController();
   int currentPage = 0;
 
@@ -134,7 +134,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                           errorCorrectLevel: QrErrorCorrectLevel.M,
                           errorBuilder: (context, error, stacktrace) {
                             return Text(
-                              S.current.errorQrCode + error.toString(),
+                              appLocalizations.errorQrCode + error.toString(),
                               textAlign: TextAlign.center,
                             );
                           },
@@ -175,7 +175,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: widget.qrcodes.length == 1
                       ? RoundIconTextButton(
-                          text: S.current.confirm,
+                          text: appLocalizations.confirm,
                           fontSizeDelta: 2,
                           background: ChewieTheme.primaryColor,
                           onPressed: () {
@@ -211,7 +211,7 @@ class QrcodesDialogWidgetState extends State<QrcodesDialogWidget> {
                             ),
                             currentPage == widget.qrcodes.length - 1
                                 ? RoundIconTextButton(
-                                    text: S.current.complete,
+                                    text: appLocalizations.complete,
                                     background: ChewieTheme.primaryColor,
                                     onPressed: () {
                                       Navigator.of(context).pop();

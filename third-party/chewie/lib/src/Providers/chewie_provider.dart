@@ -105,16 +105,10 @@ class ChewieProvider with ChangeNotifier {
   }
 
   static List<SelectionItemModel<ActiveThemeMode>> getSupportedThemeMode() {
-    final locale = Localizations.localeOf(chewieProvider.rootContext);
-    print("Locale: $locale");
-    ChewieS.load(locale).then((s) {
-      print("followSystem: ${s.followSystem}");
-      print("themePureWhite: ${s.themePureWhite}");
-    });
     return [
-      SelectionItemModel(ChewieS.current.followSystem, ActiveThemeMode.system),
-      SelectionItemModel(ChewieS.current.lightTheme, ActiveThemeMode.light),
-      SelectionItemModel(ChewieS.current.darkTheme, ActiveThemeMode.dark),
+      SelectionItemModel(chewieLocalizations.followSystem, ActiveThemeMode.system),
+      SelectionItemModel(chewieLocalizations.lightTheme, ActiveThemeMode.light),
+      SelectionItemModel(chewieLocalizations.darkTheme, ActiveThemeMode.dark),
     ];
   }
 
@@ -145,11 +139,11 @@ class ChewieProvider with ChangeNotifier {
   static String getThemeModeLabel(ActiveThemeMode themeMode) {
     switch (themeMode) {
       case ActiveThemeMode.system:
-        return ChewieS.current.followSystem;
+        return chewieLocalizations.followSystem;
       case ActiveThemeMode.light:
-        return ChewieS.current.lightTheme;
+        return chewieLocalizations.lightTheme;
       case ActiveThemeMode.dark:
-        return ChewieS.current.darkTheme;
+        return chewieLocalizations.darkTheme;
     }
   }
 
@@ -164,7 +158,7 @@ class ChewieProvider with ChangeNotifier {
   }
 }
 
-abstract class BasePanelScreenState<T extends StatefulWidget> extends State<T> {
+abstract class BasePanelScreenState<T extends StatefulWidget> extends BaseDynamicState<T> {
   FutureOr pushPage(Widget page);
 
   FutureOr popPage();

@@ -196,7 +196,7 @@
   "triggerAutoBackupByCategoriesInserted": "新增分類",
   "triggerAutoBackupByCategoryUpdated": "修改分類",
   "triggerAutoBackupByCategoriesUpdated": "修改分類",
-  "triggerAutoBackupByCategoryDe​​leted": "刪除分類",
+  "triggerAutoBackupByCategoryDeleted": "刪除分類",
   "triggerAutoBackupByCategoriesUpdatedForToken": "修改令牌分類",
   "triggerAutoBackupByCloudServiceConfigInserted": "新增雲端服務",
   "triggerAutoBackupByCloudServiceConfigUpdated": "修改雲端服務",

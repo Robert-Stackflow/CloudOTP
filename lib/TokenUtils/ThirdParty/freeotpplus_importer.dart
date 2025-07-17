@@ -25,7 +25,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class TokenInfo {
   String label;
@@ -153,19 +153,19 @@ class FreeOTPPlusTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(S.current.importing, showProgress: false);
+      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
       } else {
         Map<String, dynamic> json = jsonDecode(file.readAsStringSync());
         await import(json);
       }
     } catch (e, t) {
       ILogger.error("Failed to import from FreeOTPPlus", e, t);
-      IToast.showTop(S.current.importFailed);
+      IToast.showTop(appLocalizations.importFailed);
     } finally {
       if (showLoading) {
         dialog.dismiss();

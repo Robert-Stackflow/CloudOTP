@@ -1,15 +1,6 @@
 import 'dart:collection';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
-import 'package:awesome_chewie/src/Utils/constant.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/appbar_wrapper.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
@@ -30,7 +21,7 @@ class WebviewScreen extends StatefulWidget {
   State<WebviewScreen> createState() => _WebviewScreenState();
 }
 
-class _WebviewScreenState extends State<WebviewScreen>
+class _WebviewScreenState extends BaseDynamicState<WebviewScreen>
     with TickerProviderStateMixin {
   InAppWebViewController? webViewController;
   InAppWebViewSettings settings = InAppWebViewSettings(
@@ -65,28 +56,28 @@ class _WebviewScreenState extends State<WebviewScreen>
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem(
-          ChewieS.current.refresh,
+          chewieLocalizations.refresh,
           iconData: Icons.refresh_rounded,
           onPressed: () async {
             webViewController?.reload();
           },
         ),
         FlutterContextMenuItem(
-          ChewieS.current.copyLink,
+          chewieLocalizations.copyLink,
           iconData: Icons.copy_rounded,
           onPressed: () {
             ChewieUtils.copy(context, widget.url);
           },
         ),
         FlutterContextMenuItem(
-          ChewieS.current.openWithBrowser,
+          chewieLocalizations.openWithBrowser,
           iconData: Icons.open_in_browser_rounded,
           onPressed: () {
             UriUtil.openExternal(widget.url);
           },
         ),
         FlutterContextMenuItem(
-          ChewieS.current.shareToOtherApps,
+          chewieLocalizations.shareToOtherApps,
           iconData: Icons.share_rounded,
           onPressed: () {
             UriUtil.share(widget.url);
@@ -152,7 +143,7 @@ class _WebviewScreenState extends State<WebviewScreen>
                     action: PermissionResponseAction.GRANT);
               },
               onDownloadStartRequest: (controller, url) async {
-                IToast.showTop(ChewieS.current.jumpToBrowserDownload);
+                IToast.showTop(chewieLocalizations.jumpToBrowserDownload);
                 Future.delayed(const Duration(milliseconds: 300), () {
                   UriUtil.openExternalUri(url.url);
                 });
@@ -243,14 +234,14 @@ class _WebviewScreenState extends State<WebviewScreen>
               ),
               const SizedBox(height: 10),
               Text(
-                ChewieS.current.loadFailed,
+                chewieLocalizations.loadFailed,
                 style: ChewieTheme.titleMedium,
               ),
               const SizedBox(height: 10),
               Text(
-                ChewieS.current.loadErrorType(currentError != null
+                chewieLocalizations.loadErrorType(currentError != null
                     ? currentError?.type ?? ""
-                    : ChewieS.current.loadUnkownError),
+                    : chewieLocalizations.loadUnkownError),
                 style: ChewieTheme.bodyMedium,
               ),
               const SizedBox(height: 10),
@@ -258,7 +249,7 @@ class _WebviewScreenState extends State<WebviewScreen>
                 width: 180,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 child: RoundIconTextButton(
-                  text: ChewieS.current.reload,
+                  text: chewieLocalizations.reload,
                   onPressed: () {
                     webViewController?.reload();
                   },

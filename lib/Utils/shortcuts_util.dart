@@ -16,6 +16,7 @@
 import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
@@ -25,11 +26,11 @@ import '../Screens/Setting/setting_safe_screen.dart';
 import '../Screens/main_screen.dart';
 import '../Widgets/Shortcuts/app_shortcuts.dart';
 import '../Widgets/Shortcuts/keyboard_widget.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'app_provider.dart';
 import 'hive_util.dart';
 
-typedef LocalizationsProvider = String Function(S);
+typedef LocalizationsProvider = String Function(AppLocalizations);
 
 class LockIntent extends Intent {
   const LockIntent();
@@ -289,9 +290,9 @@ class ShortcutsUtil {
       mainScreenState?.jumpToLock();
     } else {
       IToast.showDesktopNotification(
-        S.current.noGestureLock,
-        body: S.current.noGestureLockTip,
-        actions: [S.current.cancel, S.current.goToSetGestureLock],
+        appLocalizations.noGestureLock,
+        body: appLocalizations.noGestureLockTip,
+        actions: [appLocalizations.cancel, appLocalizations.goToSetGestureLock],
         onClick: () {
           ChewieUtils.displayApp();
           jumpToSetLock(context);
@@ -313,7 +314,7 @@ class ShortcutsUtil {
         bindings: shortcuts,
         callbackOnHide: () {},
         title: Text(
-          S.current.shortcut,
+          appLocalizations.shortcut,
           style: ChewieTheme.titleLarge,
         ),
       ),

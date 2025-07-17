@@ -21,7 +21,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/export_token_util.dart';
 import '../../../Utils/utils.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class LocalBackupsBottomSheet extends StatefulWidget {
   const LocalBackupsBottomSheet({
@@ -35,7 +35,7 @@ class LocalBackupsBottomSheet extends StatefulWidget {
   LocalBackupsBottomSheetState createState() => LocalBackupsBottomSheetState();
 }
 
-class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
+class LocalBackupsBottomSheetState extends BaseDynamicState<LocalBackupsBottomSheet> {
   List<FileSystemEntity> files = const [];
   List<FileSystemEntity> defaultPathBackupFiles = const [];
 
@@ -97,10 +97,9 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current
+        appLocalizations
             .cloudBackupFiles(files.length + defaultPathBackupFiles.length),
-        style:
-            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -150,7 +149,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                       style: ChewieTheme.titleMedium,
                     ),
                     Text(
-                      "$time    $size${isDefaultPath ? "    ${S.current.fromInternalBackupPath}" : ""}",
+                      "$time    $size${isDefaultPath ? "    ${appLocalizations.fromInternalBackupPath}" : ""}",
                       style: ChewieTheme.bodySmall,
                     ),
                   ],
@@ -168,17 +167,18 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await file.delete();
                     setState(() {
                       files.remove(file);
                     });
-                    IToast.showTop(S.current.deleteSuccess);
+                    IToast.showTop(appLocalizations.deleteSuccess);
                   } catch (e, t) {
                     ILogger.error(
                         "Failed to delete backup file from local", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

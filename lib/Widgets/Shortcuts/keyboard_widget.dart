@@ -20,7 +20,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:cloudotp/generated/l10n.dart';
+import 'package:cloudotp/l10n/l10n.dart';
 
 import '../../Utils/shortcuts_util.dart';
 
@@ -57,7 +57,7 @@ class KeyboardWidget extends StatefulWidget {
   KeyboardWidgetState createState() => KeyboardWidgetState();
 }
 
-class KeyboardWidgetState extends State<KeyboardWidget> {
+class KeyboardWidgetState extends BaseDynamicState<KeyboardWidget> {
   late FocusNode _focusNode;
 
   @override
@@ -191,7 +191,7 @@ class KeyboardWidgetState extends State<KeyboardWidget> {
             Container(
               margin: const EdgeInsets.only(right: 20),
               child: Text(
-                rep.labelProvider(S.current),
+                rep.labelProvider(appLocalizations),
                 overflow: TextOverflow.ellipsis,
                 style: textStyle,
               ),
@@ -232,7 +232,7 @@ class KeyboardWidgetState extends State<KeyboardWidget> {
             Container(
               margin: const EdgeInsets.only(right: 20),
               child: Text(
-                rep.labelProvider(S.current),
+                rep.labelProvider(appLocalizations),
                 overflow: TextOverflow.ellipsis,
                 style: textStyle,
               ),

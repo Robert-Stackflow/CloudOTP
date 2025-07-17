@@ -21,13 +21,12 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class KdfParams {
   int memLimit;
@@ -151,12 +150,12 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(S.current.importing, showProgress: false);
+      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
       } else {
         String content = file.readAsStringSync();
         Map<String, dynamic> json = {};
@@ -164,7 +163,7 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
           json = jsonDecode(content);
           EnteAuthBackup backup = EnteAuthBackup.fromJson(json);
           if (!backup.isValid) {
-            IToast.showTop(S.current.importFromEnteAuthInvalid);
+            IToast.showTop(appLocalizations.importFromEnteAuthInvalid);
             return;
           }
           if (showLoading) dialog.dismiss();
@@ -173,10 +172,10 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
             listen: false,
             validator: (text) async {
               if (text.isEmpty) {
-                return S.current.autoBackupPasswordCannotBeEmpty;
+                return appLocalizations.autoBackupPasswordCannotBeEmpty;
               }
               if (showLoading) {
-                dialog.show(msg: S.current.importing, showProgress: false);
+                dialog.show(msg: appLocalizations.importing, showProgress: false);
               }
               // var res = await compute(
               //   (receiveMessage) async {
@@ -208,7 +207,7 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
                 if (showLoading) {
                   dialog.dismiss();
                 }
-                return S.current.invalidPasswordOrDataCorrupted;
+                return appLocalizations.invalidPasswordOrDataCorrupted;
               }
             },
             controller: TextEditingController(),
@@ -220,15 +219,15 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
             (context) => InputBottomSheet(
               validator: (value) {
                 if (value.isEmpty) {
-                  return S.current.autoBackupPasswordCannotBeEmpty;
+                  return appLocalizations.autoBackupPasswordCannotBeEmpty;
                 }
                 return null;
               },
               checkSyncValidator: false,
               validateAsyncController: validateAsyncController,
-              title: S.current.inputImportPasswordTitle,
-              message: S.current.inputImportPasswordTip,
-              hint: S.current.inputImportPasswordHint,
+              title: appLocalizations.inputImportPasswordTitle,
+              message: appLocalizations.inputImportPasswordTip,
+              hint: appLocalizations.inputImportPasswordHint,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
@@ -246,7 +245,7 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
       }
     } catch (e, t) {
       ILogger.error("Failed to import from 2FAS", e, t);
-      IToast.showTop(S.current.importFailed);
+      IToast.showTop(appLocalizations.importFailed);
     } finally {
       if (showLoading) {
         dialog.dismiss();

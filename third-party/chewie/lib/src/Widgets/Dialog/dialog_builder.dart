@@ -2,7 +2,7 @@ import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Animation/dialog_animation.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
 import 'custom_dialog.dart';
@@ -44,8 +44,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         renderHtml: renderHtml,
         align: Alignment.center,
-        confirmButtonText: confirmButtonText ?? ChewieS.current.confirm,
-        cancelButtonText: cancelButtonText ?? ChewieS.current.cancel,
+        confirmButtonText: confirmButtonText ?? chewieLocalizations.confirm,
+        cancelButtonText: cancelButtonText ?? chewieLocalizations.cancel,
         onTapConfirm: onTapConfirm ?? () {},
         onTapCancel: onTapCancel ?? () {},
         customDialogType: customDialogType ?? CustomDialogType.normal,
@@ -65,8 +65,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         renderHtml: renderHtml,
         align: Alignment.bottomCenter,
-        confirmButtonText: confirmButtonText ?? ChewieS.current.confirm,
-        cancelButtonText: cancelButtonText ?? ChewieS.current.cancel,
+        confirmButtonText: confirmButtonText ?? chewieLocalizations.confirm,
+        cancelButtonText: cancelButtonText ?? chewieLocalizations.cancel,
         onTapConfirm: onTapConfirm ?? () {},
         onTapCancel: onTapCancel ?? () {},
         customDialogType: customDialogType ?? CustomDialogType.normal,
@@ -99,7 +99,7 @@ class DialogBuilder {
     if (responsive && ResponsiveUtil.isWideLandscape()) {
       CustomInfoDialog.show(
         context,
-        buttonText: buttonText ?? ChewieS.current.confirm,
+        buttonText: buttonText ?? chewieLocalizations.confirm,
         message: message,
         messageChild: messageChild,
         imagePath: imagePath,
@@ -120,7 +120,7 @@ class DialogBuilder {
     } else {
       CustomInfoDialog.showAnimatedFromBottom(
         context,
-        buttonText: buttonText ?? ChewieS.current.confirm,
+        buttonText: buttonText ?? chewieLocalizations.confirm,
         message: message,
         messageChild: messageChild,
         imagePath: imagePath,
@@ -155,8 +155,7 @@ class DialogBuilder {
       barrierDismissible: barrierDismissible,
       context: context,
       barrierLabel: '',
-      barrierColor: ChewieTheme.scaffoldBackgroundColor
-          .withValues(alpha: fullScreen ? 0.55 : 0.6),
+      barrierColor: ChewieTheme.barrierColor,
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, _) {
         return DialogAnimation(

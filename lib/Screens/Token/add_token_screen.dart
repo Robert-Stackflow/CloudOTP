@@ -29,7 +29,7 @@ import '../../TokenUtils/token_image_util.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import '../../Widgets/cloudotp/cloudotp_item_builder.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class AddTokenScreen extends StatefulWidget {
   const AddTokenScreen({
@@ -45,7 +45,7 @@ class AddTokenScreen extends StatefulWidget {
   State<AddTokenScreen> createState() => _AddTokenScreenState();
 }
 
-class _AddTokenScreenState extends State<AddTokenScreen>
+class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
     with TickerProviderStateMixin {
   final TextEditingController _issuerController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
@@ -169,7 +169,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   Widget build(BuildContext context) {
     return MyScaffold(
       appBar: ResponsiveAppBar(
-        title: _isEditing ? S.current.editToken : S.current.addToken,
+        title: _isEditing ? appLocalizations.editToken : appLocalizations.addToken,
         showBack: !ResponsiveUtil.isLandscape(),
         titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
         desktopActions: [
@@ -224,7 +224,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         success = true;
       } catch (e, t) {
         ILogger.error("Failed to save token", e, t);
-        IToast.showTop(S.current.saveFailed);
+        IToast.showTop(appLocalizations.saveFailed);
       } finally {
         if (!_isEditing) {
           homeScreenState?.insertToken(_otpToken, forceAll: true);
@@ -300,7 +300,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
   _typeInfo() {
     return ItemBuilder.buildGroupTile(
       context: context,
-      // title: S.current.tokenType,
+      // title: appLocalizations.tokenType,
       controller: _typeController,
       buttons: OtpTokenType.toLabels(),
       onSelected: (value, index, isSelected) {
@@ -326,14 +326,14 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           InputItem(
             controller: _issuerController,
             textInputAction: TextInputAction.next,
-            title: S.current.tokenIssuer,
+            title: appLocalizations.tokenIssuer,
             validator: (text) {
               if (text.isEmpty) {
-                return S.current.issuerCannotBeEmpty;
+                return appLocalizations.issuerCannotBeEmpty;
               }
               return null;
             },
-            hint: S.current.tokenIssuerHint,
+            hint: appLocalizations.tokenIssuerHint,
             style: InputItemStyle(
               titleTopMargin: 0,
               topMargin: 0,
@@ -344,8 +344,8 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           InputItem(
             controller: _accountController,
             textInputAction: TextInputAction.next,
-            title: S.current.tokenAccount,
-            hint: S.current.tokenAccountHint,
+            title: appLocalizations.tokenAccount,
+            hint: appLocalizations.tokenAccountHint,
             style: InputItemStyle(
               titleTopMargin: 0,
               topMargin: 0,
@@ -355,7 +355,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           InputItem(
             controller: _secretController,
             textInputAction: TextInputAction.next,
-            title: S.current.tokenSecret,
+            title: appLocalizations.tokenSecret,
             style: InputItemStyle(
               topMargin: 0,
               bottomMargin: 0,
@@ -364,16 +364,16 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             tailingConfig: InputItemLeadingTailingConfig(
               type: InputItemLeadingTailingType.password,
             ),
-            hint: S.current.tokenSecretHint,
+            hint: appLocalizations.tokenSecretHint,
             inputFormatters: [
               RegexInputFormatter.onlyNumberAndLetterAndSymbol,
             ],
             validator: (text) {
               if (text.isEmpty) {
-                return S.current.secretCannotBeEmpty;
+                return appLocalizations.secretCannotBeEmpty;
               }
               if (!CheckTokenUtil.isSecretBase32(text)) {
-                return S.current.secretNotBase32;
+                return appLocalizations.secretNotBase32;
               }
               return null;
             },
@@ -383,7 +383,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             child: InputItem(
               controller: _pinController,
               textInputAction: TextInputAction.next,
-              title: S.current.tokenPin,
+              title: appLocalizations.tokenPin,
               style: InputItemStyle(
                 topMargin: 0,
                 bottomMargin: 0,
@@ -393,10 +393,10 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               tailingConfig: InputItemLeadingTailingConfig(
                 type: InputItemLeadingTailingType.password,
               ),
-              hint: S.current.tokenPinHint,
+              hint: appLocalizations.tokenPinHint,
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.pinCannotBeEmpty;
+                  return appLocalizations.pinCannotBeEmpty;
                 }
                 return null;
               },
@@ -427,7 +427,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     return [
       EntryItem(
         tipWidth: 300,
-        title: S.current.editTokenCategory,
+        title: appLocalizations.editTokenCategory,
         trailing: LucideIcons.shapes,
         tipWidget: selectedCategoryUids.isNotEmpty
             ? Wrap(
@@ -454,7 +454,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       ),
       EntryItem(
         tipWidth: 120,
-        title: S.current.autoMatchTokenIcon,
+        title: appLocalizations.autoMatchTokenIcon,
         trailing: LucideIcons.refreshCcw,
         onTap: () {
           setState(() {
@@ -466,7 +466,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       ),
       EntryItem(
         tipWidth: 300,
-        title: S.current.editTokenIcon,
+        title: appLocalizations.editTokenIcon,
         tip: _otpToken.imagePath.notNullOrEmpty ? _otpToken.imagePath : "",
         onTap: () {
           BottomSheetBuilder.showBottomSheet(
@@ -493,7 +493,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
         width: double.infinity,
         background: ChewieTheme.canvasColor,
         radius: 12,
-        text: S.current.showAdvancedInfo,
+        text: appLocalizations.showAdvancedInfo,
         icon: Icon(
           Icons.keyboard_arrow_down_rounded,
           color: ChewieTheme.bodySmall?.color,
@@ -520,7 +520,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               margin: const EdgeInsets.only(bottom: 10),
               child: ItemBuilder.buildGroupTile(
                 context: context,
-                title: S.current.tokenDigits,
+                title: appLocalizations.tokenDigits,
                 controller: _digitsController,
                 buttons: OtpDigits.toStrings(),
                 onSelected: (value, index, isSelected) {
@@ -536,7 +536,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               margin: const EdgeInsets.only(bottom: 10),
               child: ItemBuilder.buildGroupTile(
                 context: context,
-                title: S.current.tokenAlgorithm,
+                title: appLocalizations.tokenAlgorithm,
                 controller: _algorithmController,
                 buttons: OtpAlgorithm.toStrings(),
                 onSelected: (value, index, isSelected) {
@@ -552,13 +552,13 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               margin: const EdgeInsets.only(bottom: 10),
               child: InputItem(
                 controller: _periodController,
-                title: S.current.tokenPeriod,
+                title: appLocalizations.tokenPeriod,
                 keyboardType: TextInputType.number,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 textInputAction: _otpToken.tokenType == OtpTokenType.TOTP
                     ? TextInputAction.done
                     : TextInputAction.next,
-                hint: S.current.tokenPeriodHint,
+                hint: appLocalizations.tokenPeriodHint,
                 style: InputItemStyle(
                   titleTopMargin: 0,
                   topMargin: 0,
@@ -566,10 +566,10 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                 ),
                 validator: (text) {
                   if (text.isEmpty) {
-                    return S.current.periodCannotBeEmpty;
+                    return appLocalizations.periodCannotBeEmpty;
                   }
                   if (int.tryParse(text) == null) {
-                    return S.current.periodTooLong;
+                    return appLocalizations.periodTooLong;
                   }
                   return null;
                 },
@@ -582,11 +582,11 @@ class _AddTokenScreenState extends State<AddTokenScreen>
               margin: const EdgeInsets.only(bottom: 10),
               child: InputItem(
                 controller: _counterController,
-                title: S.current.tokenCounter,
+                title: appLocalizations.tokenCounter,
                 inputFormatters: [RegexInputFormatter.onlyNumber],
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
-                hint: S.current.tokenCounterHint,
+                hint: appLocalizations.tokenCounterHint,
                 style: InputItemStyle(
                   titleTopMargin: 0,
                   topMargin: 0,
@@ -594,10 +594,10 @@ class _AddTokenScreenState extends State<AddTokenScreen>
                 ),
                 validator: (text) {
                   if (text.isEmpty) {
-                    return S.current.counterCannotBeEmpty;
+                    return appLocalizations.counterCannotBeEmpty;
                   }
                   if (int.tryParse(text) == null) {
-                    return S.current.counterTooLong;
+                    return appLocalizations.counterTooLong;
                   }
                   return null;
                 },
@@ -610,7 +610,7 @@ class _AddTokenScreenState extends State<AddTokenScreen>
             child: RoundIconTextButton(
               background: ChewieTheme.canvasColor,
               radius: 12,
-              text: S.current.hideAdvancedInfo,
+              text: appLocalizations.hideAdvancedInfo,
               icon: Icon(
                 Icons.keyboard_arrow_up_rounded,
                 color: ChewieTheme.bodySmall?.color,
@@ -633,17 +633,17 @@ class _AddTokenScreenState extends State<AddTokenScreen>
     return [
       EntryItem(
         tipWidth: 300,
-        title: S.current.resetCopyTimes,
-        tip: S.current.currentCopyTimes(_otpToken.copyTimes),
+        title: appLocalizations.resetCopyTimes,
+        tip: appLocalizations.currentCopyTimes(_otpToken.copyTimes),
         onTap: () {
           DialogBuilder.showConfirmDialog(
             context,
-            title: S.current.resetCopyTimesTitle,
-            message: S.current.resetCopyTimesMessage(_otpToken.title),
+            title: appLocalizations.resetCopyTimesTitle,
+            message: appLocalizations.resetCopyTimesMessage(_otpToken.title),
             onTapConfirm: () async {
               await TokenDao.resetSingleTokenCopyTimes(_otpToken);
               homeScreenState?.resetCopyTimesSingle(_otpToken);
-              IToast.showTop(S.current.resetSuccess);
+              IToast.showTop(appLocalizations.resetSuccess);
               setState(() {});
             },
             onTapCancel: () {},
@@ -652,9 +652,9 @@ class _AddTokenScreenState extends State<AddTokenScreen>
       ),
       EntryItem(
         tipWidth: 300,
-        title: S.current.lastCopyTime,
+        title: appLocalizations.lastCopyTime,
         tip: _otpToken.lastCopyTimeStamp == 0
-            ? S.current.neverCopied
+            ? appLocalizations.neverCopied
             : TimeUtil.timestampToDateString(_otpToken.lastCopyTimeStamp),
         onTap: () {},
       ),
@@ -670,18 +670,18 @@ class _AddTokenScreenState extends State<AddTokenScreen>
           Expanded(
             child: RoundIconTextButton(
               background: Colors.red,
-              text: S.current.deleteToken,
+              text: appLocalizations.deleteToken,
               fontSizeDelta: 2,
               onPressed: () {
                 DialogBuilder.showConfirmDialog(
                   context,
-                  title: S.current.deleteTokenTitle(_otpToken.title),
-                  message: S.current.deleteTokenMessage(_otpToken.title),
+                  title: appLocalizations.deleteTokenTitle(_otpToken.title),
+                  message: appLocalizations.deleteTokenMessage(_otpToken.title),
                   onTapConfirm: () async {
                     await TokenDao.deleteToken(_otpToken);
                     DialogNavigatorHelper.responsivePopPage();
                     IToast.showTop(
-                        S.current.deleteTokenSuccess(_otpToken.title));
+                        appLocalizations.deleteTokenSuccess(_otpToken.title));
                     homeScreenState?.removeToken(_otpToken);
                   },
                   onTapCancel: () {},

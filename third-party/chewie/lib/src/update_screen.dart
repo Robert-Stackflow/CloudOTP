@@ -23,7 +23,7 @@ class UpdateScreen extends StatefulWidget {
 
 enum DownloadUpdateState { normal, downloading, toInstall, installing }
 
-class _UpdateScreenState extends State<UpdateScreen>
+class _UpdateScreenState extends BaseDynamicState<UpdateScreen>
     with TickerProviderStateMixin {
   late String currentVersion;
 
@@ -31,7 +31,7 @@ class _UpdateScreenState extends State<UpdateScreen>
 
   late ReleaseItem latestReleaseItem;
 
-  String buttonText = ChewieS.current.immediatelyDownload;
+  String buttonText = chewieLocalizations.immediatelyDownload;
   DownloadUpdateState downloadState = DownloadUpdateState.normal;
 
   @override
@@ -46,7 +46,7 @@ class _UpdateScreenState extends State<UpdateScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: ResponsiveAppBar(
-        title: ChewieS.current.getNewVersion(latestVersion),
+        title: chewieLocalizations.getNewVersion(latestVersion),
         titleLeftMargin: 15,
         showBack: false,
         backgroundColor: ChewieTheme.canvasColor,
@@ -77,7 +77,7 @@ class _UpdateScreenState extends State<UpdateScreen>
           SelectableAreaWrapper(
             focusNode: FocusNode(),
             child: CustomMarkdownWidget(
-              ChewieS.current.changelogAsFollow(item.body ?? ""),
+              chewieLocalizations.changelogAsFollow(item.body ?? ""),
               baseStyle: ChewieTheme.titleMedium.apply(
                 fontSizeDelta: 1,
                 color: ChewieTheme.bodySmall.color,
@@ -100,7 +100,7 @@ class _UpdateScreenState extends State<UpdateScreen>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           RoundIconTextButton(
-            text: ChewieS.current.updateLater,
+            text: chewieLocalizations.updateLater,
             onPressed: () {
               DialogNavigatorHelper.popPage();
             },
@@ -126,7 +126,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                   return;
                 } else if (downloadState == DownloadUpdateState.toInstall) {
                   setState(() {
-                    buttonText = ChewieS.current.installing;
+                    buttonText = chewieLocalizations.installing;
                     downloadState == DownloadUpdateState.installing;
                   });
                   try {
@@ -139,7 +139,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                     ILogger.error("Failed to install", e, t);
                     IToast.showTop(e.toString());
                     setState(() {
-                      buttonText = ChewieS.current.immediatelyInstall;
+                      buttonText = chewieLocalizations.immediatelyInstall;
                     });
                     downloadState == DownloadUpdateState.toInstall;
                   }
@@ -148,7 +148,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                   if (asset.browserDownloadUrl.notNullOrEmpty) {
                     double progressValue = 0.0;
                     setState(() {
-                      buttonText = ChewieS.current.alreadyDownloadProgress(0);
+                      buttonText = chewieLocalizations.alreadyDownloadProgress(0);
                     });
                     downloadState = DownloadUpdateState.downloading;
                     await Dio().download(
@@ -163,7 +163,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                             progressValue = 0.0;
                           }
                           setState(() {
-                            buttonText = ChewieS.current
+                            buttonText = chewieLocalizations
                                 .alreadyDownloadProgress(
                                     (progressValue * 100).toInt());
                           });
@@ -171,13 +171,13 @@ class _UpdateScreenState extends State<UpdateScreen>
                       },
                     ).then((response) async {
                       if (response.statusCode == 200) {
-                        IToast.showTop(ChewieS.current.downloadComplete);
+                        IToast.showTop(chewieLocalizations.downloadComplete);
                         setState(() {
-                          buttonText = ChewieS.current.immediatelyInstall;
+                          buttonText = chewieLocalizations.immediatelyInstall;
                           downloadState = DownloadUpdateState.toInstall;
                         });
                       } else {
-                        IToast.showTop(ChewieS.current.downloadFailed);
+                        IToast.showTop(chewieLocalizations.downloadFailed);
                         downloadState == DownloadUpdateState.normal;
                         UriUtil.openExternal(latestReleaseItem.url);
                       }
@@ -189,7 +189,7 @@ class _UpdateScreenState extends State<UpdateScreen>
                 }
               } catch (e, t) {
                 ILogger.error("Failed to download package", e, t);
-                IToast.showTop(ChewieS.current.downloadFailed);
+                IToast.showTop(chewieLocalizations.downloadFailed);
                 downloadState == DownloadUpdateState.normal;
               }
             },

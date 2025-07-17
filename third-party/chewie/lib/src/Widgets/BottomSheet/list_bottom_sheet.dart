@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Tile/entry_item.dart';
 
 class TileList extends StatelessWidget {
@@ -82,7 +82,7 @@ class TileList extends StatelessWidget {
         ...children,
         if (showCancel)
           EntryItem(
-            title: ChewieS.current.cancel,
+            title: chewieLocalizations.cancel,
             backgroundColor: Theme.of(context).cardColor.withAlpha(127),
             showTrailing: false,
             onTap: onCloseTap,

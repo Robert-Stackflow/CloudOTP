@@ -9,7 +9,7 @@ import 'package:markdown_widget/markdown_widget.dart';
 import 'package:awesome_chewie/src/Resources/dimens.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/color_util.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 
 class CustomMarkdownWidget extends StatefulWidget {
   const CustomMarkdownWidget(
@@ -179,7 +179,7 @@ class _CodeWrapperWidgetState extends State<CodeWrapperWidget> {
                   ),
                 const Spacer(),
                 ToggleIconButton(
-                  tooltip: ChewieS.current.copy,
+                  tooltip: chewieLocalizations.copy,
                   iconA: Icon(
                     CupertinoIcons.square_on_square,
                     size: 18,

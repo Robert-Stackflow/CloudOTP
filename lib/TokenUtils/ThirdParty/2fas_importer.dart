@@ -32,7 +32,7 @@ import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class TwoFASTokenOtp {
   String label;
@@ -232,12 +232,12 @@ class TwoFASTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(S.current.importing, showProgress: false);
+      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
       } else {
         String content = file.readAsStringSync();
         Map<String, dynamic> json = jsonDecode(content);
@@ -248,10 +248,10 @@ class TwoFASTokenImporter implements BaseTokenImporter {
             listen: false,
             validator: (text) async {
               if (text.isEmpty) {
-                return S.current.autoBackupPasswordCannotBeEmpty;
+                return appLocalizations.autoBackupPasswordCannotBeEmpty;
               }
               if (showLoading) {
-                dialog.show(msg: S.current.importing, showProgress: false);
+                dialog.show(msg: appLocalizations.importing, showProgress: false);
               }
               var res = await compute(
                 (receiveMessage) {
@@ -275,7 +275,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
                 if (showLoading) {
                   dialog.dismiss();
                 }
-                return S.current.invalidPasswordOrDataCorrupted;
+                return appLocalizations.invalidPasswordOrDataCorrupted;
               }
             },
             controller: TextEditingController(),
@@ -287,15 +287,15 @@ class TwoFASTokenImporter implements BaseTokenImporter {
             (context) => InputBottomSheet(
               validator: (value) {
                 if (value.isEmpty) {
-                  return S.current.autoBackupPasswordCannotBeEmpty;
+                  return appLocalizations.autoBackupPasswordCannotBeEmpty;
                 }
                 return null;
               },
               checkSyncValidator: false,
               validateAsyncController: validateAsyncController,
-              title: S.current.inputImportPasswordTitle,
-              message: S.current.inputImportPasswordTip,
-              hint: S.current.inputImportPasswordHint,
+              title: appLocalizations.inputImportPasswordTitle,
+              message: appLocalizations.inputImportPasswordTip,
+              hint: appLocalizations.inputImportPasswordHint,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
@@ -311,7 +311,7 @@ class TwoFASTokenImporter implements BaseTokenImporter {
       }
     } catch (e, t) {
       ILogger.error("Failed to import from 2FAS", e, t);
-      IToast.showTop(S.current.importFailed);
+      IToast.showTop(appLocalizations.importFailed);
     } finally {
       if (showLoading) {
         dialog.dismiss();

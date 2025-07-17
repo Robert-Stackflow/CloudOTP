@@ -17,7 +17,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 
 const defaultMaxBackupCount = 100;
 
@@ -32,9 +32,9 @@ const String hotpPlaceholderText = "*";
 
 const appLicense = "GPL-3.0";
 
-String shareAppText = S.current.shareAppText(officialWebsite);
+String shareAppText = appLocalizations.shareAppText(officialWebsite);
 const String feedbackEmail = "2014027378@qq.com";
-String feedbackSubject = S.current.feedbackSubject;
+String feedbackSubject = appLocalizations.feedbackSubject;
 const String feedbackBody = "";
 const List<Locale> websiteSupportLocales = [Locale("en"), Locale("zh", "CN")];
 const String defaultDownloadsWebsite =

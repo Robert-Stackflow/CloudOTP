@@ -34,7 +34,7 @@ import '../Models/token_category.dart';
 import '../Utils/constant.dart';
 import '../Utils/hive_util.dart';
 import '../Widgets/BottomSheet/token_option_bottom_sheet.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'Backup/backup.dart';
 import 'Backup/backup_encrypt_interface.dart';
 import 'Backup/backup_encrypt_v1.dart';
@@ -71,9 +71,10 @@ class ImportAnalysis {
   });
 
   showToast([String noTokenToast = ""]) {
-    String tokenToast = S.current.importResultTip(parseSuccess, importSuccess);
-    String categoryToast = S.current
-        .importCategoryResultTip(parseCategorySuccess, importCategorySuccess);
+    String tokenToast =
+        appLocalizations.importResultTip(parseSuccess, importSuccess);
+    String categoryToast = appLocalizations.importCategoryResultTip(
+        parseCategorySuccess, importCategorySuccess);
     if (parseSuccess > 0) {
       if (parseCategorySuccess > 0) {
         IToast.showTop("$tokenToast; $categoryToast");
@@ -114,7 +115,7 @@ class ImportTokenUtil {
     if (validTokenUris.isNotEmpty) {
       tokens = await ImportTokenUtil.importText(
         validTokenUris.join("\n"),
-        // noTokenToast: S.current.imageDoesNotContainToken,
+        // noTokenToast: appLocalizations.imageDoesNotContainToken,
       );
       if (autoPopup && context != null && context.mounted) {
         Navigator.pop(context);
@@ -127,7 +128,7 @@ class ImportTokenUtil {
       }
     }
     if (tokens.isEmpty && categories.isEmpty) {
-      IToast.showTop(S.current.noQrCodeToken);
+      IToast.showTop(appLocalizations.noQrCodeToken);
     }
     return [tokens, categories];
   }
@@ -139,7 +140,7 @@ class ImportTokenUtil {
   }) async {
     List<dynamic> res = [];
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.analyzing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.analyzing);
     }
     try {
       File file = File(filepath);
@@ -184,7 +185,7 @@ class ImportTokenUtil {
     bool showSingleTokenDialog = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.analyzing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.analyzing);
     }
     List<OtpToken> tokens = [];
     List<TokenCategory> categories = [];
@@ -192,7 +193,7 @@ class ImportTokenUtil {
       if (showLoading || doDismissLoading) {
         CustomLoadingDialog.dismissLoading();
       }
-      IToast.showTop(S.current.noQrCode);
+      IToast.showTop(appLocalizations.noQrCode);
       return [];
     }
     try {
@@ -215,14 +216,14 @@ class ImportTokenUtil {
         tokens = res[0];
         categories = res[1];
       } else {
-        IToast.showTop(S.current.noQrCode);
+        IToast.showTop(appLocalizations.noQrCode);
       }
     } catch (e, t) {
       ILogger.error("Failed to analyze image", e, t);
       if (e.runtimeType == NotFoundException) {
-        IToast.showTop(S.current.noQrCode);
+        IToast.showTop(appLocalizations.noQrCode);
       } else {
-        IToast.showTop(S.current.parseQrCodeWrong);
+        IToast.showTop(appLocalizations.parseQrCodeWrong);
       }
     } finally {
       if (showLoading || doDismissLoading) {
@@ -247,25 +248,25 @@ class ImportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.importing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.importing);
     }
     try {
       File file = File(filePath);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
         return;
       } else {
         String content = file.readAsStringSync(encoding: utf8);
         await importText(
           content,
           showLoading: showLoading,
-          emptyTip: S.current.fileEmpty,
-          noTokenToast: S.current.fileDoesNotContainToken,
+          emptyTip: appLocalizations.fileEmpty,
+          noTokenToast: appLocalizations.fileDoesNotContainToken,
         );
       }
     } catch (e, t) {
       ILogger.error("Failed to import uri file from $filePath", e, t);
-      IToast.showTop(S.current.importFailed);
+      IToast.showTop(appLocalizations.importFailed);
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
@@ -279,12 +280,12 @@ class ImportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.importing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.importing);
     }
     try {
       File file = File(filePath);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
         return true;
       } else {
         List<OtpToken>? tokens = await compute((_) async {
@@ -294,7 +295,7 @@ class ImportTokenUtil {
           return tokens;
         }, null);
         if (tokens == null) {
-          IToast.showTop(S.current.importFailed);
+          IToast.showTop(appLocalizations.importFailed);
           return true;
         }
         ImportAnalysis analysis = ImportAnalysis();
@@ -303,12 +304,12 @@ class ImportTokenUtil {
         if (showLoading) {
           CustomLoadingDialog.dismissLoading();
         }
-        analysis.showToast(S.current.fileDoesNotContainToken);
+        analysis.showToast(appLocalizations.fileDoesNotContainToken);
         return true;
       }
     } catch (e, t) {
       ILogger.error("Failed to import old encrypt file from $filePath", e, t);
-      IToast.showTop(S.current.importFailed);
+      IToast.showTop(appLocalizations.importFailed);
       return false;
     } finally {
       if (showLoading) {
@@ -324,13 +325,13 @@ class ImportTokenUtil {
       listen: false,
       validator: (text) async {
         if (text.isEmpty) {
-          return S.current.autoBackupPasswordCannotBeEmpty;
+          return appLocalizations.autoBackupPasswordCannotBeEmpty;
         }
         bool success = await ImportTokenUtil.importEncryptFile(path, text);
         if (success) {
           return null;
         } else {
-          return S.current.invalidPasswordOrDataCorrupted;
+          return appLocalizations.invalidPasswordOrDataCorrupted;
         }
       },
     );
@@ -341,15 +342,15 @@ class ImportTokenUtil {
       (context) => InputBottomSheet(
         validator: (value) {
           if (value.isEmpty) {
-            return S.current.autoBackupPasswordCannotBeEmpty;
+            return appLocalizations.autoBackupPasswordCannotBeEmpty;
           }
           return null;
         },
         checkSyncValidator: false,
         validateAsyncController: validateAsyncController,
-        title: S.current.inputImportPasswordTitle,
-        message: S.current.inputImportPasswordTip,
-        hint: S.current.inputImportPasswordHint,
+        title: appLocalizations.inputImportPasswordTitle,
+        message: appLocalizations.inputImportPasswordTip,
+        hint: appLocalizations.inputImportPasswordHint,
         inputFormatters: [
           RegexInputFormatter.onlyNumberAndLetterAndSymbol,
         ],
@@ -385,12 +386,12 @@ class ImportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.importing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.importing);
     }
     try {
       File file = File(filePath);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
         return true;
       } else {
         Uint8List content = await compute((_) async {
@@ -408,7 +409,7 @@ class ImportTokenUtil {
         }
         return true;
       } else {
-        IToast.showTop(S.current.importFailed);
+        IToast.showTop(appLocalizations.importFailed);
         return true;
       }
     } finally {
@@ -426,7 +427,7 @@ class ImportTokenUtil {
   }) async {
     if (showLoading) {
       CustomLoadingDialog.showLoading(
-          title: loadingText ?? S.current.importing);
+          title: loadingText ?? appLocalizations.importing);
     }
     try {
       await importUint8List(content, password: password);
@@ -440,7 +441,7 @@ class ImportTokenUtil {
         }
         return true;
       } else {
-        IToast.showTop(S.current.importFailed);
+        IToast.showTop(appLocalizations.importFailed);
         return true;
       }
     } finally {
@@ -467,7 +468,7 @@ class ImportTokenUtil {
     );
     analysis.importSuccess = tmpAnalysis.importSuccess;
     analysis.importCategorySuccess = tmpAnalysis.importCategorySuccess;
-    analysis.showToast(S.current.fileDoesNotContainToken);
+    analysis.showToast(appLocalizations.fileDoesNotContainToken);
     return true;
   }
 
@@ -483,7 +484,7 @@ class ImportTokenUtil {
       return [];
     }
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.importing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.importing);
     }
     ImportAnalysis analysis = ImportAnalysis();
     List<String> lines = content.split("\n");
@@ -526,12 +527,12 @@ class ImportTokenUtil {
     ProgressDialog dialog,
   ) async {
     dialog.updateMessage(
-      msg: S.current.importing,
+      msg: appLocalizations.importing,
       showProgress: false,
     );
     if (res == null) {
       dialog.dismiss();
-      IToast.showTop(S.current.cloudPullFailed);
+      IToast.showTop(appLocalizations.cloudPullFailed);
       return;
     }
     bool success = await ImportTokenUtil.importBackupFile(
@@ -545,10 +546,10 @@ class ImportTokenUtil {
         listen: false,
         validator: (text) async {
           if (text.isEmpty) {
-            return S.current.autoBackupPasswordCannotBeEmpty;
+            return appLocalizations.autoBackupPasswordCannotBeEmpty;
           }
           dialog.show(
-            msg: S.current.importing,
+            msg: appLocalizations.importing,
             showProgress: false,
           );
           bool success = await ImportTokenUtil.importBackupFile(
@@ -560,7 +561,7 @@ class ImportTokenUtil {
           if (success) {
             return null;
           } else {
-            return S.current.invalidPasswordOrDataCorrupted;
+            return appLocalizations.invalidPasswordOrDataCorrupted;
           }
         },
         controller: TextEditingController(),
@@ -572,15 +573,15 @@ class ImportTokenUtil {
         (context) => InputBottomSheet(
           validator: (value) {
             if (value.isEmpty) {
-              return S.current.autoBackupPasswordCannotBeEmpty;
+              return appLocalizations.autoBackupPasswordCannotBeEmpty;
             }
             return null;
           },
           checkSyncValidator: false,
           validateAsyncController: validateAsyncController,
-          title: S.current.inputImportPasswordTitle,
-          message: S.current.inputImportPasswordTip,
-          hint: S.current.inputImportPasswordHint,
+          title: appLocalizations.inputImportPasswordTitle,
+          message: appLocalizations.inputImportPasswordTip,
+          hint: appLocalizations.inputImportPasswordHint,
           inputFormatters: [
             RegexInputFormatter.onlyNumberAndLetterAndSymbol,
           ],

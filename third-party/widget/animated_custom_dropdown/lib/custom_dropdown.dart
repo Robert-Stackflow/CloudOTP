@@ -584,7 +584,6 @@ class _CustomDropdownState<T extends DropdownMixin>
         selectedItemNotifier.value != widget.initialItem) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         selectedItemNotifier.value = widget.initialItem;
-        print(widget.initialItem.toString());
       });
     }
 

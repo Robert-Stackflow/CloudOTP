@@ -23,7 +23,8 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../generated/app_localizations.dart';
+import '../../l10n/l10n.dart';
 import 'base_setting_screen.dart';
 
 class GeneralSettingScreen extends BaseSettingScreen {
@@ -41,7 +42,7 @@ class GeneralSettingScreen extends BaseSettingScreen {
   State<GeneralSettingScreen> createState() => GeneralSettingScreenState();
 }
 
-class GeneralSettingScreenState extends State<GeneralSettingScreen>
+class GeneralSettingScreenState extends BaseDynamicState<GeneralSettingScreen>
     with TickerProviderStateMixin {
   bool enableMinimizeToTray =
       ChewieHiveUtil.getBool(ChewieHiveUtil.enableCloseToTrayKey);
@@ -61,7 +62,6 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   String _cacheSize = "";
   String _logSize = "";
   bool inAppBrowser = ChewieHiveUtil.getBool(ChewieHiveUtil.inappWebviewKey);
-  Locale? _lastLocale;
 
   late SelectionItemModel<int> _currentTrayOption;
 
@@ -75,6 +75,14 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
     _currentTrayOption = getTrayOption();
   }
 
+  @override
+  void onLocaleChanged(Locale newLocale) {
+    super.onLocaleChanged(newLocale);
+    filterLocale();
+    _currentTrayOption = getTrayOption();
+    print(_currentTrayOption.key);
+  }
+
   refreshLauchAtStartup() {
     setState(() {
       launchAtStartup =
@@ -83,22 +91,10 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final currentLocale = Localizations.localeOf(context);
-    if (_lastLocale != currentLocale) {
-      _lastLocale = currentLocale;
-      _currentTrayOption = getTrayOption();
-      setState(() {});
-    }
-  }
-
-  @override
-  @override
   Widget build(BuildContext context) {
     return ItemBuilder.buildSettingScreen(
       context: context,
-      title: S.current.generalSetting,
+      title: appLocalizations.generalSetting,
       showTitleBar: widget.showTitleBar,
       showBack: !ResponsiveUtil.isLandscape(),
       padding: widget.padding,
@@ -115,10 +111,10 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   Widget _languageSetting() {
     return SearchableCaptionItem(
-      title: S.current.language,
+      title: appLocalizations.language,
       children: [
         SearchableBuilderWidget(
-          title: S.current.language,
+          title: appLocalizations.language,
           builder: (_, title, description, searchText, searchConfig) =>
               Selector<AppProvider, Locale?>(
             selector: (context, appProvider) => appProvider.locale,
@@ -131,7 +127,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
               selections: _supportedLocaleTuples,
               selected: _supportedLocaleTuples
                   .firstWhere((element) => element.value == appProvider.locale),
-              hint: S.current.chooseLanguage,
+              hint: appLocalizations.chooseLanguage,
               onChanged: (item) {
                 appProvider.locale = item?.value;
               },
@@ -144,11 +140,11 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   _updateSetting() {
     return SearchableCaptionItem(
-      title: S.current.autoCheckUpdates,
+      title: appLocalizations.autoCheckUpdates,
       children: [
         CheckboxItem(
           value: autoCheckUpdate,
-          title: S.current.autoCheckUpdates,
+          title: appLocalizations.autoCheckUpdates,
           onTap: () {
             setState(() {
               autoCheckUpdate = !autoCheckUpdate;
@@ -158,11 +154,11 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           },
         ),
         EntryItem(
-          title: S.current.checkUpdates,
+          title: appLocalizations.checkUpdates,
           description:
               ChewieUtils.compareVersion(latestVersion, currentVersion) > 0
-                  ? S.current.newVersion(latestVersion)
-                  : S.current.alreadyLatestVersion,
+                  ? appLocalizations.newVersion(latestVersion)
+                  : appLocalizations.alreadyLatestVersion,
           descriptionColor:
               ChewieUtils.compareVersion(latestVersion, currentVersion) > 0
                   ? ChewieTheme.errorColor
@@ -178,33 +174,34 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   _logSettings() {
     return SearchableCaptionItem(
-      title: S.current.exportLog,
+      title: appLocalizations.exportLog,
       children: [
         EntryItem(
-          title: S.current.exportLog,
-          description: S.current.exportLogHint,
+          title: appLocalizations.exportLog,
+          description: appLocalizations.exportLogHint,
           trailing: LucideIcons.fileUp,
           onTap: () {
             FileUtil.exportLogs();
           },
         ),
         EntryItem(
-          title: S.current.clearLog,
+          title: appLocalizations.clearLog,
           tip: _logSize,
           onTap: () async {
             DialogBuilder.showConfirmDialog(
               context,
-              title: S.current.clearLogTitle,
-              message: S.current.clearLogHint,
+              title: appLocalizations.clearLogTitle,
+              message: appLocalizations.clearLogHint,
               onTapConfirm: () async {
-                CustomLoadingDialog.showLoading(title: S.current.clearingLog);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.clearingLog);
                 try {
                   await FileOutput.clearLogs();
                   await getLogSize();
-                  IToast.showTop(S.current.clearLogSuccess);
+                  IToast.showTop(appLocalizations.clearLogSuccess);
                 } catch (e, t) {
                   ILogger.error("Failed to clear logs", e, t);
-                  IToast.showTop(S.current.clearLogFailed);
+                  IToast.showTop(appLocalizations.clearLogFailed);
                 } finally {
                   CustomLoadingDialog.dismissLoading();
                 }
@@ -218,10 +215,10 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   _desktopSettings() {
     return SearchableCaptionItem(
-      title: S.current.desktopSetting,
+      title: appLocalizations.desktopSetting,
       children: [
         CheckboxItem(
-          title: S.current.launchAtStartup,
+          title: appLocalizations.launchAtStartup,
           value: launchAtStartup,
           onTap: () async {
             setState(() {
@@ -238,7 +235,7 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           },
         ),
         CheckboxItem(
-          title: S.current.showTray,
+          title: appLocalizations.showTray,
           value: showTray,
           onTap: () async {
             setState(() {
@@ -254,12 +251,12 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
         ),
         if (showTray)
           InlineSelectionItem<SelectionItemModel<int>>(
-            title: S.current.closeWindowOption,
+            title: appLocalizations.closeWindowOption,
             selections: [
-              SelectionItemModel(S.current.minimizeToTray, 0),
-              SelectionItemModel(S.current.exitApp, 1),
+              SelectionItemModel(appLocalizations.minimizeToTray, 0),
+              SelectionItemModel(appLocalizations.exitApp, 1),
             ],
-            hint: S.current.chooseCloseWindowOption,
+            hint: appLocalizations.chooseCloseWindowOption,
             selected: _currentTrayOption,
             onChanged: (item) {
               if (item?.value == 0) {
@@ -278,9 +275,9 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
             },
           ),
         CheckboxItem(
-          title: S.current.autoMemoryWindowPositionAndSize,
+          title: appLocalizations.autoMemoryWindowPositionAndSize,
           value: recordWindowState,
-          description: S.current.autoMemoryWindowPositionAndSizeTip,
+          description: appLocalizations.autoMemoryWindowPositionAndSizeTip,
           onTap: () async {
             setState(() {
               recordWindowState = !recordWindowState;
@@ -297,18 +294,20 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   SelectionItemModel<int> getTrayOption() {
     return SelectionItemModel(
-      enableMinimizeToTray ? S.current.minimizeToTray : S.current.exitApp,
+      enableMinimizeToTray
+          ? appLocalizations.minimizeToTray
+          : appLocalizations.exitApp,
       enableMinimizeToTray ? 0 : 1,
     );
   }
 
   _mobileSettings() {
     return SearchableCaptionItem(
-      title: S.current.mobileSetting,
+      title: appLocalizations.mobileSetting,
       children: [
         CheckboxItem(
           value: inAppBrowser,
-          title: S.current.inAppBrowser,
+          title: appLocalizations.inAppBrowser,
           onTap: () {
             setState(() {
               inAppBrowser = !inAppBrowser;
@@ -317,17 +316,18 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
           },
         ),
         EntryItem(
-          title: S.current.clearCache,
+          title: appLocalizations.clearCache,
           tip: _cacheSize,
           onTap: () {
-            CustomLoadingDialog.showLoading(title: S.current.clearingCache);
+            CustomLoadingDialog.showLoading(
+                title: appLocalizations.clearingCache);
             getTemporaryDirectory().then((tempDir) {
               CacheUtil.delDir(tempDir).then((value) {
                 CacheUtil.loadCache().then((value) {
                   setState(() {
                     _cacheSize = value;
                     CustomLoadingDialog.dismissLoading();
-                    IToast.showTop(S.current.clearCacheSuccess);
+                    IToast.showTop(appLocalizations.clearCacheSuccess);
                   });
                 });
               });
@@ -355,9 +355,9 @@ class GeneralSettingScreenState extends State<GeneralSettingScreen>
 
   void filterLocale() {
     _supportedLocaleTuples = [];
-    List<Locale> locales = S.delegate.supportedLocales;
+    List<Locale> locales = AppLocalizations.supportedLocales;
     _supportedLocaleTuples
-        .add(SelectionItemModel(S.current.followSystem, null));
+        .add(SelectionItemModel(appLocalizations.followSystem, null));
     for (Locale locale in locales) {
       SelectionItemModel<Locale?>? tuple =
           LocaleUtil.getSelectionItemModel(locale);

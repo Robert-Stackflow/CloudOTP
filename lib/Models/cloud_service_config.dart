@@ -26,7 +26,7 @@ import '../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../TokenUtils/Cloud/webdav_cloud_service.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 
 enum CloudServiceType {
   Webdav,
@@ -41,21 +41,21 @@ enum CloudServiceType {
   String get label {
     switch (this) {
       case CloudServiceType.Webdav:
-        return S.current.cloudTypeWebDav;
+        return appLocalizations.cloudTypeWebDav;
       case CloudServiceType.GoogleDrive:
-        return S.current.cloudTypeGoogleDrive;
+        return appLocalizations.cloudTypeGoogleDrive;
       case CloudServiceType.OneDrive:
-        return S.current.cloudTypeOneDrive;
+        return appLocalizations.cloudTypeOneDrive;
       case CloudServiceType.Dropbox:
-        return S.current.cloudTypeDropbox;
+        return appLocalizations.cloudTypeDropbox;
       case CloudServiceType.S3Cloud:
-        return S.current.cloudTypeS3Cloud;
+        return appLocalizations.cloudTypeS3Cloud;
       case CloudServiceType.HuaweiCloud:
-        return S.current.cloudTypeHuaweiCloud;
+        return appLocalizations.cloudTypeHuaweiCloud;
       case CloudServiceType.Box:
-        return S.current.cloudTypeBox;
+        return appLocalizations.cloudTypeBox;
       case CloudServiceType.AliyunDrive:
-        return S.current.cloudTypeAliyunDrive;
+        return appLocalizations.cloudTypeAliyunDrive;
     }
   }
 

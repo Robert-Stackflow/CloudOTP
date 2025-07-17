@@ -16,7 +16,7 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 
 extension AvailableBiometric on CanAuthenticateResponse {
   bool get isAvailable =>
@@ -40,17 +40,17 @@ class BiometricUtil {
       case CanAuthenticateResponse.success:
         return null;
       case CanAuthenticateResponse.errorHwUnavailable:
-        return S.current.biometricErrorHwUnavailable;
+        return appLocalizations.biometricErrorHwUnavailable;
       case CanAuthenticateResponse.errorNoBiometricEnrolled:
-        return S.current.biometricErrorNoBiometricEnrolled;
+        return appLocalizations.biometricErrorNoBiometricEnrolled;
       case CanAuthenticateResponse.errorNoHardware:
-        return S.current.biometricErrorNoHardware;
+        return appLocalizations.biometricErrorNoHardware;
       case CanAuthenticateResponse.errorPasscodeNotSet:
-        return S.current.biometricErrorPasscodeNotSet;
+        return appLocalizations.biometricErrorPasscodeNotSet;
       case CanAuthenticateResponse.unsupported:
-        return S.current.biometricErrorUnsupported;
+        return appLocalizations.biometricErrorUnsupported;
       default:
-        return S.current.biometricErrorUnkown;
+        return appLocalizations.biometricErrorUnkown;
     }
   }
 
@@ -111,9 +111,9 @@ class BiometricUtil {
     return await databasePassswordStorage!.read(
       promptInfo: PromptInfo(
         androidPromptInfo: AndroidPromptInfo(
-          title: S.current.biometricSignInTitle,
-          subtitle: S.current.biometricToDecryptDatabase,
-          negativeButton: S.current.biometricCancelButton,
+          title: appLocalizations.biometricSignInTitle,
+          subtitle: appLocalizations.biometricToDecryptDatabase,
+          negativeButton: appLocalizations.biometricCancelButton,
         ),
       ),
     );
@@ -131,9 +131,9 @@ class BiometricUtil {
         password,
         promptInfo: PromptInfo(
           androidPromptInfo: AndroidPromptInfo(
-            title: S.current.biometricSignInTitle,
-            subtitle: S.current.biometricToSaveDatabasePassword,
-            negativeButton: S.current.biometricCancelButton,
+            title: appLocalizations.biometricSignInTitle,
+            subtitle: appLocalizations.biometricToSaveDatabasePassword,
+            negativeButton: appLocalizations.biometricCancelButton,
           ),
         ),
       );
@@ -143,17 +143,17 @@ class BiometricUtil {
       if (e is AuthException) {
         switch (e.code) {
           case AuthExceptionCode.userCanceled:
-            IToast.showTop(S.current.biometricUserCanceled);
+            IToast.showTop(appLocalizations.biometricUserCanceled);
             break;
           case AuthExceptionCode.timeout:
-            IToast.showTop(S.current.biometricTimeout);
+            IToast.showTop(appLocalizations.biometricTimeout);
             break;
           case AuthExceptionCode.unknown:
-            IToast.showTop(S.current.biometricLockout);
+            IToast.showTop(appLocalizations.biometricLockout);
             break;
           case AuthExceptionCode.canceled:
           default:
-            IToast.showTop(S.current.biometricError);
+            IToast.showTop(appLocalizations.biometricError);
             break;
         }
       }

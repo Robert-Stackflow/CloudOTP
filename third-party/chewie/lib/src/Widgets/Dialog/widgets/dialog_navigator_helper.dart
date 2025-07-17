@@ -36,6 +36,8 @@ class DialogNavigatorHelper {
       } else {
         Navigator.of(chewieProvider.rootContext).pop();
       }
+    } else {
+      Navigator.of(chewieProvider.rootContext).pop();
     }
   }
 

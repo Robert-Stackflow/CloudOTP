@@ -9,7 +9,7 @@ import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
 import 'package:awesome_chewie/src/Utils/itoast.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Selectable/my_context_menu_item.dart';
 import 'package:awesome_chewie/src/Widgets/Selectable/my_selectable_region.dart';
 import 'package:awesome_chewie/src/Widgets/Selectable/my_selection_area.dart';
@@ -41,7 +41,7 @@ class SelectableAreaWrapper extends StatelessWidget {
       //           entries: [
       //             if (selectedText.notNullOrEmpty)
       //               FlutterContextMenuItem(
-      //                 ChewieS.current.copy,
+      //                 chewieLocalizations.copy,
       //                 iconData: LucideIcons.copy,
       //                 onPressed: () {
       //                   details.clearSelection();
@@ -51,7 +51,7 @@ class SelectableAreaWrapper extends StatelessWidget {
       //               ),
       //             if (selectedText.notNullOrEmpty)
       //               FlutterContextMenuItem.submenu(
-      //                 ChewieS.current.search,
+      //                 chewieLocalizations.search,
       //                 iconData: LucideIcons.search,
       //                 items: [
       //                   FlutterContextMenuItem(
@@ -81,7 +81,7 @@ class SelectableAreaWrapper extends StatelessWidget {
       //                 ],
       //               ),
       //             FlutterContextMenuItem(
-      //               ChewieS.current.selectAll,
+      //               chewieLocalizations.selectAll,
       //               iconData: LucideIcons.textCursorInput,
       //               onPressed: () {
       //                 details.clearSelection();
@@ -100,16 +100,16 @@ class SelectableAreaWrapper extends StatelessWidget {
       //       },
       contextMenuBuilder: (contextMenuContext, details) {
         Map<ContextMenuButtonType, String> typeToString = {
-          ContextMenuButtonType.copy: ChewieS.current.copy,
-          ContextMenuButtonType.cut: ChewieS.current.cut,
-          ContextMenuButtonType.paste: ChewieS.current.paste,
-          ContextMenuButtonType.selectAll: ChewieS.current.selectAll,
-          ContextMenuButtonType.searchWeb: ChewieS.current.search,
-          ContextMenuButtonType.share: ChewieS.current.share,
-          ContextMenuButtonType.lookUp: ChewieS.current.search,
-          ContextMenuButtonType.delete: ChewieS.current.delete,
-          ContextMenuButtonType.liveTextInput: ChewieS.current.input,
-          ContextMenuButtonType.custom: ChewieS.current.custom,
+          ContextMenuButtonType.copy: chewieLocalizations.copy,
+          ContextMenuButtonType.cut: chewieLocalizations.cut,
+          ContextMenuButtonType.paste: chewieLocalizations.paste,
+          ContextMenuButtonType.selectAll: chewieLocalizations.selectAll,
+          ContextMenuButtonType.searchWeb: chewieLocalizations.search,
+          ContextMenuButtonType.share: chewieLocalizations.share,
+          ContextMenuButtonType.lookUp: chewieLocalizations.search,
+          ContextMenuButtonType.delete: chewieLocalizations.delete,
+          ContextMenuButtonType.liveTextInput: chewieLocalizations.input,
+          ContextMenuButtonType.custom: chewieLocalizations.custom,
         };
         List<MyContextMenuItem> items = [];
         for (var e in details.contextMenuButtonItems) {

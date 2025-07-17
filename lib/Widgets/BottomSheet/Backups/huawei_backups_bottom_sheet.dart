@@ -20,7 +20,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../../../Utils/utils.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class HuaweiCloudBackupsBottomSheet extends StatefulWidget {
   const HuaweiCloudBackupsBottomSheet({
@@ -40,7 +40,7 @@ class HuaweiCloudBackupsBottomSheet extends StatefulWidget {
 }
 
 class HuaweiCloudBackupsBottomSheetState
-    extends State<HuaweiCloudBackupsBottomSheet> {
+    extends BaseDynamicState<HuaweiCloudBackupsBottomSheet> {
   late List<HuaweiCloudFileInfo> files;
 
   @override
@@ -92,7 +92,7 @@ class HuaweiCloudBackupsBottomSheetState
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(widget.files.length),
+        appLocalizations.cloudBackupFiles(widget.files.length),
         style:
             ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
@@ -155,7 +155,7 @@ class HuaweiCloudBackupsBottomSheetState
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
                   try {
                     bool success =
                         await widget.cloudService.deleteFile(file.id);
@@ -163,14 +163,14 @@ class HuaweiCloudBackupsBottomSheetState
                       setState(() {
                         files.remove(file);
                       });
-                      IToast.showTop(S.current.deleteSuccess);
+                      IToast.showTop(appLocalizations.deleteSuccess);
                     } else {
-                      IToast.showTop(S.current.deleteFailed);
+                      IToast.showTop(appLocalizations.deleteFailed);
                     }
                   } catch (e, t) {
                     ILogger.error(
                         "Failed to delete file from huawei cloud", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

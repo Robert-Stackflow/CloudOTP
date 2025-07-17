@@ -93,7 +93,7 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
           animation: _shakingAnimation,
           builder: (context, child) {
             return Transform.translate(
-              offset: Offset(_shakingAnimation.value, 0), // 左右颤抖动画
+              offset: Offset(_shakingAnimation.value, 0),
               child: child,
             );
           },
@@ -129,15 +129,16 @@ class DialogWrapperWidgetState extends State<DialogWrapperWidget>
                     child: Stack(
                       children: [
                         Navigator(
-                          key: ValueKey(chewieProvider.themeMode),
-                          onGenerateRoute: (settings) => RouteUtil.getFadeRoute(
-                            Builder(
-                              builder: (context) {
-                                DialogNavigatorHelper.init(context);
-                                return widget.child;
-                              },
-                            ),
-                          ),
+                          onGenerateRoute: (settings) {
+                            return RouteUtil.getFadeRoute(
+                              Builder(
+                                builder: (context) {
+                                  DialogNavigatorHelper.init(context);
+                                  return widget.child;
+                                },
+                              ),
+                            );
+                          },
                         ),
                         if (widget.showCloseButton)
                           Positioned(

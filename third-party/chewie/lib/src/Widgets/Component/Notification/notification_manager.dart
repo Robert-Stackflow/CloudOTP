@@ -45,7 +45,9 @@ class NotificationManager {
     );
 
     _queue.add(entry);
-    _overlayState?.addNotification(entry);
+    Future.delayed(Duration.zero, () {
+      _overlayState?.addNotification(entry);
+    });
   }
 
   void _ensureOverlay(BuildContext context) {

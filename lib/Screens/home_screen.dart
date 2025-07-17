@@ -40,7 +40,7 @@ import '../Database/token_dao.dart';
 import '../Models/token_category.dart';
 import '../Utils/app_provider.dart';
 import '../Widgets/BottomSheet/select_token_bottom_sheet.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'Token/category_screen.dart';
 import 'Token/token_layout.dart';
 
@@ -78,7 +78,6 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   late AnimationController _animationController;
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
-  Locale? _lastLocale;
 
   bool get hasSearchFocus => appProvider.searchFocusNode.hasFocus;
 
@@ -267,13 +266,9 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final currentLocale = Localizations.localeOf(context);
-    if (_lastLocale != currentLocale) {
-      _lastLocale = currentLocale;
-      initTab();
-    }
+  void onLocaleChanged(Locale newLocale) {
+    super.onLocaleChanged(newLocale);
+    initTab();
   }
 
   @override
@@ -292,7 +287,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   focusNode: appProvider.searchFocusNode,
                   controller: _searchController,
                   background: ChewieTheme.scaffoldBackgroundColor,
-                  hintText: S.current.searchToken,
+                  hintText: appLocalizations.searchToken,
                   onSubmitted: (text) {
                     performSearch(text);
                   },
@@ -469,7 +464,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             FlutterContextMenu(
               entries: [
                 FlutterContextMenuItem(
-                  S.current.category,
+                  appLocalizations.category,
                   iconData: LucideIcons.shapes,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
@@ -477,7 +472,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   },
                 ),
                 FlutterContextMenuItem(
-                  S.current.setting,
+                  appLocalizations.setting,
                   iconData: LucideIcons.bolt,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
@@ -485,7 +480,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   },
                 ),
                 FlutterContextMenuItem(
-                  S.current.about,
+                  appLocalizations.about,
                   iconData: LucideIcons.info,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
@@ -555,7 +550,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                           const SizedBox(width: 4),
                           Expanded(
                             child: InputItem(
-                              hint: S.current.searchToken,
+                              hint: appLocalizations.searchToken,
                               onSubmit: (text) {
                                 performSearch(text);
                               },
@@ -739,8 +734,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             children: [
               EmptyPlaceholder(
                 text: _searchKey.isEmpty
-                    ? S.current.noToken
-                    : S.current.noTokenContainingSearchKey(_searchKey),
+                    ? appLocalizations.noToken
+                    : appLocalizations.noTokenContainingSearchKey(_searchKey),
               ),
             ],
           )
@@ -792,7 +787,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
               );
             }
           },
-          child: Text(category?.title ?? (() => S.current.allTokens)()),
+          child: Text(category?.title ?? (() => appLocalizations.allTokens)()),
         ),
       ),
     );
@@ -803,10 +798,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         InputValidateAsyncController(
       validator: (text) async {
         if (text.isEmpty) {
-          return S.current.categoryNameCannotBeEmpty;
+          return appLocalizations.categoryNameCannotBeEmpty;
         }
         if (text != category.title && await CategoryDao.isCategoryExist(text)) {
-          return S.current.categoryNameDuplicate;
+          return appLocalizations.categoryNameDuplicate;
         }
         return null;
       },
@@ -817,15 +812,15 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       responsive: true,
       useWideLandscape: true,
       (context) => InputBottomSheet(
-        title: S.current.editCategoryName,
-        hint: S.current.inputCategory,
+        title: appLocalizations.editCategoryName,
+        hint: appLocalizations.inputCategory,
         style: InputItemStyle(
           maxLength: 32,
         ),
         text: category.title,
         validator: (text) {
           if (text.isEmpty) {
-            return S.current.categoryNameCannotBeEmpty;
+            return appLocalizations.categoryNameCannotBeEmpty;
           }
           return null;
         },
@@ -847,10 +842,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         InputValidateAsyncController(
       validator: (text) async {
         if (text.isEmpty) {
-          return S.current.categoryNameCannotBeEmpty;
+          return appLocalizations.categoryNameCannotBeEmpty;
         }
         if (await CategoryDao.isCategoryExist(text)) {
-          return S.current.categoryNameDuplicate;
+          return appLocalizations.categoryNameDuplicate;
         }
         return null;
       },
@@ -861,11 +856,11 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       responsive: true,
       useWideLandscape: true,
       (context) => InputBottomSheet(
-        title: S.current.addCategory,
-        hint: S.current.inputCategory,
+        title: appLocalizations.addCategory,
+        hint: appLocalizations.inputCategory,
         validator: (text) {
           if (text.isEmpty) {
-            return S.current.categoryNameCannotBeEmpty;
+            return appLocalizations.categoryNameCannotBeEmpty;
           }
           return null;
         },
@@ -890,7 +885,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       return FlutterContextMenu(
         entries: [
           FlutterContextMenuItem(
-            S.current.addCategory,
+            appLocalizations.addCategory,
             iconData: LucideIcons.plus,
             onPressed: () {
               addCategory(context);
@@ -902,14 +897,14 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem(
-          S.current.editCategoryName,
+          appLocalizations.editCategoryName,
           iconData: LucideIcons.pencilLine,
           onPressed: () {
             processEditCategory(category);
           },
         ),
         FlutterContextMenuItem(
-          S.current.editCategoryTokens,
+          appLocalizations.editCategoryTokens,
           iconData: LucideIcons.coins,
           onPressed: () {
             BottomSheetBuilder.showBottomSheet(
@@ -921,26 +916,26 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         ),
         FlutterContextMenuItem.divider(),
         FlutterContextMenuItem(
-          S.current.addCategory,
+          appLocalizations.addCategory,
           iconData: LucideIcons.plus,
           onPressed: () {
             addCategory(context);
           },
         ),
         FlutterContextMenuItem(
-          S.current.deleteCategory,
+          appLocalizations.deleteCategory,
           iconData: LucideIcons.trash2,
           status: MenuItemStatus.error,
           onPressed: () {
             DialogBuilder.showConfirmDialog(
               context,
-              title: S.current.deleteCategory,
-              message: S.current.deleteCategoryHint(category.title),
-              confirmButtonText: S.current.confirm,
-              cancelButtonText: S.current.cancel,
+              title: appLocalizations.deleteCategory,
+              message: appLocalizations.deleteCategoryHint(category.title),
+              confirmButtonText: appLocalizations.confirm,
+              cancelButtonText: appLocalizations.cancel,
               onTapConfirm: () async {
                 await CategoryDao.deleteCategory(category);
-                IToast.showTop(S.current.deleteCategorySuccess(category.title));
+                IToast.showTop(appLocalizations.deleteCategorySuccess(category.title));
                 refreshCategories();
               },
               onTapCancel: () {},
@@ -1131,15 +1126,15 @@ enum LayoutType {
   String get title {
     switch (this) {
       case LayoutType.Simple:
-        return S.current.simpleLayoutType;
+        return appLocalizations.simpleLayoutType;
       case LayoutType.Compact:
-        return S.current.compactLayoutType;
+        return appLocalizations.compactLayoutType;
       // case LayoutType.Tile:
-      //   return S.current.tileLayout;
+      //   return appLocalizations.tileLayout;
       case LayoutType.List:
-        return S.current.listLayoutType;
+        return appLocalizations.listLayoutType;
       case LayoutType.Spotlight:
-        return S.current.spotlightLayoutType;
+        return appLocalizations.spotlightLayoutType;
     }
   }
 }
@@ -1158,23 +1153,23 @@ enum OrderType {
   String get title {
     switch (this) {
       case OrderType.Default:
-        return S.current.defaultOrder;
+        return appLocalizations.defaultOrder;
       case OrderType.AlphabeticalASC:
-        return S.current.alphabeticalASCOrder;
+        return appLocalizations.alphabeticalASCOrder;
       case OrderType.AlphabeticalDESC:
-        return S.current.alphabeticalDESCOrder;
+        return appLocalizations.alphabeticalDESCOrder;
       case OrderType.CopyTimesDESC:
-        return S.current.copyTimesDESCOrder;
+        return appLocalizations.copyTimesDESCOrder;
       case OrderType.CopyTimesASC:
-        return S.current.copyTimesASCOrder;
+        return appLocalizations.copyTimesASCOrder;
       case OrderType.LastCopyTimeDESC:
-        return S.current.lastCopyTimeDESCOrder;
+        return appLocalizations.lastCopyTimeDESCOrder;
       case OrderType.LastCopyTimeASC:
-        return S.current.lastCopyTimeASCOrder;
+        return appLocalizations.lastCopyTimeASCOrder;
       case OrderType.CreateTimeDESC:
-        return S.current.createTimeDESCOrder;
+        return appLocalizations.createTimeDESCOrder;
       case OrderType.CreateTimeASC:
-        return S.current.createTimeASCOrder;
+        return appLocalizations.createTimeASCOrder;
     }
   }
 

@@ -19,7 +19,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:flutter/material.dart';
 
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SelectThemeScreen extends BaseSettingScreen {
   const SelectThemeScreen({super.key});
@@ -30,7 +30,7 @@ class SelectThemeScreen extends BaseSettingScreen {
   State<SelectThemeScreen> createState() => _SelectThemeScreenState();
 }
 
-class _SelectThemeScreenState extends State<SelectThemeScreen>
+class _SelectThemeScreenState extends BaseDynamicState<SelectThemeScreen>
     with TickerProviderStateMixin {
   int _selectedLightIndex = ChewieHiveUtil.getLightThemeIndex();
   int _selectedDarkIndex = ChewieHiveUtil.getDarkThemeIndex();
@@ -39,7 +39,7 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
   Widget build(BuildContext context) {
     return ItemBuilder.buildSettingScreen(
       context: context,
-      title: S.current.selectTheme,
+      title: appLocalizations.selectTheme,
       showTitleBar: widget.showTitleBar,
       showBack: true,
       padding: widget.padding,
@@ -48,7 +48,7 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
       },
       children: [
         CaptionItem(
-          title: S.current.lightTheme,
+          title: appLocalizations.lightTheme,
           children: [
             Container(
               margin: const EdgeInsets.only(top: 10),
@@ -64,7 +64,7 @@ class _SelectThemeScreenState extends State<SelectThemeScreen>
           ],
         ),
         CaptionItem(
-          title: S.current.darkTheme,
+          title: appLocalizations.darkTheme,
           children: [
             Container(
               margin: const EdgeInsets.only(top: 10),

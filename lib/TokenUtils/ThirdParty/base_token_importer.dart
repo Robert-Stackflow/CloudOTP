@@ -17,7 +17,7 @@ import 'package:cloudotp/Models/token_category_binding.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Models/token_category.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../import_token_util.dart';
 
 enum DecryptResult {
@@ -49,7 +49,7 @@ abstract class BaseTokenImporter {
     );
     analysis.importSuccess = tmpAnalysis.importSuccess;
     analysis.importCategorySuccess = tmpAnalysis.importCategorySuccess;
-    analysis.showToast(S.current.fileDoesNotContainToken);
+    analysis.showToast(appLocalizations.fileDoesNotContainToken);
   }
 }
 

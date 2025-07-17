@@ -20,7 +20,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../Models/s3_cloud_file_info.dart';
 import '../../../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../../../Utils/utils.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class S3CloudBackupsBottomSheet extends StatefulWidget {
   const S3CloudBackupsBottomSheet({
@@ -39,7 +39,7 @@ class S3CloudBackupsBottomSheet extends StatefulWidget {
       S3CloudBackupsBottomSheetState();
 }
 
-class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
+class S3CloudBackupsBottomSheetState extends BaseDynamicState<S3CloudBackupsBottomSheet> {
   late List<S3CloudFileInfo> files;
 
   @override
@@ -92,7 +92,7 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(widget.files.length),
+        appLocalizations.cloudBackupFiles(widget.files.length),
         style:
             ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
@@ -155,16 +155,16 @@ class S3CloudBackupsBottomSheetState extends State<S3CloudBackupsBottomSheet> {
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.path);
                     setState(() {
                       files.remove(file);
                     });
-                    IToast.showTop(S.current.deleteSuccess);
+                    IToast.showTop(appLocalizations.deleteSuccess);
                   } catch (e, t) {
                     ILogger.error("Failed to delete file from s3 cloud", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

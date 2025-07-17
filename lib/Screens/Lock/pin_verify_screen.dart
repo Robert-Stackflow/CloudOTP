@@ -28,7 +28,7 @@ import '../../Utils/hive_util.dart';
 import '../../Utils/lottie_util.dart';
 import '../../Utils/shortcuts_util.dart';
 import '../../Widgets/Shortcuts/app_shortcuts.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../main_screen.dart';
 
 class PinVerifyScreen extends StatefulWidget {
@@ -52,14 +52,14 @@ class PinVerifyScreen extends StatefulWidget {
   PinVerifyScreenState createState() => PinVerifyScreenState();
 }
 
-class PinVerifyScreenState extends State<PinVerifyScreen>
+class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
     with WindowListener, TrayListener {
   final String? _password =
       ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey);
   late final bool _enableBiometric =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = GestureNotifier(
-      status: GestureStatus.verify, gestureText: S.current.verifyGestureLock);
+      status: GestureStatus.verify, gestureText: appLocalizations.verifyGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
   bool _isMaximized = false;
   bool _isStayOnTop = false;
@@ -166,7 +166,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
           backgroundColor: ChewieTheme.scaffoldBackgroundColor,
           appBar: ResponsiveUtil.isDesktop() && widget.showWindowTitle
               ? ResponsiveAppBar(
-                  title: S.current.verifyGestureLock,
+                  title: appLocalizations.verifyGestureLock,
                   showBack: false,
                   titleLeftMargin: 15,
                   actions: const [
@@ -216,8 +216,8 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
                       visible: _biometricAvailable && _enableBiometric,
                       child: RoundIconTextButton(
                         text: ResponsiveUtil.isWindows()
-                            ? S.current.biometricVerifyPin
-                            : S.current.biometric,
+                            ? appLocalizations.biometricVerifyPin
+                            : appLocalizations.biometric,
                         onPressed: auth,
                       ),
                     ),
@@ -267,7 +267,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
           setState(() {
             _notifier.setStatus(
               status: GestureStatus.verifyFailed,
-              gestureText: S.current.gestureLockWrong,
+              gestureText: appLocalizations.gestureLockWrong,
             );
           });
           _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);

@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class OneDriveBackupsBottomSheet extends StatefulWidget {
   const OneDriveBackupsBottomSheet({
@@ -39,7 +39,7 @@ class OneDriveBackupsBottomSheet extends StatefulWidget {
 }
 
 class OneDriveBackupsBottomSheetState
-    extends State<OneDriveBackupsBottomSheet> {
+    extends BaseDynamicState<OneDriveBackupsBottomSheet> {
   late List<OneDriveFileInfo> files;
 
   @override
@@ -91,7 +91,7 @@ class OneDriveBackupsBottomSheetState
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(widget.files.length),
+        appLocalizations.cloudBackupFiles(widget.files.length),
         style:
             ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
       ),
@@ -149,16 +149,16 @@ class OneDriveBackupsBottomSheetState
           CircleIconButton(
             icon: const Icon(LucideIcons.trash, color: Colors.red, size: 20),
             onTap: () async {
-              CustomLoadingDialog.showLoading(title: S.current.deleting);
+              CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
               try {
                 await widget.cloudService.deleteFile(file.id);
                 setState(() {
                   files.remove(file);
                 });
-                IToast.showTop(S.current.deleteSuccess);
+                IToast.showTop(appLocalizations.deleteSuccess);
               } catch (e, t) {
                 ILogger.error("Failed to delete file from webdav", e, t);
-                IToast.showTop(S.current.deleteFailed);
+                IToast.showTop(appLocalizations.deleteFailed);
               }
               CustomLoadingDialog.dismissLoading();
             },

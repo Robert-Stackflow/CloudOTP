@@ -1,11 +1,6 @@
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Animation/ink_animation.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Tile/searchable_stateful_widget.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-
-import 'highlight_text.dart';
 
 class EntryItem extends SearchableStatefulWidget {
   final double radius;
@@ -419,7 +414,7 @@ class CaptionItem extends StatefulWidget {
   CaptionItemState createState() => CaptionItemState();
 }
 
-class CaptionItemState extends State<CaptionItem>
+class CaptionItemState extends BaseDynamicState<CaptionItem>
     with TickerProviderStateMixin {
   late bool _isExpanded;
   late AnimationController _controller;

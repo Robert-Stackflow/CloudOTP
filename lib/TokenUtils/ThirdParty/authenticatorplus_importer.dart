@@ -27,7 +27,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../Utils/Base32/base32.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 enum AuthenticatorType {
   Totp,
@@ -215,12 +215,12 @@ class AuthenticatorPlusTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(S.current.importing, showProgress: false);
+      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
       if (!file.existsSync()) {
-        IToast.showTop(S.current.fileNotExist);
+        IToast.showTop(appLocalizations.fileNotExist);
       } else {
         try {
           final path = join(await FileUtil.getDatabaseDir(),
@@ -242,7 +242,7 @@ class AuthenticatorPlusTokenImporter implements BaseTokenImporter {
             ImporterResult result = await _convertFromConnectionAsync(database);
             await BaseTokenImporter.importResult(result);
           } catch (e) {
-            IToast.showTop(S.current.importFailed);
+            IToast.showTop(appLocalizations.importFailed);
           } finally {
             await database.close();
           }
@@ -252,7 +252,7 @@ class AuthenticatorPlusTokenImporter implements BaseTokenImporter {
       }
     } catch (e, t) {
       ILogger.error("Failed to import from 2FAS", e, t);
-      IToast.showTop(S.current.importFailed);
+      IToast.showTop(appLocalizations.importFailed);
     } finally {
       if (showLoading) {
         dialog.dismiss();

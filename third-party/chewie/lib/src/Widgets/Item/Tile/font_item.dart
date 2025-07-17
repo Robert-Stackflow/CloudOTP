@@ -5,7 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:awesome_chewie/src/Resources/fonts.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Button/circle_icon_button.dart';
 import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
 
@@ -103,7 +103,7 @@ class FontItemState extends State<FontItem> {
                               ],
                             )
                           : Text(
-                              ChewieS.current.fontFileNotExist,
+                              chewieLocalizations.fontFileNotExist,
                               style: ChewieTheme.bodyMedium.apply(
                                 fontFamily: widget.font.fontFamily,
                                 fontWeightDelta: 0,
@@ -205,7 +205,7 @@ class EmptyFontItemState extends State<EmptyFontItem> {
           ),
           const SizedBox(height: 8),
           Text(
-            ChewieS.current.loadFontFamily,
+            chewieLocalizations.loadFontFamily,
             style: ChewieTheme.bodySmall,
             textAlign: TextAlign.center,
           ),

@@ -19,7 +19,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SelectFontScreen extends BaseSettingScreen {
   const SelectFontScreen({super.key});
@@ -30,7 +30,7 @@ class SelectFontScreen extends BaseSettingScreen {
   State<SelectFontScreen> createState() => _SelectFontScreenState();
 }
 
-class _SelectFontScreenState extends State<SelectFontScreen>
+class _SelectFontScreenState extends BaseDynamicState<SelectFontScreen>
     with TickerProviderStateMixin {
   CustomFont _currentFont = CustomFont.getCurrentFont();
   List<CustomFont> customFonts = ChewieHiveUtil.getCustomFonts();
@@ -39,7 +39,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
   Widget build(BuildContext context) {
     return ItemBuilder.buildSettingScreen(
       context: context,
-      title: S.current.chooseFontFamily,
+      title: appLocalizations.chooseFontFamily,
       showTitleBar: widget.showTitleBar,
       showBack: true,
       padding: widget.padding,
@@ -48,7 +48,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
       },
       children: [
         CaptionItem(
-          title: S.current.defaultFontFamily,
+          title: appLocalizations.defaultFontFamily,
           children: [
             Container(
               margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
@@ -61,7 +61,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
           ],
         ),
         CaptionItem(
-          title: S.current.customFontFamily,
+          title: appLocalizations.customFontFamily,
           children: [
             Container(
               margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
@@ -112,9 +112,9 @@ class _SelectFontScreenState extends State<SelectFontScreen>
         onDelete: (_) {
           DialogBuilder.showConfirmDialog(
             context,
-            title: S.current.deleteFont(customFonts[index].intlFontName),
+            title: appLocalizations.deleteFont(customFonts[index].intlFontName),
             message:
-                S.current.deleteFontMessage(customFonts[index].intlFontName),
+                appLocalizations.deleteFontMessage(customFonts[index].intlFontName),
             onTapConfirm: () async {
               if (customFonts[index] == _currentFont) {
                 _currentFont = CustomFont.Default;
@@ -134,7 +134,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
       EmptyFontItem(
         onTap: () async {
           FilePickerResult? result = await FileUtil.pickFiles(
-            dialogTitle: S.current.loadFontFamily,
+            dialogTitle: appLocalizations.loadFontFamily,
             allowedExtensions: ['ttf', 'otf'],
             lockParentWindow: true,
             type: FileType.custom,
@@ -150,7 +150,7 @@ class _SelectFontScreenState extends State<SelectFontScreen>
               CustomFont.loadFont(context, _currentFont, autoRestartApp: false);
               setState(() {});
             } else {
-              IToast.showTop(S.current.fontFamlyLoadFailed);
+              IToast.showTop(appLocalizations.fontFamlyLoadFailed);
             }
           }
         },

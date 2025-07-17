@@ -28,7 +28,7 @@ import 'package:group_button/group_button.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Setting/base_setting_screen.dart';
 
 class CloudServiceScreen extends BaseSettingScreen {
@@ -45,7 +45,7 @@ class CloudServiceScreen extends BaseSettingScreen {
   State<CloudServiceScreen> createState() => _CloudServiceScreenState();
 }
 
-class _CloudServiceScreenState extends State<CloudServiceScreen>
+class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
     with TickerProviderStateMixin {
   final GroupButtonController _typeController = GroupButtonController();
   CloudServiceType _currentType = CloudServiceType.Webdav;
@@ -67,7 +67,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
       context: context,
       padding: widget.padding,
       showTitleBar: widget.showTitleBar,
-      title: S.current.cloudBackupServiceSetting,
+      title: appLocalizations.cloudBackupServiceSetting,
       showBack: widget.showBack,
       titleLeftMargin: widget.showBack ? 5 : 15,
       onTapBack: () {
@@ -81,7 +81,7 @@ class _CloudServiceScreenState extends State<CloudServiceScreen>
           buttonSize: const Size(32, 32),
           onPressed: _showServerInfo,
           tooltipPosition: TooltipPosition.bottom,
-          tooltip: S.current.cloudOAuthDialogTitle,
+          tooltip: appLocalizations.cloudOAuthDialogTitle,
         ),
       ],
       actions: [

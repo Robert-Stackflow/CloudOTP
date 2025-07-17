@@ -23,7 +23,7 @@ import '../../Models/opt_token.dart';
 import '../../TokenUtils/token_image_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SelectIconBottomSheet extends StatefulWidget {
   const SelectIconBottomSheet({
@@ -41,7 +41,7 @@ class SelectIconBottomSheet extends StatefulWidget {
   SelectIconBottomSheetState createState() => SelectIconBottomSheetState();
 }
 
-class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
+class SelectIconBottomSheetState extends BaseDynamicState<SelectIconBottomSheet> {
   GroupButtonController controller = GroupButtonController();
   TextEditingController searchController = TextEditingController();
   List<String> icons = [];
@@ -98,7 +98,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
               bottomMargin: 18,
               focusNode: _focusNode,
               background: Colors.grey.withAlpha(40),
-              hintText: S.current.searchIconName,
+              hintText: appLocalizations.searchIconName,
               onSubmitted: (str) {
                 setState(() {
                   icons = TokenImageUtil.matchBrandLogos(str);
@@ -144,7 +144,7 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
           widget.onSelected.call(widget.token.imagePath);
           if (widget.doUpdate) {
             await TokenDao.updateToken(widget.token);
-            IToast.showTop(S.current.saveSuccess);
+            IToast.showTop(appLocalizations.saveSuccess);
             homeScreenState?.updateToken(widget.token);
           }
           Navigator.of(context).pop();
@@ -164,8 +164,8 @@ class SelectIconBottomSheetState extends State<SelectIconBottomSheet> {
       child: Text(
         textAlign: TextAlign.center,
         widget.token.issuer.isNotEmpty
-            ? S.current.setIconForTokenDetail(widget.token.issuer)
-            : S.current.setIconForToken,
+            ? appLocalizations.setIconForTokenDetail(widget.token.issuer)
+            : appLocalizations.setIconForToken,
         style: ChewieTheme.titleLarge,
       ),
     );

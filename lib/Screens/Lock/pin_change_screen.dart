@@ -21,7 +21,7 @@ import 'package:flutter/material.dart';
 
 import '../../Utils/biometric_util.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class PinChangeScreen extends StatefulWidget {
   const PinChangeScreen({super.key});
@@ -32,7 +32,7 @@ class PinChangeScreen extends StatefulWidget {
   PinChangeScreenState createState() => PinChangeScreenState();
 }
 
-class PinChangeScreenState extends State<PinChangeScreen> {
+class PinChangeScreenState extends BaseDynamicState<PinChangeScreen> {
   String _gesturePassword = "";
   final String? _oldPassword =
       ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey);
@@ -45,10 +45,10 @@ class PinChangeScreenState extends State<PinChangeScreen> {
   late final GestureNotifier _notifier = _isEditMode
       ? GestureNotifier(
           status: GestureStatus.verify,
-          gestureText: S.current.drawOldGestureLock)
+          gestureText: appLocalizations.drawOldGestureLock)
       : GestureNotifier(
           status: GestureStatus.create,
-          gestureText: S.current.drawNewGestureLock);
+          gestureText: appLocalizations.drawNewGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
   final GlobalKey<GestureUnlockIndicatorState> _indicator = GlobalKey();
 
@@ -74,11 +74,11 @@ class PinChangeScreenState extends State<PinChangeScreen> {
 
   void auth() async {
     await ChewieUtils.localAuth(onAuthed: () {
-      IToast.showTop(S.current.biometricVerifySuccess);
+      IToast.showTop(appLocalizations.biometricVerifySuccess);
       setState(() {
         _notifier.setStatus(
           status: GestureStatus.create,
-          gestureText: S.current.drawNewGestureLock,
+          gestureText: appLocalizations.drawNewGestureLock,
         );
         _isEditMode = false;
       });
@@ -130,8 +130,8 @@ class PinChangeScreenState extends State<PinChangeScreen> {
                 visible: _isEditMode && _biometricAvailable && _enableBiometric,
                 child: RoundIconTextButton(
                   text: ResponsiveUtil.isWindows()
-                      ? S.current.biometricVerifyPin
-                      : S.current.biometric,
+                      ? appLocalizations.biometricVerifyPin
+                      : appLocalizations.biometric,
                   onPressed: auth,
                 ),
               ),
@@ -151,7 +151,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
           setState(() {
             _notifier.setStatus(
               status: GestureStatus.createFailed,
-              gestureText: S.current.atLeast4Points,
+              gestureText: appLocalizations.atLeast4Points,
             );
           });
           _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);
@@ -159,7 +159,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
           setState(() {
             _notifier.setStatus(
               status: GestureStatus.verify,
-              gestureText: S.current.drawGestureLockAgain,
+              gestureText: appLocalizations.drawGestureLockAgain,
             );
           });
           _gesturePassword = GestureUnlockView.selectedToString(selected);
@@ -172,11 +172,11 @@ class PinChangeScreenState extends State<PinChangeScreen> {
         if (!_isEditMode) {
           String password = GestureUnlockView.selectedToString(selected);
           if (_gesturePassword == password) {
-            IToast.showTop(S.current.setGestureLockSuccess);
+            IToast.showTop(appLocalizations.setGestureLockSuccess);
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.verify,
-                gestureText: S.current.setGestureLockSuccess,
+                gestureText: appLocalizations.setGestureLockSuccess,
               );
               Navigator.pop(context);
             });
@@ -186,7 +186,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.verifyFailed,
-                gestureText: S.current.gestureLockNotMatch,
+                gestureText: appLocalizations.gestureLockNotMatch,
               );
             });
             _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);
@@ -197,7 +197,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.create,
-                gestureText: S.current.drawNewGestureLock,
+                gestureText: appLocalizations.drawNewGestureLock,
               );
               _isEditMode = false;
             });
@@ -206,7 +206,7 @@ class PinChangeScreenState extends State<PinChangeScreen> {
             setState(() {
               _notifier.setStatus(
                 status: GestureStatus.verifyFailed,
-                gestureText: S.current.gestureLockWrong,
+                gestureText: appLocalizations.gestureLockWrong,
               );
             });
             _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);

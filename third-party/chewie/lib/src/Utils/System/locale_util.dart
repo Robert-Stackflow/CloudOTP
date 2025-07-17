@@ -4,7 +4,7 @@ import 'package:tuple/tuple.dart';
 
 class LocaleUtil with ChangeNotifier {
   static List<Tuple2<String, Locale?>> localeLabels = <Tuple2<String, Locale?>>[
-    Tuple2(ChewieS.current.followSystem, null),
+    Tuple2(chewieLocalizations.followSystem, null),
     const Tuple2("Deutsch", Locale("de")),
     const Tuple2("English", Locale("en")),
     const Tuple2("Español", Locale("es")),
@@ -15,7 +15,7 @@ class LocaleUtil with ChangeNotifier {
     const Tuple2("Українська", Locale("uk")),
     const Tuple2("简体中文", Locale("zh", "CN")),
     const Tuple2("繁體中文", Locale("zh", "TW")),
-    const Tuple2("日本語", Locale("ja", "JP")),
+    const Tuple2("日本語", Locale("ja")),
   ];
 
   static Tuple2<String, Locale?>? getTuple(Locale? locale) {
@@ -32,7 +32,7 @@ class LocaleUtil with ChangeNotifier {
 
   static SelectionItemModel<Locale?>? getSelectionItemModel(Locale? locale) {
     if (locale == null) {
-      return SelectionItemModel<Locale?>(ChewieS.current.followSystem, null);
+      return SelectionItemModel<Locale?>(chewieLocalizations.followSystem, null);
     }
     for (Tuple2<String, Locale?> t in LocaleUtil.localeLabels) {
       if (t.item2.toString() == locale.toString()) {

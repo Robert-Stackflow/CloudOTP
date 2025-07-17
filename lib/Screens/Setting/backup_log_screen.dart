@@ -24,7 +24,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Database/config_dao.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class BackupLogScreen extends StatefulWidget {
   const BackupLogScreen({
@@ -38,7 +38,7 @@ class BackupLogScreen extends StatefulWidget {
   BackupLogScreenState createState() => BackupLogScreenState();
 }
 
-class BackupLogScreenState extends State<BackupLogScreen> {
+class BackupLogScreenState extends BaseDynamicState<BackupLogScreen> {
   String _autoBackupPassword = "";
 
   bool get canBackup => _autoBackupPassword.isNotEmpty;
@@ -65,7 +65,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
         : Scaffold(
             appBar: ResponsiveAppBar(
               backgroundColor: ChewieTheme.appBarBackgroundColor,
-              title: S.current.backupLogs,
+              title: appLocalizations.backupLogs,
               onTapBack: () {
                 Navigator.pop(context);
               },
@@ -133,7 +133,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
-                  S.current.backupLogs,
+                  appLocalizations.backupLogs,
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -166,12 +166,12 @@ class BackupLogScreenState extends State<BackupLogScreen> {
           Column(
             children: [
               Text(
-                S.current.haveNotSetBackupPassword,
+                appLocalizations.haveNotSetBackupPassword,
                 style: ChewieTheme.bodyMedium,
               ),
               const SizedBox(height: 10),
               RoundIconTextButton(
-                text: S.current.goToSetBackupPassword,
+                text: appLocalizations.goToSetBackupPassword,
                 background: ChewieTheme.primaryColor,
                 onPressed: () {
                   if (widget.isOverlay) {
@@ -190,7 +190,7 @@ class BackupLogScreenState extends State<BackupLogScreen> {
             ],
           ),
         if (canBackup && appProvider.autoBackupLogs.isEmpty)
-          EmptyPlaceholder(text: S.current.noBackupLogs, topPadding: 30),
+          EmptyPlaceholder(text: appLocalizations.noBackupLogs, topPadding: 30),
       ],
     );
   }
@@ -207,7 +207,7 @@ class BackupLogItem extends StatefulWidget {
   BackupLogItemState createState() => BackupLogItemState();
 }
 
-class BackupLogItemState extends State<BackupLogItem> {
+class BackupLogItemState extends BaseDynamicState<BackupLogItem> {
   bool expanded = false;
 
   @override

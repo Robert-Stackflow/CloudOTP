@@ -37,7 +37,7 @@ import '../Screens/Setting/setting_safe_screen.dart';
 import '../TokenUtils/Cloud/cloud_service.dart';
 import '../TokenUtils/code_generator.dart';
 import 'package:screen_retriever/screen_retriever.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'app_provider.dart';
 import 'constant.dart';
 import 'hive_util.dart';
@@ -50,12 +50,12 @@ class Utils {
     if (force || !haveShowQAuthDialog) {
       DialogBuilder.showInfoDialog(
         context,
-        title: S.current.cloudOAuthDialogTitle,
-        message: S.current.cloudOAuthDialogMessage(CloudService.serverEndpoint,
-            CloudService.serverGithubUrl, CloudService.serverGithubRepoName),
+        title: appLocalizations.cloudOAuthDialogTitle,
+        message: appLocalizations.cloudOAuthDialogMessage(CloudService.serverEndpoint,
+            CloudService.serverGithubRepoName, CloudService.serverGithubUrl),
         renderHtml: true,
-        // cancelButtonText: S.current.cloudOAuthDialogGoToRepo,
-        buttonText: S.current.cloudOAuthDialogConfirm,
+        // cancelButtonText: appLocalizations.cloudOAuthDialogGoToRepo,
+        buttonText: appLocalizations.cloudOAuthDialogConfirm,
         onTapDismiss: () {
           ChewieHiveUtil.put(CloudOTPHiveUtil.haveShowQAuthDialogKey, true);
         },
@@ -101,7 +101,7 @@ class Utils {
         MenuItem.separator(),
         MenuItem.submenu(
           key: TrayKey.copyTokenCode.key,
-          label: S.current.allTokens,
+          label: appLocalizations.allTokens,
           submenu: Menu(
             items: tokens
                 .map(
@@ -166,50 +166,50 @@ class Utils {
         MenuItem(
           key: TrayKey.checkUpdates.key,
           label: appProvider.latestVersion.isNotEmpty
-              ? S.current.getNewVersion(appProvider.latestVersion)
-              : S.current.checkUpdates,
+              ? appLocalizations.getNewVersion(appProvider.latestVersion)
+              : appLocalizations.checkUpdates,
         ),
         MenuItem(
           key: TrayKey.shortcutHelp.key,
-          label: S.current.shortcutHelp,
+          label: appLocalizations.shortcutHelp,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.displayApp.key,
-          label: S.current.displayAppTray,
+          label: appLocalizations.displayAppTray,
         ),
         MenuItem(
           key: TrayKey.lockApp.key,
-          label: S.current.lockAppTray,
+          label: appLocalizations.lockAppTray,
         ),
         ...await getTrayTokenMenuItems(),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.setting.key,
-          label: S.current.setting,
+          label: appLocalizations.setting,
         ),
         MenuItem(
           key: TrayKey.officialWebsite.key,
-          label: S.current.officialWebsiteTray,
+          label: appLocalizations.officialWebsiteTray,
         ),
         MenuItem(
           key: TrayKey.about.key,
-          label: S.current.about,
+          label: appLocalizations.about,
         ),
         MenuItem(
           key: TrayKey.githubRepository.key,
-          label: S.current.repoTray,
+          label: appLocalizations.repoTray,
         ),
         MenuItem.separator(),
         MenuItem.checkbox(
           checked: lauchAtStartup,
           key: TrayKey.launchAtStartup.key,
-          label: S.current.launchAtStartup,
+          label: appLocalizations.launchAtStartup,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.exitApp.key,
-          label: S.current.exitAppTray,
+          label: appLocalizations.exitAppTray,
         ),
       ],
     );
@@ -242,27 +242,27 @@ class Utils {
       items: [
         MenuItem(
           key: TrayKey.displayApp.key,
-          label: S.current.displayAppTray,
+          label: appLocalizations.displayAppTray,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.officialWebsite.key,
-          label: S.current.officialWebsiteTray,
+          label: appLocalizations.officialWebsiteTray,
         ),
         MenuItem(
           key: TrayKey.githubRepository.key,
-          label: S.current.repoTray,
+          label: appLocalizations.repoTray,
         ),
         MenuItem.separator(),
         MenuItem.checkbox(
           checked: lauchAtStartup,
           key: TrayKey.launchAtStartup.key,
-          label: S.current.launchAtStartup,
+          label: appLocalizations.launchAtStartup,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.exitApp.key,
-          label: S.current.exitAppTray,
+          label: appLocalizations.exitAppTray,
         ),
       ],
     );
@@ -303,17 +303,17 @@ class Utils {
         if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoCopyNextCodeKey) &&
             currentProgress < autoCopyNextCodeProgressThrehold) {
           ChewieUtils.copy(context, CodeGenerator.getNextCode(token),
-              toastText: S.current.alreadyCopiedNextCode);
+              toastText: appLocalizations.alreadyCopiedNextCode);
           TokenDao.incTokenCopyTimes(token);
           IToast.showDesktopNotification(
-            S.current.alreadyCopiedNextCode,
+            appLocalizations.alreadyCopiedNextCode,
             body: CodeGenerator.getNextCode(token),
           );
         } else {
           ChewieUtils.copy(context, CodeGenerator.getCurrentCode(token));
           TokenDao.incTokenCopyTimes(token);
           IToast.showDesktopNotification(
-            S.current.copySuccess,
+            appLocalizations.copySuccess,
             body: CodeGenerator.getCurrentCode(token),
           );
         }

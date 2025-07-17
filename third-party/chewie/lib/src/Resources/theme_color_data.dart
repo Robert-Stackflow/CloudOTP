@@ -98,21 +98,20 @@ class ChewieThemeColorData {
 
   Color errorColor;
 
-  String i18nName(BuildContext context) {
+  String get i18nName {
     switch (id.toLowerCase()) {
       case 'purewhite':
-        print(ChewieS.of(context).themePureWhite);
-        return ChewieS.of(context).themePureWhite;
+        return chewieLocalizations.themePureWhite;
       case 'softlight':
-        return ChewieS.current.themeSoftLight;
+        return chewieLocalizations.themeSoftLight;
       case 'githublight':
-        return ChewieS.current.themeGitHubLight;
+        return chewieLocalizations.themeGitHubLight;
       case 'pureblack':
-        return ChewieS.current.themePureBlack;
+        return chewieLocalizations.themePureBlack;
       case 'blueiron':
-        return ChewieS.current.themeBlueIron;
+        return chewieLocalizations.themeBlueIron;
       case 'githubdark':
-        return ChewieS.current.themeGitHubDark;
+        return chewieLocalizations.themeGitHubDark;
       default:
         return name;
     }
@@ -203,8 +202,8 @@ class ChewieThemeColorData {
     ChewieThemeColorData(
       id: "SoftLight",
       name: "柔和光明",
-      canvasColor: const Color(0xFFF9F9F9),
-      scaffoldBackgroundColor: const Color(0xFFF0F0F0),
+      canvasColor: const Color(0xFFF0F0F0),
+      scaffoldBackgroundColor: const Color(0xFFF9F9F9),
       cardColor: const Color(0xFFF2F2F2),
       primaryColor: const Color(0xFF3A3A3A),
       hintColor: const Color(0xFF9E9E9E),
@@ -318,7 +317,7 @@ class ChewieThemeColorData {
       errorColor: const Color(0xFFCF6679),
     ),
     ChewieThemeColorData(
-      id: "blueIron",
+      id: "BlueIron",
       name: "蓝铁",
       scaffoldBackgroundColor: const Color(0xFF1D2733),
       canvasColor: const Color(0xFF242E39),

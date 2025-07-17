@@ -27,7 +27,7 @@ import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/aliyundrive_backups_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class AliyunDriveServiceScreen extends StatefulWidget {
   const AliyunDriveServiceScreen({
@@ -40,7 +40,7 @@ class AliyunDriveServiceScreen extends StatefulWidget {
   State<AliyunDriveServiceScreen> createState() => _AliyunDriveServiceScreenState();
 }
 
-class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
+class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -90,7 +90,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
       _aliyunDriveCloudServiceConfig!.connected = await _aliyunDriveCloudService!.isConnected();
       if (_aliyunDriveCloudServiceConfig!.configured &&
           !_aliyunDriveCloudServiceConfig!.connected) {
-        IToast.showTop(S.current.cloudConnectionError);
+        IToast.showTop(appLocalizations.cloudConnectionError);
       }
       updateConfig(_aliyunDriveCloudServiceConfig!);
     }
@@ -119,7 +119,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
         : ItemBuilder.buildLoadingDialog(
       context: context,
       background: Colors.transparent,
-      text: S.current.cloudConnecting,
+      text: appLocalizations.cloudConnecting,
       mainAxisAlignment: MainAxisAlignment.start,
       topPadding: 100,
     );
@@ -131,7 +131,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeAliyunDrive)),
+          Text(appLocalizations.cloudTypeNotSupport(appLocalizations.cloudTypeAliyunDrive)),
           const SizedBox(height: 10),
         ],
       ),
@@ -143,7 +143,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
     await currentService.authenticate().then((value) async {
       setState(() {
@@ -152,19 +152,19 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
       if (!currentConfig.connected) {
         switch (value) {
           case CloudServiceStatus.connectionError:
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
             break;
           case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.cloudOauthFailed);
+            IToast.show(appLocalizations.cloudOauthFailed);
             break;
           default:
-            IToast.show(S.current.cloudUnknownError);
+            IToast.show(appLocalizations.cloudUnknownError);
             break;
         }
       } else {
         _aliyunDriveCloudServiceConfig!.configured = true;
         updateConfig(_aliyunDriveCloudServiceConfig!);
-        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -187,9 +187,9 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeAliyunDrive,
-        description: S.current.cloudOAuthSafeTip(
-            S.current.cloudTypeAliyunDrive, CloudService.serverEndpoint),
+        title: appLocalizations.enable + appLocalizations.cloudTypeAliyunDrive,
+        description: appLocalizations.cloudOAuthSafeTip(
+            appLocalizations.cloudTypeAliyunDrive, CloudService.serverEndpoint),
         value: _aliyunDriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -211,13 +211,13 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
             controller: _accountController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudDisplayName,
+            title: appLocalizations.cloudDisplayName,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudSize,
+            title: appLocalizations.cloudSize,
           ),
         ],
       ),
@@ -228,7 +228,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
+        text: appLocalizations.cloudSignin,
         background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
@@ -236,7 +236,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
             ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to aliyunDrive", e, t);
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
           }
         },
       ),
@@ -250,18 +250,18 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: S.current.cloudPullBackup,
+              text: appLocalizations.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
                 try {
                   List<AliyunDriveFileInfo>? files =
                   await _aliyunDriveCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -278,7 +278,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
                         cloudService: _aliyunDriveCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res = await _aliyunDriveCloudService!.downloadFile(
@@ -292,12 +292,12 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull file from aliyunDrive", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -307,7 +307,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: ChewieTheme.primaryColor,
-              text: S.current.cloudPushBackup,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -322,15 +322,15 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                       CustomLoadingDialog.showLoading(
-                          title: S.current.cloudLoggingOut);
+                          title: appLocalizations.cloudLoggingOut);
                       await _aliyunDriveCloudService!.signOut();
                       setState(() {
                         _aliyunDriveCloudServiceConfig!.connected = false;
@@ -341,7 +341,7 @@ class _AliyunDriveServiceScreenState extends State<AliyunDriveServiceScreen>
                         updateConfig(_aliyunDriveCloudServiceConfig!);
                       });
                       CustomLoadingDialog.dismissLoading();
-                      IToast.show(S.current.cloudLogoutSuccess);
+                      IToast.show(appLocalizations.cloudLogoutSuccess);
                     });
               },
             ),

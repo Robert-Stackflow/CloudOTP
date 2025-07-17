@@ -6,7 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Utils/itoast.dart';
 import 'file_util.dart';
 
@@ -46,7 +46,7 @@ class ExportUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: ChewieS.current.exporting);
+      CustomLoadingDialog.showLoading(title: chewieLocalizations.exporting);
     }
     await compute((_) async {
       File file = File(filePath);
@@ -55,7 +55,7 @@ class ExportUtil {
     if (showLoading) {
       CustomLoadingDialog.dismissLoading();
     }
-    IToast.showTop(ChewieS.current.exportSuccess);
+    IToast.showTop(chewieLocalizations.exportSuccess);
   }
 
   static exportToMobile(
@@ -66,7 +66,7 @@ class ExportUtil {
     List<String> allowedExtensions = const ['json'],
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: ChewieS.current.exporting);
+      CustomLoadingDialog.showLoading(title: chewieLocalizations.exporting);
     }
     String? filePath = await FileUtil.saveFile(
       dialogTitle: title,
@@ -79,7 +79,7 @@ class ExportUtil {
       CustomLoadingDialog.dismissLoading();
     }
     if (filePath != null) {
-      IToast.showTop(ChewieS.current.exportSuccess);
+      IToast.showTop(chewieLocalizations.exportSuccess);
     }
   }
 }

@@ -27,7 +27,7 @@ import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/huawei_backups_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class HuaweiCloudServiceScreen extends StatefulWidget {
   const HuaweiCloudServiceScreen({
@@ -41,7 +41,7 @@ class HuaweiCloudServiceScreen extends StatefulWidget {
       _HuaweiCloudServiceScreenState();
 }
 
-class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
+class _HuaweiCloudServiceScreenState extends BaseDynamicState<HuaweiCloudServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -93,7 +93,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
           await _huaweiCloudCloudService!.isConnected();
       if (_huaweiCloudCloudServiceConfig!.configured &&
           !_huaweiCloudCloudServiceConfig!.connected) {
-        IToast.showTop(S.current.cloudConnectionError);
+        IToast.showTop(appLocalizations.cloudConnectionError);
       }
       updateConfig(_huaweiCloudCloudServiceConfig!);
     }
@@ -120,7 +120,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
         : ItemBuilder.buildLoadingDialog(
             context: context,
             background: Colors.transparent,
-            text: S.current.cloudConnecting,
+            text: appLocalizations.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
             topPadding: 100,
           );
@@ -131,12 +131,12 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
     await currentService.checkServer().then((value) async {
       if (!value) {
         IToast.show(
-            S.current.cloudOAuthUnavailable(CloudService.serverEndpoint));
+            appLocalizations.cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
         await currentService.authenticate().then((value) async {
           setState(() {
@@ -145,19 +145,19 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
           if (!currentConfig.connected) {
             switch (value) {
               case CloudServiceStatus.connectionError:
-                IToast.show(S.current.cloudConnectionError);
+                IToast.show(appLocalizations.cloudConnectionError);
                 break;
               case CloudServiceStatus.unauthorized:
-                IToast.show(S.current.cloudOauthFailed);
+                IToast.show(appLocalizations.cloudOauthFailed);
                 break;
               default:
-                IToast.show(S.current.cloudUnknownError);
+                IToast.show(appLocalizations.cloudUnknownError);
                 break;
             }
           } else {
             _huaweiCloudCloudServiceConfig!.configured = true;
             updateConfig(_huaweiCloudCloudServiceConfig!);
-            if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+            if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
           }
         });
       }
@@ -182,9 +182,9 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeHuaweiCloud,
-        description: S.current.cloudOAuthSafeTip(
-            S.current.cloudTypeHuaweiCloud, CloudService.serverEndpoint),
+        title: appLocalizations.enable + appLocalizations.cloudTypeHuaweiCloud,
+        description: appLocalizations.cloudOAuthSafeTip(
+            appLocalizations.cloudTypeHuaweiCloud, CloudService.serverEndpoint),
         value: _huaweiCloudCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -208,13 +208,13 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
             controller: _accountController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudDisplayName,
+            title: appLocalizations.cloudDisplayName,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudSize,
+            title: appLocalizations.cloudSize,
           ),
         ],
       ),
@@ -225,7 +225,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
+        text: appLocalizations.cloudSignin,
         background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
@@ -233,7 +233,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
             ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to huawei cloud", e, t);
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
           }
         },
       ),
@@ -247,18 +247,18 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: S.current.cloudPullBackup,
+              text: appLocalizations.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
                 try {
                   List<HuaweiCloudFileInfo>? files =
                       await _huaweiCloudCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -275,7 +275,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
                         cloudService: _huaweiCloudCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res =
@@ -290,12 +290,12 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull from huawei cloud", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -305,7 +305,7 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(vertical: 12),
               background: ChewieTheme.primaryColor,
-              text: S.current.cloudPushBackup,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -320,12 +320,12 @@ class _HuaweiCloudServiceScreenState extends State<HuaweiCloudServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(vertical: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   await _huaweiCloudCloudService!.signOut();
                   setState(() {

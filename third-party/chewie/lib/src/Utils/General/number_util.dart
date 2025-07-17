@@ -1,4 +1,4 @@
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Utils/ilogger.dart';
 
 class NumberUtil {
@@ -31,7 +31,7 @@ class NumberUtil {
     } else {
       return {
         "count": (count / 10000).toStringAsFixed(1),
-        "scale": ChewieS.current.tenThousand
+        "scale": chewieLocalizations.tenThousand
       };
     }
   }

@@ -28,7 +28,7 @@ import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/box_backups_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class BoxServiceScreen extends StatefulWidget {
   const BoxServiceScreen({
@@ -41,7 +41,7 @@ class BoxServiceScreen extends StatefulWidget {
   State<BoxServiceScreen> createState() => _BoxServiceScreenState();
 }
 
-class _BoxServiceScreenState extends State<BoxServiceScreen>
+class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -93,7 +93,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
       _boxCloudServiceConfig!.connected = await _boxCloudService!.isConnected();
       if (_boxCloudServiceConfig!.configured &&
           !_boxCloudServiceConfig!.connected) {
-        IToast.showTop(S.current.cloudConnectionError);
+        IToast.showTop(appLocalizations.cloudConnectionError);
       }
       updateConfig(_boxCloudServiceConfig!);
     }
@@ -123,7 +123,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
             : ItemBuilder.buildLoadingDialog(
                 context: context,
                 background: Colors.transparent,
-                text: S.current.cloudConnecting,
+                text: appLocalizations.cloudConnecting,
                 mainAxisAlignment: MainAxisAlignment.start,
                 topPadding: 100,
               );
@@ -135,7 +135,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeBox)),
+          Text(appLocalizations.cloudTypeNotSupport(appLocalizations.cloudTypeBox)),
           const SizedBox(height: 10),
         ],
       ),
@@ -147,12 +147,12 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
     await currentService.checkServer().then((value) async {
       if (!value) {
         IToast.show(
-            S.current.cloudOAuthUnavailable(CloudService.serverEndpoint));
+            appLocalizations.cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
         await currentService.authenticate().then((value) async {
           setState(() {
@@ -161,19 +161,19 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
           if (!currentConfig.connected) {
             switch (value) {
               case CloudServiceStatus.connectionError:
-                IToast.show(S.current.cloudConnectionError);
+                IToast.show(appLocalizations.cloudConnectionError);
                 break;
               case CloudServiceStatus.unauthorized:
-                IToast.show(S.current.cloudOauthFailed);
+                IToast.show(appLocalizations.cloudOauthFailed);
                 break;
               default:
-                IToast.show(S.current.cloudUnknownError);
+                IToast.show(appLocalizations.cloudUnknownError);
                 break;
             }
           } else {
             _boxCloudServiceConfig!.configured = true;
             updateConfig(_boxCloudServiceConfig!);
-            if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+            if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
           }
         });
       }
@@ -198,9 +198,9 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeBox,
-        description: S.current.cloudOAuthSafeTip(
-            S.current.cloudTypeBox, CloudService.serverEndpoint),
+        title: appLocalizations.enable + appLocalizations.cloudTypeBox,
+        description: appLocalizations.cloudOAuthSafeTip(
+            appLocalizations.cloudTypeBox, CloudService.serverEndpoint),
         value: _boxCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -222,19 +222,19 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
             controller: _accountController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudDisplayName,
+            title: appLocalizations.cloudDisplayName,
           ),
           InputItem(
             controller: _emailController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudEmail,
+            title: appLocalizations.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudSize,
+            title: appLocalizations.cloudSize,
           ),
         ],
       ),
@@ -245,7 +245,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
+        text: appLocalizations.cloudSignin,
         background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
@@ -253,7 +253,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
             ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to box", e, t);
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
           }
         },
       ),
@@ -267,18 +267,18 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: S.current.cloudPullBackup,
+              text: appLocalizations.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
                 try {
                   List<BoxFileInfo>? files =
                       await _boxCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -295,7 +295,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
                         cloudService: _boxCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res = await _boxCloudService!.downloadFile(
@@ -309,12 +309,12 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull file from box", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -324,7 +324,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: ChewieTheme.primaryColor,
-              text: S.current.cloudPushBackup,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -339,15 +339,15 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   CustomLoadingDialog.showLoading(
-                      title: S.current.cloudLoggingOut);
+                      title: appLocalizations.cloudLoggingOut);
                   await _boxCloudService!.signOut();
                   setState(() {
                     _boxCloudServiceConfig!.connected = false;
@@ -358,7 +358,7 @@ class _BoxServiceScreenState extends State<BoxServiceScreen>
                     updateConfig(_boxCloudServiceConfig!);
                   });
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudLogoutSuccess);
+                  IToast.show(appLocalizations.cloudLogoutSuccess);
                 });
               },
             ),

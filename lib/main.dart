@@ -24,6 +24,7 @@ import 'package:cloudotp/Screens/Lock/pin_verify_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/biometric_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
+import 'package:cloudotp/generated/app_localizations.dart';
 import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +44,7 @@ import 'Screens/main_screen.dart';
 import 'TokenUtils/token_image_util.dart';
 import 'Utils/utils.dart';
 import 'Widgets/Shortcuts/app_shortcuts.dart';
-import 'generated/l10n.dart';
+import 'l10n/l10n.dart';
 
 const List<String> kWindowsSchemes = ["cloudotp", "com.cloudchewie.cloudotp"];
 
@@ -234,17 +235,14 @@ class MyApp extends StatelessWidget {
           darkTheme: appProvider.darkTheme.toThemeData(),
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
-            S.delegate,
-            ChewieS.delegate,
+            AppLocalizations.delegate,
+            ChewieLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
           locale: context.watch<AppProvider>().locale,
-          supportedLocales: [
-            ...S.delegate.supportedLocales,
-            ...ChewieS.delegate.supportedLocales,
-          ],
+          supportedLocales: AppLocalizations.supportedLocales,
           localeResolutionCallback: (locale, supportedLocales) {
             ILogger.debug("CloudOTP",
                 "Locale: $locale, Supported: $supportedLocales, appProvider.locale: ${appProvider.locale}");
@@ -266,7 +264,6 @@ class MyApp extends StatelessWidget {
           },
           home: CustomMouseRegion(child: home),
           builder: (context, widget) {
-            print(ChewieS.of(context).themePureWhite);
             chewieProvider.initRootContext(context);
             return Overlay(
               initialEntries: [

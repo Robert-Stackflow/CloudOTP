@@ -7,7 +7,7 @@ import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_safe_screen.dart';
-import 'package:cloudotp/generated/l10n.dart';
+import 'package:cloudotp/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -29,7 +29,7 @@ class SettingNavigationScreen extends StatefulWidget {
       _SettingNavigationScreenState();
 }
 
-class _SettingNavigationScreenState extends State<SettingNavigationScreen>
+class _SettingNavigationScreenState extends BaseDynamicState<SettingNavigationScreen>
     with AutomaticKeepAliveClientMixin {
   int _selectedIndex = 0;
   String _searchText = "";
@@ -37,20 +37,24 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   final SearchConfig _searchConfig = SearchConfig();
   Timer? _debounceTimer;
 
-  List<SettingNavigationItem> _navigationItems = [
+  final List<SettingNavigationItem> _navigationItems = [
     SettingNavigationItem(
-        title: () => S.current.generalSetting, icon: LucideIcons.settings2),
+        title: () => appLocalizations.generalSetting,
+        icon: LucideIcons.settings2),
     SettingNavigationItem(
-        title: () => S.current.appearanceSetting,
+        title: () => appLocalizations.appearanceSetting,
         icon: LucideIcons.paintbrushVertical),
     SettingNavigationItem(
-        title: () => S.current.operationSetting, icon: LucideIcons.pointer),
+        title: () => appLocalizations.operationSetting,
+        icon: LucideIcons.pointer),
     SettingNavigationItem(
-        title: () => S.current.backupSetting, icon: LucideIcons.cloudUpload),
+        title: () => appLocalizations.backupSetting,
+        icon: LucideIcons.cloudUpload),
     SettingNavigationItem(
-        title: () => S.current.safeSetting, icon: LucideIcons.shieldCheck),
+        title: () => appLocalizations.safeSetting,
+        icon: LucideIcons.shieldCheck),
     SettingNavigationItem(
-        title: () => S.current.about, icon: LucideIcons.info),
+        title: () => appLocalizations.about, icon: LucideIcons.info),
   ];
 
   final List<Widget?> _pageCache = List.filled(8, null);
@@ -143,35 +147,37 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Consumer<AppProvider>(
-      builder: (context, provider, child) => Scaffold(
-        appBar: ResponsiveAppBar(
-          showBack: false,
-          titleLeftMargin: 15,
-          title: S.current.setting,
-        ),
-        body: Row(
-          children: [
-            MyNavigationBar(
-              items: _navigationItems,
-              selectedIndex: _selectedIndex,
-              onSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // _buildSearchRow(),
-                  Expanded(child: _buildCurrentPage(_selectedIndex)),
-                ],
+      builder: (context, provider, child) {
+        return Scaffold(
+          appBar: ResponsiveAppBar(
+            showBack: false,
+            titleLeftMargin: 15,
+            title: appLocalizations.setting,
+          ),
+          body: Row(
+            children: [
+              MyNavigationBar(
+                items: _navigationItems,
+                selectedIndex: _selectedIndex,
+                onSelected: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
               ),
-            ),
-          ],
-        ),
-      ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // _buildSearchRow(),
+                    Expanded(child: _buildCurrentPage(_selectedIndex)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -252,7 +258,7 @@ class _KeepAliveWrapper extends StatefulWidget {
   State<_KeepAliveWrapper> createState() => _KeepAliveWrapperState();
 }
 
-class _KeepAliveWrapperState extends State<_KeepAliveWrapper>
+class _KeepAliveWrapperState extends BaseDynamicState<_KeepAliveWrapper>
     with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {

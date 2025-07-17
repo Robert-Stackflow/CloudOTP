@@ -92,7 +92,7 @@ class ChewieUtils {
     String? toastText,
   }) {
     Clipboard.setData(ClipboardData(text: data.toString())).then((value) {
-      toastText ??= ChewieS.current.copySuccess;
+      toastText ??= chewieLocalizations.copySuccess;
       if (toastText.notNullOrEmpty) {
         IToast.showTop(toastText ?? "",
             icon: const Icon(LucideIcons.copyCheck));
@@ -158,7 +158,7 @@ class ChewieUtils {
   }) async {
     ResponsiveUtil.isAppBundle();
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: ChewieS.current.checkingUpdates);
+      CustomLoadingDialog.showLoading(title: chewieLocalizations.checkingUpdates);
     }
     String currentVersion = (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
@@ -171,12 +171,12 @@ class ChewieUtils {
       if (releases.isEmpty) {
         if (showFailedToast) {
           IToast.showTop(
-              noUpdateToastText ?? ChewieS.current.checkUpdatesFailed);
+              noUpdateToastText ?? chewieLocalizations.checkUpdatesFailed);
         }
         if (showDesktopNotification) {
           IToast.showDesktopNotification(
-            ChewieS.current.checkUpdatesFailed,
-            body: ChewieS.current.checkUpdatesFailedTip,
+            chewieLocalizations.checkUpdatesFailed,
+            body: chewieLocalizations.checkUpdatesFailedTip,
           );
         }
         return;
@@ -203,14 +203,14 @@ class ChewieUtils {
               context,
               renderHtml: true,
               messageTextAlign: TextAlign.start,
-              title: ChewieS.current.getNewVersion(latestVersion),
-              message: ChewieS.current.doesImmediateUpdate +
-                  ChewieS.current.changelogAsFollow(
+              title: chewieLocalizations.getNewVersion(latestVersion),
+              message: chewieLocalizations.doesImmediateUpdate +
+                  chewieLocalizations.changelogAsFollow(
                       "<br/>${StringUtil.replaceLineBreak(latestReleaseItem.body ?? "")}"),
               confirmButtonText: ResponsiveUtil.isAndroid()
-                  ? ChewieS.current.immediatelyDownload
-                  : ChewieS.current.goToUpdate,
-              cancelButtonText: ChewieS.current.updateLater,
+                  ? chewieLocalizations.immediatelyDownload
+                  : chewieLocalizations.goToUpdate,
+              cancelButtonText: chewieLocalizations.updateLater,
               onTapConfirm: () async {
                 if (ResponsiveUtil.isAppBundle()) {
                   UriUtil.launchUri(await UriUtil.getGooglePlayStoreUrl());
@@ -235,12 +235,12 @@ class ChewieUtils {
 
             if (showDesktopNotification) {
               IToast.showDesktopNotification(
-                ChewieS.current.getNewVersion(latestVersion),
-                body: ChewieS.current
+                chewieLocalizations.getNewVersion(latestVersion),
+                body: chewieLocalizations
                     .changelogAsFollow("\n${latestReleaseItem.body ?? ""}"),
                 actions: [
-                  ChewieS.current.updateLater,
-                  ChewieS.current.goToUpdate
+                  chewieLocalizations.updateLater,
+                  chewieLocalizations.goToUpdate
                 ],
                 onClick: () {
                   showDialog(latestReleaseItem!);
@@ -259,12 +259,12 @@ class ChewieUtils {
       } else {
         chewieProvider.latestVersion = "";
         if (showLatestToast) {
-          IToast.showTop(ChewieS.current.alreadyLatestVersion);
+          IToast.showTop(chewieLocalizations.alreadyLatestVersion);
         }
         if (showDesktopNotification) {
           IToast.showDesktopNotification(
-            ChewieS.current.alreadyLatestVersion,
-            body: ChewieS.current.alreadyLatestVersionTip(currentVersion),
+            chewieLocalizations.alreadyLatestVersion,
+            body: chewieLocalizations.alreadyLatestVersionTip(currentVersion),
           );
         }
       }
@@ -300,15 +300,15 @@ class ChewieUtils {
     } on PlatformException catch (e, t) {
       ILogger.error("Failed to local authenticate by PlatformException", e, t);
       if (e.code == auth_error.notAvailable) {
-        IToast.showTop(ChewieS.current.biometricNotAvailable);
+        IToast.showTop(chewieLocalizations.biometricNotAvailable);
       } else if (e.code == auth_error.notEnrolled) {
-        IToast.showTop(ChewieS.current.biometricNotEnrolled);
+        IToast.showTop(chewieLocalizations.biometricNotEnrolled);
       } else if (e.code == auth_error.lockedOut) {
-        IToast.showTop(ChewieS.current.biometricLockout);
+        IToast.showTop(chewieLocalizations.biometricLockout);
       } else if (e.code == auth_error.permanentlyLockedOut) {
-        IToast.showTop(ChewieS.current.biometricLockoutPermanent);
+        IToast.showTop(chewieLocalizations.biometricLockoutPermanent);
       } else {
-        IToast.showTop(ChewieS.current.biometricOtherReason(e));
+        IToast.showTop(chewieLocalizations.biometricOtherReason(e));
       }
     } catch (e, t) {
       ILogger.error("Failed to local authenticate", e, t);

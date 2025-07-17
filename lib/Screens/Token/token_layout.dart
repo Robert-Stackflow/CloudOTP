@@ -40,7 +40,7 @@ import '../../Utils/app_provider.dart';
 import '../../Utils/asset_util.dart';
 import '../../Utils/constant.dart';
 import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class TokenLayout extends StatefulWidget {
   const TokenLayout({
@@ -87,7 +87,7 @@ class TokenLayoutNotifier extends ChangeNotifier {
   }
 }
 
-class TokenLayoutState extends State<TokenLayout>
+class TokenLayoutState extends BaseDynamicState<TokenLayout>
     with TickerProviderStateMixin {
   Timer? _timer;
 
@@ -169,12 +169,12 @@ class TokenLayoutState extends State<TokenLayout>
       entries: [
         FlutterContextMenuItem(
           iconData: LucideIcons.copy,
-          S.current.copyTokenCode,
+          appLocalizations.copyTokenCode,
           onPressed: _processCopyCode,
         ),
         FlutterContextMenuItem.divider(),
         FlutterContextMenuItem(
-          widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
+          widget.token.pinned ? appLocalizations.unPinToken : appLocalizations.pinToken,
           iconData: widget.token.pinned ? LucideIcons.pinOff : LucideIcons.pin,
           style: MenuItemStyle(
             normalColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
@@ -183,50 +183,50 @@ class TokenLayoutState extends State<TokenLayout>
         ),
         FlutterContextMenuItem(
           iconData: LucideIcons.pencilLine,
-          S.current.editToken,
+          appLocalizations.editToken,
           onPressed: _processEdit,
         ),
         FlutterContextMenuItem(
           iconData: LucideIcons.qrCode,
-          S.current.viewTokenQrCode,
+          appLocalizations.viewTokenQrCode,
           onPressed: _processViewQrCode,
         ),
         FlutterContextMenuItem.divider(),
         FlutterContextMenuItem(
           iconData: LucideIcons.blend,
-          S.current.editTokenIcon,
+          appLocalizations.editTokenIcon,
           onPressed: _processEditIcon,
         ),
         FlutterContextMenuItem(
           iconData: LucideIcons.shapes,
-          S.current.editTokenCategory,
+          appLocalizations.editTokenCategory,
           onPressed: _processEditCategory,
         ),
         FlutterContextMenuItem.divider(),
         FlutterContextMenuItem.submenu(
-          S.current.moreOptionShort,
+          appLocalizations.moreOptionShort,
           iconData: LucideIcons.ellipsis,
           items: [
             FlutterContextMenuItem(
               iconData: LucideIcons.text,
-              S.current.copyTokenUri,
+              appLocalizations.copyTokenUri,
               onPressed: _processCopyUri,
             ),
             FlutterContextMenuItem(
               iconData: LucideIcons.copySlash,
-              S.current.copyNextTokenCode,
+              appLocalizations.copyNextTokenCode,
               onPressed: _processCopyNextCode,
             ),
             FlutterContextMenuItem.divider(),
             FlutterContextMenuItem(
               iconData: LucideIcons.rotateCcw,
-              S.current.resetCopyTimes,
+              appLocalizations.resetCopyTimes,
               status: MenuItemStatus.error,
               onPressed: _processResetCopyTimes,
             ),
             FlutterContextMenuItem(
               iconData: LucideIcons.trash2,
-              S.current.deleteToken,
+              appLocalizations.deleteToken,
               status: MenuItemStatus.error,
               onPressed: _processDelete,
             ),
@@ -281,8 +281,8 @@ class TokenLayoutState extends State<TokenLayout>
                 ? Icons.push_pin_rounded
                 : Icons.push_pin_outlined,
             label: widget.token.pinned
-                ? S.current.unPinTokenShort
-                : S.current.pinTokenShort,
+                ? appLocalizations.unPinTokenShort
+                : appLocalizations.pinTokenShort,
             simple: simple,
             spacing: 8,
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -302,7 +302,7 @@ class TokenLayoutState extends State<TokenLayout>
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.qrCode,
-            label: S.current.viewTokenQrCodeShort,
+            label: appLocalizations.viewTokenQrCodeShort,
             spacing: 8,
             simple: simple,
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -315,7 +315,7 @@ class TokenLayoutState extends State<TokenLayout>
             foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.pencilLine,
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            label: S.current.editTokenShort,
+            label: appLocalizations.editTokenShort,
             simple: simple,
             spacing: 8,
           ),
@@ -327,7 +327,7 @@ class TokenLayoutState extends State<TokenLayout>
             foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.ellipsisVertical,
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            label: S.current.moreOptionShort,
+            label: appLocalizations.moreOptionShort,
             simple: simple,
             spacing: 8,
           ),
@@ -339,7 +339,7 @@ class TokenLayoutState extends State<TokenLayout>
             foregroundColor: ChewieTheme.primaryColor,
             icon: LucideIcons.trash2,
             simple: simple,
-            label: S.current.deleteTokenShort,
+            label: appLocalizations.deleteTokenShort,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             spacing: 8,
             iconAndTextColor: Colors.white,
@@ -410,8 +410,8 @@ class TokenLayoutState extends State<TokenLayout>
     await TokenDao.updateTokenPinned(widget.token, !widget.token.pinned);
     IToast.showTop(
       widget.token.pinned
-          ? S.current.alreadyPinnedToken(widget.token.title)
-          : S.current.alreadyUnPinnedToken(widget.token.title),
+          ? appLocalizations.alreadyPinnedToken(widget.token.title)
+          : appLocalizations.alreadyUnPinnedToken(widget.token.title),
     );
     homeScreenState?.updateToken(widget.token, pinnedStateChanged: true);
   }
@@ -448,8 +448,8 @@ class TokenLayoutState extends State<TokenLayout>
   _processCopyUri() {
     DialogBuilder.showConfirmDialog(
       context,
-      title: S.current.copyUriClearWarningTitle,
-      message: S.current.copyUriClearWarningTip,
+      title: appLocalizations.copyUriClearWarningTitle,
+      message: appLocalizations.copyUriClearWarningTip,
       onTapConfirm: () {
         ChewieUtils.copy(context, OtpTokenParser.toUri(widget.token));
       },
@@ -460,12 +460,12 @@ class TokenLayoutState extends State<TokenLayout>
   _processResetCopyTimes() {
     DialogBuilder.showConfirmDialog(
       context,
-      title: S.current.resetCopyTimesTitle,
-      message: S.current.resetCopyTimesMessage(widget.token.title),
+      title: appLocalizations.resetCopyTimesTitle,
+      message: appLocalizations.resetCopyTimesMessage(widget.token.title),
       onTapConfirm: () async {
         await TokenDao.resetSingleTokenCopyTimes(widget.token);
         homeScreenState?.resetCopyTimesSingle(widget.token);
-        IToast.showTop(S.current.resetSuccess);
+        IToast.showTop(appLocalizations.resetSuccess);
       },
       onTapCancel: () {},
     );
@@ -474,11 +474,11 @@ class TokenLayoutState extends State<TokenLayout>
   _processDelete() {
     DialogBuilder.showConfirmDialog(
       context,
-      title: S.current.deleteTokenTitle(widget.token.title),
-      message: S.current.deleteTokenMessage(widget.token.title),
+      title: appLocalizations.deleteTokenTitle(widget.token.title),
+      message: appLocalizations.deleteTokenMessage(widget.token.title),
       onTapConfirm: () async {
         await TokenDao.deleteToken(widget.token);
-        IToast.showTop(S.current.deleteTokenSuccess(widget.token.title));
+        IToast.showTop(appLocalizations.deleteTokenSuccess(widget.token.title));
         homeScreenState?.removeToken(widget.token);
       },
       onTapCancel: () {},

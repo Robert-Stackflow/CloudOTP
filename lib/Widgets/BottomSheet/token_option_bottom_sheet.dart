@@ -33,7 +33,7 @@ import '../../TokenUtils/code_generator.dart';
 import '../../TokenUtils/otp_token_parser.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/constant.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../cloudotp/cloudotp_item_builder.dart';
 
 class TokenOptionBottomSheet extends StatefulWidget {
@@ -50,7 +50,7 @@ class TokenOptionBottomSheet extends StatefulWidget {
   TokenOptionBottomSheetState createState() => TokenOptionBottomSheetState();
 }
 
-class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
+class TokenOptionBottomSheetState extends BaseDynamicState<TokenOptionBottomSheet> {
   TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
 
   final ValueNotifier<double> progressNotifier = ValueNotifier(0);
@@ -269,7 +269,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
       children: [
         _buildItem(
           leading: LucideIcons.copy,
-          title: S.current.copyTokenCode,
+          title: appLocalizations.copyTokenCode,
           onTap: () {
             Navigator.pop(context);
             ChewieUtils.copy(context, getCurrentCode());
@@ -278,7 +278,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         ),
         _buildItem(
           leading: LucideIcons.copySlash,
-          title: S.current.copyNextTokenCode,
+          title: appLocalizations.copyNextTokenCode,
           onTap: () {
             Navigator.pop(context);
             ChewieUtils.copy(context, getNextCode());
@@ -287,7 +287,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         ),
         _buildItem(
           leading: LucideIcons.pencilLine,
-          title: S.current.editToken,
+          title: appLocalizations.editToken,
           onTap: () {
             Navigator.pop(context);
             RouteUtil.pushDialogRoute(
@@ -299,7 +299,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
               ? Icons.push_pin_rounded
               : Icons.push_pin_outlined,
           title:
-              widget.token.pinned ? S.current.unPinToken : S.current.pinToken,
+              widget.token.pinned ? appLocalizations.unPinToken : appLocalizations.pinToken,
           titleColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
           leadingColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
           onTap: () async {
@@ -308,8 +308,8 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
                 widget.token, !widget.token.pinned);
             IToast.showTop(
               widget.token.pinned
-                  ? S.current.alreadyPinnedToken(widget.token.title)
-                  : S.current.alreadyUnPinnedToken(widget.token.title),
+                  ? appLocalizations.alreadyPinnedToken(widget.token.title)
+                  : appLocalizations.alreadyUnPinnedToken(widget.token.title),
             );
             homeScreenState?.updateToken(widget.token,
                 pinnedStateChanged: true);
@@ -317,7 +317,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         ),
         _buildItem(
           leading: LucideIcons.qrCode,
-          title: S.current.viewTokenQrCode,
+          title: appLocalizations.viewTokenQrCode,
           onTap: () {
             Navigator.pop(context);
             CloudOTPItemBuilder.showQrcodesDialog(
@@ -330,12 +330,12 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         ),
         _buildItem(
           leading: LucideIcons.text,
-          title: S.current.copyTokenUri,
+          title: appLocalizations.copyTokenUri,
           onTap: () {
             DialogBuilder.showConfirmDialog(
               context,
-              title: S.current.copyUriClearWarningTitle,
-              message: S.current.copyUriClearWarningTip,
+              title: appLocalizations.copyUriClearWarningTitle,
+              message: appLocalizations.copyUriClearWarningTip,
               onTapConfirm: () {
                 ChewieUtils.copy(context, OtpTokenParser.toUri(widget.token));
                 Navigator.pop(context);
@@ -346,7 +346,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         ),
         _buildItem(
           leading: LucideIcons.shapes,
-          title: S.current.editTokenCategory,
+          title: appLocalizations.editTokenCategory,
           onTap: () {
             Navigator.pop(context);
             BottomSheetBuilder.showBottomSheet(
@@ -358,7 +358,7 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         ),
         _buildItem(
           leading: LucideIcons.blend,
-          title: S.current.editTokenIcon,
+          title: appLocalizations.editTokenIcon,
           onTap: () {
             Navigator.pop(context);
             BottomSheetBuilder.showBottomSheet(
@@ -375,28 +375,28 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         if (widget.token.tokenType == OtpTokenType.HOTP)
           _buildItem(
             leading: Icons.plus_one_rounded,
-            title: S.current.currentCounter(widget.token.counter),
+            title: appLocalizations.currentCounter(widget.token.counter),
             onTap: () {},
           ),
         _buildItem(
           leading: LucideIcons.squarePercent,
-          title: S.current.currentCopyTimes(widget.token.copyTimes),
+          title: appLocalizations.currentCopyTimes(widget.token.copyTimes),
           onTap: () {},
         ),
         _buildItem(
           leading: LucideIcons.rotateCcw,
-          title: S.current.resetCopyTimes,
+          title: appLocalizations.resetCopyTimes,
           titleColor: Colors.red,
           leadingColor: Colors.red,
           onTap: () {
             DialogBuilder.showConfirmDialog(
               context,
-              title: S.current.resetCopyTimesTitle,
-              message: S.current.resetCopyTimesMessage(widget.token.title),
+              title: appLocalizations.resetCopyTimesTitle,
+              message: appLocalizations.resetCopyTimesMessage(widget.token.title),
               onTapConfirm: () async {
                 await TokenDao.resetSingleTokenCopyTimes(widget.token);
                 homeScreenState?.resetCopyTimesSingle(widget.token);
-                IToast.showTop(S.current.resetSuccess);
+                IToast.showTop(appLocalizations.resetSuccess);
                 setState(() {});
                 Navigator.pop(context);
               },
@@ -406,18 +406,18 @@ class TokenOptionBottomSheetState extends State<TokenOptionBottomSheet> {
         ),
         _buildItem(
           leading: LucideIcons.trash2,
-          title: S.current.deleteToken,
+          title: appLocalizations.deleteToken,
           titleColor: Colors.red,
           leadingColor: Colors.red,
           onTap: () {
             DialogBuilder.showConfirmDialog(
               context,
-              title: S.current.deleteTokenTitle(widget.token.title),
-              message: S.current.deleteTokenMessage(widget.token.title),
+              title: appLocalizations.deleteTokenTitle(widget.token.title),
+              message: appLocalizations.deleteTokenMessage(widget.token.title),
               onTapConfirm: () async {
                 TokenDao.deleteToken(widget.token).then((value) {
                   IToast.showTop(
-                      S.current.deleteTokenSuccess(widget.token.title));
+                      appLocalizations.deleteTokenSuccess(widget.token.title));
                   homeScreenState?.removeToken(widget.token);
                 });
                 Navigator.pop(context);

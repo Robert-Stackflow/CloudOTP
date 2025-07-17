@@ -15,7 +15,7 @@
 
 import 'dart:typed_data';
 
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import './backup.dart';
 
 abstract class BackupEncryptInterface {
@@ -31,15 +31,15 @@ class BackupBaseException implements Exception {
 
   String get intlMessage {
     if (this is EncryptEmptyPasswordException) {
-      return S.current.cannotEncryptWithoutPassword;
+      return appLocalizations.cannotEncryptWithoutPassword;
     } else if (this is DecryptEmptyPasswordException) {
-      return S.current.cannotDecryptWithoutPassword;
+      return appLocalizations.cannotDecryptWithoutPassword;
     } else if (this is BackupVersionUnsupportException) {
-      return S.current.backupVersionUnsupport;
+      return appLocalizations.backupVersionUnsupport;
     } else if (this is FileNotBackupException) {
-      return S.current.fileNotBackup;
+      return appLocalizations.fileNotBackup;
     } else if (this is InvalidPasswordOrDataCorruptedException) {
-      return S.current.invalidPasswordOrDataCorrupted;
+      return appLocalizations.invalidPasswordOrDataCorrupted;
     }
     return message ?? "";
   }

@@ -23,7 +23,7 @@ import '../../Database/token_dao.dart';
 import '../../Models/opt_token.dart';
 import '../../Models/token_category.dart';
 import '../../Utils/app_provider.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../cloudotp/cloudotp_item_builder.dart';
 
 class SelectTokenBottomSheet extends StatefulWidget {
@@ -38,7 +38,7 @@ class SelectTokenBottomSheet extends StatefulWidget {
   SelectTokenBottomSheetState createState() => SelectTokenBottomSheetState();
 }
 
-class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
+class SelectTokenBottomSheetState extends BaseDynamicState<SelectTokenBottomSheet> {
   List<OtpToken> tokens = [];
   List<String> oldSelectedUids = [];
   GroupButtonController controller = GroupButtonController();
@@ -109,7 +109,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
       alignment: Alignment.center,
       child: Text(
         textAlign: TextAlign.center,
-        S.current.setTokenForCategory(widget.category.title),
+        appLocalizations.setTokenForCategory(widget.category.title),
         style: ChewieTheme.titleLarge,
       ),
     );
@@ -124,7 +124,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
               height: 36,
             ),
           )
-        : EmptyPlaceholder(text: S.current.noToken);
+        : EmptyPlaceholder(text: appLocalizations.noToken);
   }
 
   _buildFooter() {
@@ -140,7 +140,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
             flex: 1,
             child: RoundIconTextButton(
               background: ChewieTheme.primaryColor,
-              text: S.current.save,
+              text: appLocalizations.save,
               onPressed: () async {
                 List<int> selectedIndexes = controller.selectedIndexes.toList();
                 List<String> tokenUids =
@@ -157,7 +157,7 @@ class SelectTokenBottomSheetState extends State<SelectTokenBottomSheet> {
                     widget.category.uid, unSelectedUids);
                 await CategoryDao.updateCategory(widget.category);
                 homeScreenState?.changeTokensForCategory(widget.category);
-                IToast.showTop(S.current.saveSuccess);
+                IToast.showTop(appLocalizations.saveSuccess);
                 Navigator.of(context).pop();
               },
               fontSizeDelta: 2,

@@ -42,7 +42,7 @@ import 'package:awesome_chewie/src/Utils/constant.dart';
 import 'package:awesome_chewie/src/Utils/enums.dart';
 import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Custom/hero_photo_view_screen.dart';
 import 'package:awesome_chewie/src/Widgets/Custom/mouse_state_builder.dart';
 import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
@@ -191,7 +191,7 @@ class CustomHtmlWidgetState extends State<CustomHtmlWidget> {
           },
         ),
         FlutterContextMenuItem(
-          ChewieS.current.copyLink,
+          chewieLocalizations.copyLink,
           iconData: Icons.copy_rounded,
           onPressed: () {
             ChewieUtils.copy(context, url);
@@ -422,7 +422,7 @@ class CustomHtmlWidgetState extends State<CustomHtmlWidget> {
                   borderRadius: BorderRadius.circular(10),
                   child: ItemBuilder.buildLoadingDialog(
                     context: context,
-                    text: ChewieS.current.loading,
+                    text: chewieLocalizations.loading,
                     size: 40,
                     bottomPadding: 30,
                     topPadding: 30,

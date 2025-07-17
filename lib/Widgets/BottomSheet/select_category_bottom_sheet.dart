@@ -23,7 +23,7 @@ import '../../Database/category_dao.dart';
 import '../../Models/opt_token.dart';
 import '../../Models/token_category.dart';
 import '../../Utils/app_provider.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class SelectCategoryBottomSheet extends StatefulWidget {
   const SelectCategoryBottomSheet({
@@ -45,7 +45,7 @@ class SelectCategoryBottomSheet extends StatefulWidget {
       SelectCategoryBottomSheetState();
 }
 
-class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
+class SelectCategoryBottomSheetState extends BaseDynamicState<SelectCategoryBottomSheet> {
   List<TokenCategory> categories = [];
   GroupButtonController controller = GroupButtonController();
   List<String> oldCategoryUids = [];
@@ -120,8 +120,8 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
       child: Text(
         textAlign: TextAlign.center,
         widget.token.issuer.isNotEmpty
-            ? S.current.setCategoryForTokenDetail(widget.token.issuer)
-            : S.current.setCategoryForToken,
+            ? appLocalizations.setCategoryForTokenDetail(widget.token.issuer)
+            : appLocalizations.setCategoryForToken,
         style: ChewieTheme.titleLarge,
       ),
     );
@@ -138,9 +138,9 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
             radius: 8,
           )
         : EmptyPlaceholder(
-            text: S.current.noCategory,
+            text: appLocalizations.noCategory,
             // showButton: true,
-            // buttonText: S.current.addCategory,
+            // buttonText: appLocalizations.addCategory,
             onTap: () {
               HomeScreenState.addCategory(
                 context,
@@ -169,7 +169,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
               child: RoundIconTextButton(
                 background: ChewieTheme.primaryColor,
                 text:
-                    widget.isEditingToken ? S.current.confirm : S.current.save,
+                    widget.isEditingToken ? appLocalizations.confirm : appLocalizations.save,
                 onPressed: () async {
                   List<int> selectedIndexes =
                       controller.selectedIndexes.toList();
@@ -194,7 +194,7 @@ class SelectCategoryBottomSheetState extends State<SelectCategoryBottomSheet> {
                       unselectedCategoryUids,
                       newSelectedCategoryUids,
                     );
-                    IToast.showTop(S.current.saveSuccess);
+                    IToast.showTop(appLocalizations.saveSuccess);
                   }
                 },
                 fontSizeDelta: 2,

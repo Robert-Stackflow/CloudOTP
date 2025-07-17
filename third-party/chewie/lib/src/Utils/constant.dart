@@ -30,15 +30,15 @@ String issueUrl =
     "https://github.com/Robert-Stackflow/${ResponsiveUtil.appName}/issues";
 
 AndroidAuthMessages androidAuthMessages = AndroidAuthMessages(
-  cancelButton: ChewieS.current.biometricCancelButton,
-  goToSettingsButton: ChewieS.current.biometricGoToSettingsButton,
-  biometricNotRecognized: ChewieS.current.biometricNotRecognized,
-  goToSettingsDescription: ChewieS.current.biometricGoToSettingsDescription,
+  cancelButton: chewieLocalizations.biometricCancelButton,
+  goToSettingsButton: chewieLocalizations.biometricGoToSettingsButton,
+  biometricNotRecognized: chewieLocalizations.biometricNotRecognized,
+  goToSettingsDescription: chewieLocalizations.biometricGoToSettingsDescription,
   biometricHint: ResponsiveUtil.isWindows()
-      ? ChewieS.current.biometricReasonWindows(ResponsiveUtil.appName)
-      : ChewieS.current.biometricReason(ResponsiveUtil.appName),
-  biometricSuccess: ChewieS.current.biometricSuccess,
-  signInTitle: ChewieS.current.biometricSignInTitle,
+      ? chewieLocalizations.biometricReasonWindows(ResponsiveUtil.appName)
+      : chewieLocalizations.biometricReason(ResponsiveUtil.appName),
+  biometricSuccess: chewieLocalizations.biometricSuccess,
+  signInTitle: chewieLocalizations.biometricSignInTitle,
   deviceCredentialsRequiredTitle:
-      ChewieS.current.biometricDeviceCredentialsRequiredTitle,
+      chewieLocalizations.biometricDeviceCredentialsRequiredTitle,
 );

@@ -23,7 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Utils/app_provider.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class MobileSettingNavigationScreen extends StatefulWidget {
   const MobileSettingNavigationScreen({super.key});
@@ -36,7 +36,7 @@ class MobileSettingNavigationScreen extends StatefulWidget {
 }
 
 class _MobileSettingNavigationScreenState
-    extends State<MobileSettingNavigationScreen> with TickerProviderStateMixin {
+    extends BaseDynamicState<MobileSettingNavigationScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -50,7 +50,7 @@ class _MobileSettingNavigationScreenState
       child: Scaffold(
         appBar: ResponsiveAppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          title: S.current.setting,
+          title: appLocalizations.setting,
           showBack: true,
           showBorder: true,
           actions: const [
@@ -64,7 +64,7 @@ class _MobileSettingNavigationScreenState
             padding: const EdgeInsets.symmetric(horizontal: 10),
             children: [
               EntryItem(
-                title: S.current.generalSetting,
+                title: appLocalizations.generalSetting,
                 leading: LucideIcons.settings2,
                 showLeading: true,
                 onTap: () {
@@ -75,7 +75,7 @@ class _MobileSettingNavigationScreenState
                 },
               ),
               EntryItem(
-                title: S.current.appearanceSetting,
+                title: appLocalizations.appearanceSetting,
                 leading: LucideIcons.paintbrushVertical,
                 showLeading: true,
                 onTap: () {
@@ -84,7 +84,7 @@ class _MobileSettingNavigationScreenState
                 },
               ),
               EntryItem(
-                title: S.current.operationSetting,
+                title: appLocalizations.operationSetting,
                 leading: LucideIcons.pointer,
                 showLeading: true,
                 onTap: () {
@@ -93,7 +93,7 @@ class _MobileSettingNavigationScreenState
                 },
               ),
               EntryItem(
-                title: S.current.backupSetting,
+                title: appLocalizations.backupSetting,
                 leading: LucideIcons.cloudUpload,
                 showLeading: true,
                 onTap: () {
@@ -102,7 +102,7 @@ class _MobileSettingNavigationScreenState
                 },
               ),
               EntryItem(
-                title: S.current.safeSetting,
+                title: appLocalizations.safeSetting,
                 leading: LucideIcons.shieldCheck,
                 showLeading: true,
                 onTap: () {

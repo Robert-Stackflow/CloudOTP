@@ -26,7 +26,7 @@ import 'package:win32/win32.dart';
 
 import 'package:awesome_chewie/src/Models/github_response.dart';
 import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:awesome_chewie/src/Utils/itoast.dart';
 import 'hive_util.dart';
@@ -67,7 +67,7 @@ class FileUtil {
       );
     } catch (e, t) {
       ILogger.error("Failed to pick files", e, t);
-      IToast.showTop(ChewieS.current.pleaseGrantFilePermission);
+      IToast.showTop(chewieLocalizations.pleaseGrantFilePermission);
     }
     return result;
   }
@@ -94,7 +94,7 @@ class FileUtil {
       );
     } catch (e, t) {
       ILogger.error("Failed to save file", e, t);
-      IToast.showTop(ChewieS.current.pleaseGrantFilePermission);
+      IToast.showTop(chewieLocalizations.pleaseGrantFilePermission);
     }
     return result;
   }
@@ -113,7 +113,7 @@ class FileUtil {
       );
     } catch (e, t) {
       ILogger.error("Failed to get directory path", e, t);
-      IToast.showTop(ChewieS.current.pleaseGrantFilePermission);
+      IToast.showTop(chewieLocalizations.pleaseGrantFilePermission);
     }
     return result;
   }
@@ -122,12 +122,12 @@ class FileUtil {
     bool showLoading = true,
   }) async {
     if (!(await FileOutput.haveLogs())) {
-      IToast.showTop(ChewieS.current.noLog);
+      IToast.showTop(chewieLocalizations.noLog);
       return;
     }
     if (ResponsiveUtil.isDesktop()) {
       String? filePath = await FileUtil.saveFile(
-        dialogTitle: ChewieS.current.exportLog,
+        dialogTitle: chewieLocalizations.exportLog,
         fileName:
             "${ResponsiveUtil.appName}-Logs-${TimeUtil.getFormattedDate(DateTime.now())}.zip",
         type: FileType.custom,
@@ -136,20 +136,20 @@ class FileUtil {
       );
       if (filePath != null) {
         if (showLoading) {
-          CustomLoadingDialog.showLoading(title: ChewieS.current.exporting);
+          CustomLoadingDialog.showLoading(title: chewieLocalizations.exporting);
         }
         try {
           Uint8List? data = await FileOutput.getArchiveData();
           if (data != null) {
             File file = File(filePath);
             await file.writeAsBytes(data);
-            IToast.showTop(ChewieS.current.exportSuccess);
+            IToast.showTop(chewieLocalizations.exportSuccess);
           } else {
-            IToast.showTop(ChewieS.current.exportFailed);
+            IToast.showTop(chewieLocalizations.exportFailed);
           }
         } catch (e, t) {
           ILogger.error("Failed to zip logs", e, t);
-          IToast.showTop(ChewieS.current.exportFailed);
+          IToast.showTop(chewieLocalizations.exportFailed);
         } finally {
           if (showLoading) {
             CustomLoadingDialog.dismissLoading();
@@ -158,16 +158,16 @@ class FileUtil {
       }
     } else {
       if (showLoading) {
-        CustomLoadingDialog.showLoading(title: ChewieS.current.exporting);
+        CustomLoadingDialog.showLoading(title: chewieLocalizations.exporting);
       }
       try {
         Uint8List? data = await FileOutput.getArchiveData();
         if (data == null) {
-          IToast.showTop(ChewieS.current.exportFailed);
+          IToast.showTop(chewieLocalizations.exportFailed);
           return;
         }
         String? filePath = await FileUtil.saveFile(
-          dialogTitle: ChewieS.current.exportLog,
+          dialogTitle: chewieLocalizations.exportLog,
           fileName:
               "${ResponsiveUtil.appName}-Logs-${TimeUtil.getFormattedDate(DateTime.now())}.zip",
           type: FileType.custom,
@@ -176,11 +176,11 @@ class FileUtil {
           bytes: data,
         );
         if (filePath != null) {
-          IToast.showTop(ChewieS.current.exportSuccess);
+          IToast.showTop(chewieLocalizations.exportSuccess);
         }
       } catch (e, t) {
         ILogger.error("Failed to zip logs", e, t);
-        IToast.showTop(ChewieS.current.exportFailed);
+        IToast.showTop(chewieLocalizations.exportFailed);
       } finally {
         if (showLoading) {
           CustomLoadingDialog.dismissLoading();

@@ -21,7 +21,7 @@ import 'package:flutter/services.dart';
 
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
 
 class InputBottomSheet extends StatefulWidget {
@@ -198,7 +198,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: ChewieS.current.cancel,
+              text: chewieLocalizations.cancel,
               height: 48,
               onPressed: () {
                 widget.onCancel?.call();
@@ -213,7 +213,7 @@ class InputBottomSheetState extends State<InputBottomSheet> {
               height: 48,
               background: ChewieTheme.primaryColor,
               color: ChewieTheme.primaryButtonColor,
-              text: ChewieS.current.confirm,
+              text: chewieLocalizations.confirm,
               onPressed: processConfirm,
               fontSizeDelta: 2,
             ),

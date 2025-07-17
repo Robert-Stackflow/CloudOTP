@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:pinyin/pinyin.dart';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
+
 class SearchConfig {
   final bool enableSplit;
   bool enablePinyin;
@@ -43,7 +45,7 @@ abstract class SearchableStatefulWidget extends StatefulWidget {
 }
 
 abstract class SearchableState<T extends SearchableStatefulWidget>
-    extends State<T> {
+    extends BaseDynamicState<T> {
   bool get shouldShow {
     final searchText = widget.searchText.trim().toLowerCase();
     if (searchText.isEmpty) return true;

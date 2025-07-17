@@ -12,7 +12,7 @@ import 'package:awesome_chewie/src/Utils/System/hive_util.dart';
 import 'package:awesome_chewie/src/Utils/itoast.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
 import 'package:awesome_chewie/src/Widgets/Dialog/progress_dialog.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 
 class CustomFont {
   static const CustomFont Default =
@@ -84,21 +84,21 @@ class CustomFont {
   String get intlFontName {
     switch (this) {
       case Default:
-        return ChewieS.current.followSystem;
+        return chewieLocalizations.followSystem;
       case LxgwWenKai:
-        return ChewieS.current.lxgw;
+        return chewieLocalizations.lxgw;
       case LxgwWenKaiGB:
-        return ChewieS.current.lxgwGB;
+        return chewieLocalizations.lxgwGB;
       case LxgwWenKaiLite:
-        return ChewieS.current.lxgwLite;
+        return chewieLocalizations.lxgwLite;
       case LxgwWenKaiScreen:
-        return ChewieS.current.lxgwScreen;
+        return chewieLocalizations.lxgwScreen;
       case MiSans:
-        return ChewieS.current.miSans;
+        return chewieLocalizations.miSans;
       case SmileySans:
-        return ChewieS.current.smileySans;
+        return chewieLocalizations.smileySans;
       case HarmonyOSSans:
-        return ChewieS.current.harmonyOSSans;
+        return chewieLocalizations.harmonyOSSans;
       default:
         return fontName;
     }
@@ -193,9 +193,9 @@ class CustomFont {
         onFinished?.call(value);
         if (showToast && context != null) {
           if (value == true) {
-            IToast.showTop(ChewieS.current.fontFamlyLoadSuccess);
+            IToast.showTop(chewieLocalizations.fontFamlyLoadSuccess);
           } else {
-            IToast.showTop(ChewieS.current.fontFamlyLoadFailed);
+            IToast.showTop(chewieLocalizations.fontFamlyLoadFailed);
           }
         }
       });
@@ -210,7 +210,7 @@ class CustomFont {
     CustomFont item, {
     bool autoRestartApp = false,
   }) async {
-    var dialog = showProgressDialog(ChewieS.current.alreadyDownload);
+    var dialog = showProgressDialog(chewieLocalizations.alreadyDownload);
     await ChewieHiveUtil.put(ChewieHiveUtil.fontFamilyKey, item.fontFamily);
     await downloadFont(
       context: context,

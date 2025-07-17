@@ -1,0 +1,7 @@
+arb-dir: lib/src/l10n
+template-arb-file: intl_en.arb
+output-localization-file: chewie_localizations.dart
+output-class: ChewieLocalizations
+untranslated-messages-file: desiredFileName.txt
+output-dir: lib/src/generated
+synthetic-package: false
