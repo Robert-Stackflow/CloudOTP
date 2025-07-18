@@ -89,7 +89,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: gradle
 
       # Flutter Pub Get
       - name: Flutter Pub Get
