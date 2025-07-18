@@ -63,7 +63,8 @@ class BoxCloudService extends CloudService {
   Future<bool> checkServer() async {
     try {
       final response = await http.head(Uri.parse(CloudService.serverEndpoint));
-      ILogger.info('Box Cloud service availability response for $_customAuthEndpoint: ${response.statusCode}');
+      ILogger.info(
+          'Box Cloud service availability response for $_customAuthEndpoint: ${response.statusCode}');
       return response.statusCode == 200;
     } catch (e) {
       return false;

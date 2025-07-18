@@ -122,6 +122,8 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
     await scannerController.dispose();
   }
 
+  Radius radius = ChewieDimens.defaultRadius;
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -129,12 +131,13 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
       children: [
         Container(
           decoration: BoxDecoration(
-            color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(20)
-                    : Radius.zero),
+                top: radius,
+                bottom:
+                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            color: ChewieTheme.scaffoldBackgroundColor,
+            border: ChewieTheme.border,
+            boxShadow: ChewieTheme.defaultBoxShadow,
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -196,7 +199,8 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
   _buildScanner() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtil.isLandscape() ? 20 : 10),
       alignment: Alignment.center,
       height: 400,
       width: MediaQuery.sizeOf(context).width,

@@ -260,7 +260,7 @@ class FileUtil {
           ChewieHiveUtil.haveMigratedToSupportDirectoryKey,
           defaultValue: false);
       if (haveMigratedToSupportDirectoryFromHive) {
-        ILogger.info("CloudOTP", "Have migrated data to support directory");
+        ILogger.info("Have migrated data to support directory");
         return;
       }
       Hive.closeAllBoxes();
@@ -286,7 +286,7 @@ class FileUtil {
         if (!isNewDirEmpty) {
           await createBakDir(newDir);
         }
-        ILogger.info("CloudOTP",
+        ILogger.info(
             "Start to migrate data from old application directory $oldDir to new application directory $newDir");
         await copyDirectoryTo(oldDir, newDir);
         haveMigratedToSupportDirectory = true;
@@ -299,7 +299,7 @@ class FileUtil {
       } catch (e, t) {
         ILogger.error("Failed to delete old application directory", e, t);
       }
-      ILogger.info("CloudOTP",
+      ILogger.info(
           "Finish to migrate data from old application directory $oldDir to new application directory $newDir");
     }
     await Future.delayed(const Duration(milliseconds: 200));

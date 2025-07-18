@@ -36,7 +36,8 @@ class MobileSettingNavigationScreen extends StatefulWidget {
 }
 
 class _MobileSettingNavigationScreenState
-    extends BaseDynamicState<MobileSettingNavigationScreen> with TickerProviderStateMixin {
+    extends BaseDynamicState<MobileSettingNavigationScreen>
+    with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -49,7 +50,6 @@ class _MobileSettingNavigationScreenState
       color: Colors.transparent,
       child: Scaffold(
         appBar: ResponsiveAppBar(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: appLocalizations.setting,
           showBack: true,
           showBorder: true,

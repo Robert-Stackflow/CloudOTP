@@ -15,7 +15,9 @@ class SelectionItemModel<T> with DropdownMixin {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is SelectionItemModel<T> && other.key == key && other.value == value;
+    return other is SelectionItemModel<T> &&
+        other.key == key &&
+        other.value == value;
   }
 
   @override

@@ -206,15 +206,15 @@ class CloudOTPItemBuilder {
       textAlign: TextAlign.center,
       style: textStyle ??
           ChewieTheme.titleSmall?.apply(
-                color: color ??
-                    (background != null
-                        ? Colors.white
-                        : disabled
-                            ? Colors.grey
-                            : ChewieTheme.titleSmall?.color),
-                fontWeightDelta: 2,
-                fontSizeDelta: fontSizeDelta,
-              ),
+            color: color ??
+                (background != null
+                    ? Colors.white
+                    : disabled
+                        ? Colors.grey
+                        : ChewieTheme.titleSmall?.color),
+            fontWeightDelta: 2,
+            fontSizeDelta: fontSizeDelta,
+          ),
       maxLines: 1,
     );
     Color fBackground = background ?? ChewieTheme.cardColor;

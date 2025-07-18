@@ -58,7 +58,8 @@ class CustomInfoDialogWidget extends StatefulWidget {
   State<CustomInfoDialogWidget> createState() => _CustomInfoDialogWidgetState();
 }
 
-class _CustomInfoDialogWidgetState extends BaseDynamicState<CustomInfoDialogWidget> {
+class _CustomInfoDialogWidgetState
+    extends BaseDynamicState<CustomInfoDialogWidget> {
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
@@ -78,12 +79,12 @@ class _CustomInfoDialogWidgetState extends BaseDynamicState<CustomInfoDialogWidg
                 const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
             decoration: BoxDecoration(
               color:
-              widget.backgroundColor ?? ChewieTheme.scaffoldBackgroundColor,
+                  widget.backgroundColor ?? ChewieTheme.scaffoldBackgroundColor,
               borderRadius: BorderRadius.vertical(
                 bottom: Radius.circular(
                     widget.roundbottom ? ChewieDimens.dimen16 : 0),
                 top:
-                Radius.circular(widget.roundTop ? ChewieDimens.dimen16 : 0),
+                    Radius.circular(widget.roundTop ? ChewieDimens.dimen16 : 0),
               ),
               border: ChewieTheme.border,
               boxShadow: ChewieTheme.defaultBoxShadow,
@@ -109,24 +110,24 @@ class _CustomInfoDialogWidgetState extends BaseDynamicState<CustomInfoDialogWidg
                 if (widget.message.notNullOrEmpty)
                   widget.renderHtml
                       ? CustomHtmlWidget(
-                    content: widget.message!,
-                    style: TextStyle(
-                      color: widget.textColor ??
-                          ChewieTheme.bodySmall.color,
-                      height: 1.5,
-                      fontSize: 15,
-                    ),
-                  )
+                          content: widget.message!,
+                          style: TextStyle(
+                            color:
+                                widget.textColor ?? ChewieTheme.bodySmall.color,
+                            height: 1.5,
+                            fontSize: 15,
+                          ),
+                        )
                       : Text(
-                    widget.message!,
-                    style: TextStyle(
-                      color: widget.textColor ??
-                          ChewieTheme.bodySmall.color,
-                      height: 1.5,
-                      fontSize: 15,
-                    ),
-                    textAlign: widget.messageTextAlign,
-                  ),
+                          widget.message!,
+                          style: TextStyle(
+                            color:
+                                widget.textColor ?? ChewieTheme.bodySmall.color,
+                            height: 1.5,
+                            fontSize: 15,
+                          ),
+                          textAlign: widget.messageTextAlign,
+                        ),
                 if (widget.messageChild != null) widget.messageChild!,
                 const SizedBox(height: 16),
                 Row(

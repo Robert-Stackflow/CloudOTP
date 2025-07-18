@@ -26,6 +26,7 @@ import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
+import '../../Utils/app_provider.dart';
 import '../../l10n/l10n.dart';
 
 class OneDriveServiceScreen extends StatefulWidget {
@@ -39,7 +40,8 @@ class OneDriveServiceScreen extends StatefulWidget {
   State<OneDriveServiceScreen> createState() => _OneDriveServiceScreenState();
 }
 
-class _OneDriveServiceScreenState extends BaseDynamicState<OneDriveServiceScreen>
+class _OneDriveServiceScreenState
+    extends BaseDynamicState<OneDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -138,7 +140,8 @@ class _OneDriveServiceScreenState extends BaseDynamicState<OneDriveServiceScreen
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(appLocalizations.cloudTypeNotSupport(appLocalizations.cloudTypeOneDrive)),
+          Text(appLocalizations
+              .cloudTypeNotSupport(appLocalizations.cloudTypeOneDrive)),
           const SizedBox(height: 10),
         ],
       ),
@@ -247,10 +250,13 @@ class _OneDriveServiceScreenState extends BaseDynamicState<OneDriveServiceScreen
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to onedrive", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),
@@ -269,7 +275,8 @@ class _OneDriveServiceScreenState extends BaseDynamicState<OneDriveServiceScreen
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<OneDriveFileInfo>? files =
                       await _oneDriveCloudService!.listBackups();

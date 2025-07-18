@@ -1381,14 +1381,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.16.8"
-  multiple_localization:
-    dependency: "direct main"
-    description:
-      name: multiple_localization
-      sha256: "8b071f538bdf087a7bf13cd8b78a1a041994960c8e9f0a1aaaaf0cfb39845019"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.5.0"
   native_device_orientation:
     dependency: "direct main"
     description:

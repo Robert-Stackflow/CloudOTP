@@ -18,7 +18,6 @@ import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/database_manager.dart';
-import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
@@ -43,6 +42,7 @@ import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/import_from_third_party_bottom_sheet.dart';
 import '../l10n/l10n.dart';
 import 'Backup/cloud_service_screen.dart';
+import 'Lock/database_decrypt_screen.dart';
 import 'Lock/pin_verify_screen.dart';
 import 'Setting/backup_log_screen.dart';
 import 'Setting/setting_navigation_screen.dart';
@@ -61,17 +61,14 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => MainScreenState();
 }
 
-class MainScreenState extends BaseDynamicState<MainScreen>
+class MainScreenState extends BaseWindowState<MainScreen>
     with
         WidgetsBindingObserver,
         TickerProviderStateMixin,
         TrayListener,
         ProtocolListener,
-        WindowListener,
         AutomaticKeepAliveClientMixin {
   Timer? _timer;
-  bool _isMaximized = false;
-  bool _isStayOnTop = false;
   Orientation _oldOrientation = Orientation.portrait;
   TextEditingController searchController = TextEditingController();
 
@@ -94,31 +91,6 @@ class MainScreenState extends BaseDynamicState<MainScreen>
   }
 
   @override
-  Future<void> onWindowResize() async {
-    super.onWindowResize();
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowResized() async {
-    super.onWindowResized();
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowMove() async {
-    super.onWindowMove();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  Future<void> onWindowMoved() async {
-    super.onWindowMoved();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
   void onWindowEvent(String eventName) {
     super.onWindowEvent(eventName);
     if (eventName == "hide") {
@@ -127,29 +99,8 @@ class MainScreenState extends BaseDynamicState<MainScreen>
   }
 
   @override
-  void onWindowMaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = false;
-    });
-  }
-
-  void pushRootPage(Widget page) {
-    Navigator.pushAndRemoveUntil(
-        context, RouteUtil.getFadeRoute(page), (route) => false);
-  }
-
-  @override
   void onProtocolUrlReceived(String url) {
-    ILogger.info("Protocol url received", url);
+    ILogger.info("Received protocol url:", url);
   }
 
   Future<void> fetchReleases() async {
@@ -176,8 +127,6 @@ class MainScreenState extends BaseDynamicState<MainScreen>
     });
     fetchReleases();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _oldOrientation = MediaQuery.of(context).orientation;
-      chewieProvider.rootContext = context;
       if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
           defaultValue: false)) {
         ShortcutsUtil.focusSearch();
@@ -187,8 +136,25 @@ class MainScreenState extends BaseDynamicState<MainScreen>
         trayManager.addListener(this);
         // keyboardHandlerState?.focus();
       }
+      if (mounted) {
+        initGlobalConfig();
+        _oldOrientation = MediaQuery.of(context).orientation;
+        EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
+              backgroundColor: ChewieTheme.canvasColor,
+              indicator: LottieFiles.load(LottieFiles.getLoadingPath(context),
+                  scale: 1.5),
+              hapticFeedback: true,
+              triggerOffset: 40,
+            );
+        EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
+              indicator: LottieFiles.load(LottieFiles.getLoadingPath(context)),
+            );
+        chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+            LottieFiles.load(
+                LottieFiles.getLoadingPath(chewieProvider.rootContext),
+                scale: 1.5);
+      }
     });
-    initGlobalConfig();
     searchController.addListener(() {
       homeScreenState?.performSearch(searchController.text);
     });
@@ -198,24 +164,12 @@ class MainScreenState extends BaseDynamicState<MainScreen>
     if (ResponsiveUtil.isDesktop()) {
       windowManager
           .isAlwaysOnTop()
-          .then((value) => setState(() => _isStayOnTop = value));
+          .then((value) => setState(() => isStayOnTop = value));
       windowManager
           .isMaximized()
-          .then((value) => setState(() => _isMaximized = value));
+          .then((value) => setState(() => isMaximized = value));
     }
     ResponsiveUtil.checkSizeCondition();
-    EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
-          backgroundColor: ChewieTheme.canvasColor,
-          indicator:
-              LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5),
-          hapticFeedback: true,
-          triggerOffset: 40,
-        );
-    EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
-          indicator: LottieFiles.load(LottieFiles.getLoadingPath(context)),
-        );
-    chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-        LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -224,19 +178,22 @@ class MainScreenState extends BaseDynamicState<MainScreen>
   Future<void> jumpToLock({
     bool autoAuth = false,
   }) async {
-    if (DatabaseManager.isDatabaseEncrypted &&
-        CloudOTPHiveUtil.getEncryptDatabaseStatus() ==
-            EncryptDatabaseStatus.customPassword) {
+    ILogger.info("Jump to lock screen");
+    if (CloudOTPHiveUtil.canDatabaseLock()) {
       await DatabaseManager.resetDatabase();
-      pushRootPage(const DatabaseDecryptScreen());
+      RouteUtil.pushRootPage(const DatabaseDecryptScreen());
     } else {
-      pushRootPage(
+      appProvider.preventLock = true;
+      RouteUtil.pushFadeRoute(
+        context,
         PinVerifyScreen(
-          onSuccess: () {},
+          onSuccess: () {
+            appProvider.preventLock = false;
+          },
           showWindowTitle: true,
           isModal: true,
           autoAuth: autoAuth,
-          jumpToMain: true,
+          jumpToMain: false,
         ),
       );
     }
@@ -244,14 +201,13 @@ class MainScreenState extends BaseDynamicState<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+    chewieProvider.rootContext = context;
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
     super.build(context);
     return OrientationBuilder(builder: (ctx, ori) {
-      if (ori != _oldOrientation) {
-        // globalNavigatorState?.popUntil((route) => route.isFirst);
-      }
+      if (ori != _oldOrientation) {}
       _oldOrientation = ori;
       return _buildBodyByPlatform();
     });
@@ -261,16 +217,10 @@ class MainScreenState extends BaseDynamicState<MainScreen>
     if (!ResponsiveUtil.isLandscape()) {
       return _buildMobileBody();
     } else if (ResponsiveUtil.isMobile()) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (_, __) {
-          SystemNavigator.pop();
-        },
-        child: Scaffold(
-          backgroundColor: ChewieTheme.appBarBackgroundColor,
-          resizeToAvoidBottomInset: false,
-          body: SafeArea(child: _buildDesktopBody()),
-        ),
+      return Scaffold(
+        backgroundColor: ChewieTheme.appBarBackgroundColor,
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(child: _buildDesktopBody()),
       );
     } else {
       return _buildDesktopBody();
@@ -546,8 +496,8 @@ class MainScreenState extends BaseDynamicState<MainScreen>
         windowManager.restore();
         if (ResponsiveUtil.isLinux()) {
           LinuxOSType osType = ResponsiveUtil.getLinuxOSType();
-          IToast.showTop(
-              appLocalizations.captureFailedNoProcess(osType.captureProcessName));
+          IToast.showTop(appLocalizations
+              .captureFailedNoProcess(osType.captureProcessName));
         }
       }
     }
@@ -776,13 +726,13 @@ class MainScreenState extends BaseDynamicState<MainScreen>
     return ResponsiveUtil.buildDesktopWidget(
       desktop: WindowTitleWrapper(
         height: 48,
-        isStayOnTop: _isStayOnTop,
-        isMaximized: _isMaximized,
+        isStayOnTop: isStayOnTop,
+        isMaximized: isMaximized,
         backgroundColor: Colors.transparent,
         onStayOnTopTap: () {
           setState(() {
-            _isStayOnTop = !_isStayOnTop;
-            windowManager.setAlwaysOnTop(_isStayOnTop);
+            isStayOnTop = !isStayOnTop;
+            windowManager.setAlwaysOnTop(isStayOnTop);
           });
         },
       ),
@@ -796,14 +746,14 @@ class MainScreenState extends BaseDynamicState<MainScreen>
   }
 
   void setTimer() {
-    // _timer = Timer(
-    //   Duration(seconds: appProvider.autoLockTime.seconds),
-    //   () {
-    //     if (!appProvider.preventLock && ChewieHiveUtil.shouldAutoLock()) {
-    //       jumpToLock();
-    //     }
-    //   },
-    // );
+    _timer = Timer(
+      Duration(seconds: appProvider.autoLockTime.seconds),
+      () {
+        if (!appProvider.preventLock && CloudOTPHiveUtil.shouldAutoLock()) {
+          jumpToLock();
+        }
+      },
+    );
   }
 
   @override

@@ -25,6 +25,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
 import '../../l10n/l10n.dart';
@@ -41,7 +42,8 @@ class GoogleDriveServiceScreen extends StatefulWidget {
       _GoogleDriveServiceScreenState();
 }
 
-class _GoogleDriveServiceScreenState extends BaseDynamicState<GoogleDriveServiceScreen>
+class _GoogleDriveServiceScreenState
+    extends BaseDynamicState<GoogleDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -136,8 +138,8 @@ class _GoogleDriveServiceScreenState extends BaseDynamicState<GoogleDriveService
     }
     await currentService.checkServer().then((value) async {
       if (!value) {
-        IToast.show(
-            appLocalizations.cloudOAuthUnavailable(CloudService.serverEndpoint));
+        IToast.show(appLocalizations
+            .cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
         await currentService.authenticate().then((value) async {
           setState(() {
@@ -158,7 +160,8 @@ class _GoogleDriveServiceScreenState extends BaseDynamicState<GoogleDriveService
           } else {
             _googledriveCloudServiceConfig!.configured = true;
             updateConfig(_googledriveCloudServiceConfig!);
-            if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
+            if (showSuccessToast)
+              IToast.show(appLocalizations.cloudAuthSuccess);
           }
         });
       }
@@ -237,10 +240,13 @@ class _GoogleDriveServiceScreenState extends BaseDynamicState<GoogleDriveService
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to google drive", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),
@@ -259,7 +265,8 @@ class _GoogleDriveServiceScreenState extends BaseDynamicState<GoogleDriveService
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<GoogleDriveFileInfo>? files =
                       await _googledriveCloudService!.listBackups();

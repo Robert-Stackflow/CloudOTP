@@ -75,20 +75,19 @@ class DatabaseManager {
         if (content == _unencrypedFileHeader) {
           isDatabaseEncrypted = false;
           _currentDbFactory = dbFactory;
-          ILogger.info("CloudOTP",
+          ILogger.info(
               "Database is an unencrypted SQLite database. File header is $content");
         } else {
           isDatabaseEncrypted = true;
           _currentDbFactory = cipherDbFactory;
-          ILogger.info("CloudOTP", "Database is an encrypted SQLite database.");
+          ILogger.info("Database is an encrypted SQLite database.");
         }
       } else {
         isDatabaseEncrypted = true;
         _currentDbFactory = cipherDbFactory;
         password = await CloudOTPHiveUtil.regeneratePassword();
         appProvider.currentDatabasePassword = password;
-        ILogger.info(
-            "CloudOTP", "Database not exist and new password is generated");
+        ILogger.info("Database not exist and new password is generated");
         await CloudOTPHiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }
@@ -113,7 +112,7 @@ class DatabaseManager {
       if (isDatabaseEncrypted) {
         List<Map<String, Object?>> res =
             await _database!.rawQuery("PRAGMA rekey='$password'");
-        ILogger.info("CloudOTP", "Change database password result is $res");
+        ILogger.info("Change database password result is $res");
         if (res.isNotEmpty) {
           appProvider.currentDatabasePassword = password;
           return true;
@@ -140,7 +139,7 @@ class DatabaseManager {
       List<Map<String, Object?>> res =
           await db.rawQuery("PRAGMA KEY='$password'");
       if (res.isNotEmpty) {
-        ILogger.info("CloudOTP",
+        ILogger.info(
             "Configure database with cipher successfully. Result is $res");
       } else {
         ILogger.error(

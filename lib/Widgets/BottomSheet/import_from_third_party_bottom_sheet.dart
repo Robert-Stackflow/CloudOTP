@@ -92,7 +92,8 @@ class ImportFromThirdPartyBottomSheetState
                 (context) => const AddBottomSheet(onlyShowScanner: true),
               );
             } else {
-              IToast.showTop(appLocalizations.importFromGoogleAuthenticatorInMobile);
+              IToast.showTop(
+                  appLocalizations.importFromGoogleAuthenticatorInMobile);
             }
           },
         ),

@@ -17,7 +17,6 @@ import 'dart:math';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -27,9 +26,7 @@ import '../../Utils/biometric_util.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/lottie_util.dart';
 import '../../Utils/shortcuts_util.dart';
-import '../../Widgets/Shortcuts/app_shortcuts.dart';
 import '../../l10n/l10n.dart';
-import '../main_screen.dart';
 
 class PinVerifyScreen extends StatefulWidget {
   const PinVerifyScreen({
@@ -59,7 +56,8 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
   late final bool _enableBiometric =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = GestureNotifier(
-      status: GestureStatus.verify, gestureText: appLocalizations.verifyGestureLock);
+      status: GestureStatus.verify,
+      gestureText: appLocalizations.verifyGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
   bool _isMaximized = false;
   bool _isStayOnTop = false;
@@ -118,16 +116,20 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
 
   @override
   void initState() {
-    if (widget.jumpToMain) trayManager.addListener(this);
+    if (widget.jumpToMain) {
+      trayManager.addListener(this);
+      Utils.initSimpleTray();
+    }
     windowManager.addListener(this);
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-            LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
+            LottieFiles.load(
+                LottieFiles.getLoadingPath(chewieProvider.rootContext),
+                scale: 1.5);
       }
     });
-    Utils.initSimpleTray();
     initBiometricAuthentication();
   }
 
@@ -137,22 +139,12 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
         await BiometricUtil.getCanAuthenticateResponseString();
     setState(() {});
     if (_biometricAvailable && _enableBiometric && widget.autoAuth) {
-      auth();
+      localAuth();
     }
   }
 
-  void auth() async {
-    ChewieUtils.localAuth(
-      onAuthed: () {
-        if (widget.onSuccess != null) widget.onSuccess!();
-        if (widget.jumpToMain) {
-          ShortcutsUtil.jumpToMain(context);
-        } else {
-          Navigator.of(context).pop();
-        }
-        _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
-      },
-    );
+  void localAuth() async {
+    ChewieUtils.localAuth(onAuthed: success);
   }
 
   @override
@@ -218,7 +210,7 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
                         text: ResponsiveUtil.isWindows()
                             ? appLocalizations.biometricVerifyPin
                             : appLocalizations.biometric,
-                        onPressed: auth,
+                        onPressed: localAuth,
                       ),
                     ),
                     const SizedBox(height: 50),
@@ -250,19 +242,23 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
     );
   }
 
+  success() {
+    if (widget.onSuccess != null) widget.onSuccess!();
+    if (widget.jumpToMain) {
+      ShortcutsUtil.jumpToMain();
+    } else {
+      Navigator.of(context).pop();
+    }
+    _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
+  }
+
   void _gestureComplete(List<int> selected, UnlockStatus status) async {
     switch (_notifier.status) {
       case GestureStatus.verify:
       case GestureStatus.verifyFailed:
         String password = GestureUnlockView.selectedToString(selected);
         if (_password == password) {
-          if (widget.onSuccess != null) widget.onSuccess!();
-          if (widget.jumpToMain) {
-            ShortcutsUtil.jumpToMain(context);
-          } else {
-            Navigator.of(context).pop();
-          }
-          _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
+          success();
         } else {
           setState(() {
             _notifier.setStatus(

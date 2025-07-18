@@ -16,9 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/my_divider.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class ContextMenuBottomSheet extends StatefulWidget {
   const ContextMenuBottomSheet({
@@ -38,6 +36,8 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
     super.initState();
   }
 
+  Radius radius = ChewieDimens.defaultRadius;
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -45,34 +45,40 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: ChewieTheme.canvasColor,
+            color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(16),
-                bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(16)
-                    : Radius.zero),
+                top: radius,
+                bottom:
+                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            border: ChewieTheme.border,
+            boxShadow: ChewieTheme.defaultBoxShadow,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  const SizedBox(height: 40),
-                  Container(
-                    width: 50,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).dividerColor,
-                      borderRadius: BorderRadius.circular(2.5),
+              if (!ResponsiveUtil.isWideLandscape())
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const SizedBox(height: 40),
+                    Container(
+                      width: 50,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).dividerColor,
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               for (var config in widget.menu.entries)
-                _buildConfigItem(config as FlutterContextMenuItem),
+                _buildConfigItem(
+                  config as FlutterContextMenuItem,
+                  config == widget.menu.entries.first,
+                  config == widget.menu.entries.last,
+                ),
             ],
           ),
         ),
@@ -80,7 +86,8 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
     );
   }
 
-  _buildConfigItem(FlutterContextMenuItem? config) {
+  _buildConfigItem(FlutterContextMenuItem? config,
+      [bool isFirst = false, bool isLast = false]) {
     Color? textColor;
     if (config == null || config.type == MenuItemType.divider) {
       return const MyDivider(width: 1.5, vertical: 12, horizontal: 16);
@@ -99,13 +106,29 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
           textColor = null;
           break;
       }
+      var borderRadius = BorderRadius.vertical(
+        top: isFirst
+            ? ResponsiveUtil.isWideLandscape()
+                ? radius
+                : Radius.zero
+            : Radius.zero,
+        bottom: isLast
+            ? ResponsiveUtil.isWideLandscape()
+                ? radius
+                : Radius.zero
+            : Radius.zero,
+      );
       return Material(
+        color: ChewieTheme.scaffoldBackgroundColor,
+        borderRadius: borderRadius,
         child: InkWell(
+          borderRadius: borderRadius,
           onTap: () {
             Navigator.of(context).pop();
             config.onPressed?.call();
           },
           child: Container(
+            decoration: BoxDecoration(borderRadius: borderRadius),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [

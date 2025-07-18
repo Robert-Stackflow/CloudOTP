@@ -29,7 +29,8 @@ class SettingNavigationScreen extends StatefulWidget {
       _SettingNavigationScreenState();
 }
 
-class _SettingNavigationScreenState extends BaseDynamicState<SettingNavigationScreen>
+class _SettingNavigationScreenState
+    extends BaseDynamicState<SettingNavigationScreen>
     with AutomaticKeepAliveClientMixin {
   int _selectedIndex = 0;
   String _searchText = "";

@@ -75,8 +75,7 @@ class AppShortcuts extends StatelessWidget {
           CategoryIntent: CallbackAction(
             onInvoke: (_) {
               RouteUtil.pushDialogRoute(
-                  chewieProvider.rootContext, const CategoryScreen(),
-                  showClose: false);
+                  chewieProvider.rootContext, const CategoryScreen());
               return null;
             },
           ),

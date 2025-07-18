@@ -59,7 +59,8 @@ class CustomConfirmDialogWidget extends StatefulWidget {
       _CustomConfirmDialogWidgetState();
 }
 
-class _CustomConfirmDialogWidgetState extends BaseDynamicState<CustomConfirmDialogWidget> {
+class _CustomConfirmDialogWidgetState
+    extends BaseDynamicState<CustomConfirmDialogWidget> {
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
@@ -78,8 +79,8 @@ class _CustomConfirmDialogWidgetState extends BaseDynamicState<CustomConfirmDial
             padding: widget.padding ??
                 const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
             decoration: BoxDecoration(
-              color: widget.backgroundColor ??
-                  ChewieTheme.scaffoldBackgroundColor,
+              color:
+                  widget.backgroundColor ?? ChewieTheme.scaffoldBackgroundColor,
               borderRadius: BorderRadius.circular(
                   widget.radiusDimen ?? ChewieDimens.dimen16),
               border: ChewieTheme.border,
@@ -106,24 +107,24 @@ class _CustomConfirmDialogWidgetState extends BaseDynamicState<CustomConfirmDial
                 if (widget.message.notNullOrEmpty)
                   widget.renderHtml
                       ? CustomHtmlWidget(
-                    content: widget.message,
-                    style: TextStyle(
-                      color: widget.textColor ??
-                          ChewieTheme.bodySmall.color,
-                      height: 1.5,
-                      fontSize: 15,
-                    ),
-                  )
+                          content: widget.message,
+                          style: TextStyle(
+                            color:
+                                widget.textColor ?? ChewieTheme.bodySmall.color,
+                            height: 1.5,
+                            fontSize: 15,
+                          ),
+                        )
                       : Text(
-                    widget.message,
-                    style: TextStyle(
-                      color: widget.textColor ??
-                          ChewieTheme.bodySmall.color,
-                      height: 1.5,
-                      fontSize: 15,
-                    ),
-                    textAlign: widget.messageTextAlign,
-                  ),
+                          widget.message,
+                          style: TextStyle(
+                            color:
+                                widget.textColor ?? ChewieTheme.bodySmall.color,
+                            height: 1.5,
+                            fontSize: 15,
+                          ),
+                          textAlign: widget.messageTextAlign,
+                        ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

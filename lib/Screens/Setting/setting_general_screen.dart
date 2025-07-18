@@ -80,7 +80,6 @@ class GeneralSettingScreenState extends BaseDynamicState<GeneralSettingScreen>
     super.onLocaleChanged(newLocale);
     filterLocale();
     _currentTrayOption = getTrayOption();
-    print(_currentTrayOption.key);
   }
 
   refreshLauchAtStartup() {

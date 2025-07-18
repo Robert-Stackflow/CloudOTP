@@ -113,8 +113,8 @@ class _SelectFontScreenState extends BaseDynamicState<SelectFontScreen>
           DialogBuilder.showConfirmDialog(
             context,
             title: appLocalizations.deleteFont(customFonts[index].intlFontName),
-            message:
-                appLocalizations.deleteFontMessage(customFonts[index].intlFontName),
+            message: appLocalizations
+                .deleteFontMessage(customFonts[index].intlFontName),
             onTapConfirm: () async {
               if (customFonts[index] == _currentFont) {
                 _currentFont = CustomFont.Default;

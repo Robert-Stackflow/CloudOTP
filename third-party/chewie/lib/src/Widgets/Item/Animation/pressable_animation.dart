@@ -42,7 +42,8 @@ class _PressableAnimationState extends State<PressableAnimation> {
   Widget build(BuildContext context) {
     final double scale = _isPressed ? (1.0 - widget.scaleFactor) : 1.0;
     final double angleX = _isPressed ? widget.tiltAngle * _pressOffset.dy : 0.0;
-    final double angleY = _isPressed ? -widget.tiltAngle * _pressOffset.dx : 0.0;
+    final double angleY =
+        _isPressed ? -widget.tiltAngle * _pressOffset.dx : 0.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {

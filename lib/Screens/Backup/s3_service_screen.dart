@@ -25,6 +25,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/regex_util.dart';
 import '../../Widgets/BottomSheet/Backups/s3_backups_bottom_sheet.dart';
 import '../../l10n/l10n.dart';
@@ -297,10 +298,13 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
             try {
               await CloudServiceConfigDao.updateConfig(currentConfig);
               _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
-              ping();
+              appProvider.preventLock = true;
+              await ping();
             } catch (e, t) {
               ILogger.error("Failed to connect to S3 cloud", e, t);
               IToast.show(appLocalizations.cloudConnectionError);
+            } finally {
+              appProvider.preventLock = false;
             }
           }
         },
@@ -320,7 +324,8 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<S3CloudFileInfo>? files =
                       await _s3CloudService!.listBackups();

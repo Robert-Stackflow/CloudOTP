@@ -38,7 +38,8 @@ class SelectTokenBottomSheet extends StatefulWidget {
   SelectTokenBottomSheetState createState() => SelectTokenBottomSheetState();
 }
 
-class SelectTokenBottomSheetState extends BaseDynamicState<SelectTokenBottomSheet> {
+class SelectTokenBottomSheetState
+    extends BaseDynamicState<SelectTokenBottomSheet> {
   List<OtpToken> tokens = [];
   List<String> oldSelectedUids = [];
   GroupButtonController controller = GroupButtonController();

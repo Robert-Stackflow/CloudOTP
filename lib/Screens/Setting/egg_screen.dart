@@ -28,7 +28,8 @@ class EggScreen extends StatefulWidget {
   State<EggScreen> createState() => _EggScreenState();
 }
 
-class _EggScreenState extends BaseDynamicState<EggScreen> with TickerProviderStateMixin {
+class _EggScreenState extends BaseDynamicState<EggScreen>
+    with TickerProviderStateMixin {
   Widget? celebrateWidget;
   bool _showCelebrate = false;
   late AnimationController _celebrateController;

@@ -22,11 +22,9 @@ import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 
 import '../Screens/Setting/setting_navigation_screen.dart';
-import '../Screens/Setting/setting_safe_screen.dart';
-import '../Screens/main_screen.dart';
-import '../Widgets/Shortcuts/app_shortcuts.dart';
 import '../Widgets/Shortcuts/keyboard_widget.dart';
 import '../l10n/l10n.dart';
+import '../main.dart';
 import 'app_provider.dart';
 import 'hive_util.dart';
 
@@ -335,15 +333,7 @@ class ShortcutsUtil {
         context, const SettingNavigationScreen(initPageIndex: 5));
   }
 
-  static void jumpToMain(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      RouteUtil.getFadeRoute(
-        CustomMouseRegion(
-          child: AppShortcuts(
-            child: MainScreen(key: mainScreenKey),
-          ),
-        ),
-      ),
-    );
+  static void jumpToMain() {
+    RouteUtil.pushRootPage(getRootPage(true));
   }
 }

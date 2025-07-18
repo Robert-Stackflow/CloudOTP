@@ -25,6 +25,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/huawei_backups_bottom_sheet.dart';
 import '../../l10n/l10n.dart';
@@ -41,7 +42,8 @@ class HuaweiCloudServiceScreen extends StatefulWidget {
       _HuaweiCloudServiceScreenState();
 }
 
-class _HuaweiCloudServiceScreenState extends BaseDynamicState<HuaweiCloudServiceScreen>
+class _HuaweiCloudServiceScreenState
+    extends BaseDynamicState<HuaweiCloudServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -135,8 +137,8 @@ class _HuaweiCloudServiceScreenState extends BaseDynamicState<HuaweiCloudService
     }
     await currentService.checkServer().then((value) async {
       if (!value) {
-        IToast.show(
-            appLocalizations.cloudOAuthUnavailable(CloudService.serverEndpoint));
+        IToast.show(appLocalizations
+            .cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
         await currentService.authenticate().then((value) async {
           setState(() {
@@ -157,7 +159,9 @@ class _HuaweiCloudServiceScreenState extends BaseDynamicState<HuaweiCloudService
           } else {
             _huaweiCloudCloudServiceConfig!.configured = true;
             updateConfig(_huaweiCloudCloudServiceConfig!);
-            if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
+            if (showSuccessToast) {
+              IToast.show(appLocalizations.cloudAuthSuccess);
+            }
           }
         });
       }
@@ -230,10 +234,13 @@ class _HuaweiCloudServiceScreenState extends BaseDynamicState<HuaweiCloudService
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to huawei cloud", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),
@@ -252,7 +259,8 @@ class _HuaweiCloudServiceScreenState extends BaseDynamicState<HuaweiCloudService
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<HuaweiCloudFileInfo>? files =
                       await _huaweiCloudCloudService!.listBackups();

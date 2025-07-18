@@ -131,8 +131,9 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
             title: _hasGuesturePasswd
                 ? appLocalizations.changeGestureLock
                 : appLocalizations.setGestureLock,
-            description:
-                _hasGuesturePasswd ? "" : appLocalizations.haveToSetGestureLockTip,
+            description: _hasGuesturePasswd
+                ? ""
+                : appLocalizations.haveToSetGestureLockTip,
             onTap: onChangePinTapped,
           ),
         ),
@@ -142,8 +143,8 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
             value: _allowGuestureBiometric,
             title: appLocalizations.biometricUnlock,
             disabled: canAuthenticateResponse?.isSuccess != true,
-            description:
-                canAuthenticateResponseString ?? appLocalizations.biometricUnlockTip,
+            description: canAuthenticateResponseString ??
+                appLocalizations.biometricUnlockTip,
             onTap: onBiometricTapped,
           ),
         ),
@@ -329,6 +330,7 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
       ChewieHiveUtil.put(
           CloudOTPHiveUtil.allowDatabaseBiometricKey, _allowDatabaseBiometric);
     }
+    setState(() {});
   }
 
   onEnablePinTapped() {

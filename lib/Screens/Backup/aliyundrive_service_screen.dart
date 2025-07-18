@@ -18,6 +18,7 @@ import 'dart:typed_data';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
+import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 
@@ -37,10 +38,12 @@ class AliyunDriveServiceScreen extends StatefulWidget {
   static const String routeName = "/service/aliyunDrive";
 
   @override
-  State<AliyunDriveServiceScreen> createState() => _AliyunDriveServiceScreenState();
+  State<AliyunDriveServiceScreen> createState() =>
+      _AliyunDriveServiceScreenState();
 }
 
-class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveServiceScreen>
+class _AliyunDriveServiceScreenState
+    extends BaseDynamicState<AliyunDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -67,7 +70,8 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
   }
 
   loadConfig() async {
-    _aliyunDriveCloudServiceConfig = await CloudServiceConfigDao.getAliyunDriveConfig();
+    _aliyunDriveCloudServiceConfig =
+        await CloudServiceConfigDao.getAliyunDriveConfig();
     if (_aliyunDriveCloudServiceConfig != null) {
       _sizeController.text = _aliyunDriveCloudServiceConfig!.size;
       _accountController.text = _aliyunDriveCloudServiceConfig!.account ?? "";
@@ -86,8 +90,9 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
     }
     if (_aliyunDriveCloudService != null) {
       _aliyunDriveCloudServiceConfig!.configured =
-      await _aliyunDriveCloudService!.hasConfigured();
-      _aliyunDriveCloudServiceConfig!.connected = await _aliyunDriveCloudService!.isConnected();
+          await _aliyunDriveCloudService!.hasConfigured();
+      _aliyunDriveCloudServiceConfig!.connected =
+          await _aliyunDriveCloudService!.isConnected();
       if (_aliyunDriveCloudServiceConfig!.configured &&
           !_aliyunDriveCloudServiceConfig!.connected) {
         IToast.showTop(appLocalizations.cloudConnectionError);
@@ -115,14 +120,14 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited
-        ? _buildBody()
-        : ItemBuilder.buildLoadingDialog(
-      context: context,
-      background: Colors.transparent,
-      text: appLocalizations.cloudConnecting,
-      mainAxisAlignment: MainAxisAlignment.start,
-      topPadding: 100,
-    );
+            ? _buildBody()
+            : ItemBuilder.buildLoadingDialog(
+                context: context,
+                background: Colors.transparent,
+                text: appLocalizations.cloudConnecting,
+                mainAxisAlignment: MainAxisAlignment.start,
+                topPadding: 100,
+              );
   }
 
   _buildUnsupportBody() {
@@ -131,7 +136,8 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(appLocalizations.cloudTypeNotSupport(appLocalizations.cloudTypeAliyunDrive)),
+          Text(appLocalizations
+              .cloudTypeNotSupport(appLocalizations.cloudTypeAliyunDrive)),
           const SizedBox(height: 10),
         ],
       ),
@@ -193,9 +199,11 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
         value: _aliyunDriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
-            _aliyunDriveCloudServiceConfig!.enabled = !_aliyunDriveCloudServiceConfig!.enabled;
+            _aliyunDriveCloudServiceConfig!.enabled =
+                !_aliyunDriveCloudServiceConfig!.enabled;
             CloudServiceConfigDao.updateConfigEnabled(
-                _aliyunDriveCloudServiceConfig!, _aliyunDriveCloudServiceConfig!.enabled);
+                _aliyunDriveCloudServiceConfig!,
+                _aliyunDriveCloudServiceConfig!.enabled);
           });
         },
       ),
@@ -233,10 +241,13 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to aliyunDrive", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),
@@ -255,10 +266,11 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<AliyunDriveFileInfo>? files =
-                  await _aliyunDriveCloudService!.listBackups();
+                      await _aliyunDriveCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -273,7 +285,7 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
                     BottomSheetBuilder.showBottomSheet(
                       context,
                       responsive: true,
-                          (dialogContext) => AliyunDriveBackupsBottomSheet(
+                      (dialogContext) => AliyunDriveBackupsBottomSheet(
                         files: files,
                         cloudService: _aliyunDriveCloudService!,
                         onSelected: (selectedFile) async {
@@ -281,7 +293,8 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
                             appLocalizations.cloudPulling,
                             showProgress: true,
                           );
-                          Uint8List? res = await _aliyunDriveCloudService!.downloadFile(
+                          Uint8List? res =
+                              await _aliyunDriveCloudService!.downloadFile(
                             selectedFile.id,
                             onProgress: (c, t) {
                               dialog.updateProgress(progress: c / t);
@@ -329,20 +342,21 @@ class _AliyunDriveServiceScreenState extends BaseDynamicState<AliyunDriveService
                     title: appLocalizations.cloudLogout,
                     message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
-                      CustomLoadingDialog.showLoading(
-                          title: appLocalizations.cloudLoggingOut);
-                      await _aliyunDriveCloudService!.signOut();
-                      setState(() {
-                        _aliyunDriveCloudServiceConfig!.connected = false;
-                        _aliyunDriveCloudServiceConfig!.account = "";
-                        _aliyunDriveCloudServiceConfig!.email = "";
-                        _aliyunDriveCloudServiceConfig!.totalSize = _aliyunDriveCloudServiceConfig!
-                            .remainingSize = _aliyunDriveCloudServiceConfig!.usedSize = -1;
-                        updateConfig(_aliyunDriveCloudServiceConfig!);
-                      });
-                      CustomLoadingDialog.dismissLoading();
-                      IToast.show(appLocalizations.cloudLogoutSuccess);
-                    });
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.cloudLoggingOut);
+                  await _aliyunDriveCloudService!.signOut();
+                  setState(() {
+                    _aliyunDriveCloudServiceConfig!.connected = false;
+                    _aliyunDriveCloudServiceConfig!.account = "";
+                    _aliyunDriveCloudServiceConfig!.email = "";
+                    _aliyunDriveCloudServiceConfig!.totalSize =
+                        _aliyunDriveCloudServiceConfig!.remainingSize =
+                            _aliyunDriveCloudServiceConfig!.usedSize = -1;
+                    updateConfig(_aliyunDriveCloudServiceConfig!);
+                  });
+                  CustomLoadingDialog.dismissLoading();
+                  IToast.show(appLocalizations.cloudLogoutSuccess);
+                });
               },
             ),
           ),

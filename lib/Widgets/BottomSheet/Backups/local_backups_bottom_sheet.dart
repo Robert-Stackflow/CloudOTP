@@ -35,7 +35,8 @@ class LocalBackupsBottomSheet extends StatefulWidget {
   LocalBackupsBottomSheetState createState() => LocalBackupsBottomSheetState();
 }
 
-class LocalBackupsBottomSheetState extends BaseDynamicState<LocalBackupsBottomSheet> {
+class LocalBackupsBottomSheetState
+    extends BaseDynamicState<LocalBackupsBottomSheet> {
   List<FileSystemEntity> files = const [];
   List<FileSystemEntity> defaultPathBackupFiles = const [];
 

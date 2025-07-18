@@ -297,7 +297,8 @@ class ExportTokenUtil {
                     type: cloudService.type);
                 if (showLoading && dialog != null) {
                   dialog.updateMessage(
-                    msg: appLocalizations.cloudPushingTo(cloudService.type.label),
+                    msg: appLocalizations
+                        .cloudPushingTo(cloudService.type.label),
                     showProgress: true,
                   );
                   dialog.updateProgress(progress: 0);
@@ -421,7 +422,8 @@ class ExportTokenUtil {
         return;
       } else {
         if (showLoading && dialog != null) {
-          dialog.updateMessage(msg: appLocalizations.cloudPushing, showProgress: true);
+          dialog.updateMessage(
+              msg: appLocalizations.cloudPushing, showProgress: true);
         }
         bool uploadStatus = await cloudService.uploadFile(
           ExportTokenUtil.getExportFileName("bin"),

@@ -26,6 +26,7 @@ import 'package:webdav_client/webdav_client.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/regex_util.dart';
 import '../../l10n/l10n.dart';
 
@@ -262,10 +263,13 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
             _webDavCloudService =
                 WebDavCloudService(_webDavCloudServiceConfig!);
             try {
-              ping();
+              appProvider.preventLock = true;
+              await ping();
             } catch (e, t) {
               ILogger.error("Failed to connect to webdav", e, t);
               IToast.show(appLocalizations.cloudConnectionError);
+            } finally {
+              appProvider.preventLock = false;
             }
           }
         },
@@ -285,7 +289,8 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<WebDavFileInfo>? files =
                       await _webDavCloudService!.listBackups();

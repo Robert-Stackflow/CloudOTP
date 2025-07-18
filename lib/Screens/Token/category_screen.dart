@@ -70,8 +70,7 @@ class _CategoryScreenState extends BaseDynamicState<CategoryScreen>
         ],
         actions: [
           CircleIconButton(
-            icon: Icon(LucideIcons.plus,
-                color: ChewieTheme.iconColor),
+            icon: Icon(LucideIcons.plus, color: ChewieTheme.iconColor),
             onTap: _add,
           ),
         ],

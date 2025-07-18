@@ -37,7 +37,8 @@ class BoxBackupsBottomSheet extends StatefulWidget {
   BoxBackupsBottomSheetState createState() => BoxBackupsBottomSheetState();
 }
 
-class BoxBackupsBottomSheetState extends BaseDynamicState<BoxBackupsBottomSheet> {
+class BoxBackupsBottomSheetState
+    extends BaseDynamicState<BoxBackupsBottomSheet> {
   late List<BoxFileInfo> files;
 
   @override
@@ -90,8 +91,7 @@ class BoxBackupsBottomSheetState extends BaseDynamicState<BoxBackupsBottomSheet>
       alignment: Alignment.center,
       child: Text(
         appLocalizations.cloudBackupFiles(widget.files.length),
-        style:
-            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -152,7 +152,8 @@ class BoxBackupsBottomSheetState extends BaseDynamicState<BoxBackupsBottomSheet>
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.id);
                     setState(() {

@@ -25,16 +25,21 @@ class ChewieUtils {
   static Future<void> enableSafeMode() async {
     await ScreenProtector.preventScreenshotOn();
     await ScreenProtector.protectDataLeakageOn();
+    await ScreenProtector.protectDataLeakageWithBlur();
     await ScreenProtector.protectDataLeakageWithColor(
         ChewieTheme.scaffoldBackgroundColor);
     if (ResponsiveUtil.isAndroid()) {
+      SystemChrome.setSystemUIOverlayStyle(
+          const SystemUiOverlayStyle(statusBarColor: Colors.white));
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_BLUR_BEHIND);
     }
   }
 
   static Future<void> disableSafeMode() async {
     await ScreenProtector.preventScreenshotOff();
     await ScreenProtector.protectDataLeakageOff();
+    await ScreenProtector.protectDataLeakageWithBlurOff();
     await ScreenProtector.protectDataLeakageWithColorOff();
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
@@ -158,7 +163,8 @@ class ChewieUtils {
   }) async {
     ResponsiveUtil.isAppBundle();
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: chewieLocalizations.checkingUpdates);
+      CustomLoadingDialog.showLoading(
+          title: chewieLocalizations.checkingUpdates);
     }
     String currentVersion = (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);

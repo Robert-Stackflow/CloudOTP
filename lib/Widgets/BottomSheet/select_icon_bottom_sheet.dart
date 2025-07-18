@@ -41,7 +41,8 @@ class SelectIconBottomSheet extends StatefulWidget {
   SelectIconBottomSheetState createState() => SelectIconBottomSheetState();
 }
 
-class SelectIconBottomSheetState extends BaseDynamicState<SelectIconBottomSheet> {
+class SelectIconBottomSheetState
+    extends BaseDynamicState<SelectIconBottomSheet> {
   GroupButtonController controller = GroupButtonController();
   TextEditingController searchController = TextEditingController();
   List<String> icons = [];
@@ -150,8 +151,7 @@ class SelectIconBottomSheetState extends BaseDynamicState<SelectIconBottomSheet>
           Navigator.of(context).pop();
         },
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        textStyle:
-            ChewieTheme.titleSmall?.apply(fontSizeDelta: 1),
+        textStyle: ChewieTheme.titleSmall?.apply(fontSizeDelta: 1),
       ),
       itemCount: icons.length,
     );

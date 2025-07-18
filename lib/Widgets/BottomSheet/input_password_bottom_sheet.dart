@@ -39,7 +39,8 @@ class InputPasswordBottomSheet extends StatefulWidget {
       InputPasswordBottomSheetState();
 }
 
-class InputPasswordBottomSheetState extends BaseDynamicState<InputPasswordBottomSheet> {
+class InputPasswordBottomSheetState
+    extends BaseDynamicState<InputPasswordBottomSheet> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -95,7 +96,8 @@ class InputPasswordBottomSheetState extends BaseDynamicState<InputPasswordBottom
                       ),
                       validator: (value) {
                         if (value.isEmpty) {
-                          return appLocalizations.encryptDatabasePasswordCannotBeEmpty;
+                          return appLocalizations
+                              .encryptDatabasePasswordCannotBeEmpty;
                         }
                         return null;
                       },
@@ -114,7 +116,8 @@ class InputPasswordBottomSheetState extends BaseDynamicState<InputPasswordBottom
                       ),
                       validator: (value) {
                         if (value != _controller.text) {
-                          return appLocalizations.encryptDatabasePasswordNotMatch;
+                          return appLocalizations
+                              .encryptDatabasePasswordNotMatch;
                         }
                         return null;
                       },
@@ -149,8 +152,8 @@ class InputPasswordBottomSheetState extends BaseDynamicState<InputPasswordBottom
             Text(
               widget.message,
               style: ChewieTheme.bodyMedium.apply(
-                    color: ChewieTheme.bodySmall?.color,
-                  ),
+                color: ChewieTheme.bodySmall?.color,
+              ),
             ),
         ],
       ),

@@ -48,16 +48,18 @@ class Utils {
         CloudOTPHiveUtil.haveShowQAuthDialogKey,
         defaultValue: false);
     if (force || !haveShowQAuthDialog) {
+      ChewieHiveUtil.put(CloudOTPHiveUtil.haveShowQAuthDialogKey, true);
       DialogBuilder.showInfoDialog(
         context,
         title: appLocalizations.cloudOAuthDialogTitle,
-        message: appLocalizations.cloudOAuthDialogMessage(CloudService.serverEndpoint,
-            CloudService.serverGithubRepoName, CloudService.serverGithubUrl),
+        message: appLocalizations.cloudOAuthDialogMessage(
+            CloudService.serverEndpoint,
+            CloudService.serverGithubRepoName,
+            CloudService.serverGithubUrl),
         renderHtml: true,
         // cancelButtonText: appLocalizations.cloudOAuthDialogGoToRepo,
         buttonText: appLocalizations.cloudOAuthDialogConfirm,
         onTapDismiss: () {
-          ChewieHiveUtil.put(CloudOTPHiveUtil.haveShowQAuthDialogKey, true);
         },
       );
     }

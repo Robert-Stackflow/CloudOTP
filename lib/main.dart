@@ -44,7 +44,6 @@ import 'Screens/main_screen.dart';
 import 'TokenUtils/token_image_util.dart';
 import 'Utils/utils.dart';
 import 'Widgets/Shortcuts/app_shortcuts.dart';
-import 'l10n/l10n.dart';
 
 const List<String> kWindowsSchemes = ["cloudotp", "com.cloudchewie.cloudotp"];
 
@@ -57,33 +56,56 @@ Future<void> main(List<String> args) async {
 Future<void> runMyApp(List<String> args) async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await initApp(widgetsBinding);
-  ILogger.debug(
-      "http proxy: ${Platform.environment['http_proxy']}, https proxy: ${Platform.environment['https_proxy']}");
-  late Widget home;
-  if (!DatabaseManager.initialized) {
-    home = const DatabaseDecryptScreen();
-  } else if (CloudOTPHiveUtil.canLock()) {
-    home = const PinVerifyScreen(
-      isModal: true,
-      autoAuth: true,
-      jumpToMain: true,
-      showWindowTitle: true,
-    );
-  } else {
-    home = AppShortcuts(child: Consumer<AppProvider>(
-        builder: (context, provider, child) =>MainScreen(key: mainScreenKey)));
-  }
-  runApp(MyApp(home: home));
+  runApp(MyApp(home: getRootPage()));
   FlutterNativeSplash.remove();
 }
 
+Widget getRootPage([bool isMain = false]) {
+  return CustomMouseRegion(
+    child: Builder(
+      builder: (context) {
+        Widget home;
+        if (isMain) {
+          home = AppShortcuts(child: MainScreen(key: mainScreenKey));
+        } else {
+          if (!DatabaseManager.initialized) {
+            home = const DatabaseDecryptScreen();
+          } else if (!CloudOTPHiveUtil.canDatabaseLock() &&
+              CloudOTPHiveUtil.canGuestureLock()) {
+            home = const PinVerifyScreen(
+              isModal: true,
+              autoAuth: true,
+              jumpToMain: true,
+              showWindowTitle: true,
+            );
+          } else {
+            home = AppShortcuts(child: MainScreen(key: mainScreenKey));
+          }
+        }
+        return home;
+      },
+    ),
+  );
+}
+
 Future<void> initApp(WidgetsBinding widgetsBinding) async {
+  initCloudLogger();
   await ResponsiveUtil.init();
   await FileUtil.migrationDataToSupportDirectory();
   FlutterError.onError = onError;
   imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024 * 2;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  await initHive();
+  await initCryptoUtil();
+  await BiometricUtil.initStorage();
+  await TokenImageUtil.loadBrandLogos();
+  CustomFont.downloadFont(showToast: false);
+  if (ResponsiveUtil.isAndroid()) initAndroid();
+  if (ResponsiveUtil.isDesktop()) initDesktop();
+}
+
+Future<void> initHive() async {
   Hive.defaultDirectory = await FileUtil.getHiveDir();
   if (ChewieHiveUtil.isFirstLogin()) {
     await CloudOTPHiveUtil.initConfig();
@@ -106,36 +128,34 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
           EncryptDatabaseStatus.defaultPassword);
     }
   }
-  await initCryptoUtil();
-  NotificationUtil.init();
-  await BiometricUtil.initStorage();
-  await TokenImageUtil.loadBrandLogos();
-  initCloudLogger();
-  if (ResponsiveUtil.isAndroid()) {
-    await initDisplayMode();
-    SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark);
-    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+}
+
+Future<void> initAndroid() async {
+  await initDisplayMode();
+  SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark);
+  SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+}
+
+Future<void> initDesktop() async {
+  await initWindow();
+  LaunchAtStartup.instance.setup(
+    appName: ResponsiveUtil.appName,
+    appPath: Platform.resolvedExecutable,
+  );
+  await LocalNotifier.instance.setup(
+    appName: ResponsiveUtil.appName,
+    shortcutPolicy: ShortcutPolicy.requireCreate,
+  );
+  ChewieHiveUtil.put(ChewieHiveUtil.launchAtStartupKey,
+      await LaunchAtStartup.instance.isEnabled());
+  for (String scheme in kWindowsSchemes) {
+    await protocolHandler.register(scheme);
   }
-  if (ResponsiveUtil.isDesktop()) {
-    await initWindow();
-    LaunchAtStartup.instance.setup(
-      appName: ResponsiveUtil.appName,
-      appPath: Platform.resolvedExecutable,
-    );
-    await LocalNotifier.instance.setup(
-      appName: ResponsiveUtil.appName,
-      shortcutPolicy: ShortcutPolicy.requireCreate,
-    );
-    ChewieHiveUtil.put(ChewieHiveUtil.launchAtStartupKey,
-        await LaunchAtStartup.instance.isEnabled());
-    for (String scheme in kWindowsSchemes) {
-      await protocolHandler.register(scheme);
-    }
-    await HotKeyManager.instance.unregisterAll();
-  }
-  CustomFont.downloadFont(showToast: false);
+  await HotKeyManager.instance.unregisterAll();
+  ILogger.debug(
+      "http proxy: ${Platform.environment['http_proxy']}, https proxy: ${Platform.environment['https_proxy']}");
 }
 
 Future<void> initWindow() async {
@@ -178,7 +198,7 @@ Future<void> onError(FlutterErrorDetails details) async {
   }
 }
 
-initCloudLogger() {
+void initCloudLogger() {
   CloudLogger.logTrace = (tag, message, [e, t]) {
     ILogger.trace(message, e, t);
   };
@@ -228,6 +248,7 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AppProvider>(
         builder: (context, appProvider, child) => MaterialApp(
+          navigatorKey: chewieProvider.globalNavigatorKey,
           navigatorObservers: [chewieProvider.routeObserver],
           title: title,
           themeMode: appProvider.themeMode.themeMode,
@@ -244,7 +265,7 @@ class MyApp extends StatelessWidget {
           locale: context.watch<AppProvider>().locale,
           supportedLocales: AppLocalizations.supportedLocales,
           localeResolutionCallback: (locale, supportedLocales) {
-            ILogger.debug("CloudOTP",
+            ILogger.debug(
                 "Locale: $locale, Supported: $supportedLocales, appProvider.locale: ${appProvider.locale}");
             if (appProvider.locale != null) {
               return appProvider.locale;
@@ -262,7 +283,7 @@ class MyApp extends StatelessWidget {
               }
             }
           },
-          home: CustomMouseRegion(child: home),
+          home: home,
           builder: (context, widget) {
             chewieProvider.initRootContext(context);
             return Overlay(

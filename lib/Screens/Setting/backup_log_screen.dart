@@ -64,8 +64,10 @@ class BackupLogScreenState extends BaseDynamicState<BackupLogScreen> {
         ? _buildDesktopBody()
         : Scaffold(
             appBar: ResponsiveAppBar(
-              backgroundColor: ChewieTheme.appBarBackgroundColor,
+              backgroundColor: Colors.transparent,
               title: appLocalizations.backupLogs,
+              showBack: true,
+              showBorder: true,
               onTapBack: () {
                 Navigator.pop(context);
               },
@@ -240,8 +242,8 @@ class BackupLogItemState extends BaseDynamicState<BackupLogItem> {
                     Text(
                       widget.log.triggerType.label,
                       style: ChewieTheme.bodyMedium.apply(
-                            fontSizeDelta: widget.isOverlay ? 0 : 1,
-                          ),
+                        fontSizeDelta: widget.isOverlay ? 0 : 1,
+                      ),
                     ),
                     const Spacer(),
                     RoundIconTextButton(

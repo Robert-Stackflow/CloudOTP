@@ -53,7 +53,8 @@ class CloudNetworkException extends CloudBaseException {
 }
 
 class NullAccessTokenException extends CloudBaseException {
-  NullAccessTokenException([super.message = "Null access token exception occurred"]);
+  NullAccessTokenException(
+      [super.message = "Null access token exception occurred"]);
 }
 
 class StateMisMatchException extends CloudBaseException {

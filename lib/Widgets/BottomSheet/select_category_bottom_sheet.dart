@@ -45,7 +45,8 @@ class SelectCategoryBottomSheet extends StatefulWidget {
       SelectCategoryBottomSheetState();
 }
 
-class SelectCategoryBottomSheetState extends BaseDynamicState<SelectCategoryBottomSheet> {
+class SelectCategoryBottomSheetState
+    extends BaseDynamicState<SelectCategoryBottomSheet> {
   List<TokenCategory> categories = [];
   GroupButtonController controller = GroupButtonController();
   List<String> oldCategoryUids = [];
@@ -168,8 +169,9 @@ class SelectCategoryBottomSheetState extends BaseDynamicState<SelectCategoryBott
               flex: 1,
               child: RoundIconTextButton(
                 background: ChewieTheme.primaryColor,
-                text:
-                    widget.isEditingToken ? appLocalizations.confirm : appLocalizations.save,
+                text: widget.isEditingToken
+                    ? appLocalizations.confirm
+                    : appLocalizations.save,
                 onPressed: () async {
                   List<int> selectedIndexes =
                       controller.selectedIndexes.toList();

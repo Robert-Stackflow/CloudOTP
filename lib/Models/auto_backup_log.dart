@@ -351,7 +351,8 @@ class AutoBackupLogStatusItem {
         if (cloudServiceType == null) {
           return appLocalizations.uploadBackupFileFailed;
         } else {
-          return appLocalizations.uploadingBackupFileTo(cloudServiceType!.label);
+          return appLocalizations
+              .uploadingBackupFileTo(cloudServiceType!.label);
         }
       case AutoBackupStatus.uploadFailed:
         return appLocalizations.uploadBackupFileFailed;
@@ -359,7 +360,8 @@ class AutoBackupLogStatusItem {
         if (cloudServiceType == null) {
           return appLocalizations.uploadBackupFileFailed;
         } else {
-          return appLocalizations.uploadBackupFileSuccess(cloudServiceType!.label);
+          return appLocalizations
+              .uploadBackupFileSuccess(cloudServiceType!.label);
         }
       case AutoBackupStatus.complete:
         return appLocalizations.autoBackupComplete;

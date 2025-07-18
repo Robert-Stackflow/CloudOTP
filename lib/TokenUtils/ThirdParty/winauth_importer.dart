@@ -79,7 +79,8 @@ class WinauthTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
+      dialog =
+          showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);

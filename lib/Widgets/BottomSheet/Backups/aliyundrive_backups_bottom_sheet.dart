@@ -92,8 +92,7 @@ class AliyunDriveBackupsBottomSheetState
       alignment: Alignment.center,
       child: Text(
         appLocalizations.cloudBackupFiles(widget.files.length),
-        style:
-            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -154,7 +153,8 @@ class AliyunDriveBackupsBottomSheetState
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.id);
                     setState(() {

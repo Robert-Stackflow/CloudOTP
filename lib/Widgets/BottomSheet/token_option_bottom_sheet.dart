@@ -50,7 +50,8 @@ class TokenOptionBottomSheet extends StatefulWidget {
   TokenOptionBottomSheetState createState() => TokenOptionBottomSheetState();
 }
 
-class TokenOptionBottomSheetState extends BaseDynamicState<TokenOptionBottomSheet> {
+class TokenOptionBottomSheetState
+    extends BaseDynamicState<TokenOptionBottomSheet> {
   TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
 
   final ValueNotifier<double> progressNotifier = ValueNotifier(0);
@@ -172,12 +173,12 @@ class TokenOptionBottomSheetState extends BaseDynamicState<TokenOptionBottomShee
                         ? code
                         : (isHOTP ? hotpPlaceholderText : placeholderText) *
                             widget.token.digits.digit,
-                    style: ChewieTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 24,
-                          letterSpacing: 10,
-                          color: ChewieTheme.primaryColor,
-                        ),
+                    style: ChewieTheme.titleMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 24,
+                      letterSpacing: 10,
+                      color: ChewieTheme.primaryColor,
+                    ),
                     maxLines: 1,
                   ),
                 ),
@@ -298,8 +299,9 @@ class TokenOptionBottomSheetState extends BaseDynamicState<TokenOptionBottomShee
           leading: widget.token.pinned
               ? Icons.push_pin_rounded
               : Icons.push_pin_outlined,
-          title:
-              widget.token.pinned ? appLocalizations.unPinToken : appLocalizations.pinToken,
+          title: widget.token.pinned
+              ? appLocalizations.unPinToken
+              : appLocalizations.pinToken,
           titleColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
           leadingColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
           onTap: () async {
@@ -392,7 +394,8 @@ class TokenOptionBottomSheetState extends BaseDynamicState<TokenOptionBottomShee
             DialogBuilder.showConfirmDialog(
               context,
               title: appLocalizations.resetCopyTimesTitle,
-              message: appLocalizations.resetCopyTimesMessage(widget.token.title),
+              message:
+                  appLocalizations.resetCopyTimesMessage(widget.token.title),
               onTapConfirm: () async {
                 await TokenDao.resetSingleTokenCopyTimes(widget.token);
                 homeScreenState?.resetCopyTimesSingle(widget.token);
@@ -447,8 +450,8 @@ class TokenOptionBottomSheetState extends BaseDynamicState<TokenOptionBottomShee
           borderRadius: ChewieDimens.defaultBorderRadius,
           child: Container(
             padding: const EdgeInsets.all(12),
-            decoration:
-                const BoxDecoration(borderRadius: ChewieDimens.defaultBorderRadius),
+            decoration: const BoxDecoration(
+                borderRadius: ChewieDimens.defaultBorderRadius),
             child: Column(
               children: [
                 Icon(

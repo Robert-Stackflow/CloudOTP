@@ -174,7 +174,9 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
         ),
         FlutterContextMenuItem.divider(),
         FlutterContextMenuItem(
-          widget.token.pinned ? appLocalizations.unPinToken : appLocalizations.pinToken,
+          widget.token.pinned
+              ? appLocalizations.unPinToken
+              : appLocalizations.pinToken,
           iconData: widget.token.pinned ? LucideIcons.pinOff : LucideIcons.pin,
           style: MenuItemStyle(
             normalColor: widget.token.pinned ? ChewieTheme.primaryColor : null,
@@ -527,8 +529,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
                   icon: Icon(
                     LucideIcons.eye,
                     size: 20,
-                    color:
-                        color ?? ChewieTheme.labelMedium?.color,
+                    color: color ?? ChewieTheme.labelMedium?.color,
                   ),
                 )
               : emptyWidget,
@@ -561,8 +562,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
                 icon: Icon(
                   Icons.refresh_rounded,
                   size: 20,
-                  color:
-                      color ?? ChewieTheme.labelMedium?.color,
+                  color: color ?? ChewieTheme.labelMedium?.color,
                 ),
               )
             : emptyWidget,
@@ -589,12 +589,12 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
                   : (isHOTP ? hotpPlaceholderText : placeholderText) *
                       widget.token.digits.digit,
               textAlign: TextAlign.center,
-              style: ChewieTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: fontSize,
-                    letterSpacing: letterSpacing,
-                    color: ChewieTheme.primaryColor,
-                  ),
+              style: ChewieTheme.titleMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: fontSize,
+                letterSpacing: letterSpacing,
+                color: ChewieTheme.primaryColor,
+              ),
               maxLines: 1,
             ),
           ),
@@ -657,12 +657,12 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
                         return Text(
                           (remainingMilliseconds / 1000).toStringAsFixed(0),
                           style: ChewieTheme.bodyMedium.apply(
-                                color: currentProgress >
-                                        autoCopyNextCodeProgressThrehold
-                                    ? ChewieTheme.primaryColor
-                                    : Colors.red,
-                                fontSizeDelta: -3,
-                              ),
+                            color: currentProgress >
+                                    autoCopyNextCodeProgressThrehold
+                                ? ChewieTheme.primaryColor
+                                : Colors.red,
+                            fontSizeDelta: -3,
+                          ),
                         );
                       },
                     ),
@@ -846,8 +846,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
                             padding: const EdgeInsets.all(4),
                             icon: Icon(
                               LucideIcons.ellipsisVertical,
-                              color:
-                                  ChewieTheme.labelSmall?.color,
+                              color: ChewieTheme.labelSmall?.color,
                               size: 20,
                             ),
                             onTap: showContextMenu,

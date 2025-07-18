@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../awesome_chewie.dart';
 
 class RouteUtil {
+  static void pushRootPage(Widget page) {
+    Navigator.of(chewieProvider.globalNavigatorContext)
+        .pushAndRemoveUntil(RouteUtil.getFadeRoute(page), (_) => false);
+  }
+
   static pushMaterialRoute(
     BuildContext context,
     Widget page, {

@@ -25,6 +25,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/app_provider.dart';
 import '../../Widgets/BottomSheet/Backups/dropbox_backups_bottom_sheet.dart';
 import '../../l10n/l10n.dart';
 
@@ -132,7 +133,8 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(appLocalizations.cloudTypeNotSupport(appLocalizations.cloudTypeDropbox)),
+          Text(appLocalizations
+              .cloudTypeNotSupport(appLocalizations.cloudTypeDropbox)),
           const SizedBox(height: 10),
         ],
       ),
@@ -240,10 +242,13 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to dropbox", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),
@@ -262,7 +267,8 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<DropboxFileInfo>? files =
                       await _dropboxCloudService!.listBackups();

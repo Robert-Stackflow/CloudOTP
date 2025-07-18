@@ -38,7 +38,8 @@ class OperationSettingScreen extends BaseSettingScreen {
   State<OperationSettingScreen> createState() => _OperationSettingScreenState();
 }
 
-class _OperationSettingScreenState extends BaseDynamicState<OperationSettingScreen>
+class _OperationSettingScreenState
+    extends BaseDynamicState<OperationSettingScreen>
     with TickerProviderStateMixin {
   bool clipToCopy = ChewieHiveUtil.getBool(CloudOTPHiveUtil.clickToCopyKey);
   bool autoCopyNextCode =
@@ -177,8 +178,10 @@ class _OperationSettingScreenState extends BaseDynamicState<OperationSettingScre
           InlineSelectionItem<SelectionItemModel<int>>(
             title: appLocalizations.autoMinimizeAfterClickToCopyOption,
             selections: [
-              SelectionItemModel(appLocalizations.minimizeWindowAfterClickToCopy, 0),
-              SelectionItemModel(appLocalizations.minimizeToTrayAfterClickToCopy, 1),
+              SelectionItemModel(
+                  appLocalizations.minimizeWindowAfterClickToCopy, 0),
+              SelectionItemModel(
+                  appLocalizations.minimizeToTrayAfterClickToCopy, 1),
             ],
             hint: appLocalizations.chooseAutoMinimizeAfterClickToCopyOption,
             selected: SelectionItemModel(

@@ -98,23 +98,36 @@ class _WebviewScreenState extends BaseDynamicState<WebviewScreen>
         });
       },
       child: Scaffold(
-        appBar: AppBarWrapper.simple(
-          context: context,
-          leadingIcon: Icons.close_rounded,
+        appBar: ResponsiveAppBar(
           titleLeftMargin: 10,
-          titleRightMargin: 10,
-          centerTitle: true,
+          showBack: true,
           title: title,
+          showBorder: true,
+          onTapBack: () {
+            DialogNavigatorHelper.responsivePopPage();
+          },
           actions: [
-            RoundIconButton(
-              icon: Icon(Icons.more_vert_rounded,
-                  color: Theme.of(context).iconTheme.color),
+            CircleIconButton(
+              icon: Icon(
+                LucideIcons.ellipsisVertical,
+                color: ChewieTheme.iconColor,
+              ),
+              onTap: () {
+                BottomSheetBuilder.showContextMenu(
+                    context, _buildMoreButtons());
+              },
+            ),
+          ],
+          desktopActions: [
+            ToolButton(
+              context: context,
+              icon: LucideIcons.ellipsisVertical,
+              buttonSize: const Size(32, 32),
               onPressed: () {
                 BottomSheetBuilder.showContextMenu(
                     context, _buildMoreButtons());
               },
             ),
-            const SizedBox(width: 5),
           ],
         ),
         body: Stack(

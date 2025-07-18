@@ -32,7 +32,8 @@ class LocaleUtil with ChangeNotifier {
 
   static SelectionItemModel<Locale?>? getSelectionItemModel(Locale? locale) {
     if (locale == null) {
-      return SelectionItemModel<Locale?>(chewieLocalizations.followSystem, null);
+      return SelectionItemModel<Locale?>(
+          chewieLocalizations.followSystem, null);
     }
     for (Tuple2<String, Locale?> t in LocaleUtil.localeLabels) {
       if (t.item2.toString() == locale.toString()) {

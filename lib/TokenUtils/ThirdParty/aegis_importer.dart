@@ -459,7 +459,8 @@ class AegisTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
+      dialog =
+          showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -479,7 +480,8 @@ class AegisTokenImporter implements BaseTokenImporter {
                 return appLocalizations.autoBackupPasswordCannotBeEmpty;
               }
               if (showLoading) {
-                dialog.show(msg: appLocalizations.importing, showProgress: false);
+                dialog.show(
+                    msg: appLocalizations.importing, showProgress: false);
               }
               backup.password = text;
               var res = await compute(

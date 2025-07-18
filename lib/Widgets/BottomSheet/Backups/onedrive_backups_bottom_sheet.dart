@@ -92,8 +92,7 @@ class OneDriveBackupsBottomSheetState
       alignment: Alignment.center,
       child: Text(
         appLocalizations.cloudBackupFiles(widget.files.length),
-        style:
-            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }

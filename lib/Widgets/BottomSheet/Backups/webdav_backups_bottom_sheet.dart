@@ -39,7 +39,8 @@ class WebDavBackupsBottomSheet extends StatefulWidget {
       WebDavBackupsBottomSheetState();
 }
 
-class WebDavBackupsBottomSheetState extends BaseDynamicState<WebDavBackupsBottomSheet> {
+class WebDavBackupsBottomSheetState
+    extends BaseDynamicState<WebDavBackupsBottomSheet> {
   late List<WebDavFileInfo> files;
 
   @override
@@ -92,8 +93,7 @@ class WebDavBackupsBottomSheetState extends BaseDynamicState<WebDavBackupsBottom
       alignment: Alignment.center,
       child: Text(
         appLocalizations.cloudBackupFiles(widget.files.length),
-        style:
-            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -156,7 +156,8 @@ class WebDavBackupsBottomSheetState extends BaseDynamicState<WebDavBackupsBottom
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.path ?? "");
                     setState(() {

@@ -38,7 +38,8 @@ class ImportExportTokenScreen extends StatefulWidget {
       _ImportExportTokenScreenState();
 }
 
-class _ImportExportTokenScreenState extends BaseDynamicState<ImportExportTokenScreen>
+class _ImportExportTokenScreenState
+    extends BaseDynamicState<ImportExportTokenScreen>
     with TickerProviderStateMixin {
   @override
   void initState() {

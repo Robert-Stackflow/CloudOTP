@@ -148,7 +148,8 @@ class _UpdateScreenState extends BaseDynamicState<UpdateScreen>
                   if (asset.browserDownloadUrl.notNullOrEmpty) {
                     double progressValue = 0.0;
                     setState(() {
-                      buttonText = chewieLocalizations.alreadyDownloadProgress(0);
+                      buttonText =
+                          chewieLocalizations.alreadyDownloadProgress(0);
                     });
                     downloadState = DownloadUpdateState.downloading;
                     await Dio().download(
@@ -163,8 +164,8 @@ class _UpdateScreenState extends BaseDynamicState<UpdateScreen>
                             progressValue = 0.0;
                           }
                           setState(() {
-                            buttonText = chewieLocalizations
-                                .alreadyDownloadProgress(
+                            buttonText =
+                                chewieLocalizations.alreadyDownloadProgress(
                                     (progressValue * 100).toInt());
                           });
                         }

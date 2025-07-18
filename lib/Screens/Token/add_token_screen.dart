@@ -169,7 +169,8 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
   Widget build(BuildContext context) {
     return MyScaffold(
       appBar: ResponsiveAppBar(
-        title: _isEditing ? appLocalizations.editToken : appLocalizations.addToken,
+        title:
+            _isEditing ? appLocalizations.editToken : appLocalizations.addToken,
         showBack: !ResponsiveUtil.isLandscape(),
         titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
         desktopActions: [

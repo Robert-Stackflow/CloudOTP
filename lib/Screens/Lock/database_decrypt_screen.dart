@@ -162,8 +162,9 @@ class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
   @override
   void initState() {
     super.initState();
-    chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-        LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
+    chewieProvider.loadingWidgetBuilder = (size, forceDark) => LottieFiles.load(
+        LottieFiles.getLoadingPath(chewieProvider.rootContext),
+        scale: 1.5);
     initBiometricAuthentication();
     trayManager.addListener(this);
     windowManager.addListener(this);
@@ -191,6 +192,7 @@ class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
 
   @override
   Widget build(BuildContext context) {
+    chewieProvider.rootContext = context;
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -202,7 +204,7 @@ class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
               ? ResponsiveAppBar(
                   title: appLocalizations.appName,
                   showBack: false,
-                  titleLeftMargin: 12,
+                  titleLeftMargin: 15,
                   actions: const [
                     BlankIconButton(),
                   ],
@@ -251,7 +253,7 @@ class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
     CustomLoadingDialog.dismissLoading();
     if (isValidAsync) {
       if (DatabaseManager.initialized) {
-        ShortcutsUtil.jumpToMain(context);
+        ShortcutsUtil.jumpToMain();
       }
     } else {
       _focusNode.requestFocus();

@@ -150,7 +150,8 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
+      dialog =
+          showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -175,7 +176,8 @@ class EnteAuthTokenImporter implements BaseTokenImporter {
                 return appLocalizations.autoBackupPasswordCannotBeEmpty;
               }
               if (showLoading) {
-                dialog.show(msg: appLocalizations.importing, showProgress: false);
+                dialog.show(
+                    msg: appLocalizations.importing, showProgress: false);
               }
               // var res = await compute(
               //   (receiveMessage) async {

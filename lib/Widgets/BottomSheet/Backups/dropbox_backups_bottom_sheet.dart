@@ -39,7 +39,8 @@ class DropboxBackupsBottomSheet extends StatefulWidget {
       DropboxBackupsBottomSheetState();
 }
 
-class DropboxBackupsBottomSheetState extends BaseDynamicState<DropboxBackupsBottomSheet> {
+class DropboxBackupsBottomSheetState
+    extends BaseDynamicState<DropboxBackupsBottomSheet> {
   late List<DropboxFileInfo> files;
 
   @override
@@ -92,8 +93,7 @@ class DropboxBackupsBottomSheetState extends BaseDynamicState<DropboxBackupsBott
       alignment: Alignment.center,
       child: Text(
         appLocalizations.cloudBackupFiles(widget.files.length),
-        style:
-            ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -154,7 +154,8 @@ class DropboxBackupsBottomSheetState extends BaseDynamicState<DropboxBackupsBott
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: appLocalizations.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.name);
                     setState(() {

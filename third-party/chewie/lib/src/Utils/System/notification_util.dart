@@ -7,9 +7,7 @@ class NotificationUtil {
       FlutterLocalNotificationsPlugin();
 
   static init() async {
-    if (ResponsiveUtil.isAndroid()) {
-      await initAndroid();
-    }
+    if (ResponsiveUtil.isAndroid()) await initAndroid();
   }
 
   static initAndroid() async {

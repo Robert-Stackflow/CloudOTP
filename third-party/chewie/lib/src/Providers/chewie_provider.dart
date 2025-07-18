@@ -47,6 +47,12 @@ class ChewieProvider with ChangeNotifier {
 
   RouteObserver routeObserver = RouteObserver();
 
+  GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey();
+
+  NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
+
+  BuildContext get globalNavigatorContext => globalNavigatorKey.currentContext!;
+
   late BuildContext rootContext;
 
   bool initedRootContext = false;
@@ -106,7 +112,8 @@ class ChewieProvider with ChangeNotifier {
 
   static List<SelectionItemModel<ActiveThemeMode>> getSupportedThemeMode() {
     return [
-      SelectionItemModel(chewieLocalizations.followSystem, ActiveThemeMode.system),
+      SelectionItemModel(
+          chewieLocalizations.followSystem, ActiveThemeMode.system),
       SelectionItemModel(chewieLocalizations.lightTheme, ActiveThemeMode.light),
       SelectionItemModel(chewieLocalizations.darkTheme, ActiveThemeMode.dark),
     ];
@@ -158,7 +165,8 @@ class ChewieProvider with ChangeNotifier {
   }
 }
 
-abstract class BasePanelScreenState<T extends StatefulWidget> extends BaseDynamicState<T> {
+abstract class BasePanelScreenState<T extends StatefulWidget>
+    extends BaseDynamicState<T> {
   FutureOr pushPage(Widget page);
 
   FutureOr popPage();

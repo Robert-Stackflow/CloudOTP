@@ -422,7 +422,8 @@ class BitwardenTokenImporter implements BaseTokenImporter {
   }) async {
     late ProgressDialog dialog;
     if (showLoading) {
-      dialog = showProgressDialog(appLocalizations.importing, showProgress: false);
+      dialog =
+          showProgressDialog(appLocalizations.importing, showProgress: false);
     }
     try {
       File file = File(path);
@@ -440,10 +441,12 @@ class BitwardenTokenImporter implements BaseTokenImporter {
                   appLocalizations.cannotImportFromBitwardenAccountRestricted);
               return;
             case VaultInvalidType.ParameterLoss:
-              IToast.showTop(appLocalizations.cannotImportFromBitwardenParameterLoss);
+              IToast.showTop(
+                  appLocalizations.cannotImportFromBitwardenParameterLoss);
               return;
             case VaultInvalidType.DataLoss:
-              IToast.showTop(appLocalizations.cannotImportFromBitwardenDataLoss);
+              IToast.showTop(
+                  appLocalizations.cannotImportFromBitwardenDataLoss);
               return;
             default:
               break;
@@ -456,7 +459,8 @@ class BitwardenTokenImporter implements BaseTokenImporter {
                 return appLocalizations.autoBackupPasswordCannotBeEmpty;
               }
               if (showLoading) {
-                dialog.show(msg: appLocalizations.importing, showProgress: false);
+                dialog.show(
+                    msg: appLocalizations.importing, showProgress: false);
               }
               Vault? res = await compute(
                 (receiveMessage) {

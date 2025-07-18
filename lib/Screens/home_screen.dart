@@ -93,6 +93,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     }
   }
 
+  bool get shouldCloseSearchBar => _shownSearchbarNotifier.value;
+
   @override
   void initState() {
     super.initState();
@@ -754,8 +756,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       padding: padding,
       tabAlignment: TabAlignment.start,
       physics: const ClampingScrollPhysics(),
-      labelStyle: ChewieTheme.titleMedium?.apply(fontWeightDelta: 2),
-      unselectedLabelStyle: ChewieTheme.titleMedium?.apply(color: Colors.grey),
+      labelStyle: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
+      unselectedLabelStyle: ChewieTheme.titleMedium.apply(color: Colors.grey),
       indicator: UnderlinedTabIndicator(
         borderColor: ChewieTheme.primaryColor,
       ),
@@ -935,7 +937,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
               cancelButtonText: appLocalizations.cancel,
               onTapConfirm: () async {
                 await CategoryDao.deleteCategory(category);
-                IToast.showTop(appLocalizations.deleteCategorySuccess(category.title));
+                IToast.showTop(
+                    appLocalizations.deleteCategorySuccess(category.title));
                 refreshCategories();
               },
               onTapCancel: () {},
@@ -1049,17 +1052,17 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   @override
   FutureOr popAll([bool initPage = true]) {
-    Navigator.pop(chewieProvider.rootContext);
+    Navigator.pop(context);
   }
 
   @override
   FutureOr popPage() {
-    Navigator.pop(chewieProvider.rootContext);
+    Navigator.pop(context);
   }
 
   @override
   FutureOr pushPage(Widget page) {
-    RouteUtil.pushCupertinoRoute(chewieProvider.rootContext, page);
+    RouteUtil.pushCupertinoRoute(context, page);
   }
 
   @override

@@ -179,12 +179,6 @@ class ResponsiveUtil {
     }
   }
 
-  static bool isLandscapeTablet() {
-    Orientation orientation =
-        MediaQuery.of(chewieProvider.rootContext).orientation;
-    return isTablet() && orientation == Orientation.landscape;
-  }
-
   static bool isTablet() {
     double shortestThreshold = 600;
     double longestThreshold = 900;
@@ -194,7 +188,15 @@ class ResponsiveUtil {
         MediaQuery.sizeOf(chewieProvider.rootContext).shortestSide;
     bool sizeCondition =
         longestSide >= longestThreshold && shortestSide >= shortestThreshold;
+    ILogger.debug(
+        "isTablet: longestSide: $longestSide, shortestSide: $shortestSide, sizeCondition: $sizeCondition");
     return !kIsWeb && (Platform.isIOS || Platform.isAndroid) && sizeCondition;
+  }
+
+  static bool isLandscapeTablet() {
+    Orientation orientation =
+        MediaQuery.of(chewieProvider.rootContext).orientation;
+    return isTablet() && orientation == Orientation.landscape;
   }
 
   static bool isPortaitTablet() {
@@ -209,6 +211,10 @@ class ResponsiveUtil {
         (useAppProvider &&
             chewieProvider.enableLandscapeInTablet &&
             isLandscapeTablet());
+  }
+
+  static bool isWideLandscape([bool useAppProvider = true]) {
+    return isWeb() || isDesktop() || (useAppProvider && isTablet());
   }
 
   static Widget buildLandscapeWidget({
@@ -275,10 +281,6 @@ class ResponsiveUtil {
     } else {
       portrait?.call();
     }
-  }
-
-  static bool isWideLandscape([bool useAppProvider = true]) {
-    return isWeb() || isDesktop() || (useAppProvider && isTablet());
   }
 
   static LinuxOSType getLinuxOSType() {

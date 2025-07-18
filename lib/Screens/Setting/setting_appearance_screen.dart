@@ -254,7 +254,7 @@ class _AppearanceSettingScreenState
     return SearchableCaptionItem(
       title: appLocalizations.mobileSetting,
       children: [
-        if (ResponsiveUtil.isLandscapeTablet())
+        if (ResponsiveUtil.isTablet())
           CheckboxItem(
             value: _enableLandscapeInTablet,
             title: appLocalizations.useDesktopLayoutWhenLandscape,

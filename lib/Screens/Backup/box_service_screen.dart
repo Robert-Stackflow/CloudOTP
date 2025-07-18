@@ -26,6 +26,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/box_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/box_backups_bottom_sheet.dart';
 import '../../l10n/l10n.dart';
@@ -135,7 +136,8 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(appLocalizations.cloudTypeNotSupport(appLocalizations.cloudTypeBox)),
+          Text(appLocalizations
+              .cloudTypeNotSupport(appLocalizations.cloudTypeBox)),
           const SizedBox(height: 10),
         ],
       ),
@@ -151,8 +153,8 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
     }
     await currentService.checkServer().then((value) async {
       if (!value) {
-        IToast.show(
-            appLocalizations.cloudOAuthUnavailable(CloudService.serverEndpoint));
+        IToast.show(appLocalizations
+            .cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
         await currentService.authenticate().then((value) async {
           setState(() {
@@ -173,7 +175,8 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
           } else {
             _boxCloudServiceConfig!.configured = true;
             updateConfig(_boxCloudServiceConfig!);
-            if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
+            if (showSuccessToast)
+              IToast.show(appLocalizations.cloudAuthSuccess);
           }
         });
       }
@@ -250,10 +253,13 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to box", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),
@@ -272,7 +278,8 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: appLocalizations.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<BoxFileInfo>? files =
                       await _boxCloudService!.listBackups();

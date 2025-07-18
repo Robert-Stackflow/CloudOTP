@@ -240,7 +240,7 @@ class UriUtil {
     bool processUri = true,
   }) {
     if (ResponsiveUtil.isMobile()) {
-      RouteUtil.pushPanelCupertinoRoute(
+      RouteUtil.pushDialogRoute(
           context, WebviewScreen(url: url, processUri: processUri));
     } else {
       openExternal(url);
