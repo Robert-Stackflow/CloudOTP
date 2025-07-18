@@ -537,7 +537,7 @@ class CustomHtmlWidgetState extends State<CustomHtmlWidget> {
         clickable: true,
         child: MouseRegion(
           onHover: (_) {
-            if (ResponsiveUtil.isLandscape()) {
+            if (ResponsiveUtil.isLandscapeLayout()) {
               _url = url;
               _startHoverTimer();
             }

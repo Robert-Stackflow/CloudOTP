@@ -74,7 +74,7 @@ class _OperationSettingScreenState
       context: context,
       title: appLocalizations.operationSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         _operationSettings(),

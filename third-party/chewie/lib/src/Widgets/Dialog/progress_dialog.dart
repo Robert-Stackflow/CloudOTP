@@ -1,6 +1,4 @@
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Animation/dialog_animation.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 
 ProgressDialog showProgressDialog(
@@ -8,9 +6,9 @@ ProgressDialog showProgressDialog(
   bool barrierDismissible = false,
   bool showProgress = true,
 }) {
-  ProgressDialog dialog = ProgressDialog(context: chewieProvider.rootContext);
+  ProgressDialog dialog = ProgressDialog();
   dialog.show(
-    msg: msg ?? '加载中...',
+    msg: msg ?? chewieLocalizations.loading,
     barrierDismissible: barrierDismissible,
     showProgress: showProgress,
   );
@@ -74,13 +72,7 @@ class ProgressDialog {
   //  Not directly accessible.
   bool _dialogIsOpen = false;
 
-  /// [_context] Required to show the alert.
-  // Can only be accessed with the constructor.
-  late BuildContext _context;
-
-  ProgressDialog({required context}) {
-    _context = context;
-  }
+  ProgressDialog();
 
   void updateProgress({
     required double progress,
@@ -144,7 +136,7 @@ class ProgressDialog {
           children: [
             PopScope(
               canPop: barrierDismissible,
-              onPopInvoked: (_) {
+              onPopInvokedWithResult: (_, __) {
                 if (barrierDismissible) {
                   _dialogIsOpen = false;
                 }
@@ -160,9 +152,7 @@ class ProgressDialog {
                   builder: (BuildContext context, LoadingDialogData value,
                       Widget? child) {
                     if (value.complete || value.error) {
-                      Future.delayed(_data.value.delayDuration, () {
-                        dismiss();
-                      });
+                      Future.delayed(_data.value.delayDuration, dismiss);
                     }
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -190,12 +180,6 @@ class ProgressDialog {
         ),
       ),
     );
-    // return showDialog(
-    //   barrierColor: ChewieTheme.barrierColor,
-    //   barrierDismissible: barrierDismissible,
-    //   context: _context,
-    //   builder: (context) =>
-    // );
   }
 }
 

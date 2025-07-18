@@ -90,8 +90,7 @@ class SelectCategoryBottomSheetState
           decoration: BoxDecoration(
             borderRadius: BorderRadius.vertical(
                 top: radius,
-                bottom:
-                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
             color: ChewieTheme.scaffoldBackgroundColor,
             border: ChewieTheme.border,
             boxShadow: ChewieTheme.defaultBoxShadow,

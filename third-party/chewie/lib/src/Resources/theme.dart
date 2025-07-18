@@ -223,7 +223,7 @@ class ChewieTheme {
   }
 
   static Color get itemBackground {
-    if (ResponsiveUtil.isLandscape()) {
+    if (ResponsiveUtil.isLandscapeLayout()) {
       return canvasColor;
     }
     return ChewieUtils.currentBrightness(chewieProvider.rootContext) ==
@@ -299,7 +299,7 @@ class ChewieTheme {
   static Color get buttonLightHoverColor =>
       themeColorData.buttonLightHoverColor;
 
-  static Color get barrierColor => ResponsiveUtil.isLandscape()
+  static Color get barrierColor => ResponsiveUtil.isLandscapeLayout()
       ? ChewieTheme.scaffoldBackgroundColor.withValues(alpha: 0.7)
       : Colors.black54;
 
@@ -307,24 +307,24 @@ class ChewieTheme {
       Theme.of(chewieProvider.rootContext).iconTheme.color!;
 
   static EdgeInsetsGeometry get responsiveListFlowPadding {
-    return ResponsiveUtil.isLandscape()
+    return ResponsiveUtil.isLandscapeLayout()
         ? const EdgeInsets.all(8).add(const EdgeInsets.only(bottom: 16))
         : const EdgeInsets.only(bottom: 16);
   }
 
   static double get responsiveMainAxisSpacing {
-    return ResponsiveUtil.isLandscape() ? 6 : 0;
+    return ResponsiveUtil.isLandscapeLayout() ? 6 : 0;
   }
 
   static double get responsiveCrossAxisSpacing {
-    return ResponsiveUtil.isLandscape() ? 6 : 0;
+    return ResponsiveUtil.isLandscapeLayout() ? 6 : 0;
   }
 
   static double get responsiveMainAxisSpacingForMedia {
-    return ResponsiveUtil.isLandscape() ? 6 : 2;
+    return ResponsiveUtil.isLandscapeLayout() ? 6 : 2;
   }
 
   static double get responsiveCrossAxisSpacingForMedia {
-    return ResponsiveUtil.isLandscape() ? 6 : 2;
+    return ResponsiveUtil.isLandscapeLayout() ? 6 : 2;
   }
 }

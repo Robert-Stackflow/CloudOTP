@@ -1,23 +1,23 @@
-import 'package:awesome_chewie/src/Models/github_response.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/time_util.dart';
-import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Widgets/Component/markdown_widget.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/responsive_app_bar.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/selectable_area_wrapper.dart';
-import 'package:awesome_chewie/src/Widgets/Module/EasyRefresh/easy_refresh.dart';
-import 'package:awesome_chewie/src/l10n/l10n.dart';
+/*
+ * Copyright (c) 2025 Robert-Stackflow.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
-import '../awesome_chewie.dart';
 
 class UpdateLogScreen extends StatefulWidget {
   const UpdateLogScreen({
@@ -87,13 +87,13 @@ class _UpdateLogScreenState extends BaseDynamicState<UpdateLogScreen>
               title: chewieLocalizations.changelog,
               showBack: true,
               onTapBack: () {
-                if (ResponsiveUtil.isLandscape()) {
+                if (ResponsiveUtil.isLandscapeLayout()) {
                   DialogNavigatorHelper.popPage();
                 } else {
                   Navigator.pop(context);
                 }
               },
-              backgroundColor: ResponsiveUtil.isLandscape()
+              backgroundColor: ResponsiveUtil.isLandscapeLayout()
                   ? ChewieTheme.canvasColor
                   : ChewieTheme.scaffoldBackgroundColor,
             )

@@ -46,13 +46,13 @@ class ImportFromThirdPartyBottomSheetState
   Widget build(BuildContext context) {
     return MyScaffold(
       appBar: ResponsiveAppBar(
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        showBack: !ResponsiveUtil.isLandscapeLayout(),
+        titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         onTapBack: () {
           DialogNavigatorHelper.responsivePopPage();
         },
         title: appLocalizations.importFromThirdParty,
-        actions: ResponsiveUtil.isLandscape()
+        actions: ResponsiveUtil.isLandscapeLayout()
             ? []
             : [
                 const BlankIconButton(),

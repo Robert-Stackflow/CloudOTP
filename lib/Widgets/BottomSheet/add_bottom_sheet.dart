@@ -133,8 +133,7 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.vertical(
                 top: radius,
-                bottom:
-                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
             color: ChewieTheme.scaffoldBackgroundColor,
             border: ChewieTheme.border,
             boxShadow: ChewieTheme.defaultBoxShadow,
@@ -200,7 +199,7 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       margin: EdgeInsets.symmetric(
-          horizontal: ResponsiveUtil.isLandscape() ? 20 : 10),
+          horizontal: ResponsiveUtil.isLandscapeLayout() ? 20 : 10),
       alignment: Alignment.center,
       height: 400,
       width: MediaQuery.sizeOf(context).width,
@@ -243,7 +242,7 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
                       turns = 0;
                       break;
                   }
-                  turns = !ResponsiveUtil.isWideLandscape() ? 0 : turns;
+                  turns = !ResponsiveUtil.isWideDevice() ? 0 : turns;
                   return RotatedBox(
                     quarterTurns: turns,
                     child: MobileScanner(

@@ -114,7 +114,7 @@ class _AboutSettingScreenState extends BaseDynamicState<AboutSettingScreen>
       title: appLocalizations.about,
       showBorder: true,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         const SizedBox(height: 30),

@@ -267,7 +267,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   }) {
     return Slidable(
       groupTag: "TokenLayout",
-      enabled: !ResponsiveUtil.isWideLandscape(),
+      enabled: !ResponsiveUtil.isWideDevice(),
       startActionPane: ActionPane(
         extentRatio: startExtentRatio,
         motion: const ScrollMotion(),
@@ -379,7 +379,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   }
 
   showContextMenu() {
-    if (ResponsiveUtil.isLandscape()) {
+    if (ResponsiveUtil.isLandscapeLayout()) {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,

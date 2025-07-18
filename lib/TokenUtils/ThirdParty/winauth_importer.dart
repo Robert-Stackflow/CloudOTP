@@ -142,7 +142,6 @@ class WinauthTokenImporter implements BaseTokenImporter {
         BottomSheetBuilder.showBottomSheet(
           chewieProvider.rootContext,
           responsive: true,
-          useWideLandscape: true,
           (context) => InputBottomSheet(
             validator: (value) {
               if (value.isEmpty) {

@@ -5,7 +5,7 @@ import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:awesome_chewie/src/Utils/itoast.dart';
 import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
 import 'package:awesome_chewie/src/l10n/l10n.dart';
-import 'package:awesome_chewie/src/webview_screen.dart';
+import 'package:awesome_chewie/src/Screens/webview_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';

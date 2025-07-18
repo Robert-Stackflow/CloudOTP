@@ -42,7 +42,7 @@ class DialogNavigatorHelper {
   }
 
   static void responsivePopPage() {
-    if (ResponsiveUtil.isLandscape()) {
+    if (ResponsiveUtil.isLandscapeLayout()) {
       DialogNavigatorHelper.popPage();
     } else {
       Navigator.pop(chewieProvider.rootContext);

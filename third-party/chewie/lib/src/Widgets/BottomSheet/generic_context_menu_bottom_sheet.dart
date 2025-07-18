@@ -47,9 +47,9 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
           decoration: BoxDecoration(
             color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
-                top: radius,
-                bottom:
-                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+              top: radius,
+              bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero,
+            ),
             border: ChewieTheme.border,
             boxShadow: ChewieTheme.defaultBoxShadow,
           ),
@@ -58,7 +58,7 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (!ResponsiveUtil.isWideLandscape())
+              if (!ResponsiveUtil.isWideDevice())
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -67,7 +67,7 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
                       width: 50,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).dividerColor,
+                        color: ChewieTheme.dividerColor,
                         borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
@@ -86,8 +86,11 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
     );
   }
 
-  _buildConfigItem(FlutterContextMenuItem? config,
-      [bool isFirst = false, bool isLast = false]) {
+  _buildConfigItem(
+    FlutterContextMenuItem? config, [
+    bool isFirst = false,
+    bool isLast = false,
+  ]) {
     Color? textColor;
     if (config == null || config.type == MenuItemType.divider) {
       return const MyDivider(width: 1.5, vertical: 12, horizontal: 16);
@@ -108,12 +111,12 @@ class ContextMenuBottomSheetState extends State<ContextMenuBottomSheet> {
       }
       var borderRadius = BorderRadius.vertical(
         top: isFirst
-            ? ResponsiveUtil.isWideLandscape()
+            ? ResponsiveUtil.isWideDevice()
                 ? radius
                 : Radius.zero
             : Radius.zero,
         bottom: isLast
-            ? ResponsiveUtil.isWideLandscape()
+            ? ResponsiveUtil.isWideDevice()
                 ? radius
                 : Radius.zero
             : Radius.zero,

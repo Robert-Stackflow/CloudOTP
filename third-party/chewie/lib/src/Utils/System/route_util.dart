@@ -26,7 +26,7 @@ class RouteUtil {
     bool popAll = false,
   }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ResponsiveUtil.isLandscape()) {
+      if (ResponsiveUtil.isLandscapeLayout()) {
         pushFadeRoute(context, page, onThen: onThen);
       } else {
         if (popAll) {
@@ -90,7 +90,7 @@ class RouteUtil {
     bool useFade = false,
     bool popAll = false,
   }) {
-    if (ResponsiveUtil.isLandscape()) {
+    if (ResponsiveUtil.isLandscapeLayout()) {
       if (DialogNavigatorHelper.isMounted()) {
         DialogNavigatorHelper.pushPage(page);
       } else {

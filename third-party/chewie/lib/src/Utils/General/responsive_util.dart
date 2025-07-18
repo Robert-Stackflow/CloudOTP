@@ -49,20 +49,6 @@ class ResponsiveUtil {
     }
   }
 
-  static bool isAppBundle() {
-    ILogger.debug("BUILD_TYPE is $buildType");
-    if (Platform.isAndroid) {
-      if (buildType == 'appbundle') {
-        ILogger.debug("Building appbundle for google play store");
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-
   static init() async {
     buildNumber = (await PackageInfo.fromPlatform()).buildNumber;
     version = (await PackageInfo.fromPlatform()).version;
@@ -114,18 +100,17 @@ class ResponsiveUtil {
     }
   }
 
-  static Future<void> restartApp([BuildContext? context]) async {
-    if (ResponsiveUtil.isDesktop()) {
+  static bool isAppBundle() {
+    ILogger.debug("BUILD_TYPE is $buildType");
+    if (Platform.isAndroid) {
+      if (buildType == 'appbundle') {
+        ILogger.debug("Building appbundle for google play store");
+        return true;
+      } else {
+        return false;
+      }
     } else {
-      Restart.restartApp();
-    }
-  }
-
-  static Future<void> maximizeOrRestore() async {
-    if (await windowManager.isMaximized()) {
-      windowManager.restore();
-    } else {
-      windowManager.maximize();
+      return false;
     }
   }
 
@@ -205,7 +190,11 @@ class ResponsiveUtil {
     return isTablet() && orientation == Orientation.portrait;
   }
 
-  static bool isLandscape([bool useAppProvider = true]) {
+  static bool isWideDevice([bool useAppProvider = true]) {
+    return isWeb() || isDesktop() || (useAppProvider && isTablet());
+  }
+
+  static bool isLandscapeLayout([bool useAppProvider = true]) {
     return isWeb() ||
         isDesktop() ||
         (useAppProvider &&
@@ -213,28 +202,36 @@ class ResponsiveUtil {
             isLandscapeTablet());
   }
 
-  static bool isWideLandscape([bool useAppProvider = true]) {
-    return isWeb() || isDesktop() || (useAppProvider && isTablet());
-  }
-
-  static Widget buildLandscapeWidget({
+  static Widget selectByOrientation({
     required Widget landscape,
     required Widget portrait,
     bool useAppProvider = true,
     bool andCondition = true,
     bool orCondition = false,
   }) {
-    return (isLandscape(useAppProvider) || orCondition) && andCondition
+    return (isLandscapeLayout(useAppProvider) || orCondition) && andCondition
         ? landscape
         : portrait;
   }
 
-  static Widget buildGeneralWidget({
+  static Widget? selectByOrientationNullable({
+    required Widget? landscape,
+    required Widget? portrait,
+    bool useAppProvider = true,
+    bool andCondition = true,
+    bool orCondition = false,
+  }) {
+    return (isLandscapeLayout(useAppProvider) || orCondition) && andCondition
+        ? landscape
+        : portrait;
+  }
+
+  static Widget selectByResponsive({
     required Widget desktop,
     required Widget landscape,
     required Widget portrait,
   }) {
-    if (!ResponsiveUtil.isLandscape()) {
+    if (!ResponsiveUtil.isLandscapeLayout()) {
       return portrait;
     } else if (ResponsiveUtil.isMobile()) {
       return landscape;
@@ -243,19 +240,7 @@ class ResponsiveUtil {
     }
   }
 
-  static Widget? buildLandscapeWidgetNullable({
-    required Widget? landscape,
-    required Widget? portrait,
-    bool useAppProvider = true,
-    bool andCondition = true,
-    bool orCondition = false,
-  }) {
-    return (isLandscape(useAppProvider) || orCondition) && andCondition
-        ? landscape
-        : portrait;
-  }
-
-  static Widget buildDesktopWidget({
+  static Widget selectByPlatform({
     Widget? desktop,
     Widget? mobile,
     bool useAppProvider = true,
@@ -267,7 +252,7 @@ class ResponsiveUtil {
         : mobile ?? const SizedBox.shrink();
   }
 
-  static void doInDesktop({Function()? desktop, Function()? mobile}) {
+  static void runByPlatform({Function()? desktop, Function()? mobile}) {
     if (isDesktop()) {
       desktop?.call();
     } else {
@@ -275,8 +260,8 @@ class ResponsiveUtil {
     }
   }
 
-  static void doInLandscape({Function()? landscape, Function()? portrait}) {
-    if (isLandscape()) {
+  static void runByOrientation({Function()? landscape, Function()? portrait}) {
+    if (isLandscapeLayout()) {
       landscape?.call();
     } else {
       portrait?.call();
@@ -299,5 +284,20 @@ class ResponsiveUtil {
       }
     }
     return LinuxOSType.Gnome;
+  }
+
+  static Future<void> restartApp([BuildContext? context]) async {
+    if (ResponsiveUtil.isDesktop()) {
+    } else {
+      Restart.restartApp();
+    }
+  }
+
+  static Future<void> maximizeOrRestore() async {
+    if (await windowManager.isMaximized()) {
+      windowManager.restore();
+    } else {
+      windowManager.maximize();
+    }
   }
 }

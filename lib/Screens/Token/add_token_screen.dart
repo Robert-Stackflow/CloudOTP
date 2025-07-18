@@ -171,8 +171,8 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
       appBar: ResponsiveAppBar(
         title:
             _isEditing ? appLocalizations.editToken : appLocalizations.addToken,
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        showBack: !ResponsiveUtil.isLandscapeLayout(),
+        titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         desktopActions: [
           ToolButton(
             context: context,

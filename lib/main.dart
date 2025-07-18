@@ -276,9 +276,10 @@ class MyApp extends StatelessWidget {
                 return Localizations.localeOf(context);
               } catch (e, t) {
                 ILogger.error(
-                    "Failed to get locale by Localizations.localeOf(context)",
-                    e,
-                    t);
+                  "Failed to get locale by Localizations.localeOf(context)",
+                  e,
+                  t,
+                );
                 return const Locale("en", "US");
               }
             }

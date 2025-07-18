@@ -1,10 +1,4 @@
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
-import 'package:awesome_chewie/src/Widgets/Component/Notification/floating_notification.dart';
-import 'package:awesome_chewie/src/Widgets/Component/Notification/notification_manager.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:local_notifier/local_notifier.dart';
@@ -20,7 +14,7 @@ class IToast {
     int seconds = 2,
     ToastGravity gravity = ToastGravity.TOP,
   }) {
-    if (ResponsiveUtil.isLandscape()) {
+    if (ResponsiveUtil.isLandscapeLayout()) {
       NotificationManager().show(
         chewieProvider.rootContext,
         text,
@@ -118,7 +112,7 @@ class IToast {
       context: chewieProvider.rootContext,
       controller: controller,
       duration: duration,
-      animateFrom: ResponsiveUtil.isLandscape()
+      animateFrom: ResponsiveUtil.isLandscapeLayout()
           ? AnimateFrom.fromTop
           : AnimateFrom.fromBottom,
       animationCurve: Curves.easeInOut,
@@ -149,7 +143,7 @@ class IToast {
       persist: persist,
       duration: const Duration(milliseconds: 600),
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-      maxWidth: ResponsiveUtil.isLandscape() ? 400 : null,
+      maxWidth: ResponsiveUtil.isLandscapeLayout() ? 400 : null,
       onDismiss: onDismiss,
       child: Row(
         children: [

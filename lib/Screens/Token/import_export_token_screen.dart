@@ -51,9 +51,10 @@ class _ImportExportTokenScreenState
     return MyScaffold(
       appBar: ResponsiveAppBar(
         title: appLocalizations.exportImport,
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-        actions: ResponsiveUtil.isLandscape() ? [] : [const BlankIconButton()],
+        showBack: !ResponsiveUtil.isLandscapeLayout(),
+        titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
+        actions:
+            ResponsiveUtil.isLandscapeLayout() ? [] : [const BlankIconButton()],
       ),
       body: EasyRefresh(
         child: _buildBody(),
@@ -192,7 +193,6 @@ class _ImportExportTokenScreenState
                       BottomSheetBuilder.showBottomSheet(
                         context,
                         responsive: true,
-                        useWideLandscape: true,
                         (context) => InputBottomSheet(
                           title: appLocalizations.setExportPasswordTitle,
                           message: appLocalizations.setExportPasswordTip,
@@ -227,7 +227,6 @@ class _ImportExportTokenScreenState
                     BottomSheetBuilder.showBottomSheet(
                       context,
                       responsive: true,
-                      useWideLandscape: true,
                       (context) => InputBottomSheet(
                         title: appLocalizations.setExportPasswordTitle,
                         message: appLocalizations.setExportPasswordTip,

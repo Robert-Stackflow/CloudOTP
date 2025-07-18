@@ -68,10 +68,10 @@ class QrcodesDialogWidgetState extends BaseDynamicState<QrcodesDialogWidget> {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            constraints: ResponsiveUtil.isWideLandscape()
+            constraints: ResponsiveUtil.isWideDevice()
                 ? const BoxConstraints(maxWidth: 430)
                 : null,
-            margin: ResponsiveUtil.isWideLandscape()
+            margin: ResponsiveUtil.isWideDevice()
                 ? const EdgeInsets.all(24)
                 : EdgeInsets.zero,
             decoration: ChewieTheme.defaultDecoration.copyWith(
@@ -123,7 +123,7 @@ class QrcodesDialogWidgetState extends BaseDynamicState<QrcodesDialogWidget> {
                         ),
                         alignment: Alignment.center,
                         margin: EdgeInsets.symmetric(
-                            horizontal: ResponsiveUtil.isWideLandscape()
+                            horizontal: ResponsiveUtil.isWideDevice()
                                 ? 30
                                 : (MediaQuery.sizeOf(context).width -
                                         maxHeight) /

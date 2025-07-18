@@ -1,11 +1,6 @@
-import 'package:awesome_chewie/src/Widgets/Item/General/appbar_wrapper.dart';
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Widgets/Component/window_caption.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/window_button.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -45,7 +40,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isLandscape = ResponsiveUtil.isLandscape();
+    final bool isLandscape = ResponsiveUtil.isLandscapeLayout();
     final Widget titleContent = Container(
       margin: EdgeInsets.only(left: titleLeftMargin),
       child: titleWidget ?? Text(title, style: ChewieTheme.titleLarge),
@@ -64,7 +59,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: isLandscape
             ? Stack(
                 children: [
-                  ResponsiveUtil.buildDesktopWidget(
+                  ResponsiveUtil.selectByPlatform(
                       desktop: const WindowMoveHandle()),
                   Center(
                     child: Row(
@@ -119,7 +114,7 @@ class ResponsiveAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     return SafeArea(
-      top: !ResponsiveUtil.isLandscape(),
+      top: !ResponsiveUtil.isLandscapeLayout(),
       child: bottomWidget != null && bottomHeight != null
           ? PreferredSize(
               preferredSize: Size.fromHeight(height + bottomHeight!),

@@ -29,7 +29,7 @@ class DialogBuilder {
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
-    if (responsive && ResponsiveUtil.isWideLandscape()) {
+    if (responsive && ResponsiveUtil.isWideDevice()) {
       CustomConfirmDialog.show(
         context,
         message: message ?? "",
@@ -96,7 +96,7 @@ class DialogBuilder {
     bool bottomRadius = true,
     bool forceNoMarginAtMobile = false,
   }) {
-    if (responsive && ResponsiveUtil.isWideLandscape()) {
+    if (responsive && ResponsiveUtil.isWideDevice()) {
       CustomInfoDialog.show(
         context,
         buttonText: buttonText ?? chewieLocalizations.confirm,

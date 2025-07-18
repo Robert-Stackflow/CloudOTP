@@ -11,6 +11,30 @@ class ChewieProvider with ChangeNotifier {
   static const Size defaultWindowSize = Size(1280, 720);
   static const Size minimumWindowSize = Size(800, 640);
 
+  RouteObserver routeObserver = RouteObserver();
+
+  GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey();
+
+  NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
+
+  BuildContext get globalNavigatorContext => globalNavigatorKey.currentContext!;
+
+  late BuildContext rootContext;
+
+  bool initedRootContext = false;
+
+  void initRootContext(BuildContext context) {
+    if (!initedRootContext) {
+      rootContext = context;
+      initedRootContext = true;
+    }
+  }
+
+  GlobalKey<BasePanelScreenState> panelScreenKey =
+      GlobalKey<BasePanelScreenState>();
+
+  BasePanelScreenState? get panelScreenState => panelScreenKey.currentState;
+
   String latestVersion = "";
 
   Size _windowSize = ChewieHiveUtil.getWindowSize();
@@ -44,30 +68,6 @@ class ChewieProvider with ChangeNotifier {
 
   Widget Function(double size, bool forceDark) loadingWidgetBuilder =
       (size, forceDark) => const Center(child: CircularProgressIndicator());
-
-  RouteObserver routeObserver = RouteObserver();
-
-  GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey();
-
-  NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
-
-  BuildContext get globalNavigatorContext => globalNavigatorKey.currentContext!;
-
-  late BuildContext rootContext;
-
-  bool initedRootContext = false;
-
-  void initRootContext(BuildContext context) {
-    if (!initedRootContext) {
-      rootContext = context;
-      initedRootContext = true;
-    }
-  }
-
-  GlobalKey<BasePanelScreenState> panelScreenKey =
-      GlobalKey<BasePanelScreenState>();
-
-  BasePanelScreenState? get panelScreenState => panelScreenKey.currentState;
 
   ProxyConfig _proxyConfig = ChewieHiveUtil.getProxyConfig() ??
       ProxyConfig(proxyType: ProxyType.NoProxy);

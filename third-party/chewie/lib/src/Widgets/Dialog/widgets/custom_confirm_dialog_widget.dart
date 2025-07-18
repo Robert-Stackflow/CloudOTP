@@ -72,7 +72,7 @@ class _CustomConfirmDialogWidgetState
         child: Material(
           color: Colors.transparent,
           child: Container(
-            constraints: ResponsiveUtil.isWideLandscape()
+            constraints: ResponsiveUtil.isWideDevice()
                 ? const BoxConstraints(maxWidth: 400)
                 : null,
             margin: widget.margin ?? const EdgeInsets.all(16),

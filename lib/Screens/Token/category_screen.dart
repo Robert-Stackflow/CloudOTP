@@ -58,8 +58,8 @@ class _CategoryScreenState extends BaseDynamicState<CategoryScreen>
       appBar: ResponsiveAppBar(
         title: appLocalizations.category,
         showBorder: true,
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        showBack: !ResponsiveUtil.isLandscapeLayout(),
+        titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         desktopActions: [
           ToolButton(
             context: context,
@@ -94,8 +94,7 @@ class _CategoryScreenState extends BaseDynamicState<CategoryScreen>
       controller: TextEditingController(),
     );
     GlobalKey<InputBottomSheetState> key = GlobalKey();
-    BottomSheetBuilder.showBottomSheet(context,
-        responsive: true, useWideLandscape: true, (context) {
+    BottomSheetBuilder.showBottomSheet(context, responsive: true, (context) {
       return InputBottomSheet(
         key: key,
         title: appLocalizations.addCategory,
@@ -208,7 +207,6 @@ class _CategoryScreenState extends BaseDynamicState<CategoryScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                useWideLandscape: true,
                 (context) => InputBottomSheet(
                   title: appLocalizations.editCategoryName,
                   hint: appLocalizations.inputCategory,

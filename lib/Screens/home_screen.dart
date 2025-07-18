@@ -109,7 +109,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       duration: const Duration(milliseconds: 300),
     );
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (!ResponsiveUtil.isLandscape() &&
+      if (!ResponsiveUtil.isLandscapeLayout() &&
           ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
               defaultValue: false)) {
         changeSearchBar(true);
@@ -277,34 +277,33 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   Widget build(BuildContext context) {
     return MyScaffold(
       resizeToAvoidBottomInset: false,
-      appBar: ResponsiveUtil.isLandscape()
-          ? ResponsiveAppBar(
-              titleLeftMargin: 10,
-              titleWidget: Container(
-                constraints: const BoxConstraints(
-                    maxWidth: 300, minWidth: 200, maxHeight: 36),
-                child: MySearchBar(
-                  borderRadius: 8,
-                  bottomMargin: 18,
-                  focusNode: appProvider.searchFocusNode,
-                  controller: _searchController,
-                  background: ChewieTheme.scaffoldBackgroundColor,
-                  hintText: appLocalizations.searchToken,
-                  onSubmitted: (text) {
-                    performSearch(text);
-                  },
-                ),
-              ),
-            )
-          : null,
-      body: ResponsiveUtil.buildLandscapeWidget(
+      appBar: ResponsiveUtil.selectByOrientationNullable(
+        landscape: ResponsiveAppBar(
+          titleLeftMargin: 10,
+          titleWidget: Container(
+            constraints: const BoxConstraints(
+                maxWidth: 300, minWidth: 200, maxHeight: 36),
+            child: MySearchBar(
+              borderRadius: 8,
+              bottomMargin: 18,
+              focusNode: appProvider.searchFocusNode,
+              controller: _searchController,
+              background: ChewieTheme.scaffoldBackgroundColor,
+              hintText: appLocalizations.searchToken,
+              onSubmitted: (text) {
+                performSearch(text);
+              },
+            ),
+          ),
+        ),
+        portrait: null,
+      ) as PreferredSizeWidget?,
+      body: ResponsiveUtil.selectByOrientation(
         landscape: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTabBar(),
-            Expanded(
-              child: _buildMainContent(),
-            ),
+            Expanded(child: _buildMainContent()),
           ],
         ),
         portrait: PopScope(
@@ -319,10 +318,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           child: _buildMobileBody(),
         ),
       ),
-      bottomNavigationBar: ResponsiveUtil.buildDesktopWidget(
+      bottomNavigationBar: ResponsiveUtil.selectByPlatform(
         mobile: _buildMobileBottombar(),
       ),
-      floatingActionButton: ResponsiveUtil.buildDesktopWidget(
+      floatingActionButton: ResponsiveUtil.selectByPlatform(
         mobile: _buildFloatingActionButton(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
@@ -334,9 +333,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     return NestedScrollView(
       controller: _nestScrollController,
       headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          _buildMobileAppbar(),
-        ];
+        return [_buildMobileAppbar()];
       },
       body: Builder(
         builder: (context) {
@@ -508,8 +505,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           useBackdropFilter: provider.enableFrostedGlassEffect,
           floating: provider.hideAppbarWhenScrolling,
           pinned: !provider.hideAppbarWhenScrolling,
-          backgroundColor: Theme.of(context)
-              .scaffoldBackgroundColor
+          backgroundColor: ChewieTheme.scaffoldBackgroundColor
               .withOpacity(provider.enableFrostedGlassEffect ? 0.2 : 1),
           title: SizedBox(
             height: kToolbarHeight,
@@ -758,9 +754,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       physics: const ClampingScrollPhysics(),
       labelStyle: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       unselectedLabelStyle: ChewieTheme.titleMedium.apply(color: Colors.grey),
-      indicator: UnderlinedTabIndicator(
-        borderColor: ChewieTheme.primaryColor,
-      ),
+      indicator: UnderlinedTabIndicator(borderColor: ChewieTheme.primaryColor),
       onTap: (index) {
         if (_nestScrollController.hasClients) {
           _nestScrollController.animateTo(0,
@@ -812,7 +806,6 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
-      useWideLandscape: true,
       (context) => InputBottomSheet(
         title: appLocalizations.editCategoryName,
         hint: appLocalizations.inputCategory,
@@ -856,7 +849,6 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
-      useWideLandscape: true,
       (context) => InputBottomSheet(
         title: appLocalizations.addCategory,
         hint: appLocalizations.inputCategory,

@@ -40,8 +40,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
             color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
                 top: radius,
-                bottom:
-                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
             border: ChewieTheme.border,
             boxShadow: ChewieTheme.defaultBoxShadow,
           ),

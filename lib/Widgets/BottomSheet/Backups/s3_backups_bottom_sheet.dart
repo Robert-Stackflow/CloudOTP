@@ -61,7 +61,7 @@ class S3CloudBackupsBottomSheetState
       decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(
           top: radius,
-          bottom: ResponsiveUtil.isWideLandscape() ? radius : Radius.zero,
+          bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero,
         ),
         color: ChewieTheme.scaffoldBackgroundColor,
         border: ChewieTheme.border,
@@ -79,9 +79,7 @@ class S3CloudBackupsBottomSheetState
         ],
       ),
     );
-    return ResponsiveUtil.isWideLandscape()
-        ? Center(child: mainBody)
-        : mainBody;
+    return ResponsiveUtil.isWideDevice() ? Center(child: mainBody) : mainBody;
   }
 
   _buildHeader() {

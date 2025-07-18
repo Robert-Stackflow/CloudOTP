@@ -48,8 +48,8 @@ class CloudOTPItemBuilder {
     SystemUiOverlayStyle? systemOverlayStyle,
     bool useBackdropFilter = false,
   }) {
-    bool showLeading = !ResponsiveUtil.isLandscape();
-    center = ResponsiveUtil.isLandscape() ? false : center;
+    bool showLeading = !ResponsiveUtil.isLandscapeLayout();
+    center = ResponsiveUtil.isLandscapeLayout() ? false : center;
     return MySliverAppBar(
       useBackdropFilter: useBackdropFilter,
       systemOverlayStyle: systemOverlayStyle,
@@ -163,7 +163,7 @@ class CloudOTPItemBuilder {
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
-    if (responsive && ResponsiveUtil.isWideLandscape()) {
+    if (responsive && ResponsiveUtil.isWideDevice()) {
       QrcodeDialog.show(
         context,
         title: title,

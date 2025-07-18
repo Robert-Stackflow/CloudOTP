@@ -59,8 +59,7 @@ class Utils {
         renderHtml: true,
         // cancelButtonText: appLocalizations.cloudOAuthDialogGoToRepo,
         buttonText: appLocalizations.cloudOAuthDialogConfirm,
-        onTapDismiss: () {
-        },
+        onTapDismiss: () {},
       );
     }
   }

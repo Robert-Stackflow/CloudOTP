@@ -97,7 +97,7 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
       context: context,
       title: appLocalizations.safeSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         if (!DatabaseManager.isDatabaseEncrypted) ...[
@@ -168,7 +168,6 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                useWideLandscape: true,
                 (context) => InputPasswordBottomSheet(
                   title: appLocalizations.editEncryptDatabasePassword,
                   message: appLocalizations.editEncryptDatabasePasswordTip,

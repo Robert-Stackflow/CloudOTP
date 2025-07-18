@@ -382,9 +382,9 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
     return AppBarWrapper(
       systemOverlayStyle: SystemUiOverlayStyle.light,
       backgroundColor: Colors.transparent,
-      titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+      titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
       leadingIcon:
-          ResponsiveUtil.isLandscape() ? null : Icons.arrow_back_rounded,
+          ResponsiveUtil.isLandscapeLayout() ? null : Icons.arrow_back_rounded,
       leadingColor: Colors.white,
       onLeadingTap: () {
         Navigator.pop(context);
@@ -447,7 +447,7 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
               }
             },
           ),
-          if (imageUrls.length > 1 || ResponsiveUtil.isLandscape())
+          if (imageUrls.length > 1 || ResponsiveUtil.isLandscapeLayout())
             const SizedBox(width: 5),
         ],
         if (imageUrls.length > 1) ...[
@@ -472,9 +472,9 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
               }
             },
           ),
-          if (ResponsiveUtil.isLandscape()) const SizedBox(width: 5),
+          if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(width: 5),
         ],
-        if (ResponsiveUtil.isLandscape())
+        if (ResponsiveUtil.isLandscapeLayout())
           ToolButton(
             context: context,
             iconBuilder: (_) =>

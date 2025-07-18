@@ -214,43 +214,33 @@ class MainScreenState extends BaseWindowState<MainScreen>
   }
 
   _buildBodyByPlatform() {
-    if (!ResponsiveUtil.isLandscape()) {
-      return _buildMobileBody();
-    } else if (ResponsiveUtil.isMobile()) {
-      return Scaffold(
-        backgroundColor: ChewieTheme.appBarBackgroundColor,
-        resizeToAvoidBottomInset: false,
-        body: SafeArea(child: _buildDesktopBody()),
-      );
-    } else {
-      return _buildDesktopBody();
-    }
-  }
-
-  _buildMobileBody() {
-    return HomeScreen(key: chewieProvider.panelScreenKey);
+    return ResponsiveUtil.selectByResponsive(
+      desktop: _buildDesktopBody(),
+      landscape: SafeArea(child: _buildDesktopBody()),
+      portrait: HomeScreen(key: chewieProvider.panelScreenKey),
+    );
   }
 
   _buildDesktopBody() {
-    var leftPosWidget = Row(
-      children: [
-        _sideBar(),
-        Expanded(
-          child: Stack(
-            children: [
-              HomeScreen(key: chewieProvider.panelScreenKey),
-              Positioned(
-                right: 0,
-                child: _titleBar(),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
     return MyScaffold(
+      backgroundColor: ChewieTheme.appBarBackgroundColor,
       resizeToAvoidBottomInset: false,
-      body: leftPosWidget,
+      body: Row(
+        children: [
+          _buildSideBar(),
+          Expanded(
+            child: Stack(
+              children: [
+                HomeScreen(key: chewieProvider.panelScreenKey),
+                Positioned(
+                  right: 0,
+                  child: buildTitleBar(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -354,13 +344,6 @@ class MainScreenState extends BaseWindowState<MainScreen>
             homeScreenState?.changeLayoutType(LayoutType.Compact);
           },
         ),
-        // ContextMenuButtonConfig.checkbox(
-        //   appLocalizations.tileLayoutType,
-        //   checked: homeScreenState?.layoutType == LayoutType.Tile,
-        //   onPressed: () {
-        //     homeScreenState?.changeLayoutType(LayoutType.Tile);
-        //   },
-        // ),
         FlutterContextMenuItem.checkbox(
           appLocalizations.listLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.List,
@@ -379,7 +362,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
     );
   }
 
-  _buildQrCodeContextMenuButtons() {
+  FlutterContextMenu buildQrCodeContextMenuButtons() {
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem(
@@ -503,7 +486,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
     }
   }
 
-  _sideBar({
+  Widget _buildSideBar({
     double width = 56,
     bool rightBorder = true,
   }) {
@@ -523,7 +506,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ResponsiveUtil.buildGeneralWidget(
+                ResponsiveUtil.selectByResponsive(
                   desktop: const SizedBox(height: 8),
                   landscape: const SizedBox(height: 12),
                   portrait: const SizedBox(height: 8),
@@ -567,7 +550,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
                     icon: LucideIcons.qrCode,
                     onPressed: () async {
                       BottomSheetBuilder.showContextMenu(
-                          context, _buildQrCodeContextMenuButtons());
+                          context, buildQrCodeContextMenuButtons());
                     },
                   ),
                 const SizedBox(height: 4),
@@ -701,7 +684,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
     );
   }
 
-  _buildLogo({
+  Widget _buildLogo({
     double size = 32,
   }) {
     return IgnorePointer(
@@ -722,8 +705,8 @@ class MainScreenState extends BaseWindowState<MainScreen>
     );
   }
 
-  _titleBar() {
-    return ResponsiveUtil.buildDesktopWidget(
+  Widget buildTitleBar() {
+    return ResponsiveUtil.selectByPlatform(
       desktop: WindowTitleWrapper(
         height: 48,
         isStayOnTop: isStayOnTop,

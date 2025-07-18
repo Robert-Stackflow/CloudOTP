@@ -68,7 +68,7 @@ class UrlPreviewHelper {
       child: _buildPreview(context, url, data),
       persist: true,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      maxWidth: ResponsiveUtil.isLandscape() ? 600 : null,
+      maxWidth: ResponsiveUtil.isLandscapeLayout() ? 600 : null,
       controller: _snackBarController,
       onDismiss: () {
         _loading = false;
@@ -107,7 +107,7 @@ class UrlPreviewHelper {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (ResponsiveUtil.isLandscape())
+              if (ResponsiveUtil.isLandscapeLayout())
                 RoundIconButton(
                   icon: const Icon(Icons.close_rounded),
                   onPressed: () async => await remove(true),
@@ -118,7 +118,7 @@ class UrlPreviewHelper {
           const SizedBox(height: 10),
           if (data.image != null)
             Row(
-              crossAxisAlignment: ResponsiveUtil.isLandscape()
+              crossAxisAlignment: ResponsiveUtil.isLandscapeLayout()
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               children: [

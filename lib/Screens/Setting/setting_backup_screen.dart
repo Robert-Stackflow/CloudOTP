@@ -113,7 +113,7 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
       context: context,
       title: appLocalizations.backupSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         if (inited && !canBackup) ...[
@@ -177,7 +177,6 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                useWideLandscape: true,
                 (context) => InputBottomSheet(
                   title: _autoBackupPassword.notNullOrEmpty
                       ? appLocalizations.editAutoBackupPassword
@@ -281,7 +280,6 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
                 BottomSheetBuilder.showBottomSheet(
                   context,
                   responsive: true,
-                  useWideLandscape: true,
                   (context) => InputBottomSheet(
                     title: appLocalizations.maxBackupCount,
                     text: _maxBackupsCount.toString(),

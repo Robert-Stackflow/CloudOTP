@@ -52,7 +52,7 @@ class _AppearanceSettingScreenState
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.showSortButtonKey);
   bool showBackupLogButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showBackupLogButtonKey,
-      defaultValue: ResponsiveUtil.isLandscape());
+      defaultValue: ResponsiveUtil.isLandscapeLayout());
   bool showCloudBackupButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showCloudBackupButtonKey,
       defaultValue: true);
@@ -91,7 +91,7 @@ class _AppearanceSettingScreenState
       context: context,
       title: appLocalizations.appearanceSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         _apperanceSettings(),

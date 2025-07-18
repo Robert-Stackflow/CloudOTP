@@ -338,7 +338,6 @@ class ImportTokenUtil {
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
-      useWideLandscape: true,
       (context) => InputBottomSheet(
         validator: (value) {
           if (value.isEmpty) {
@@ -569,7 +568,6 @@ class ImportTokenUtil {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,
-        useWideLandscape: true,
         (context) => InputBottomSheet(
           validator: (value) {
             if (value.isEmpty) {

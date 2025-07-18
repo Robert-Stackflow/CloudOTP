@@ -1,13 +1,21 @@
-import 'package:awesome_chewie/src/Widgets/Component/window_caption.dart';
+/*
+ * Copyright (c) 2025 Robert-Stackflow.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-
-import 'package:awesome_chewie/src/Resources/colors.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/System/hive_util.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/window_button.dart';
 
 class WindowTitleWrapper extends StatelessWidget {
   final Color? backgroundColor;

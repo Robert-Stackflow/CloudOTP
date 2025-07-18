@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:process_run/process_run.dart';
 
-import '../awesome_chewie.dart';
+import '../../awesome_chewie.dart';
 
 class UpdateScreen extends StatefulWidget {
   const UpdateScreen({

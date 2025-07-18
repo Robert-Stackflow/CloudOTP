@@ -73,7 +73,7 @@ class _EggScreenState extends BaseDynamicState<EggScreen>
     return Stack(
       children: [
         Scaffold(
-          appBar: ResponsiveUtil.isLandscape()
+          appBar: ResponsiveUtil.isLandscapeLayout()
               ? null
               : const ResponsiveAppBar(
                   showBorder: true,
@@ -84,7 +84,7 @@ class _EggScreenState extends BaseDynamicState<EggScreen>
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
               children: [
-                if (ResponsiveUtil.isLandscape())
+                if (ResponsiveUtil.isLandscapeLayout())
                   const SizedBox(height: kToolbarHeight),
                 Center(
                   child: ClickableGestureDetector(
@@ -131,10 +131,10 @@ class _EggScreenState extends BaseDynamicState<EggScreen>
           child: Positioned(
             left: 0,
             right: 0,
-            top: ResponsiveUtil.isLandscape() ? 500 : 380,
+            top: ResponsiveUtil.isLandscapeLayout() ? 500 : 380,
             child: IgnorePointer(
               child: Transform.scale(
-                scale: ResponsiveUtil.isLandscape()
+                scale: ResponsiveUtil.isLandscapeLayout()
                     ? MediaQuery.of(context).size.width / 40
                     : MediaQuery.of(context).size.width * 2 / 40,
                 child: Center(

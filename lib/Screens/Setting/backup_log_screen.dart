@@ -84,7 +84,7 @@ class BackupLogScreenState extends BaseDynamicState<BackupLogScreen> {
                       )
                     : const BlankIconButton(),
                 const SizedBox(width: 5),
-                if (ResponsiveUtil.isLandscape())
+                if (ResponsiveUtil.isLandscapeLayout())
                   Container(
                     margin: const EdgeInsets.only(right: 5),
                     child: const BlankIconButton(),
@@ -103,10 +103,10 @@ class BackupLogScreenState extends BaseDynamicState<BackupLogScreen> {
         border: ChewieTheme.border,
         boxShadow: ChewieTheme.defaultBoxShadow,
       ),
-      width: !ResponsiveUtil.isLandscape()
+      width: !ResponsiveUtil.isLandscapeLayout()
           ? null
           : min(300, MediaQuery.sizeOf(context).width - 80),
-      height: !ResponsiveUtil.isLandscape()
+      height: !ResponsiveUtil.isLandscapeLayout()
           ? null
           : min(appProvider.autoBackupLogs.isEmpty ? 200 : 400,
               MediaQuery.sizeOf(context).height - 80),

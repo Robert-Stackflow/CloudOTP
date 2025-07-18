@@ -95,7 +95,7 @@ class GeneralSettingScreenState extends BaseDynamicState<GeneralSettingScreen>
       context: context,
       title: appLocalizations.generalSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         _languageSetting(),
