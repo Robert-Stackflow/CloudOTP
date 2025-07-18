@@ -14,6 +14,11 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    plugins {
+        id("org.jetbrains.kotlin.jvm") version "1.8.10"
+        id("org.jetbrains.kotlin.android") version "1.8.10"
+    }
 }
 
 plugins {
