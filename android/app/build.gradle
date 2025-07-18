@@ -63,8 +63,8 @@ android {
         release {
             signingConfig signingConfigs.release
 //            useProguard true
-            minifyEnabled false
-            shrinkResources false
+            minifyEnabled true
+            shrinkResources true
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
