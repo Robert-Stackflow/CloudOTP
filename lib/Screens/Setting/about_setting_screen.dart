@@ -19,11 +19,9 @@ import 'dart:io';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Screens/Setting/base_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/egg_screen.dart';
-import 'package:cloudotp/Utils/website_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../Utils/asset_util.dart';
 import '../../Utils/constant.dart';

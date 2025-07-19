@@ -15,16 +15,17 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/regex_util.dart';
 import '../../Widgets/BottomSheet/Backups/s3_backups_bottom_sheet.dart';
@@ -299,12 +300,14 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
               await CloudServiceConfigDao.updateConfig(currentConfig);
               _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
               appProvider.preventLock = true;
+              windowManager.minimize();
               await ping();
             } catch (e, t) {
               ILogger.error("Failed to connect to S3 cloud", e, t);
               IToast.show(appLocalizations.cloudConnectionError);
             } finally {
               appProvider.preventLock = false;
+              windowManager.restore();
             }
           }
         },

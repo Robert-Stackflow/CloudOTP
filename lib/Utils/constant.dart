@@ -15,7 +15,6 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:local_auth_android/local_auth_android.dart';
 
 import '../l10n/l10n.dart';
 

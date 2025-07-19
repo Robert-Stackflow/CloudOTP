@@ -15,6 +15,7 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:dio/dio.dart';
@@ -22,7 +23,6 @@ import 'package:path/path.dart';
 import 'package:webdav_client/webdav_client.dart';
 
 import '../../Models/cloud_service_config.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import 'cloud_service.dart';
 
 class WebDavCloudService extends CloudService {

@@ -16,7 +16,6 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Screens/Setting/base_setting_screen.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/l10n.dart';

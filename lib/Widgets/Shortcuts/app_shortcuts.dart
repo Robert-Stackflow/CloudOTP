@@ -1,7 +1,6 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 
-import '../../Screens/Setting/setting_navigation_screen.dart';
 import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/category_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';

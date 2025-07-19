@@ -13,6 +13,7 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
@@ -26,7 +27,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../Database/category_dao.dart';
 import '../../TokenUtils/check_token_util.dart';
 import '../../TokenUtils/token_image_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/BottomSheet/select_icon_bottom_sheet.dart';
 import '../../Widgets/cloudotp/cloudotp_item_builder.dart';
 import '../../l10n/l10n.dart';

@@ -14,12 +14,11 @@
  */
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:flutter/material.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
+import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/Cloud/huawei_cloud_service.dart';
-import '../../../Utils/utils.dart';
 import '../../../l10n/l10n.dart';
 
 class HuaweiCloudBackupsBottomSheet extends StatefulWidget {

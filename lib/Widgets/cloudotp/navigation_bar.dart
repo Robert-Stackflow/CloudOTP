@@ -14,7 +14,6 @@
  */
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/material.dart';
 
 class SettingNavigationItem {

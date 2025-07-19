@@ -16,6 +16,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
@@ -25,7 +26,6 @@ import 'package:ente_crypto_dart/ente_crypto_dart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../l10n/l10n.dart';
 
 class KdfParams {

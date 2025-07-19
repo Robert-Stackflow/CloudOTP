@@ -18,10 +18,8 @@ import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Widgets/cloudotp/qrcodes_dialog_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:group_button/group_button.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 

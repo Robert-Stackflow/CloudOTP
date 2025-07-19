@@ -21,6 +21,7 @@ import 'package:awesome_cloud/models/box_response.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/box_cloud_service.dart';
@@ -254,12 +255,14 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
         onPressed: () async {
           try {
             appProvider.preventLock = true;
+            windowManager.minimize();
             await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to box", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
           } finally {
             appProvider.preventLock = false;
+            windowManager.restore();
           }
         },
       ),

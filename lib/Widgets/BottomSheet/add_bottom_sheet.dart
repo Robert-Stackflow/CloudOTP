@@ -20,9 +20,9 @@ import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Screens/Token/add_token_screen.dart';

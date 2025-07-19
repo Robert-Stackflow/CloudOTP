@@ -17,9 +17,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:pointycastle/export.dart';
 
-import 'package:awesome_chewie/awesome_chewie.dart';
 import './backup_encrypt_interface.dart';
 import 'backup.dart';
 

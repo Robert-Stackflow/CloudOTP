@@ -19,13 +19,23 @@ class ChewieProvider with ChangeNotifier {
 
   BuildContext get globalNavigatorContext => globalNavigatorKey.currentContext!;
 
-  late BuildContext rootContext;
+  late BuildContext _rootContext;
+
+  BuildContext get rootContext => _rootContext;
 
   bool initedRootContext = false;
 
+  void setRootContext(BuildContext context) {
+    _rootContext = context;
+  }
+
+  void resetRootContext() {
+    _rootContext = globalNavigatorContext;
+  }
+
   void initRootContext(BuildContext context) {
     if (!initedRootContext) {
-      rootContext = context;
+      _rootContext = context;
       initedRootContext = true;
     }
   }
