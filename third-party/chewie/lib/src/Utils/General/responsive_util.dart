@@ -173,8 +173,6 @@ class ResponsiveUtil {
         MediaQuery.sizeOf(chewieProvider.rootContext).shortestSide;
     bool sizeCondition =
         longestSide >= longestThreshold && shortestSide >= shortestThreshold;
-    ILogger.debug(
-        "isTablet: longestSide: $longestSide, shortestSide: $shortestSide, sizeCondition: $sizeCondition");
     return !kIsWeb && (Platform.isIOS || Platform.isAndroid) && sizeCondition;
   }
 
