@@ -1,29 +1,20 @@
 buildscript {
-    ext.kotlin_version = '1.8.10'
+    ext.kotlin_version = '2.1.10'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
-        classpath 'com.android.tools:r8:1.6.82'
+        classpath 'com.android.tools.build:gradle:8.0.2'
+//        classpath 'com.android.tools:r8:1.6.82'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
 allprojects {
     repositories {
-//        maven { url 'https://maven.aliyun.com/repository/google' }
-//        maven { url 'https://maven.aliyun.com/repository/jcenter' }
         google()
         mavenCentral()
-//        maven { url 'https://jitpack.io' }
-//        maven { url "https://maven.google.com" }
-//        maven { url 'https://maven.aliyun.com/repository/public' }
-//        maven { url 'https://maven.aliyun.com/repository/central' }
-//        maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
-//        maven { url 'https://maven.aliyun.com/repository/flutter-plugin' }
-//        maven { url "https://download.flutter.io" }
     }
 }
 
@@ -32,6 +23,20 @@ subprojects {
     afterEvaluate {
         android {
             compileSdkVersion 34
+        }
+        if (it.plugins.hasPlugin('com.android.library') || it.plugins.hasPlugin('com.android.application')) {
+            it.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+
+            it.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions {
+                    jvmTarget = "17"
+                }
+            }
         }
     }
 }

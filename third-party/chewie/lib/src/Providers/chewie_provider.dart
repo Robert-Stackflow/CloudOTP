@@ -69,18 +69,6 @@ class ChewieProvider with ChangeNotifier {
   Widget Function(double size, bool forceDark) loadingWidgetBuilder =
       (size, forceDark) => const Center(child: CircularProgressIndicator());
 
-  ProxyConfig _proxyConfig = ChewieHiveUtil.getProxyConfig() ??
-      ProxyConfig(proxyType: ProxyType.NoProxy);
-
-  ProxyConfig get proxyConfig => _proxyConfig;
-
-  set proxyConfig(ProxyConfig value) {
-    _proxyConfig = value;
-    ChewieHiveUtil.setProxyConfig(value);
-    notifyListeners();
-    ProxyUtil.refresh();
-  }
-
   bool _enableLandscapeInTablet =
       ChewieHiveUtil.getBool(ChewieHiveUtil.enableLandscapeInTabletKey);
 

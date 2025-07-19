@@ -1,0 +1,25 @@
+name: move_to_background
+description: Flutter plugin for sending application to background. Send your app to the background with one line of code.
+version: 1.0.2
+homepage: https://github.com/Sayegh7/move_to_background
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: "^1.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.sayegh.move_to_background
+        pluginClass: MoveToBackgroundPlugin
+      ios:
+        pluginClass: MoveToBackgroundPlugin

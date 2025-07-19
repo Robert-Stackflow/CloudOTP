@@ -41,7 +41,6 @@ export 'src/Utils/System/import_util.dart';
 export 'src/Utils/System/locale_util.dart';
 export 'src/Utils/System/lottie_util.dart';
 export 'src/Utils/System/notification_util.dart';
-export 'src/Utils/System/proxy_util.dart';
 export 'src/Utils/System/route_util.dart';
 export 'src/Utils/System/uri_util.dart';
 export 'src/Utils/utils.dart';
