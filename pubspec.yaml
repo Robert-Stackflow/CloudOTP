@@ -1,5 +1,5 @@
 name: cloudotp
-version: 3.0.0+300
+version: 3.1.1+311
 description: An awesome two-factor authenticator which supports cloud storage and multiple platforms.
 publish_to: none
 
@@ -60,10 +60,10 @@ dependencies:
     path: third-party/tool/s3_storage
   webdav_client:
     path: third-party/tool/webdav_client
-  flutter_cloud:
-    path: third-party/tool/flutter_cloud
+  awesome_cloud:
+    path: third-party/tool/awesome_cloud
   # 工具
-  intl_utils: ^2.8.7
+  intl: ^0.19.0
   html: ^0.15.0
   uuid: ^4.4.2 # UUID
   logger: ^2.4.0 # 日志
@@ -84,15 +84,12 @@ dependencies:
   biometric_storage:
     path: third-party/tool/biometric_storage
   # 平台适配
-  saf:
-    path: third-party/tool/saf
   handy_window: ^0.4.0
   native_device_orientation: ^2.0.3 # 设备方向
   process_run: 1.2.2+1 # 运行
   restart_app: ^1.2.1 # 重启APP
   tray_manager: ^0.2.3 # 托盘图标
   hotkey_manager: ^0.2.3 # 热键
-  install_plugin: ^2.1.0 # 安装APP
   responsive_builder: ^0.7.1 # 响应式布局
   flutter_displaymode: ^0.6.0 # 设置刷新率
   flutter_local_notifications: ^17.2.1+2 # 本地通知
@@ -100,7 +97,8 @@ dependencies:
   screen_protector: ^1.4.2+1
   flutter_windowmanager:
     path: third-party/tool/flutter_windowmanager
-  move_to_background: ^1.0.2 # 移动到后台
+  move_to_background:
+    path: third-party/tool/move_to_background
   launch_at_startup: ^0.3.1 # 开机启动
   local_notifier: ^0.1.6 # 本地通知
   shell_executor: ^0.1.6 # 执行命令
@@ -118,6 +116,7 @@ dev_dependencies:
   msix: ^3.16.7
   sqflite_common_ffi: ^2.3.3
   flutter_launcher_icons: ^0.13.1
+  intl_translation: ^0.20.1
 
 msix_config:
   display_name: CloudOTP
@@ -180,3 +179,4 @@ flutter:
     - assets/logo-transparent.svg
     - assets/logo-transparent.png
     - assets/logo-transparent-small.png
+  generate: true  # ✅ 启用 l10n 支持

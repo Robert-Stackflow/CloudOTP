@@ -27,7 +27,7 @@ import 'package:flutter/material.dart';
 import '../../TokenUtils/ThirdParty/2fas_importer.dart';
 import '../../TokenUtils/ThirdParty/aegis_importer.dart';
 import '../../TokenUtils/ThirdParty/bitwarden_importer.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'add_bottom_sheet.dart';
 
 class ImportFromThirdPartyBottomSheet extends StatefulWidget {
@@ -41,22 +41,18 @@ class ImportFromThirdPartyBottomSheet extends StatefulWidget {
 }
 
 class ImportFromThirdPartyBottomSheetState
-    extends State<ImportFromThirdPartyBottomSheet> {
+    extends BaseDynamicState<ImportFromThirdPartyBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
       appBar: ResponsiveAppBar(
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        showBack: !ResponsiveUtil.isLandscapeLayout(),
+        titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         onTapBack: () {
-          if (ResponsiveUtil.isLandscape()) {
-            chewieProvider.dialogNavigatorState?.popPage();
-          } else {
-            Navigator.pop(context);
-          }
+          DialogNavigatorHelper.responsivePopPage();
         },
-        title: S.current.importFromThirdParty,
-        actions: ResponsiveUtil.isLandscape()
+        title: appLocalizations.importFromThirdParty,
+        actions: ResponsiveUtil.isLandscapeLayout()
             ? []
             : [
                 const BlankIconButton(),
@@ -84,28 +80,29 @@ class ImportFromThirdPartyBottomSheetState
       children: [
         _buildItem(
           asset: AssetFiles.icGoogleauthenticator,
-          title: S.current.importFromGoogleAuthenticator,
-          description: S.current.importFromGoogleAuthenticatorTip,
+          title: appLocalizations.importFromGoogleAuthenticator,
+          description: appLocalizations.importFromGoogleAuthenticatorTip,
           useImport: false,
           onImport: (path) {
             if (ResponsiveUtil.isMobile()) {
               BottomSheetBuilder.showBottomSheet(
-                chewieProvider.rootContext,
+                context,
                 enableDrag: false,
                 responsive: true,
                 (context) => const AddBottomSheet(onlyShowScanner: true),
               );
             } else {
-              IToast.showTop(S.current.importFromGoogleAuthenticatorInMobile);
+              IToast.showTop(
+                  appLocalizations.importFromGoogleAuthenticatorInMobile);
             }
           },
         ),
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.icAegis,
-          title: S.current.importFromAegis,
-          dialogTitle: S.current.importFromAegisTitle,
-          description: S.current.importFromAegisTip,
+          title: appLocalizations.importFromAegis,
+          dialogTitle: appLocalizations.importFromAegisTitle,
+          description: appLocalizations.importFromAegisTip,
           onImport: (path) {
             AegisTokenImporter().importFromPath(path);
           },
@@ -113,9 +110,9 @@ class ImportFromThirdPartyBottomSheetState
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.ic2Fas,
-          title: S.current.importFrom2FAS,
-          dialogTitle: S.current.importFrom2FASTitle,
-          description: S.current.importFrom2FASTip,
+          title: appLocalizations.importFrom2FAS,
+          dialogTitle: appLocalizations.importFrom2FASTitle,
+          description: appLocalizations.importFrom2FASTip,
           allowedExtensions: ['2fas'],
           onImport: (path) {
             TwoFASTokenImporter().importFromPath(path);
@@ -124,9 +121,9 @@ class ImportFromThirdPartyBottomSheetState
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.icBitwarden,
-          title: S.current.importFromBitwarden,
-          dialogTitle: S.current.importFromBitwardenTitle,
-          description: S.current.importFromBitwardenTip,
+          title: appLocalizations.importFromBitwarden,
+          dialogTitle: appLocalizations.importFromBitwardenTitle,
+          description: appLocalizations.importFromBitwardenTip,
           onImport: (path) {
             BitwardenTokenImporter().importFromPath(path);
           },
@@ -134,9 +131,9 @@ class ImportFromThirdPartyBottomSheetState
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.icAndotp,
-          title: S.current.importFromAndOTP,
-          dialogTitle: S.current.importFromAndOTPTitle,
-          description: S.current.importFromAndOTPTip,
+          title: appLocalizations.importFromAndOTP,
+          dialogTitle: appLocalizations.importFromAndOTPTitle,
+          description: appLocalizations.importFromAndOTPTip,
           allowedExtensions: ['json', 'aes'],
           onImport: (path) {
             AndOTPTokenImporter().importFromPath(path);
@@ -145,9 +142,9 @@ class ImportFromThirdPartyBottomSheetState
         // SizedBox(height: spacing),
         // _buildItem(
         //   asset: AssetUtil.icAuthenticatorplus,
-        //   title: S.current.importFromAuthenticatorPlus,
-        //   dialogTitle: S.current.importFromAuthenticatorPlusTitle,
-        //   description: S.current.importFromAuthenticatorPlusTip,
+        //   title: appLocalizations.importFromAuthenticatorPlus,
+        //   dialogTitle: appLocalizations.importFromAuthenticatorPlusTitle,
+        //   description: appLocalizations.importFromAuthenticatorPlusTip,
         //   allowedExtensions: ['db'],
         //   onImport: (path) {
         //     AuthenticatorPlusTokenImporter().importFromPath(path);
@@ -156,9 +153,9 @@ class ImportFromThirdPartyBottomSheetState
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.icEnteauth,
-          title: S.current.importFromEnteAuth,
-          dialogTitle: S.current.importFromEnteAuthTitle,
-          description: S.current.importFromEnteAuthTip,
+          title: appLocalizations.importFromEnteAuth,
+          dialogTitle: appLocalizations.importFromEnteAuthTitle,
+          description: appLocalizations.importFromEnteAuthTip,
           allowedExtensions: ['txt'],
           onImport: (path) {
             EnteAuthTokenImporter().importFromPath(path);
@@ -168,9 +165,9 @@ class ImportFromThirdPartyBottomSheetState
         // _buildItem(
         //   asset: AssetUtil.icFreeotp,
         //   allowedExtensions: ['xml'],
-        //   title: S.current.importFromFreeOTP,
-        //   dialogTitle: S.current.importFromFreeOTPTitle,
-        //   description: S.current.importFromFreeOTPTip,
+        //   title: appLocalizations.importFromFreeOTP,
+        //   dialogTitle: appLocalizations.importFromFreeOTPTitle,
+        //   description: appLocalizations.importFromFreeOTPTip,
         //   onImport: (path) {
         //     FreeOTPTokenImporter().importFromPath(path);
         //   },
@@ -178,9 +175,9 @@ class ImportFromThirdPartyBottomSheetState
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.icFreeotpplus,
-          title: S.current.importFromFreeOTPPlus,
-          dialogTitle: S.current.importFromFreeOTPPlusTitle,
-          description: S.current.importFromFreeOTPPlusTip,
+          title: appLocalizations.importFromFreeOTPPlus,
+          dialogTitle: appLocalizations.importFromFreeOTPPlusTitle,
+          description: appLocalizations.importFromFreeOTPPlusTip,
           onImport: (path) {
             FreeOTPPlusTokenImporter().importFromPath(path);
           },
@@ -188,9 +185,9 @@ class ImportFromThirdPartyBottomSheetState
         // SizedBox(height: spacing),
         // _buildItem(
         //   asset: AssetUtil.icLastpass,
-        //   title: S.current.importFromLastPassAuthenticator,
-        //   dialogTitle: S.current.importFromLastPassAuthenticatorTitle,
-        //   description: S.current.importFromLastPassAuthenticatorTip,
+        //   title: appLocalizations.importFromLastPassAuthenticator,
+        //   dialogTitle: appLocalizations.importFromLastPassAuthenticatorTitle,
+        //   description: appLocalizations.importFromLastPassAuthenticatorTip,
         //   allowedExtensions: ['json'],
         //   onImport: (path) {
         //     WinauthTokenImporter().importFromPath(path);
@@ -199,9 +196,9 @@ class ImportFromThirdPartyBottomSheetState
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.icTotpauthenticator,
-          title: S.current.importFromTOTPAuthenticator,
-          dialogTitle: S.current.importFromTOTPAuthenticatorTitle,
-          description: S.current.importFromTOTPAuthenticatorTip,
+          title: appLocalizations.importFromTOTPAuthenticator,
+          dialogTitle: appLocalizations.importFromTOTPAuthenticatorTitle,
+          description: appLocalizations.importFromTOTPAuthenticatorTip,
           allowedExtensions: ['encrypt'],
           onImport: (path) {
             TotpAuthenticatorTokenImporter().importFromPath(path);
@@ -210,9 +207,9 @@ class ImportFromThirdPartyBottomSheetState
         SizedBox(height: spacing),
         _buildItem(
           asset: AssetFiles.icWinauth,
-          title: S.current.importFromWinauth,
-          dialogTitle: S.current.importFromWinauthTitle,
-          description: S.current.importFromWinauthTip,
+          title: appLocalizations.importFromWinauth,
+          dialogTitle: appLocalizations.importFromWinauthTitle,
+          description: appLocalizations.importFromWinauthTip,
           allowedExtensions: ['zip', 'txt'],
           onImport: (path) {
             WinauthTokenImporter().importFromPath(path);
@@ -240,7 +237,7 @@ class ImportFromThirdPartyBottomSheetState
     }
     containUnsupportExt = containUnsupportExt && ResponsiveUtil.isAndroid();
     return Material(
-      color: Theme.of(context).canvasColor,
+      color: ChewieTheme.canvasColor,
       borderRadius: BorderRadius.circular(borderRadius),
       child: InkWell(
         onTap: useImport
@@ -284,12 +281,12 @@ class ImportFromThirdPartyBottomSheetState
                     AutoSizeText(
                       title,
                       maxLines: 1,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     const SizedBox(height: 3),
                     Text(
                       description,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),

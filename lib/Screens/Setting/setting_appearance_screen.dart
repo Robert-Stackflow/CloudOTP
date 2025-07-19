@@ -21,7 +21,7 @@ import 'package:provider/provider.dart';
 
 import '../../Utils/app_provider.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'base_setting_screen.dart';
 
 class AppearanceSettingScreen extends BaseSettingScreen {
@@ -40,7 +40,8 @@ class AppearanceSettingScreen extends BaseSettingScreen {
       _AppearanceSettingScreenState();
 }
 
-class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
+class _AppearanceSettingScreenState
+    extends BaseDynamicState<AppearanceSettingScreen>
     with TickerProviderStateMixin {
   bool _enableLandscapeInTablet = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.enableLandscapeInTabletKey,
@@ -51,10 +52,10 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.showSortButtonKey);
   bool showBackupLogButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showBackupLogButtonKey,
-      defaultValue: ResponsiveUtil.isLandscape());
+      defaultValue: ResponsiveUtil.isLandscapeLayout());
   bool showCloudBackupButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showCloudBackupButtonKey,
-      defaultValue: ResponsiveUtil.isLandscape());
+      defaultValue: true);
 
   bool enableFrostedGlassEffect = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.enableFrostedGlassEffectKey,
@@ -88,9 +89,9 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
   Widget build(BuildContext context) {
     return ItemBuilder.buildSettingScreen(
       context: context,
-      title: S.current.appearanceSetting,
+      title: appLocalizations.appearanceSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         _apperanceSettings(),
@@ -104,16 +105,16 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
 
   Widget _apperanceSettings() {
     return SearchableCaptionItem(
-      title: S.current.themeSetting,
+      title: appLocalizations.themeSetting,
       children: [
         SearchableBuilderWidget(
-          title: S.current.themeMode,
+          title: appLocalizations.themeMode,
           builder: (_, title, description, searchText, searchConfig) =>
               Selector<AppProvider, ActiveThemeMode>(
             selector: (context, globalProvider) => globalProvider.themeMode,
             builder: (context, themeMode, child) =>
                 InlineSelectionItem<SelectionItemModel<ActiveThemeMode>>(
-              hint: S.current.chooseThemeMode,
+              hint: appLocalizations.chooseThemeMode,
               title: title,
               description: description,
               searchConfig: searchConfig,
@@ -130,7 +131,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           ),
         ),
         SearchableBuilderWidget(
-          title: S.current.selectTheme,
+          title: appLocalizations.selectTheme,
           builder: (_, title, description, searchText, searchConfig) =>
               Selector<AppProvider, ChewieThemeColorData>(
             selector: (context, appProvider) => appProvider.lightTheme,
@@ -138,7 +139,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
                 Selector<AppProvider, ChewieThemeColorData>(
               selector: (context, appProvider) => appProvider.darkTheme,
               builder: (context, darkTheme, child) => EntryItem(
-                tip: "${lightTheme.name}/${darkTheme.name}",
+                tip: "${lightTheme.i18nName}/${darkTheme.i18nName}",
                 title: title,
                 searchConfig: searchConfig,
                 searchText: searchText,
@@ -151,7 +152,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           ),
         ),
         SearchableBuilderWidget(
-          title: S.current.chooseFontFamily,
+          title: appLocalizations.chooseFontFamily,
           builder: (_, title, description, searchText, searchConfig) =>
               Selector<AppProvider, CustomFont>(
             selector: (context, appProvider) => appProvider.currentFont,
@@ -173,10 +174,10 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
 
   Widget _buttonSettings() {
     return SearchableCaptionItem(
-      title: S.current.sideBarSettings,
+      title: appLocalizations.sideBarSettings,
       children: [
         CheckboxItem(
-          title: S.current.showBackupLogButton,
+          title: appLocalizations.showBackupLogButton,
           value: showBackupLogButton,
           onTap: () {
             setState(() {
@@ -186,7 +187,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           },
         ),
         CheckboxItem(
-          title: S.current.showCloudBackupButton,
+          title: appLocalizations.showCloudBackupButton,
           value: showCloudBackupButton,
           onTap: () {
             setState(() {
@@ -196,7 +197,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           },
         ),
         CheckboxItem(
-          title: S.current.showLayoutButton,
+          title: appLocalizations.showLayoutButton,
           value: showLayoutButton,
           onTap: () {
             setState(() {
@@ -206,7 +207,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           },
         ),
         CheckboxItem(
-          title: S.current.showSortButton,
+          title: appLocalizations.showSortButton,
           value: showSortButton,
           onTap: () {
             setState(() {
@@ -221,12 +222,12 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
 
   Widget _tokenLayoutSettings() {
     return SearchableCaptionItem(
-      title: S.current.tokenCardSettings,
+      title: appLocalizations.tokenCardSettings,
       children: [
         CheckboxItem(
           value: hideProgressBar,
-          title: S.current.hideProgressBar,
-          description: S.current.hideProgressBarTip,
+          title: appLocalizations.hideProgressBar,
+          description: appLocalizations.hideProgressBarTip,
           onTap: () {
             setState(() {
               hideProgressBar = !hideProgressBar;
@@ -236,8 +237,8 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
         ),
         CheckboxItem(
           value: showEye,
-          title: S.current.showEye,
-          description: S.current.showEyeTip,
+          title: appLocalizations.showEye,
+          description: appLocalizations.showEyeTip,
           onTap: () {
             setState(() {
               showEye = !showEye;
@@ -251,13 +252,13 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
 
   Widget _mobileSettings() {
     return SearchableCaptionItem(
-      title: S.current.mobileSetting,
+      title: appLocalizations.mobileSetting,
       children: [
-        if (ResponsiveUtil.isLandscapeTablet())
+        if (ResponsiveUtil.isTablet())
           CheckboxItem(
             value: _enableLandscapeInTablet,
-            title: S.current.useDesktopLayoutWhenLandscape,
-            description: S.current.haveToRestartWhenChange,
+            title: appLocalizations.useDesktopLayoutWhenLandscape,
+            description: appLocalizations.haveToRestartWhenChange,
             onTap: () {
               setState(() {
                 _enableLandscapeInTablet = !_enableLandscapeInTablet;
@@ -267,7 +268,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
           ),
         CheckboxItem(
           value: enableFrostedGlassEffect,
-          title: S.current.enableFrostedGlassEffect,
+          title: appLocalizations.enableFrostedGlassEffect,
           onTap: () {
             setState(() {
               enableFrostedGlassEffect = !enableFrostedGlassEffect;
@@ -277,7 +278,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
         ),
         CheckboxItem(
           value: hideAppbarWhenScrolling,
-          title: S.current.hideAppbarWhenScrolling,
+          title: appLocalizations.hideAppbarWhenScrolling,
           onTap: () {
             setState(() {
               hideAppbarWhenScrolling = !hideAppbarWhenScrolling;
@@ -287,7 +288,7 @@ class _AppearanceSettingScreenState extends State<AppearanceSettingScreen>
         ),
         CheckboxItem(
           value: hideBottombarWhenScrolling,
-          title: S.current.hideBottombarWhenScrolling,
+          title: appLocalizations.hideBottombarWhenScrolling,
           onTap: () {
             setState(() {
               hideBottombarWhenScrolling = !hideBottombarWhenScrolling;

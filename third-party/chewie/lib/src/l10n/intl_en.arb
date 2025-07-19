@@ -172,5 +172,11 @@
   "enter": "Enter",
   "searchInApp": "Search in app",
   "retry": "Retry",
-  "tenThousand": "Ten thousand"
+  "tenThousand": "Ten thousand",
+  "themePureWhite": "Pure White",
+  "themeSoftLight": "Soft Light",
+  "themeGitHubLight": "GitHub Light",
+  "themePureBlack": "Pure Black",
+  "themeBlueIron": "Blue Iron",
+  "themeGitHubDark": "GitHub Dark"
 }

@@ -1,11 +1,10 @@
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
+import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
+import 'package:awesome_chewie/src/Widgets/Item/Animation/dialog_animation.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Animation/dialog_animation.dart';
 import 'custom_dialog.dart';
 
 class DialogBuilder {
@@ -30,7 +29,7 @@ class DialogBuilder {
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
-    if (responsive && ResponsiveUtil.isWideLandscape()) {
+    if (responsive && ResponsiveUtil.isWideDevice()) {
       CustomConfirmDialog.show(
         context,
         message: message ?? "",
@@ -45,8 +44,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         renderHtml: renderHtml,
         align: Alignment.center,
-        confirmButtonText: confirmButtonText ?? ChewieS.current.confirm,
-        cancelButtonText: cancelButtonText ?? ChewieS.current.cancel,
+        confirmButtonText: confirmButtonText ?? chewieLocalizations.confirm,
+        cancelButtonText: cancelButtonText ?? chewieLocalizations.cancel,
         onTapConfirm: onTapConfirm ?? () {},
         onTapCancel: onTapCancel ?? () {},
         customDialogType: customDialogType ?? CustomDialogType.normal,
@@ -66,8 +65,8 @@ class DialogBuilder {
         barrierDismissible: barrierDismissible,
         renderHtml: renderHtml,
         align: Alignment.bottomCenter,
-        confirmButtonText: confirmButtonText ?? ChewieS.current.confirm,
-        cancelButtonText: cancelButtonText ?? ChewieS.current.cancel,
+        confirmButtonText: confirmButtonText ?? chewieLocalizations.confirm,
+        cancelButtonText: cancelButtonText ?? chewieLocalizations.cancel,
         onTapConfirm: onTapConfirm ?? () {},
         onTapCancel: onTapCancel ?? () {},
         customDialogType: customDialogType ?? CustomDialogType.normal,
@@ -97,10 +96,10 @@ class DialogBuilder {
     bool bottomRadius = true,
     bool forceNoMarginAtMobile = false,
   }) {
-    if (responsive && ResponsiveUtil.isWideLandscape()) {
+    if (responsive && ResponsiveUtil.isWideDevice()) {
       CustomInfoDialog.show(
         context,
-        buttonText: buttonText ?? ChewieS.current.confirm,
+        buttonText: buttonText ?? chewieLocalizations.confirm,
         message: message,
         messageChild: messageChild,
         imagePath: imagePath,
@@ -121,7 +120,7 @@ class DialogBuilder {
     } else {
       CustomInfoDialog.showAnimatedFromBottom(
         context,
-        buttonText: buttonText ?? ChewieS.current.confirm,
+        buttonText: buttonText ?? chewieLocalizations.confirm,
         message: message,
         messageChild: messageChild,
         imagePath: imagePath,
@@ -151,23 +150,17 @@ class DialogBuilder {
     Function(dynamic)? onThen,
     double? preferMinWidth,
     double? preferMinHeight,
-    GlobalKey<DialogWrapperWidgetState>? overrideDialogNavigatorKey,
   }) {
     showGeneralDialog(
       barrierDismissible: barrierDismissible,
       context: context,
       barrierLabel: '',
-      barrierColor: overrideDialogNavigatorKey != null
-          ? ChewieTheme.barrierColor
-          : ChewieTheme.scaffoldBackgroundColor
-              .withValues(alpha: fullScreen ? 0.55 : 0.6),
+      barrierColor: ChewieTheme.barrierColor,
       transitionDuration: const Duration(milliseconds: 300),
       transitionBuilder: (context, animation, secondaryAnimation, _) {
         return DialogAnimation(
           animation: animation,
           child: DialogWrapperWidget(
-            key:
-                overrideDialogNavigatorKey ?? chewieProvider.dialogNavigatorKey,
             showCloseButton: showCloseButton,
             fullScreen: fullScreen,
             preferMinWidth: preferMinWidth,

@@ -15,19 +15,21 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/regex_util.dart';
 import '../../Widgets/BottomSheet/Backups/s3_backups_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class S3CloudServiceScreen extends StatefulWidget {
   const S3CloudServiceScreen({
@@ -40,7 +42,7 @@ class S3CloudServiceScreen extends StatefulWidget {
   State<S3CloudServiceScreen> createState() => _S3CloudServiceScreenState();
 }
 
-class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
+class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -124,7 +126,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
         : ItemBuilder.buildLoadingDialog(
             context: context,
             background: Colors.transparent,
-            text: S.current.cloudConnecting,
+            text: appLocalizations.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
             topPadding: 100,
           );
@@ -135,7 +137,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
     await currentService.authenticate().then((value) {
       setState(() {
@@ -144,17 +146,17 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
       if (!currentConfig.connected) {
         switch (value) {
           case CloudServiceStatus.connectionError:
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
             break;
           case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.cloudUnauthorized);
+            IToast.show(appLocalizations.cloudUnauthorized);
             break;
           default:
-            IToast.show(S.current.cloudUnknownError);
+            IToast.show(appLocalizations.cloudUnknownError);
             break;
         }
       } else {
-        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -177,7 +179,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeS3Cloud,
+        title: appLocalizations.enable + appLocalizations.cloudTypeS3Cloud,
         value: _s3CloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -200,41 +202,41 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,
-              title: S.current.s3Endpoint,
+              title: appLocalizations.s3Endpoint,
               disabled: currentConfig.connected,
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.s3EndpointCannotBeEmpty;
+                  return appLocalizations.s3EndpointCannotBeEmpty;
                 }
                 if (!RegexUtil.isUrlOrIp(text)) {
-                  return S.current.s3EndpointInvalid;
+                  return appLocalizations.s3EndpointInvalid;
                 }
                 return null;
               },
-              hint: S.current.s3EndpointHint,
+              hint: appLocalizations.s3EndpointHint,
             ),
             InputItem(
               controller: _bucketController,
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.s3BucketCannotBeEmpty;
+                  return appLocalizations.s3BucketCannotBeEmpty;
                 }
                 return null;
               },
               textInputAction: TextInputAction.next,
               disabled: currentConfig.connected,
-              title: S.current.s3Bucket,
-              hint: S.current.s3BucketHint,
+              title: appLocalizations.s3Bucket,
+              hint: appLocalizations.s3BucketHint,
             ),
             InputItem(
               controller: _accessKeyController,
               textInputAction: TextInputAction.next,
-              title: S.current.s3AccessKey,
+              title: appLocalizations.s3AccessKey,
               tailingConfig: InputItemLeadingTailingConfig(
                 type: InputItemLeadingTailingType.password,
               ),
               disabled: currentConfig.connected,
-              hint: S.current.s3AccessKeyHint,
+              hint: appLocalizations.s3AccessKeyHint,
               style: InputItemStyle(
                 obscure: currentConfig.connected,
                 bottomRadius: true,
@@ -244,7 +246,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               ],
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.s3AccessKeyCannotBeEmpty;
+                  return appLocalizations.s3AccessKeyCannotBeEmpty;
                 }
                 return null;
               },
@@ -252,12 +254,12 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             InputItem(
               controller: _secretKeyController,
               textInputAction: TextInputAction.next,
-              title: S.current.s3SecretKey,
+              title: appLocalizations.s3SecretKey,
               tailingConfig: InputItemLeadingTailingConfig(
                 type: InputItemLeadingTailingType.password,
               ),
               disabled: currentConfig.connected,
-              hint: S.current.s3SecretKeyHint,
+              hint: appLocalizations.s3SecretKeyHint,
               style: InputItemStyle(
                 obscure: currentConfig.connected,
                 bottomRadius: true,
@@ -267,7 +269,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
               ],
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.s3SecretKeyCannotBeEmpty;
+                  return appLocalizations.s3SecretKeyCannotBeEmpty;
                 }
                 return null;
               },
@@ -275,9 +277,9 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             InputItem(
               controller: _regionController,
               textInputAction: TextInputAction.next,
-              title: S.current.s3Region,
+              title: appLocalizations.s3Region,
               disabled: currentConfig.connected,
-              hint: S.current.s3RegionHint,
+              hint: appLocalizations.s3RegionHint,
             ),
           ],
         ),
@@ -289,18 +291,23 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        text: appLocalizations.cloudSignin,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           if (await isValid()) {
             try {
               await CloudServiceConfigDao.updateConfig(currentConfig);
               _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
-              ping();
+              appProvider.preventLock = true;
+              windowManager.minimize();
+              await ping();
             } catch (e, t) {
               ILogger.error("Failed to connect to S3 cloud", e, t);
-              IToast.show(S.current.cloudConnectionError);
+              IToast.show(appLocalizations.cloudConnectionError);
+            } finally {
+              appProvider.preventLock = false;
+              windowManager.restore();
             }
           }
         },
@@ -315,18 +322,19 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: S.current.cloudPullBackup,
+              text: appLocalizations.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<S3CloudFileInfo>? files =
                       await _s3CloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -343,7 +351,7 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                         cloudService: _s3CloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res = await _s3CloudService!.downloadFile(
@@ -357,12 +365,12 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull from S3 cloud", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -371,8 +379,8 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
-              text: S.current.cloudPushBackup,
+              background: ChewieTheme.primaryColor,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -387,12 +395,12 @@ class _S3CloudServiceScreenState extends State<S3CloudServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   setState(() {
                     currentConfig.connected = false;

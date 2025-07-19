@@ -18,10 +18,8 @@ import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Widgets/cloudotp/qrcodes_dialog_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:group_button/group_button.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -48,8 +46,8 @@ class CloudOTPItemBuilder {
     SystemUiOverlayStyle? systemOverlayStyle,
     bool useBackdropFilter = false,
   }) {
-    bool showLeading = !ResponsiveUtil.isLandscape();
-    center = ResponsiveUtil.isLandscape() ? false : center;
+    bool showLeading = !ResponsiveUtil.isLandscapeLayout();
+    center = ResponsiveUtil.isLandscapeLayout() ? false : center;
     return MySliverAppBar(
       useBackdropFilter: useBackdropFilter,
       systemOverlayStyle: systemOverlayStyle,
@@ -163,7 +161,7 @@ class CloudOTPItemBuilder {
     Alignment align = Alignment.bottomCenter,
     bool responsive = true,
   }) {
-    if (responsive && ResponsiveUtil.isWideLandscape()) {
+    if (responsive && ResponsiveUtil.isWideDevice()) {
       QrcodeDialog.show(
         context,
         title: title,
@@ -205,19 +203,19 @@ class CloudOTPItemBuilder {
       text ?? "",
       textAlign: TextAlign.center,
       style: textStyle ??
-          Theme.of(context).textTheme.titleSmall?.apply(
-                color: color ??
-                    (background != null
-                        ? Colors.white
-                        : disabled
-                            ? Colors.grey
-                            : Theme.of(context).textTheme.titleSmall?.color),
-                fontWeightDelta: 2,
-                fontSizeDelta: fontSizeDelta,
-              ),
+          ChewieTheme.titleSmall?.apply(
+            color: color ??
+                (background != null
+                    ? Colors.white
+                    : disabled
+                        ? Colors.grey
+                        : ChewieTheme.titleSmall?.color),
+            fontWeightDelta: 2,
+            fontSizeDelta: fontSizeDelta,
+          ),
       maxLines: 1,
     );
-    Color fBackground = background ?? Theme.of(context).cardColor;
+    Color fBackground = background ?? ChewieTheme.cardColor;
     return PressableAnimation(
       child: Material(
         color: fBackground.withAlpha(fBackground.alpha ~/ (disabled ? 1.5 : 1)),
@@ -275,15 +273,23 @@ class QrcodeDialog {
     required List<String> qrcodes,
     Alignment align = Alignment.bottomCenter,
   }) =>
-      showDialog<T>(
+      showGeneralDialog(
+        barrierColor: ChewieTheme.barrierColor,
         barrierDismissible: true,
+        barrierLabel: "",
         context: context,
-        builder: (context) => QrcodesDialogWidget(
-          title: title,
-          qrcodes: qrcodes,
-          message: message,
-          align: align,
-          asset: asset,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const SizedBox.shrink(),
+        transitionBuilder: (context, animation, secondaryAnimation, _) =>
+            DialogAnimation(
+          animation: animation,
+          child: QrcodesDialogWidget(
+            title: title,
+            qrcodes: qrcodes,
+            message: message,
+            align: align,
+            asset: asset,
+          ),
         ),
       );
 
@@ -299,7 +305,7 @@ class QrcodeDialog {
         context: context,
         elevation: 0,
         enableDrag: true,
-        backgroundColor: Theme.of(context).canvasColor,
+        backgroundColor: ChewieTheme.canvasColor,
         builder: (context) => QrcodesDialogWidget(
           title: title,
           message: message,

@@ -15,9 +15,7 @@
 
 import 'dart:typed_data';
 
-import 'package:flutter_cloud/onedrive.dart';
-import 'package:flutter_cloud/onedrive_response.dart';
-import 'package:path/path.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/app_provider.dart';
@@ -28,8 +26,6 @@ import 'cloud_service.dart';
 class OneDriveCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.OneDrive;
-  static const String _redirectUrl =
-      'https://apps.cloudchewie.com/oauth/cloudotp/onedrive/callback';
   static const String _callbackUrl = 'cloudotp://auth/onedrive/callback';
   static const String _clientId = '3b953ca4-3dd4-4148-a80b-b1ac8c39fd97';
   static const String _onedrivePath = '/CloudOTP';
@@ -47,7 +43,6 @@ class OneDriveCloudService extends CloudService {
   @override
   Future<void> init() async {
     onedrive = OneDrive(
-      redirectUrl: _callbackUrl,
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
@@ -158,7 +153,8 @@ class OneDriveCloudService extends CloudService {
   }) async {
     OneDriveResponse response = await onedrive.push(
       fileData,
-      join(_onedrivePath, fileName),
+      _onedrivePath,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

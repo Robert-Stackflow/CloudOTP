@@ -18,12 +18,12 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
-import 'package:cloudotp/Utils/Tuple/tuple.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:queue/queue.dart';
 
 import '../Screens/home_screen.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'hive_util.dart';
 
 GlobalKey<GeneralSettingScreenState> generalSettingScreenKey =
@@ -77,17 +77,17 @@ enum AutoLockTime {
   String get label {
     switch (this) {
       case AutoLockTime.immediately:
-        return S.current.immediatelyLock;
+        return appLocalizations.immediatelyLock;
       case AutoLockTime.after30Seconds:
-        return S.current.after30SecondsLock;
+        return appLocalizations.after30SecondsLock;
       case AutoLockTime.after1Minute:
-        return S.current.after1MinuteLock;
+        return appLocalizations.after1MinuteLock;
       case AutoLockTime.after3Minutes:
-        return S.current.after3MinutesLock;
+        return appLocalizations.after3MinutesLock;
       case AutoLockTime.after5Minutes:
-        return S.current.after5MinutesLock;
+        return appLocalizations.after5MinutesLock;
       case AutoLockTime.after10Minutes:
-        return S.current.after10MinutesLock;
+        return appLocalizations.after10MinutesLock;
     }
   }
 }
@@ -100,12 +100,18 @@ class AutoLockOption implements DropdownMixin {
 
   static List<AutoLockOption> getOptions() {
     return [
-      AutoLockOption(S.current.immediatelyLock, AutoLockTime.immediately),
-      AutoLockOption(S.current.after30SecondsLock, AutoLockTime.after30Seconds),
-      AutoLockOption(S.current.after1MinuteLock, AutoLockTime.after1Minute),
-      AutoLockOption(S.current.after3MinutesLock, AutoLockTime.after3Minutes),
-      AutoLockOption(S.current.after5MinutesLock, AutoLockTime.after5Minutes),
-      AutoLockOption(S.current.after10MinutesLock, AutoLockTime.after10Minutes),
+      AutoLockOption(
+          appLocalizations.immediatelyLock, AutoLockTime.immediately),
+      AutoLockOption(
+          appLocalizations.after30SecondsLock, AutoLockTime.after30Seconds),
+      AutoLockOption(
+          appLocalizations.after1MinuteLock, AutoLockTime.after1Minute),
+      AutoLockOption(
+          appLocalizations.after3MinutesLock, AutoLockTime.after3Minutes),
+      AutoLockOption(
+          appLocalizations.after5MinutesLock, AutoLockTime.after5Minutes),
+      AutoLockOption(
+          appLocalizations.after10MinutesLock, AutoLockTime.after10Minutes),
     ];
   }
 
@@ -232,7 +238,7 @@ class AppProvider with ChangeNotifier {
 
   bool _showCloudBackupButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showCloudBackupButtonKey,
-      defaultValue: ResponsiveUtil.isLandscape(false));
+      defaultValue: true);
 
   bool get showCloudBackupButton => _showCloudBackupButton;
 
@@ -266,7 +272,7 @@ class AppProvider with ChangeNotifier {
 
   bool _showBackupLogButton = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.showBackupLogButtonKey,
-      defaultValue: ResponsiveUtil.isLandscape(false));
+      defaultValue: ResponsiveUtil.isLandscapeLayout(false));
 
   bool get showBackupLogButton => _showBackupLogButton;
 
@@ -404,6 +410,7 @@ class AppProvider with ChangeNotifier {
   set locale(Locale? value) {
     if (value != _locale) {
       _locale = value;
+      Intl.defaultLocale = value?.toString();
       notifyListeners();
       ChewieHiveUtil.setLocale(value);
     }

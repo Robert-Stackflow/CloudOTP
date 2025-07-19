@@ -17,7 +17,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 
 import '../../Utils/lottie_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class EggScreen extends StatefulWidget {
   const EggScreen({super.key});
@@ -28,7 +28,8 @@ class EggScreen extends StatefulWidget {
   State<EggScreen> createState() => _EggScreenState();
 }
 
-class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
+class _EggScreenState extends BaseDynamicState<EggScreen>
+    with TickerProviderStateMixin {
   Widget? celebrateWidget;
   bool _showCelebrate = false;
   late AnimationController _celebrateController;
@@ -72,7 +73,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
     return Stack(
       children: [
         Scaffold(
-          appBar: ResponsiveUtil.isLandscape()
+          appBar: ResponsiveUtil.isLandscapeLayout()
               ? null
               : const ResponsiveAppBar(
                   showBorder: true,
@@ -83,7 +84,7 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
               children: [
-                if (ResponsiveUtil.isLandscape())
+                if (ResponsiveUtil.isLandscapeLayout())
                   const SizedBox(height: kToolbarHeight),
                 Center(
                   child: ClickableGestureDetector(
@@ -116,8 +117,8 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 10),
                     child: CustomHtmlWidget(
-                      content: S.current.eggEssay,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      content: appLocalizations.eggEssay,
+                      style: ChewieTheme.bodyLarge,
                     ),
                   ),
                 ),
@@ -130,10 +131,10 @@ class _EggScreenState extends State<EggScreen> with TickerProviderStateMixin {
           child: Positioned(
             left: 0,
             right: 0,
-            top: ResponsiveUtil.isLandscape() ? 500 : 380,
+            top: ResponsiveUtil.isLandscapeLayout() ? 500 : 380,
             child: IgnorePointer(
               child: Transform.scale(
-                scale: ResponsiveUtil.isLandscape()
+                scale: ResponsiveUtil.isLandscapeLayout()
                     ? MediaQuery.of(context).size.width / 40
                     : MediaQuery.of(context).size.width * 2 / 40,
                 child: Center(

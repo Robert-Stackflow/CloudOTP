@@ -59,6 +59,7 @@ class CloudOTPHiveUtil {
   static const String hideBottombarWhenScrollingKey =
       "hideBottombarWhenScrolling";
   static const String enableLandscapeInTabletKey = "enableLandscapeInTablet";
+
   //Backup
   static const String enableAutoBackupKey = "enableAutoBackup";
   static const String enableLocalBackupKey = "enableLocalBackup";
@@ -82,6 +83,7 @@ class CloudOTPHiveUtil {
 
   //System
   static const String oldVersionKey = "oldVersion";
+  static const String haveShowQAuthDialogKey = "haveShowQAuthDialog";
 
   static initConfig() async {
     await ChewieHiveUtil.put(
@@ -101,6 +103,9 @@ class CloudOTPHiveUtil {
   static bool canGuestureLock() =>
       ChewieHiveUtil.getBool(enableGuesturePasswdKey) &&
       ChewieHiveUtil.getString(guesturePasswdKey).notNullOrEmpty;
+
+  static bool shouldAutoLock() =>
+      ChewieHiveUtil.getBool(autoLockKey) && canLock();
 
   static bool canDatabaseLock() =>
       getEncryptDatabaseStatus() == EncryptDatabaseStatus.customPassword &&

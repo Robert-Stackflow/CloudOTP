@@ -20,15 +20,15 @@ import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Models/opt_token.dart';
 import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';
 import '../../TokenUtils/import_token_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'import_from_third_party_bottom_sheet.dart';
 
 class AddBottomSheet extends StatefulWidget {
@@ -43,7 +43,7 @@ class AddBottomSheet extends StatefulWidget {
   AddBottomSheetState createState() => AddBottomSheetState();
 }
 
-class AddBottomSheetState extends State<AddBottomSheet>
+class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
     with WidgetsBindingObserver {
   final MobileScannerController scannerController =
       MobileScannerController(useNewCameraSelector: true);
@@ -122,6 +122,8 @@ class AddBottomSheetState extends State<AddBottomSheet>
     await scannerController.dispose();
   }
 
+  Radius radius = ChewieDimens.defaultRadius;
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -129,12 +131,12 @@ class AddBottomSheetState extends State<AddBottomSheet>
       children: [
         Container(
           decoration: BoxDecoration(
-            color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(20),
-                bottom: ResponsiveUtil.isWideLandscape()
-                    ? const Radius.circular(20)
-                    : Radius.zero),
+                top: radius,
+                bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
+            color: ChewieTheme.scaffoldBackgroundColor,
+            border: ChewieTheme.border,
+            boxShadow: ChewieTheme.defaultBoxShadow,
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -187,8 +189,8 @@ class AddBottomSheetState extends State<AddBottomSheet>
       padding: const EdgeInsets.only(top: 20),
       alignment: Alignment.center,
       child: Text(
-        S.current.scanToken,
-        style: Theme.of(context).textTheme.titleLarge,
+        appLocalizations.scanToken,
+        style: ChewieTheme.titleLarge,
       ),
     );
   }
@@ -196,7 +198,8 @@ class AddBottomSheetState extends State<AddBottomSheet>
   _buildScanner() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtil.isLandscapeLayout() ? 20 : 10),
       alignment: Alignment.center,
       height: 400,
       width: MediaQuery.sizeOf(context).width,
@@ -239,7 +242,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
                       turns = 0;
                       break;
                   }
-                  turns = !ResponsiveUtil.isWideLandscape() ? 0 : turns;
+                  turns = !ResponsiveUtil.isWideDevice() ? 0 : turns;
                   return RotatedBox(
                     quarterTurns: turns,
                     child: MobileScanner(
@@ -256,7 +259,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Text(
-                                    S.current.scanPlaceholder,
+                                    appLocalizations.scanPlaceholder,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -302,7 +305,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
       children: [
         EntryItem(
           paddingHorizontal: 20,
-          title: S.current.addTokenByManual,
+          title: appLocalizations.addTokenByManual,
           showLeading: true,
           showTrailing: false,
           onTap: () {
@@ -313,7 +316,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
         ),
         EntryItem(
           paddingHorizontal: 20,
-          title: S.current.exportImport,
+          title: appLocalizations.exportImport,
           showLeading: true,
           showTrailing: false,
           onTap: () {
@@ -324,7 +327,7 @@ class AddBottomSheetState extends State<AddBottomSheet>
         ),
         EntryItem(
           paddingHorizontal: 20,
-          title: S.current.importFromThirdParty,
+          title: appLocalizations.importFromThirdParty,
           showLeading: true,
           showTrailing: false,
           onTap: () {
@@ -478,17 +481,17 @@ class ScannerErrorWidget extends StatelessWidget {
 
     switch (error.errorCode) {
       case MobileScannerErrorCode.controllerUninitialized:
-        errorMessage = S.current.scanControllerUninitialized;
+        errorMessage = appLocalizations.scanControllerUninitialized;
       case MobileScannerErrorCode.controllerAlreadyInitialized:
-        errorMessage = S.current.scanControllerAlreadyInitialized;
+        errorMessage = appLocalizations.scanControllerAlreadyInitialized;
       case MobileScannerErrorCode.controllerDisposed:
-        errorMessage = S.current.scanControllerDisposed;
+        errorMessage = appLocalizations.scanControllerDisposed;
       case MobileScannerErrorCode.permissionDenied:
-        errorMessage = S.current.scanPermissionDenied;
+        errorMessage = appLocalizations.scanPermissionDenied;
       case MobileScannerErrorCode.unsupported:
-        errorMessage = S.current.scanUnsupported;
+        errorMessage = appLocalizations.scanUnsupported;
       default:
-        errorMessage = S.current.scanGenericError;
+        errorMessage = appLocalizations.scanGenericError;
         break;
     }
 

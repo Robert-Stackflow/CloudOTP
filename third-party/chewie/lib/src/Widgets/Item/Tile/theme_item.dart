@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Resources/theme_color_data.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 
 class ThemeItem extends StatefulWidget {
   final ChewieThemeColorData themeColorData;
@@ -63,7 +63,7 @@ class _ThemeItemState extends State<ThemeItem> {
           ),
           const SizedBox(height: 8),
           Text(
-            widget.themeColorData.name,
+            widget.themeColorData.i18nName,
             style: ChewieTheme.bodySmall,
           ),
         ],
@@ -165,7 +165,8 @@ class _EmptyThemeItemState extends State<EmptyThemeItem> {
                   color: ChewieTheme.titleSmall.color,
                 ),
                 const SizedBox(height: 6),
-                Text(ChewieS.current.newTheme, style: ChewieTheme.titleSmall),
+                Text(chewieLocalizations.newTheme,
+                    style: ChewieTheme.titleSmall),
               ],
             ),
           ),

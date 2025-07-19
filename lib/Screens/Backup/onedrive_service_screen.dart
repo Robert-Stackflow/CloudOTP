@@ -15,18 +15,20 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/onedrive_response.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
-import '../../generated/l10n.dart';
+import '../../Utils/app_provider.dart';
+import '../../l10n/l10n.dart';
 
 class OneDriveServiceScreen extends StatefulWidget {
   const OneDriveServiceScreen({
@@ -39,7 +41,8 @@ class OneDriveServiceScreen extends StatefulWidget {
   State<OneDriveServiceScreen> createState() => _OneDriveServiceScreenState();
 }
 
-class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
+class _OneDriveServiceScreenState
+    extends BaseDynamicState<OneDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -63,9 +66,10 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     super.initState();
     try {
       loadConfig();
-    } catch (e) {
+    } catch (e, t) {
       inited = true;
-      IToast.show(S.current.cloudConnectionError);
+      ILogger.error("Failed to load OneDrive config", e, t);
+      IToast.show(appLocalizations.cloudConnectionError);
     }
   }
 
@@ -96,7 +100,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           await _oneDriveCloudService!.isConnected();
       if (_oneDriveCloudServiceConfig!.configured &&
           !_oneDriveCloudServiceConfig!.connected) {
-        IToast.showTop(S.current.cloudConnectionError);
+        IToast.showTop(appLocalizations.cloudConnectionError);
       }
       updateConfig(_oneDriveCloudServiceConfig!);
     }
@@ -126,7 +130,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             : ItemBuilder.buildLoadingDialog(
                 context: context,
                 background: Colors.transparent,
-                text: S.current.cloudConnecting,
+                text: appLocalizations.cloudConnecting,
                 mainAxisAlignment: MainAxisAlignment.start,
                 topPadding: 100,
               );
@@ -138,7 +142,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeOneDrive)),
+          Text(appLocalizations
+              .cloudTypeNotSupport(appLocalizations.cloudTypeOneDrive)),
           const SizedBox(height: 10),
         ],
       ),
@@ -150,7 +155,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
     await currentService.authenticate().then((value) async {
       setState(() {
@@ -159,19 +164,19 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
       if (!currentConfig.connected) {
         switch (value) {
           case CloudServiceStatus.connectionError:
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
             break;
           case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.cloudOauthFailed);
+            IToast.show(appLocalizations.cloudOauthFailed);
             break;
           default:
-            IToast.show(S.current.cloudUnknownError);
+            IToast.show(appLocalizations.cloudUnknownError);
             break;
         }
       } else {
         _oneDriveCloudServiceConfig!.configured = true;
         updateConfig(_oneDriveCloudServiceConfig!);
-        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -194,8 +199,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeOneDrive,
-        description: S.current.cloudTypeOneDriveTip,
+        title: appLocalizations.enable + appLocalizations.cloudTypeOneDrive,
+        description: appLocalizations.cloudTypeOneDriveTip,
         value: _oneDriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -219,19 +224,19 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             controller: _accountController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudDisplayName,
+            title: appLocalizations.cloudDisplayName,
           ),
           InputItem(
             controller: _emailController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudEmail,
+            title: appLocalizations.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudSize,
+            title: appLocalizations.cloudSize,
           ),
         ],
       ),
@@ -242,15 +247,20 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        text: appLocalizations.cloudSignin,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            windowManager.minimize();
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to onedrive", e, t);
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
+            windowManager.restore();
           }
         },
       ),
@@ -265,17 +275,18 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              text: S.current.cloudPullBackup,
-              color: Theme.of(context).primaryColor,
+              text: appLocalizations.cloudPullBackup,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<OneDriveFileInfo>? files =
                       await _oneDriveCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -292,7 +303,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                         cloudService: _oneDriveCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res =
@@ -307,12 +318,12 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull from onedrive", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -321,8 +332,8 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
-              text: S.current.cloudPushBackup,
+              background: ChewieTheme.primaryColor,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -337,15 +348,15 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   CustomLoadingDialog.showLoading(
-                      title: S.current.cloudLoggingOut);
+                      title: appLocalizations.cloudLoggingOut);
                   await _oneDriveCloudService!.signOut();
                   setState(() {
                     _oneDriveCloudServiceConfig!.connected = false;
@@ -357,7 +368,7 @@ class _OneDriveServiceScreenState extends State<OneDriveServiceScreen>
                     updateConfig(_oneDriveCloudServiceConfig!);
                   });
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudLogoutSuccess);
+                  IToast.show(appLocalizations.cloudLogoutSuccess);
                 });
               },
             ),

@@ -13,9 +13,9 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:cloudotp/generated/l10n.dart';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/l10n/l10n.dart';
+
 import '../Models/opt_token.dart';
 import '../Utils/Base32/base32.dart';
 
@@ -30,17 +30,17 @@ enum CheckTokenError {
   String get message {
     switch (this) {
       case CheckTokenError.ISSUER_EMPTY:
-        return S.current.issuerCannotBeEmpty;
+        return appLocalizations.issuerCannotBeEmpty;
       case CheckTokenError.SECRET_EMPTY:
-        return S.current.secretCannotBeEmpty;
+        return appLocalizations.secretCannotBeEmpty;
       case CheckTokenError.SECRET_BASE32_ERROR:
-        return S.current.secretNotBase32;
+        return appLocalizations.secretNotBase32;
       case CheckTokenError.period_ERROR:
-        return S.current.periodTooLong;
+        return appLocalizations.periodTooLong;
       case CheckTokenError.PIN_EMPTY:
-        return S.current.pinCannotBeEmpty;
+        return appLocalizations.pinCannotBeEmpty;
       case CheckTokenError.UNKNOWN_ERROR:
-        return S.current.tokenUnKnownError;
+        return appLocalizations.tokenUnKnownError;
     }
   }
 }

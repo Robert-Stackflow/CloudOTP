@@ -41,7 +41,7 @@ import '../Models/Proto/CloudOtpToken/cloudotp_token_payload.pb.dart';
 import '../Models/Proto/TokenCategory/token_category_payload.pb.dart';
 import '../Models/token_category.dart';
 import '../Utils/constant.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'Backup/backup_encrypt_interface.dart';
 import 'Cloud/cloud_service.dart';
 
@@ -61,7 +61,7 @@ class ExportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.exporting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.exporting);
     }
     List<OtpToken> tokens = await TokenDao.listTokens();
     await compute((_) async {
@@ -74,14 +74,14 @@ class ExportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.dismissLoading();
     }
-    IToast.showTop(S.current.exportSuccess);
+    IToast.showTop(appLocalizations.exportSuccess);
   }
 
   static exportUriToMobileDirectory({
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.exporting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.exporting);
     }
     List<OtpToken> tokens = await TokenDao.listTokens();
     Uint8List res = await compute((_) async {
@@ -91,7 +91,7 @@ class ExportTokenUtil {
       return utf8.encode(content);
     }, null);
     String? filePath = await FileUtil.saveFile(
-      dialogTitle: S.current.exportUriFileTitle,
+      dialogTitle: appLocalizations.exportUriFileTitle,
       fileName: ExportTokenUtil.getExportFileName("txt"),
       type: FileType.custom,
       allowedExtensions: ['txt'],
@@ -101,7 +101,7 @@ class ExportTokenUtil {
       CustomLoadingDialog.dismissLoading();
     }
     if (filePath != null) {
-      IToast.showTop(S.current.exportSuccess);
+      IToast.showTop(appLocalizations.exportSuccess);
     }
   }
 
@@ -141,26 +141,26 @@ class ExportTokenUtil {
     Uint8List? encryptedData,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.exporting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.exporting);
     }
     try {
       encryptedData ??= await getUint8List(password: password);
       if (encryptedData == null) {
-        IToast.showTop(S.current.exportFailed);
+        IToast.showTop(appLocalizations.exportFailed);
         return;
       } else {
         await compute((_) async {
           File file = File(filePath);
           file.writeAsBytesSync(encryptedData!);
         }, null);
-        IToast.showTop(S.current.exportSuccess);
+        IToast.showTop(appLocalizations.exportSuccess);
       }
     } catch (e, t) {
       ILogger.error("Failed to export data to encrypt file", e, t);
       if (e is BackupBaseException) {
         IToast.showTop(e.intlMessage);
       } else {
-        IToast.showTop(S.current.exportFailed);
+        IToast.showTop(appLocalizations.exportFailed);
       }
     } finally {
       if (showLoading) {
@@ -174,17 +174,17 @@ class ExportTokenUtil {
     String? password,
   }) async {
     var dialog = showProgressDialog(
-      S.current.exporting,
+      appLocalizations.exporting,
       showProgress: false,
     );
     encryptedData ??= await ExportTokenUtil.getUint8List(password: password);
     if (encryptedData == null) {
-      IToast.showTop(S.current.exportFailed);
+      IToast.showTop(appLocalizations.exportFailed);
       dialog.dismiss();
       return;
     } else {
       String? filePath = await FileUtil.saveFile(
-        dialogTitle: S.current.exportEncryptFileTitle,
+        dialogTitle: appLocalizations.exportEncryptFileTitle,
         fileName: ExportTokenUtil.getExportFileName("bin"),
         type: FileType.custom,
         bytes: encryptedData,
@@ -192,7 +192,7 @@ class ExportTokenUtil {
       );
       dialog.dismiss();
       if (filePath != null) {
-        IToast.showTop(S.current.exportSuccess);
+        IToast.showTop(appLocalizations.exportSuccess);
       }
     }
   }
@@ -253,7 +253,7 @@ class ExportTokenUtil {
     ProgressDialog? dialog;
     if (showLoading) {
       dialog = showProgressDialog(
-        S.current.backuping,
+        appLocalizations.backuping,
         showProgress: false,
       );
     }
@@ -262,7 +262,7 @@ class ExportTokenUtil {
       encryptedData ??= await getUint8List();
       if (encryptedData == null) {
         log.addStatus(AutoBackupStatus.encryptFailed);
-        if (showToast) IToast.showTop(S.current.backupFailed);
+        if (showToast) IToast.showTop(appLocalizations.backupFailed);
         return;
       } else {
         bool noPermission = false;
@@ -297,7 +297,8 @@ class ExportTokenUtil {
                     type: cloudService.type);
                 if (showLoading && dialog != null) {
                   dialog.updateMessage(
-                    msg: S.current.cloudPushingTo(cloudService.type.label),
+                    msg: appLocalizations
+                        .cloudPushingTo(cloudService.type.label),
                     showProgress: true,
                   );
                   dialog.updateProgress(progress: 0);
@@ -333,13 +334,13 @@ class ExportTokenUtil {
         }
         if (!log.haveFailed) {
           log.addStatus(AutoBackupStatus.complete);
-          if (showToast) IToast.showTop(S.current.backupSuccess);
+          if (showToast) IToast.showTop(appLocalizations.backupSuccess);
         } else {
           log.addStatus(AutoBackupStatus.failed);
           if (showToast) {
             IToast.showTop(noPermission
-                ? S.current.pleaseGrantFilePermission
-                : S.current.backupFailed);
+                ? appLocalizations.pleaseGrantFilePermission
+                : appLocalizations.backupFailed);
           }
         }
       }
@@ -350,7 +351,7 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
         log.addStatus(AutoBackupStatus.failed);
-        if (showToast) IToast.showTop(S.current.backupFailed);
+        if (showToast) IToast.showTop(appLocalizations.backupFailed);
       }
     } finally {
       AutoBackupLogDao.insertLog(log);
@@ -365,12 +366,12 @@ class ExportTokenUtil {
   }) async {
     if (!await CloudOTPHiveUtil.canBackup()) return;
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.backuping);
+      CustomLoadingDialog.showLoading(title: appLocalizations.backuping);
     }
     try {
       encryptedData ??= await getUint8List();
       if (encryptedData == null) {
-        if (showToast) IToast.showTop(S.current.backupFailed);
+        if (showToast) IToast.showTop(appLocalizations.backupFailed);
         return;
       } else {
         String backupPath = await CloudOTPHiveUtil.getBackupPath();
@@ -383,14 +384,14 @@ class ExportTokenUtil {
           file.writeAsBytesSync(encryptedData!);
         }, null);
         ExportTokenUtil.deleteOldBackup();
-        if (showToast) IToast.showTop(S.current.backupSuccess);
+        if (showToast) IToast.showTop(appLocalizations.backupSuccess);
       }
     } catch (e, t) {
       ILogger.error("Failed to backup encrypt file to local", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
-        if (showToast) IToast.showTop(S.current.backupFailed);
+        if (showToast) IToast.showTop(appLocalizations.backupFailed);
       }
     } finally {
       if (showLoading) {
@@ -410,18 +411,19 @@ class ExportTokenUtil {
     ProgressDialog? dialog;
     if (showLoading) {
       dialog = showProgressDialog(
-        S.current.backuping,
+        appLocalizations.backuping,
         showProgress: false,
       );
     }
     try {
       encryptedData ??= await getUint8List();
       if (encryptedData == null) {
-        if (showToast) IToast.showTop(S.current.backupFailed);
+        if (showToast) IToast.showTop(appLocalizations.backupFailed);
         return;
       } else {
         if (showLoading && dialog != null) {
-          dialog.updateMessage(msg: S.current.cloudPushing, showProgress: true);
+          dialog.updateMessage(
+              msg: appLocalizations.cloudPushing, showProgress: true);
         }
         bool uploadStatus = await cloudService.uploadFile(
           ExportTokenUtil.getExportFileName("bin"),
@@ -435,9 +437,9 @@ class ExportTokenUtil {
         CloudServiceConfigDao.updateLastBackupTime(config);
         if (showToast) {
           if (uploadStatus) {
-            IToast.showTop(S.current.backupSuccess);
+            IToast.showTop(appLocalizations.backupSuccess);
           } else {
-            IToast.showTop(S.current.backupFailed);
+            IToast.showTop(appLocalizations.backupFailed);
           }
         }
       }
@@ -446,7 +448,7 @@ class ExportTokenUtil {
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
-        if (showToast) IToast.showTop(S.current.backupFailed);
+        if (showToast) IToast.showTop(appLocalizations.backupFailed);
       }
     } finally {
       if (showLoading && dialog != null) dialog.dismiss();
@@ -503,7 +505,7 @@ class ExportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.exporting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.exporting);
     }
     List<String> tokenQrcodes = [];
     int passCount = 0;
@@ -556,7 +558,7 @@ class ExportTokenUtil {
     bool showLoading = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.exporting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.exporting);
     }
     List<String> qrcodes = [];
     List<CloudOtpTokenPayload> payloads = [];

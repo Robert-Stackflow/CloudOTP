@@ -2,7 +2,7 @@ import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 
 class LoadingWidget extends StatefulWidget {
   final double size;
@@ -44,7 +44,7 @@ class LoadingWidgetState extends State<LoadingWidget> {
             chewieProvider.loadingWidgetBuilder(widget.size, widget.forceDark),
             if (widget.showText) const SizedBox(height: 10),
             if (widget.showText)
-              Text(widget.text ?? ChewieS.current.loading,
+              Text(widget.text ?? chewieLocalizations.loading,
                   style: ChewieTheme.labelLarge),
           ],
         ),

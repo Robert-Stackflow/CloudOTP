@@ -19,15 +19,13 @@ import 'dart:io';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Screens/Setting/base_setting_screen.dart';
 import 'package:cloudotp/Screens/Setting/egg_screen.dart';
-import 'package:cloudotp/Utils/website_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../Utils/asset_util.dart';
 import '../../Utils/constant.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 const countThreholdLevel1 = 3;
 const countThreholdLevel2 = 6;
@@ -50,7 +48,7 @@ class AboutSettingScreen extends BaseSettingScreen {
   State<AboutSettingScreen> createState() => _AboutSettingScreenState();
 }
 
-class _AboutSettingScreenState extends State<AboutSettingScreen>
+class _AboutSettingScreenState extends BaseDynamicState<AboutSettingScreen>
     with TickerProviderStateMixin {
   int count = 0;
   late String appName = "";
@@ -111,10 +109,10 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
     return ItemBuilder.buildSettingScreen(
       context: context,
       backgroundColor: Colors.transparent,
-      title: S.current.about,
+      title: appLocalizations.about,
       showBorder: true,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         const SizedBox(height: 30),
@@ -183,7 +181,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
         alignment: Alignment.center,
         child: Text(
           appName,
-          style: Theme.of(context).textTheme.titleLarge,
+          style: ChewieTheme.titleLarge,
         ),
       ),
       Container(
@@ -191,15 +189,15 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
         alignment: Alignment.center,
         child: Text(
           versionDetail,
-          style: Theme.of(context).textTheme.bodySmall,
+          style: ChewieTheme.bodySmall,
         ),
       ),
       Container(
         margin: const EdgeInsets.only(top: 3),
         alignment: Alignment.center,
         child: Text(
-          S.current.licenseDetail(appLicense),
-          style: Theme.of(context).textTheme.bodySmall,
+          appLocalizations.licenseDetail(appLicense),
+          style: ChewieTheme.bodySmall,
         ),
       ),
     ];
@@ -207,12 +205,12 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   _buildRepo() {
     return SearchableCaptionItem(
-      title: S.current.projectRepoAbout,
+      title: appLocalizations.projectRepoAbout,
       searchConfig: widget.searchConfig,
       searchText: widget.searchText,
       children: [
         EntryItem(
-          title: S.current.changelog,
+          title: appLocalizations.changelog,
           showLeading: true,
           onTap: () {
             RouteUtil.pushDialogRoute(context, const UpdateLogScreen());
@@ -220,7 +218,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
           leading: LucideIcons.scrollText,
         ),
         EntryItem(
-          title: S.current.bugReport,
+          title: appLocalizations.bugReport,
           onTap: () {
             UriUtil.launchUrlUri(context, issueUrl);
           },
@@ -229,7 +227,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
           trailing: LucideIcons.externalLink,
         ),
         EntryItem(
-          title: S.current.githubRepo,
+          title: appLocalizations.githubRepo,
           onTap: () {
             UriUtil.launchUrlUri(context, repoUrl);
           },
@@ -243,12 +241,12 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   _buildApp() {
     return SearchableCaptionItem(
-      title: S.current.appAbout,
+      title: appLocalizations.appAbout,
       searchConfig: widget.searchConfig,
       searchText: widget.searchText,
       children: [
         EntryItem(
-          title: ChewieS.current.rate,
+          title: chewieLocalizations.rate,
           showLeading: true,
           onTap: () {
             BottomSheetBuilder.showBottomSheet(
@@ -260,7 +258,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
           leading: LucideIcons.medal,
         ),
         EntryItem(
-          title: S.current.shareApp,
+          title: appLocalizations.shareApp,
           showLeading: true,
           onTap: () {
             UriUtil.share(shareAppText);
@@ -268,7 +266,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
           leading: LucideIcons.share2,
         ),
         EntryItem(
-          title: S.current.officialWebsite,
+          title: appLocalizations.officialWebsite,
           onTap: () {
             UriUtil.launchUrlUri(context, officialWebsite);
           },
@@ -282,12 +280,12 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
 
   _buildContact() {
     return SearchableCaptionItem(
-      title: S.current.contactAbout,
+      title: appLocalizations.contactAbout,
       searchConfig: widget.searchConfig,
       searchText: widget.searchText,
       children: [
         EntryItem(
-          title: S.current.contact,
+          title: appLocalizations.contact,
           onTap: () {
             UriUtil.launchEmailUri(
               context,
@@ -301,7 +299,7 @@ class _AboutSettingScreenState extends State<AboutSettingScreen>
           trailing: LucideIcons.atSign,
         ),
         EntryItem(
-          title: S.current.telegramGroup,
+          title: appLocalizations.telegramGroup,
           onTap: () {
             UriUtil.openExternal(telegramLink);
           },

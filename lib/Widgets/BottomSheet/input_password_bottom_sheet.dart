@@ -16,7 +16,7 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class InputPasswordBottomSheet extends StatefulWidget {
   const InputPasswordBottomSheet({
@@ -39,7 +39,8 @@ class InputPasswordBottomSheet extends StatefulWidget {
       InputPasswordBottomSheetState();
 }
 
-class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
+class InputPasswordBottomSheetState
+    extends BaseDynamicState<InputPasswordBottomSheet> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -53,7 +54,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
     });
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -68,8 +69,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(
                   top: radius,
-                  bottom:
-                      ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                  bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
               color: ChewieTheme.scaffoldBackgroundColor,
               border: ChewieTheme.border,
               boxShadow: ChewieTheme.defaultBoxShadow,
@@ -95,7 +95,8 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                       ),
                       validator: (value) {
                         if (value.isEmpty) {
-                          return S.current.encryptDatabasePasswordCannotBeEmpty;
+                          return appLocalizations
+                              .encryptDatabasePasswordCannotBeEmpty;
                         }
                         return null;
                       },
@@ -114,7 +115,8 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
                       ),
                       validator: (value) {
                         if (value != _controller.text) {
-                          return S.current.encryptDatabasePasswordNotMatch;
+                          return appLocalizations
+                              .encryptDatabasePasswordNotMatch;
                         }
                         return null;
                       },
@@ -142,15 +144,15 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
           if (widget.title.notNullOrEmpty)
             Text(
               widget.title,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: ChewieTheme.titleLarge,
             ),
           if (widget.message.notNullOrEmpty) const SizedBox(height: 8),
           if (widget.message.notNullOrEmpty)
             Text(
               widget.message,
-              style: Theme.of(context).textTheme.bodyMedium?.apply(
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                  ),
+              style: ChewieTheme.bodyMedium.apply(
+                color: ChewieTheme.bodySmall?.color,
+              ),
             ),
         ],
       ),
@@ -169,7 +171,7 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
             child: SizedBox(
               height: 45,
               child: RoundIconTextButton(
-                text: S.current.cancel,
+                text: appLocalizations.cancel,
                 onPressed: () {
                   widget.onCancel?.call();
                   Navigator.of(context).pop();
@@ -183,9 +185,9 @@ class InputPasswordBottomSheetState extends State<InputPasswordBottomSheet> {
             child: SizedBox(
               height: 45,
               child: RoundIconTextButton(
-                background: Theme.of(context).primaryColor,
+                background: ChewieTheme.primaryColor,
                 color: Colors.white,
-                text: S.current.confirm,
+                text: appLocalizations.confirm,
                 onPressed: () async {
                   bool isValid = formKey.currentState?.validate() ?? false;
                   widget.onConfirm

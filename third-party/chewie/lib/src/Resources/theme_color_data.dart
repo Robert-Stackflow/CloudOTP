@@ -15,9 +15,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Resources/colors.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Resources/fonts.dart';
+import '../../awesome_chewie.dart';
 
 class ChewieThemeColorData {
   bool isDarkMode;
@@ -99,6 +97,25 @@ class ChewieThemeColorData {
   Color warningColor;
 
   Color errorColor;
+
+  String get i18nName {
+    switch (id.toLowerCase()) {
+      case 'purewhite':
+        return chewieLocalizations.themePureWhite;
+      case 'softlight':
+        return chewieLocalizations.themeSoftLight;
+      case 'githublight':
+        return chewieLocalizations.themeGitHubLight;
+      case 'pureblack':
+        return chewieLocalizations.themePureBlack;
+      case 'blueiron':
+        return chewieLocalizations.themeBlueIron;
+      case 'githubdark':
+        return chewieLocalizations.themeGitHubDark;
+      default:
+        return name;
+    }
+  }
 
   ChewieThemeColorData({
     this.isDarkMode = false,
@@ -185,8 +202,8 @@ class ChewieThemeColorData {
     ChewieThemeColorData(
       id: "SoftLight",
       name: "柔和光明",
-      canvasColor: const Color(0xFFF9F9F9),
-      scaffoldBackgroundColor: const Color(0xFFF0F0F0),
+      canvasColor: const Color(0xFFF0F0F0),
+      scaffoldBackgroundColor: const Color(0xFFF9F9F9),
       cardColor: const Color(0xFFF2F2F2),
       primaryColor: const Color(0xFF3A3A3A),
       hintColor: const Color(0xFF9E9E9E),
@@ -300,7 +317,7 @@ class ChewieThemeColorData {
       errorColor: const Color(0xFFCF6679),
     ),
     ChewieThemeColorData(
-      id: "blueIron",
+      id: "BlueIron",
       name: "蓝铁",
       scaffoldBackgroundColor: const Color(0xFF1D2733),
       canvasColor: const Color(0xFF242E39),

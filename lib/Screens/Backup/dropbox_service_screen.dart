@@ -16,17 +16,19 @@
 import 'dart:typed_data';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/dropbox_response.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
+import '../../Utils/app_provider.dart';
 import '../../Widgets/BottomSheet/Backups/dropbox_backups_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class DropboxServiceScreen extends StatefulWidget {
   const DropboxServiceScreen({
@@ -39,7 +41,7 @@ class DropboxServiceScreen extends StatefulWidget {
   State<DropboxServiceScreen> createState() => _DropboxServiceScreenState();
 }
 
-class _DropboxServiceScreenState extends State<DropboxServiceScreen>
+class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -90,7 +92,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
           await _dropboxCloudService!.isConnected();
       if (_dropboxCloudServiceConfig!.configured &&
           !_dropboxCloudServiceConfig!.connected) {
-        IToast.showTop(S.current.cloudConnectionError);
+        IToast.showTop(appLocalizations.cloudConnectionError);
       }
       updateConfig(_dropboxCloudServiceConfig!);
     }
@@ -120,7 +122,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             : ItemBuilder.buildLoadingDialog(
                 context: context,
                 background: Colors.transparent,
-                text: S.current.cloudConnecting,
+                text: appLocalizations.cloudConnecting,
                 mainAxisAlignment: MainAxisAlignment.start,
                 topPadding: 100,
               );
@@ -132,7 +134,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 100),
-          Text(S.current.cloudTypeNotSupport(S.current.cloudTypeDropbox)),
+          Text(appLocalizations
+              .cloudTypeNotSupport(appLocalizations.cloudTypeDropbox)),
           const SizedBox(height: 10),
         ],
       ),
@@ -144,7 +147,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
     await currentService.authenticate().then((value) async {
       setState(() {
@@ -153,19 +156,19 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
       if (!currentConfig.connected) {
         switch (value) {
           case CloudServiceStatus.connectionError:
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
             break;
           case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.cloudOauthFailed);
+            IToast.show(appLocalizations.cloudOauthFailed);
             break;
           default:
-            IToast.show(S.current.cloudUnknownError);
+            IToast.show(appLocalizations.cloudUnknownError);
             break;
         }
       } else {
         _dropboxCloudServiceConfig!.configured = true;
         updateConfig(_dropboxCloudServiceConfig!);
-        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -188,7 +191,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeDropbox,
+        title: appLocalizations.enable + appLocalizations.cloudTypeDropbox,
         value: _dropboxCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -212,19 +215,19 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             controller: _accountController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudDisplayName,
+            title: appLocalizations.cloudDisplayName,
           ),
           InputItem(
             controller: _emailController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudEmail,
+            title: appLocalizations.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudSize,
+            title: appLocalizations.cloudSize,
           ),
         ],
       ),
@@ -235,15 +238,20 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        text: appLocalizations.cloudSignin,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            windowManager.minimize();
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to dropbox", e, t);
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
+            windowManager.restore();
           }
         },
       ),
@@ -257,18 +265,19 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: S.current.cloudPullBackup,
+              text: appLocalizations.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<DropboxFileInfo>? files =
                       await _dropboxCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -285,7 +294,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                         cloudService: _dropboxCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res =
@@ -300,12 +309,12 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull file from dropbox", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -314,8 +323,8 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
-              text: S.current.cloudPushBackup,
+              background: ChewieTheme.primaryColor,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -330,15 +339,15 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   CustomLoadingDialog.showLoading(
-                      title: S.current.cloudLoggingOut);
+                      title: appLocalizations.cloudLoggingOut);
                   await _dropboxCloudService!.signOut();
                   setState(() {
                     _dropboxCloudServiceConfig!.connected = false;
@@ -350,7 +359,7 @@ class _DropboxServiceScreenState extends State<DropboxServiceScreen>
                     updateConfig(_dropboxCloudServiceConfig!);
                   });
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudLogoutSuccess);
+                  IToast.show(appLocalizations.cloudLogoutSuccess);
                 });
               },
             ),

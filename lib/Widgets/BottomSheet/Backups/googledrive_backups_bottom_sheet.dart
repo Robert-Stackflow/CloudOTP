@@ -15,12 +15,12 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/googledrive_response.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../../Utils/utils.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class GoogleDriveBackupsBottomSheet extends StatefulWidget {
   const GoogleDriveBackupsBottomSheet({
@@ -40,7 +40,7 @@ class GoogleDriveBackupsBottomSheet extends StatefulWidget {
 }
 
 class GoogleDriveBackupsBottomSheetState
-    extends State<GoogleDriveBackupsBottomSheet> {
+    extends BaseDynamicState<GoogleDriveBackupsBottomSheet> {
   late List<GoogleDriveFileInfo> files;
 
   @override
@@ -49,7 +49,7 @@ class GoogleDriveBackupsBottomSheetState
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +61,7 @@ class GoogleDriveBackupsBottomSheetState
       decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(
             top: radius,
-            bottom: ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
         color: ChewieTheme.scaffoldBackgroundColor,
         border: ChewieTheme.border,
         boxShadow: ChewieTheme.defaultBoxShadow,
@@ -78,9 +78,7 @@ class GoogleDriveBackupsBottomSheetState
         ],
       ),
     );
-    return ResponsiveUtil.isWideLandscape()
-        ? Center(child: mainBody)
-        : mainBody;
+    return ResponsiveUtil.isWideDevice() ? Center(child: mainBody) : mainBody;
   }
 
   _buildHeader() {
@@ -92,9 +90,8 @@ class GoogleDriveBackupsBottomSheetState
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(widget.files.length),
-        style:
-            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        appLocalizations.cloudBackupFiles(widget.files.length),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -134,11 +131,11 @@ class GoogleDriveBackupsBottomSheetState
                   children: [
                     Text(
                       file.name,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     Text(
                       "$time    $size",
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -155,17 +152,18 @@ class GoogleDriveBackupsBottomSheetState
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.id);
                     setState(() {
                       files.remove(file);
                     });
-                    IToast.showTop(S.current.deleteSuccess);
+                    IToast.showTop(appLocalizations.deleteSuccess);
                   } catch (e, t) {
                     ILogger.error(
                         "Failed to delete file from google drive", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

@@ -1,22 +1,22 @@
 import 'dart:math';
 
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
-import 'package:awesome_chewie/src/Widgets/Selectable/my_context_menu_item.dart';
-import 'package:flutter/material.dart';
-import 'package:group_button/group_button.dart';
-
 import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 import 'package:awesome_chewie/src/Resources/dimens.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Utils/System/route_util.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Component/my_cached_network_image.dart';
 import 'package:awesome_chewie/src/Widgets/Custom/hero_photo_view_screen.dart';
+import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
+import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
 import 'package:awesome_chewie/src/Widgets/Module/EasyRefresh/easy_refresh.dart';
+import 'package:awesome_chewie/src/Widgets/Selectable/my_context_menu_item.dart';
 import 'package:awesome_chewie/src/Widgets/Selectable/my_selection_toolbar.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
+import 'package:flutter/material.dart';
+import 'package:group_button/group_button.dart';
+
 import 'General/clickable_wrapper.dart';
 import 'General/responsive_app_bar.dart';
 
@@ -33,6 +33,8 @@ class ItemBuilder {
     bool showBorder = true,
     Function()? onTapBack,
     Widget? overrideBody,
+    List<Widget> desktopActions = const [],
+    List<Widget> actions = const [],
   }) {
     return Scaffold(
       appBar: showTitleBar
@@ -43,6 +45,8 @@ class ItemBuilder {
               backgroundColor: backgroundColor,
               showBorder: showBorder,
               onTapBack: onTapBack,
+              actions: actions,
+              desktopActions: desktopActions,
             )
           : null,
       body: overrideBody ??
@@ -145,103 +149,6 @@ class ItemBuilder {
     );
   }
 
-  static buildAvatar({
-    required BuildContext context,
-    required String imageUrl,
-    double size = 32,
-    bool showLoading = false,
-    bool useDefaultAvatar = false,
-    bool showBorder = true,
-    bool showDetail = false,
-    String? title,
-    String? caption,
-    String? tagPrefix,
-    String? tagSuffix,
-    bool clickable = true,
-    bool isOval = true,
-    Function()? onTap,
-  }) {
-    String tagUrl = imageUrl;
-    return ClickableWrapper(
-      clickable: clickable,
-      child: Container(
-        decoration: BoxDecoration(
-          border: showBorder
-              ? Border.all(
-                  color: ChewieTheme.dividerColor,
-                  width: 0.5,
-                )
-              : const Border.fromBorderSide(BorderSide.none),
-          shape: isOval ? BoxShape.circle : BoxShape.rectangle,
-          borderRadius: isOval ? null : ChewieDimens.borderRadius8,
-        ),
-        child: useDefaultAvatar || tagUrl.isEmpty
-            ? ClipOval(
-                child: Image.asset(
-                  "assets/avatar.png",
-                  width: size,
-                  height: size,
-                ),
-              )
-            : ClickableGestureDetector(
-                onTap: showDetail
-                    ? () {
-                        if (ResponsiveUtil.isMobile()) {
-                          RouteUtil.pushMaterialRoute(
-                            chewieProvider.rootContext,
-                            HeroPhotoViewScreen(
-                              tagPrefix: tagPrefix,
-                              imageUrls: [tagUrl],
-                              useMainColor: false,
-                              title: title,
-                              captions: [caption ?? ""],
-                            ),
-                          );
-                        } else {
-                          RouteUtil.pushDialogRoute(
-                            context,
-                            showClose: false,
-                            fullScreen: true,
-                            HeroPhotoViewScreen(
-                              tagPrefix: tagPrefix,
-                              imageUrls: [tagUrl],
-                              useMainColor: false,
-                              title: title,
-                              captions: [caption ?? ""],
-                            ),
-                          );
-                        }
-                      }
-                    : onTap,
-                child: isOval
-                    ? ClipOval(
-                        child: ItemBuilder.buildCachedImage(
-                          context: context,
-                          imageUrl: tagUrl,
-                          width: size,
-                          showLoading: showLoading,
-                          height: size,
-                          fit: BoxFit.cover,
-                          simpleError: true,
-                        ),
-                      )
-                    : ClipRRect(
-                        borderRadius: ChewieDimens.borderRadius8,
-                        child: ItemBuilder.buildCachedImage(
-                          context: context,
-                          imageUrl: tagUrl,
-                          width: size,
-                          showLoading: showLoading,
-                          fit: BoxFit.cover,
-                          height: size,
-                          simpleError: true,
-                        ),
-                      ),
-              ),
-      ),
-    );
-  }
-
   static Widget buildLoadingDialog({
     required BuildContext context,
     ScrollPhysics? physics,
@@ -271,7 +178,7 @@ class ItemBuilder {
               chewieProvider.loadingWidgetBuilder(size, forceDark),
               if (showText) const SizedBox(height: 10),
               if (showText)
-                Text(text ?? ChewieS.current.loading,
+                Text(text ?? chewieLocalizations.loading,
                     style: ChewieTheme.labelLarge),
               SizedBox(height: bottomPadding),
             ],
@@ -372,16 +279,16 @@ class ItemBuilder {
     required BuildContext context,
   }) {
     Map<ContextMenuButtonType, String> typeToString = {
-      ContextMenuButtonType.copy: ChewieS.current.copy,
-      ContextMenuButtonType.cut: ChewieS.current.cut,
-      ContextMenuButtonType.paste: ChewieS.current.paste,
-      ContextMenuButtonType.selectAll: ChewieS.current.selectAll,
-      ContextMenuButtonType.searchWeb: ChewieS.current.search,
-      ContextMenuButtonType.share: ChewieS.current.share,
-      ContextMenuButtonType.lookUp: ChewieS.current.search,
-      ContextMenuButtonType.delete: ChewieS.current.delete,
-      ContextMenuButtonType.liveTextInput: ChewieS.current.input,
-      ContextMenuButtonType.custom: ChewieS.current.custom,
+      ContextMenuButtonType.copy: chewieLocalizations.copy,
+      ContextMenuButtonType.cut: chewieLocalizations.cut,
+      ContextMenuButtonType.paste: chewieLocalizations.paste,
+      ContextMenuButtonType.selectAll: chewieLocalizations.selectAll,
+      ContextMenuButtonType.searchWeb: chewieLocalizations.search,
+      ContextMenuButtonType.share: chewieLocalizations.share,
+      ContextMenuButtonType.lookUp: chewieLocalizations.search,
+      ContextMenuButtonType.delete: chewieLocalizations.delete,
+      ContextMenuButtonType.liveTextInput: chewieLocalizations.input,
+      ContextMenuButtonType.custom: chewieLocalizations.custom,
     };
     List<MyContextMenuItem> items = [];
     // int start = details.textEditingValue.selection.start <= -1

@@ -39,7 +39,13 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
     }
 
     defaultConfig {
@@ -63,7 +69,6 @@ android {
         release {
             signingConfig signingConfigs.release
             minifyEnabled true
-//            useProguard true
             shrinkResources true
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -72,6 +77,10 @@ android {
             applicationIdSuffix = '.debug'
         }
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 flutter {

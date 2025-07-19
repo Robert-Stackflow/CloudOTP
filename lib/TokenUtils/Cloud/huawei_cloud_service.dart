@@ -15,8 +15,8 @@
 
 import 'dart:typed_data';
 
-import 'package:flutter_cloud/huaweicloud.dart';
-import 'package:flutter_cloud/huaweicloud_response.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
+import 'package:http/http.dart' as http;
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';
@@ -26,11 +26,12 @@ import 'cloud_service.dart';
 class HuaweiCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.HuaweiCloud;
-  static const String _redirectUrl =
-      'https://apps.cloudchewie.com/oauth/cloudotp/huaweicloud/callback';
+  static const String _customAuthEndpoint =
+      '${CloudService.serverEndpoint}/oauth/cloudotp/huaweicloud/login';
+  static const String _customTokenEndpoint =
+      '${CloudService.serverEndpoint}/oauth/cloudotp/huaweicloud/token';
   static const String _callbackUrl = "cloudotp://auth/huaweicloud/callback";
-  static const String _clientId = '111829035';
-  static const String _huaweiCloudEmptyPath = '';
+  static const String _clientId = '114701957';
   static const String _huaweiCloudPath = 'CloudOTP';
   final CloudServiceConfig _config;
   late HuaweiCloud huaweiCloud;
@@ -44,9 +45,21 @@ class HuaweiCloudService extends CloudService {
   }
 
   @override
+  Future<bool> checkServer() async {
+    try {
+      final response = await http.head(Uri.parse(_customAuthEndpoint));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
   Future<void> init() async {
-    huaweiCloud = HuaweiCloud(
-      redirectUrl: _redirectUrl,
+    huaweiCloud = HuaweiCloud.server(
+      customAuthEndpoint: _customAuthEndpoint,
+      customTokenEndpoint: _customTokenEndpoint,
+      customRevokeEndpoint: "",
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
@@ -137,8 +150,7 @@ class HuaweiCloudService extends CloudService {
 
   @override
   Future<List<HuaweiCloudFileInfo>?> listFiles() async {
-    HuaweiCloudResponse response =
-        await huaweiCloud.list(_huaweiCloudEmptyPath);
+    HuaweiCloudResponse response = await huaweiCloud.list(_huaweiCloudPath);
     if (!response.isSuccess) return null;
     List<HuaweiCloudFileInfo> files = response.files;
     return files;

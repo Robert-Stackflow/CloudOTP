@@ -75,20 +75,19 @@ class DatabaseManager {
         if (content == _unencrypedFileHeader) {
           isDatabaseEncrypted = false;
           _currentDbFactory = dbFactory;
-          ILogger.info("CloudOTP",
+          ILogger.info(
               "Database is an unencrypted SQLite database. File header is $content");
         } else {
           isDatabaseEncrypted = true;
           _currentDbFactory = cipherDbFactory;
-          ILogger.info("CloudOTP", "Database is an encrypted SQLite database.");
+          ILogger.info("Database is an encrypted SQLite database.");
         }
       } else {
         isDatabaseEncrypted = true;
         _currentDbFactory = cipherDbFactory;
         password = await CloudOTPHiveUtil.regeneratePassword();
         appProvider.currentDatabasePassword = password;
-        ILogger.info(
-            "CloudOTP", "Database not exist and new password is generated");
+        ILogger.info("Database not exist and new password is generated");
         await CloudOTPHiveUtil.setEncryptDatabaseStatus(
             EncryptDatabaseStatus.defaultPassword);
       }
@@ -113,7 +112,7 @@ class DatabaseManager {
       if (isDatabaseEncrypted) {
         List<Map<String, Object?>> res =
             await _database!.rawQuery("PRAGMA rekey='$password'");
-        ILogger.info("CloudOTP", "Change database password result is $res");
+        ILogger.info("Change database password result is $res");
         if (res.isNotEmpty) {
           appProvider.currentDatabasePassword = password;
           return true;
@@ -125,8 +124,8 @@ class DatabaseManager {
           await _database!.rawQuery("SELECT sqlcipher_export('tmp')");
           await _database!.rawQuery("DETACH DATABASE tmp");
           return true;
-        } catch (e) {
-          ILogger.error("Failed to change database password", e);
+        } catch (e, t) {
+          ILogger.error("Failed to change database password", e, t);
           return false;
         }
       }
@@ -140,13 +139,11 @@ class DatabaseManager {
       List<Map<String, Object?>> res =
           await db.rawQuery("PRAGMA KEY='$password'");
       if (res.isNotEmpty) {
-        ILogger.info("CloudOTP",
+        ILogger.info(
             "Configure database with cipher successfully. Result is $res");
       } else {
         ILogger.error(
-          "Failed to configure database with cipher, perhaps the sqlcipher dynamic library was not loaded.",
-          res,
-        );
+            "Failed to configure database with cipher, perhaps the sqlcipher dynamic library was not loaded. Result is $res");
       }
     }
   }
@@ -266,7 +263,11 @@ class DatabaseManager {
       if (Platform.isLinux || Platform.isAndroid) {
         try {
           lib = DynamicLibrary.open('libsqlcipher.so');
-        } catch (e) {
+        } catch (e, t) {
+          ILogger.error(
+              "Failed to load libsqlcipher.so, perhaps the library is not installed or not in the correct path.",
+              e,
+              t);
           if (Platform.isAndroid) {
             final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
             final endOfAppId = max(appIdAsBytes.indexOf(0), 0);
@@ -285,7 +286,8 @@ class DatabaseManager {
         lib = DynamicLibrary.open('sqlite_sqlcipher.dll');
       }
       return lib;
-    } catch (e) {
+    } catch (e, t) {
+      ILogger.error("Failed to load sqlcipher dynamic library", e, t);
       return null;
     }
   }

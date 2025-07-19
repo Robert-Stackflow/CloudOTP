@@ -1,20 +1,20 @@
 import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
 import 'package:awesome_chewie/src/Utils/System/hive_util.dart';
 import 'package:awesome_chewie/src/Utils/System/route_util.dart';
+import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:awesome_chewie/src/Utils/itoast.dart';
+import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
+import 'package:awesome_chewie/src/Screens/webview_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
-import 'package:awesome_chewie/src/webview_screen.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
 
 class UriUtil {
   static final _urlRegex = RegExp(
@@ -121,13 +121,13 @@ class UriUtil {
         mode: LaunchMode.externalApplication,
       )) {
         if (ResponsiveUtil.isIOS()) {
-          IToast.showTop(ChewieS.current.noEmailClient);
+          IToast.showTop(chewieLocalizations.noEmailClient);
         }
         Clipboard.setData(ClipboardData(text: email));
       }
     } catch (e, t) {
       ILogger.error("Failed to launch email app", e, t);
-      IToast.showTop(ChewieS.current.noEmailClient);
+      IToast.showTop(chewieLocalizations.noEmailClient);
     }
     return true;
   }
@@ -135,11 +135,11 @@ class UriUtil {
   static share(String str) {
     Share.share(str).then((shareResult) {
       if (shareResult.status == ShareResultStatus.success) {
-        IToast.showTop(ChewieS.current.shareSuccess);
+        IToast.showTop(chewieLocalizations.shareSuccess);
       } else if (shareResult.status == ShareResultStatus.dismissed) {
-        IToast.showTop(ChewieS.current.cancelShare);
+        IToast.showTop(chewieLocalizations.cancelShare);
       } else {
-        IToast.showTop(ChewieS.current.shareFailed);
+        IToast.showTop(chewieLocalizations.shareFailed);
       }
     });
   }
@@ -162,6 +162,13 @@ class UriUtil {
 
   static void launchUri(Uri uri) async {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  static Future<Uri> getGooglePlayStoreUrl() async {
+    String packageName = (await PackageInfo.fromPlatform()).packageName;
+    final Uri playStoreUri =
+        Uri.parse("https://play.google.com/store/apps/details?id=$packageName");
+    return playStoreUri;
   }
 
   static Future<dynamic> getRedirectUrl(String url) async {
@@ -196,7 +203,7 @@ class UriUtil {
   }) async {
     try {
       if (!quiet)
-        CustomLoadingDialog.showLoading(title: ChewieS.current.loading);
+        CustomLoadingDialog.showLoading(title: chewieLocalizations.loading);
       try {
         url = Uri.decodeComponent(url);
       } catch (e) {}
@@ -233,7 +240,7 @@ class UriUtil {
     bool processUri = true,
   }) {
     if (ResponsiveUtil.isMobile()) {
-      RouteUtil.pushPanelCupertinoRoute(
+      RouteUtil.pushDialogRoute(
           context, WebviewScreen(url: url, processUri: processUri));
     } else {
       openExternal(url);

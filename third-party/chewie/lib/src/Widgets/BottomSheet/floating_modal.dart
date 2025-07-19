@@ -8,21 +8,17 @@ class FloatingModal extends StatelessWidget {
   final Widget child;
   final double? preferMinWidth;
   final bool useVerticalMargin;
-  final bool useWideLandscape;
 
   const FloatingModal({
     super.key,
     required this.child,
     this.preferMinWidth,
-    this.useWideLandscape = true,
     this.useVerticalMargin = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    bool isLandScape = useWideLandscape
-        ? ResponsiveUtil.isWideLandscape()
-        : ResponsiveUtil.isLandscape();
+    bool isLandScape = ResponsiveUtil.isWideDevice();
     double width = MediaQuery.sizeOf(context).width - 60;
     double height = MediaQuery.sizeOf(context).height - 60;
     double preferWidth = min(width, preferMinWidth ?? 540);
@@ -44,7 +40,7 @@ class FloatingModal extends StatelessWidget {
           right: preferHorizontalMargin,
           top: useVerticalMargin
               ? preferVerticalMargin
-              : ResponsiveUtil.isLandscape()
+              : ResponsiveUtil.isLandscapeLayout()
                   ? 0
                   : 100,
           bottom: useVerticalMargin ? preferVerticalMargin : 0,

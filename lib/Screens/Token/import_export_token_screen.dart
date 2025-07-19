@@ -24,7 +24,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../TokenUtils/import_token_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class ImportExportTokenScreen extends StatefulWidget {
   const ImportExportTokenScreen({
@@ -38,7 +38,8 @@ class ImportExportTokenScreen extends StatefulWidget {
       _ImportExportTokenScreenState();
 }
 
-class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
+class _ImportExportTokenScreenState
+    extends BaseDynamicState<ImportExportTokenScreen>
     with TickerProviderStateMixin {
   @override
   void initState() {
@@ -49,10 +50,11 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
   Widget build(BuildContext context) {
     return MyScaffold(
       appBar: ResponsiveAppBar(
-        title: S.current.exportImport,
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
-        actions: ResponsiveUtil.isLandscape() ? [] : [const BlankIconButton()],
+        title: appLocalizations.exportImport,
+        showBack: !ResponsiveUtil.isLandscapeLayout(),
+        titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
+        actions:
+            ResponsiveUtil.isLandscapeLayout() ? [] : [const BlankIconButton()],
       ),
       body: EasyRefresh(
         child: _buildBody(),
@@ -66,15 +68,15 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
       padding: const EdgeInsets.symmetric(horizontal: 10),
       children: [
         CaptionItem(
-          title: S.current.import,
+          title: appLocalizations.import,
           children: [
             EntryItem(
-              title: S.current.importEncryptFile,
-              description:
-                  S.current.importEncryptFileHint(ResponsiveUtil.appName),
+              title: appLocalizations.importEncryptFile,
+              description: appLocalizations
+                  .importEncryptFileHint(ResponsiveUtil.appName),
               onTap: () async {
                 FilePickerResult? result = await FileUtil.pickFiles(
-                  dialogTitle: S.current.importEncryptFileTitle,
+                  dialogTitle: appLocalizations.importEncryptFileTitle,
                   type: FileType.custom,
                   allowedExtensions: ['bin'],
                   lockParentWindow: true,
@@ -86,8 +88,8 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               },
             ),
             EntryItem(
-              title: S.current.importFromLocalBackup,
-              description: S.current.importFromLocalBackupHint,
+              title: appLocalizations.importFromLocalBackup,
+              description: appLocalizations.importFromLocalBackupHint,
               onTap: () async {
                 BottomSheetBuilder.showBottomSheet(
                   context,
@@ -103,11 +105,11 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             ),
             // EntryItem(
             //   context: context,
-            //   title: S.current.importOldEncryptFile,
-            //   description: S.current.importOldEncryptFileHint(appName),
+            //   title: appLocalizations.importOldEncryptFile,
+            //   description: appLocalizations.importOldEncryptFileHint(appName),
             //   onTap: () async {
             //     FilePickerResult? result = await FileUtil.pickFiles(
-            //       dialogTitle: S.current.importOldEncryptFileTitle,
+            //       dialogTitle: appLocalizations.importOldEncryptFileTitle,
             //       type: FileType.any,
             //       lockParentWindow: true,
             //     );
@@ -121,7 +123,7 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             //             stateController.pop?.call();
             //           } else {
             //             stateController
-            //                 .setError(S.current.encryptDatabasePasswordWrong);
+            //                 .setError(appLocalizations.encryptDatabasePasswordWrong);
             //           }
             //         });
             //       }
@@ -138,11 +140,11 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
             //   },
             // ),
             EntryItem(
-              title: S.current.importUriFile,
-              description: S.current.importUriFileHint,
+              title: appLocalizations.importUriFile,
+              description: appLocalizations.importUriFileHint,
               onTap: () async {
                 FilePickerResult? result = await FileUtil.pickFiles(
-                  dialogTitle: S.current.importUriFileTitle,
+                  dialogTitle: appLocalizations.importUriFileTitle,
                   type: FileType.custom,
                   allowedExtensions: ['txt'],
                   lockParentWindow: true,
@@ -153,30 +155,30 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               },
             ),
             EntryItem(
-              title: S.current.importUriFromClipBoard,
-              description: S.current.importUriFromClipBoardHint,
+              title: appLocalizations.importUriFromClipBoard,
+              description: appLocalizations.importUriFromClipBoardHint,
               onTap: () async {
                 String? content = await ChewieUtils.getClipboardData();
                 ImportTokenUtil.importText(
                   content ?? "",
-                  emptyTip: S.current.clipboardEmpty,
-                  noTokenToast: S.current.clipBoardDoesNotContainToken,
+                  emptyTip: appLocalizations.clipboardEmpty,
+                  noTokenToast: appLocalizations.clipBoardDoesNotContainToken,
                 );
               },
             ),
           ],
         ),
         CaptionItem(
-          title: S.current.export,
+          title: appLocalizations.export,
           children: [
             EntryItem(
-              title: S.current.exportEncryptFile,
-              description:
-                  S.current.exportEncryptFileHint(ResponsiveUtil.appName),
+              title: appLocalizations.exportEncryptFile,
+              description: appLocalizations
+                  .exportEncryptFileHint(ResponsiveUtil.appName),
               onTap: () async {
                 if (ResponsiveUtil.isDesktop()) {
                   String? result = await FileUtil.saveFile(
-                    dialogTitle: S.current.exportEncryptFileTitle,
+                    dialogTitle: appLocalizations.exportEncryptFileTitle,
                     fileName: ExportTokenUtil.getExportFileName("bin"),
                     type: FileType.custom,
                     allowedExtensions: ['bin'],
@@ -191,11 +193,10 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                       BottomSheetBuilder.showBottomSheet(
                         context,
                         responsive: true,
-                        useWideLandscape: true,
                         (context) => InputBottomSheet(
-                          title: S.current.setExportPasswordTitle,
-                          message: S.current.setExportPasswordTip,
-                          hint: S.current.setExportPasswordHint,
+                          title: appLocalizations.setExportPasswordTitle,
+                          message: appLocalizations.setExportPasswordTip,
+                          hint: appLocalizations.setExportPasswordHint,
                           tailingConfig: InputItemLeadingTailingConfig(
                             type: InputItemLeadingTailingType.password,
                           ),
@@ -204,8 +205,8 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                           ],
                           validator: (value) {
                             if (value.isEmpty) {
-                              return S
-                                  .current.encryptDatabasePasswordCannotBeEmpty;
+                              return appLocalizations
+                                  .encryptDatabasePasswordCannotBeEmpty;
                             }
                             return null;
                           },
@@ -226,11 +227,10 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                     BottomSheetBuilder.showBottomSheet(
                       context,
                       responsive: true,
-                      useWideLandscape: true,
                       (context) => InputBottomSheet(
-                        title: S.current.setExportPasswordTitle,
-                        message: S.current.setExportPasswordTip,
-                        hint: S.current.setExportPasswordHint,
+                        title: appLocalizations.setExportPasswordTitle,
+                        message: appLocalizations.setExportPasswordTip,
+                        hint: appLocalizations.setExportPasswordHint,
                         tailingConfig: InputItemLeadingTailingConfig(
                           type: InputItemLeadingTailingType.password,
                         ),
@@ -239,8 +239,8 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                         ],
                         validator: (value) {
                           if (value.isEmpty) {
-                            return S
-                                .current.encryptDatabasePasswordCannotBeEmpty;
+                            return appLocalizations
+                                .encryptDatabasePasswordCannotBeEmpty;
                           }
                           return null;
                         },
@@ -256,17 +256,17 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               },
             ),
             EntryItem(
-              title: S.current.exportUriFile,
-              description: S.current.exportUriFileHint,
+              title: appLocalizations.exportUriFile,
+              description: appLocalizations.exportUriFileHint,
               onTap: () async {
                 DialogBuilder.showConfirmDialog(
                   context,
-                  title: S.current.exportUriClearWarningTitle,
-                  message: S.current.exportUriClearWarningTip,
+                  title: appLocalizations.exportUriClearWarningTitle,
+                  message: appLocalizations.exportUriClearWarningTip,
                   onTapConfirm: () async {
                     if (ResponsiveUtil.isDesktop()) {
                       String? result = await FileUtil.saveFile(
-                        dialogTitle: S.current.exportUriFileTitle,
+                        dialogTitle: appLocalizations.exportUriFileTitle,
                         fileName: ExportTokenUtil.getExportFileName("txt"),
                         type: FileType.custom,
                         allowedExtensions: ['txt'],
@@ -284,31 +284,31 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
               },
             ),
             EntryItem(
-              title: S.current.exportQrcode,
-              description: S.current.exportQrcodeHint,
+              title: appLocalizations.exportQrcode,
+              description: appLocalizations.exportQrcodeHint,
               onTap: () async {
                 List<String>? qrCodes = await ExportTokenUtil.exportToQrcodes();
                 if (qrCodes != null && qrCodes.isNotEmpty) {
                   CloudOTPItemBuilder.showQrcodesDialog(
                     context,
                     asset: AssetFiles.logo,
-                    title: S.current.exportQrcode,
-                    message: S.current.exportQrcodeMessage,
+                    title: appLocalizations.exportQrcode,
+                    message: appLocalizations.exportQrcodeMessage,
                     qrcodes: qrCodes,
                   );
                 } else if (qrCodes != null && qrCodes.isEmpty) {
-                  IToast.showTop(S.current.exportQrcodeNoData);
+                  IToast.showTop(appLocalizations.exportQrcodeNoData);
                 } else {
-                  IToast.showTop(S.current.exportFailed);
+                  IToast.showTop(appLocalizations.exportFailed);
                 }
               },
             ),
             // const SizedBox(height: 10),
             // ItemBuilder.buildCaptionItem(
-            //     context: context, title: S.current.exportToThirdParty),
+            //     context: context, title: appLocalizations.exportToThirdParty),
             EntryItem(
-              title: S.current.exportGoogleAuthenticatorQrcode,
-              description: S.current.exportGoogleAuthenticatorQrcodeHint,
+              title: appLocalizations.exportGoogleAuthenticatorQrcode,
+              description: appLocalizations.exportGoogleAuthenticatorQrcodeHint,
               onTap: () async {
                 List<dynamic>? res =
                     await ExportTokenUtil.exportToGoogleAuthentcatorQrcodes();
@@ -319,24 +319,26 @@ class _ImportExportTokenScreenState extends State<ImportExportTokenScreen>
                     CloudOTPItemBuilder.showQrcodesDialog(
                       context,
                       asset: AssetFiles.icGoogleauthenticator,
-                      title: S.current.exportGoogleAuthenticatorQrcode,
-                      message: S.current.exportGoogleAuthenticatorQrcodeMessage,
+                      title: appLocalizations.exportGoogleAuthenticatorQrcode,
+                      message: appLocalizations
+                          .exportGoogleAuthenticatorQrcodeMessage,
                       qrcodes: qrCodes,
                     );
                   }
                   List<String> toasts = [];
                   if (passCount > 0) {
-                    toasts.add(S.current
+                    toasts.add(appLocalizations
                         .exportGoogleAuthenticatorNoCompatibleCount(passCount));
                   }
                   if (qrCodes != null && qrCodes.isEmpty) {
-                    toasts.add(S.current.exportGoogleAuthenticatorNoToken);
+                    toasts
+                        .add(appLocalizations.exportGoogleAuthenticatorNoToken);
                   }
                   if (toasts.isNotEmpty) {
                     IToast.showTop(toasts.join("; "));
                   }
                 } else {
-                  IToast.showTop(S.current.exportFailed);
+                  IToast.showTop(appLocalizations.exportFailed);
                 }
               },
             ),

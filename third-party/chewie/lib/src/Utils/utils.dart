@@ -1,9 +1,6 @@
 import 'dart:async';
 
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
-import 'package:awesome_chewie/src/Utils/System/file_util.dart';
-import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
@@ -13,18 +10,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:screen_protector/screen_protector.dart';
 import 'package:window_manager/window_manager.dart';
-
-import 'package:awesome_chewie/src/Api/github_api.dart';
-import 'package:awesome_chewie/src/Models/github_response.dart';
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/dialog_builder.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
-import 'package:awesome_chewie/src/update_screen.dart';
-import 'constant.dart';
-import 'ilogger.dart';
-import 'itoast.dart';
 
 class ChewieUtils {
   static Future<void> setSafeMode(bool enabled) async {
@@ -40,16 +25,21 @@ class ChewieUtils {
   static Future<void> enableSafeMode() async {
     await ScreenProtector.preventScreenshotOn();
     await ScreenProtector.protectDataLeakageOn();
+    await ScreenProtector.protectDataLeakageWithBlur();
     await ScreenProtector.protectDataLeakageWithColor(
-        Theme.of(chewieProvider.rootContext).scaffoldBackgroundColor);
+        ChewieTheme.scaffoldBackgroundColor);
     if (ResponsiveUtil.isAndroid()) {
+      SystemChrome.setSystemUIOverlayStyle(
+          const SystemUiOverlayStyle(statusBarColor: Colors.white));
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_BLUR_BEHIND);
     }
   }
 
   static Future<void> disableSafeMode() async {
     await ScreenProtector.preventScreenshotOff();
     await ScreenProtector.protectDataLeakageOff();
+    await ScreenProtector.protectDataLeakageWithBlurOff();
     await ScreenProtector.protectDataLeakageWithColorOff();
     if (ResponsiveUtil.isAndroid()) {
       FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
@@ -107,7 +97,7 @@ class ChewieUtils {
     String? toastText,
   }) {
     Clipboard.setData(ClipboardData(text: data.toString())).then((value) {
-      toastText ??= ChewieS.current.copySuccess;
+      toastText ??= chewieLocalizations.copySuccess;
       if (toastText.notNullOrEmpty) {
         IToast.showTop(toastText ?? "",
             icon: const Icon(LucideIcons.copyCheck));
@@ -171,8 +161,10 @@ class ChewieUtils {
     String userName = "Robert-Stackflow",
     String? repoName,
   }) async {
+    ResponsiveUtil.isAppBundle();
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: ChewieS.current.checkingUpdates);
+      CustomLoadingDialog.showLoading(
+          title: chewieLocalizations.checkingUpdates);
     }
     String currentVersion = (await PackageInfo.fromPlatform()).version;
     onGetCurrentVersion?.call(currentVersion);
@@ -185,12 +177,12 @@ class ChewieUtils {
       if (releases.isEmpty) {
         if (showFailedToast) {
           IToast.showTop(
-              noUpdateToastText ?? ChewieS.current.checkUpdatesFailed);
+              noUpdateToastText ?? chewieLocalizations.checkUpdatesFailed);
         }
         if (showDesktopNotification) {
           IToast.showDesktopNotification(
-            ChewieS.current.checkUpdatesFailed,
-            body: ChewieS.current.checkUpdatesFailedTip,
+            chewieLocalizations.checkUpdatesFailed,
+            body: chewieLocalizations.checkUpdatesFailedTip,
           );
         }
         return;
@@ -212,50 +204,36 @@ class ChewieUtils {
         onUpdate?.call(latestVersion, latestReleaseItem!);
         chewieProvider.latestVersion = latestVersion;
         if (showUpdateDialog && latestReleaseItem != null) {
-          if (ResponsiveUtil.isMobile()) {
+          if (!ResponsiveUtil.isMobile()) {
             DialogBuilder.showConfirmDialog(
               context,
               renderHtml: true,
               messageTextAlign: TextAlign.start,
-              title: ChewieS.current.getNewVersion(latestVersion),
-              message: ChewieS.current.doesImmediateUpdate +
-                  ChewieS.current.changelogAsFollow(
+              title: chewieLocalizations.getNewVersion(latestVersion),
+              message: chewieLocalizations.doesImmediateUpdate +
+                  chewieLocalizations.changelogAsFollow(
                       "<br/>${StringUtil.replaceLineBreak(latestReleaseItem.body ?? "")}"),
               confirmButtonText: ResponsiveUtil.isAndroid()
-                  ? ChewieS.current.immediatelyDownload
-                  : ChewieS.current.goToUpdate,
-              cancelButtonText: ChewieS.current.updateLater,
+                  ? chewieLocalizations.immediatelyDownload
+                  : chewieLocalizations.goToUpdate,
+              cancelButtonText: chewieLocalizations.updateLater,
               onTapConfirm: () async {
-                if (ResponsiveUtil.isAndroid()) {
-                  ReleaseAsset androidAssset = await FileUtil.getAndroidAsset(
-                      latestVersion, latestReleaseItem!);
-                  ILogger.info(ResponsiveUtil.appName,
-                      "Get android asset: $androidAssset");
-                  FileUtil.downloadAndUpdate(
-                    context,
-                    androidAssset.pkgsDownloadUrl,
-                    latestReleaseItem.htmlUrl,
-                    version: latestVersion,
-                  );
+                if (ResponsiveUtil.isAppBundle()) {
+                  UriUtil.launchUri(await UriUtil.getGooglePlayStoreUrl());
                 } else {
                   UriUtil.openExternal(latestReleaseItem!.htmlUrl);
-                  return;
                 }
               },
               onTapCancel: () {},
             );
           } else {
             showDialog(ReleaseItem latestReleaseItem) {
-              GlobalKey<DialogWrapperWidgetState> overrideDialogNavigatorKey =
-                  GlobalKey();
               DialogBuilder.showPageDialog(
                 context,
-                overrideDialogNavigatorKey: overrideDialogNavigatorKey,
                 child: UpdateScreen(
                   currentVersion: currentVersion,
                   latestReleaseItem: latestReleaseItem,
                   latestVersion: latestVersion,
-                  overrideDialogNavigatorKey: overrideDialogNavigatorKey,
                 ),
               );
               ChewieUtils.displayApp();
@@ -263,12 +241,12 @@ class ChewieUtils {
 
             if (showDesktopNotification) {
               IToast.showDesktopNotification(
-                ChewieS.current.getNewVersion(latestVersion),
-                body: ChewieS.current
+                chewieLocalizations.getNewVersion(latestVersion),
+                body: chewieLocalizations
                     .changelogAsFollow("\n${latestReleaseItem.body ?? ""}"),
                 actions: [
-                  ChewieS.current.updateLater,
-                  ChewieS.current.goToUpdate
+                  chewieLocalizations.updateLater,
+                  chewieLocalizations.goToUpdate
                 ],
                 onClick: () {
                   showDialog(latestReleaseItem!);
@@ -287,12 +265,12 @@ class ChewieUtils {
       } else {
         chewieProvider.latestVersion = "";
         if (showLatestToast) {
-          IToast.showTop(ChewieS.current.alreadyLatestVersion);
+          IToast.showTop(chewieLocalizations.alreadyLatestVersion);
         }
         if (showDesktopNotification) {
           IToast.showDesktopNotification(
-            ChewieS.current.alreadyLatestVersion,
-            body: ChewieS.current.alreadyLatestVersionTip(currentVersion),
+            chewieLocalizations.alreadyLatestVersion,
+            body: chewieLocalizations.alreadyLatestVersionTip(currentVersion),
           );
         }
       }
@@ -328,15 +306,15 @@ class ChewieUtils {
     } on PlatformException catch (e, t) {
       ILogger.error("Failed to local authenticate by PlatformException", e, t);
       if (e.code == auth_error.notAvailable) {
-        IToast.showTop(ChewieS.current.biometricNotAvailable);
+        IToast.showTop(chewieLocalizations.biometricNotAvailable);
       } else if (e.code == auth_error.notEnrolled) {
-        IToast.showTop(ChewieS.current.biometricNotEnrolled);
+        IToast.showTop(chewieLocalizations.biometricNotEnrolled);
       } else if (e.code == auth_error.lockedOut) {
-        IToast.showTop(ChewieS.current.biometricLockout);
+        IToast.showTop(chewieLocalizations.biometricLockout);
       } else if (e.code == auth_error.permanentlyLockedOut) {
-        IToast.showTop(ChewieS.current.biometricLockoutPermanent);
+        IToast.showTop(chewieLocalizations.biometricLockoutPermanent);
       } else {
-        IToast.showTop(ChewieS.current.biometricOtherReason(e));
+        IToast.showTop(chewieLocalizations.biometricOtherReason(e));
       }
     } catch (e, t) {
       ILogger.error("Failed to local authenticate", e, t);

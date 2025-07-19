@@ -1,6 +1,6 @@
 name: awesome_chewie
 description: Cloudchewie UI/UX/Utils
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 
 environment:
@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   # 控件
   fluttertoast: ^8.2.12
@@ -42,7 +44,6 @@ dependencies:
   path_provider: ^2.0.12
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1
-  local_proxy: ^0.0.3
   file_picker: ^8.3.1
   process_run: 1.2.2+1
   # 系统
@@ -55,14 +56,13 @@ dependencies:
   url_launcher: ^6.3.0
   app_links: ^6.4.0
   flutter_displaymode: ^0.6.0
-  image_gallery_saver: ^2.0.3
+  image_gallery_saver:
+    path: ../tool/image_gallery_saver
   permission_handler: ^11.3.1
-  install_plugin: ^2.1.0
   hotkey_manager: ^0.2.3
   flutter_inappwebview: 6.0.0
   # 工具
   intl: ^0.19.0
-  intl_utils: ^2.8.7
   html: ^0.15.5+1
   uuid: ^4.4.2
   tuple: ^2.0.0
@@ -81,7 +81,7 @@ dependencies:
   local_notifier: ^0.1.6
   flutter_local_notifications: ^17.2.1+2
   screen_protector: ^1.4.2+1
-  shell_executor: ^0.1.6 # 执行命令
+  shell_executor: ^0.1.6
 
 dependency_overrides:
   webview_flutter_android: 3.16.1
@@ -93,10 +93,5 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   json_serializable: ^6.7.1
 
-flutter_intl:
-  enabled: true
-  class_name: ChewieS
-  main_locale: en
-  arb_dir: lib/src/l10n
-  output_dir: lib/src/generated
-  use_deferred_loading: false
+flutter:
+  generate: true

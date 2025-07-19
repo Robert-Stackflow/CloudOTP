@@ -11,6 +11,40 @@ class ChewieProvider with ChangeNotifier {
   static const Size defaultWindowSize = Size(1280, 720);
   static const Size minimumWindowSize = Size(800, 640);
 
+  RouteObserver routeObserver = RouteObserver();
+
+  GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey();
+
+  NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
+
+  BuildContext get globalNavigatorContext => globalNavigatorKey.currentContext!;
+
+  late BuildContext _rootContext;
+
+  BuildContext get rootContext => _rootContext;
+
+  bool initedRootContext = false;
+
+  void setRootContext(BuildContext context) {
+    _rootContext = context;
+  }
+
+  void resetRootContext() {
+    _rootContext = globalNavigatorContext;
+  }
+
+  void initRootContext(BuildContext context) {
+    if (!initedRootContext) {
+      _rootContext = context;
+      initedRootContext = true;
+    }
+  }
+
+  GlobalKey<BasePanelScreenState> panelScreenKey =
+      GlobalKey<BasePanelScreenState>();
+
+  BasePanelScreenState? get panelScreenState => panelScreenKey.currentState;
+
   String latestVersion = "";
 
   Size _windowSize = ChewieHiveUtil.getWindowSize();
@@ -45,37 +79,6 @@ class ChewieProvider with ChangeNotifier {
   Widget Function(double size, bool forceDark) loadingWidgetBuilder =
       (size, forceDark) => const Center(child: CircularProgressIndicator());
 
-  RouteObserver routeObserver = RouteObserver();
-
-  GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
-
-  NavigatorState? get globalNavigatorState => globalNavigatorKey.currentState;
-
-  BuildContext get rootContext => globalNavigatorState!.context;
-
-  GlobalKey<DialogWrapperWidgetState> dialogNavigatorKey =
-      GlobalKey<DialogWrapperWidgetState>();
-
-  DialogWrapperWidgetState? get dialogNavigatorState =>
-      dialogNavigatorKey.currentState;
-
-  GlobalKey<BasePanelScreenState> panelScreenKey =
-      GlobalKey<BasePanelScreenState>();
-
-  BasePanelScreenState? get panelScreenState => panelScreenKey.currentState;
-
-  ProxyConfig _proxyConfig = ChewieHiveUtil.getProxyConfig() ??
-      ProxyConfig(proxyType: ProxyType.NoProxy);
-
-  ProxyConfig get proxyConfig => _proxyConfig;
-
-  set proxyConfig(ProxyConfig value) {
-    _proxyConfig = value;
-    ChewieHiveUtil.setProxyConfig(value);
-    notifyListeners();
-    ProxyUtil.refresh();
-  }
-
   bool _enableLandscapeInTablet =
       ChewieHiveUtil.getBool(ChewieHiveUtil.enableLandscapeInTabletKey);
 
@@ -107,9 +110,10 @@ class ChewieProvider with ChangeNotifier {
 
   static List<SelectionItemModel<ActiveThemeMode>> getSupportedThemeMode() {
     return [
-      SelectionItemModel(ChewieS.current.followSystem, ActiveThemeMode.system),
-      SelectionItemModel(ChewieS.current.lightTheme, ActiveThemeMode.light),
-      SelectionItemModel(ChewieS.current.darkTheme, ActiveThemeMode.dark),
+      SelectionItemModel(
+          chewieLocalizations.followSystem, ActiveThemeMode.system),
+      SelectionItemModel(chewieLocalizations.lightTheme, ActiveThemeMode.light),
+      SelectionItemModel(chewieLocalizations.darkTheme, ActiveThemeMode.dark),
     ];
   }
 
@@ -140,11 +144,11 @@ class ChewieProvider with ChangeNotifier {
   static String getThemeModeLabel(ActiveThemeMode themeMode) {
     switch (themeMode) {
       case ActiveThemeMode.system:
-        return ChewieS.current.followSystem;
+        return chewieLocalizations.followSystem;
       case ActiveThemeMode.light:
-        return ChewieS.current.lightTheme;
+        return chewieLocalizations.lightTheme;
       case ActiveThemeMode.dark:
-        return ChewieS.current.darkTheme;
+        return chewieLocalizations.darkTheme;
     }
   }
 
@@ -159,7 +163,8 @@ class ChewieProvider with ChangeNotifier {
   }
 }
 
-abstract class BasePanelScreenState<T extends StatefulWidget> extends State<T> {
+abstract class BasePanelScreenState<T extends StatefulWidget>
+    extends BaseDynamicState<T> {
   FutureOr pushPage(Widget page);
 
   FutureOr popPage();

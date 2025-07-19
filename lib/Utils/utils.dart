@@ -15,7 +15,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/category_dao.dart';
@@ -27,21 +26,39 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../Screens/Setting/about_setting_screen.dart';
-import '../Screens/Setting/mobile_setting_navigation_screen.dart';
-import '../Screens/Setting/setting_navigation_screen.dart';
-import '../Screens/Setting/setting_safe_screen.dart';
+import '../TokenUtils/Cloud/cloud_service.dart';
 import '../TokenUtils/code_generator.dart';
-import 'package:screen_retriever/screen_retriever.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'app_provider.dart';
 import 'constant.dart';
 import 'hive_util.dart';
 
 class Utils {
+  static showQAuthDialog(BuildContext context, [bool force = false]) {
+    bool haveShowQAuthDialog = ChewieHiveUtil.getBool(
+        CloudOTPHiveUtil.haveShowQAuthDialogKey,
+        defaultValue: false);
+    if (force || !haveShowQAuthDialog) {
+      ChewieHiveUtil.put(CloudOTPHiveUtil.haveShowQAuthDialogKey, true);
+      DialogBuilder.showInfoDialog(
+        context,
+        title: appLocalizations.cloudOAuthDialogTitle,
+        message: appLocalizations.cloudOAuthDialogMessage(
+            CloudService.serverEndpoint,
+            CloudService.serverGithubRepoName,
+            CloudService.serverGithubUrl),
+        renderHtml: true,
+        // cancelButtonText: appLocalizations.cloudOAuthDialogGoToRepo,
+        buttonText: appLocalizations.cloudOAuthDialogConfirm,
+        onTapDismiss: () {},
+      );
+    }
+  }
+
   static Future<Rect> getWindowRect(BuildContext context) async {
     Display primaryDisplay = await screenRetriever.getPrimaryDisplay();
     return Rect.fromLTWH(
@@ -80,7 +97,7 @@ class Utils {
         MenuItem.separator(),
         MenuItem.submenu(
           key: TrayKey.copyTokenCode.key,
-          label: S.current.allTokens,
+          label: appLocalizations.allTokens,
           submenu: Menu(
             items: tokens
                 .map(
@@ -145,50 +162,50 @@ class Utils {
         MenuItem(
           key: TrayKey.checkUpdates.key,
           label: appProvider.latestVersion.isNotEmpty
-              ? S.current.getNewVersion(appProvider.latestVersion)
-              : S.current.checkUpdates,
+              ? appLocalizations.getNewVersion(appProvider.latestVersion)
+              : appLocalizations.checkUpdates,
         ),
         MenuItem(
           key: TrayKey.shortcutHelp.key,
-          label: S.current.shortcutHelp,
+          label: appLocalizations.shortcutHelp,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.displayApp.key,
-          label: S.current.displayAppTray,
+          label: appLocalizations.displayAppTray,
         ),
         MenuItem(
           key: TrayKey.lockApp.key,
-          label: S.current.lockAppTray,
+          label: appLocalizations.lockAppTray,
         ),
         ...await getTrayTokenMenuItems(),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.setting.key,
-          label: S.current.setting,
+          label: appLocalizations.setting,
         ),
         MenuItem(
           key: TrayKey.officialWebsite.key,
-          label: S.current.officialWebsiteTray,
+          label: appLocalizations.officialWebsiteTray,
         ),
         MenuItem(
           key: TrayKey.about.key,
-          label: S.current.about,
+          label: appLocalizations.about,
         ),
         MenuItem(
           key: TrayKey.githubRepository.key,
-          label: S.current.repoTray,
+          label: appLocalizations.repoTray,
         ),
         MenuItem.separator(),
         MenuItem.checkbox(
           checked: lauchAtStartup,
           key: TrayKey.launchAtStartup.key,
-          label: S.current.launchAtStartup,
+          label: appLocalizations.launchAtStartup,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.exitApp.key,
-          label: S.current.exitAppTray,
+          label: appLocalizations.exitAppTray,
         ),
       ],
     );
@@ -221,27 +238,27 @@ class Utils {
       items: [
         MenuItem(
           key: TrayKey.displayApp.key,
-          label: S.current.displayAppTray,
+          label: appLocalizations.displayAppTray,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.officialWebsite.key,
-          label: S.current.officialWebsiteTray,
+          label: appLocalizations.officialWebsiteTray,
         ),
         MenuItem(
           key: TrayKey.githubRepository.key,
-          label: S.current.repoTray,
+          label: appLocalizations.repoTray,
         ),
         MenuItem.separator(),
         MenuItem.checkbox(
           checked: lauchAtStartup,
           key: TrayKey.launchAtStartup.key,
-          label: S.current.launchAtStartup,
+          label: appLocalizations.launchAtStartup,
         ),
         MenuItem.separator(),
         MenuItem(
           key: TrayKey.exitApp.key,
-          label: S.current.exitAppTray,
+          label: appLocalizations.exitAppTray,
         ),
       ],
     );
@@ -282,17 +299,17 @@ class Utils {
         if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoCopyNextCodeKey) &&
             currentProgress < autoCopyNextCodeProgressThrehold) {
           ChewieUtils.copy(context, CodeGenerator.getNextCode(token),
-              toastText: S.current.alreadyCopiedNextCode);
+              toastText: appLocalizations.alreadyCopiedNextCode);
           TokenDao.incTokenCopyTimes(token);
           IToast.showDesktopNotification(
-            S.current.alreadyCopiedNextCode,
+            appLocalizations.alreadyCopiedNextCode,
             body: CodeGenerator.getNextCode(token),
           );
         } else {
           ChewieUtils.copy(context, CodeGenerator.getCurrentCode(token));
           TokenDao.incTokenCopyTimes(token);
           IToast.showDesktopNotification(
-            S.current.copySuccess,
+            appLocalizations.copySuccess,
             body: CodeGenerator.getCurrentCode(token),
           );
         }

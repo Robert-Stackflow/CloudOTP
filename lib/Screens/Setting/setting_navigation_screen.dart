@@ -7,20 +7,14 @@ import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_general_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_safe_screen.dart';
-import 'package:cloudotp/generated/l10n.dart';
+import 'package:cloudotp/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../../Utils/app_provider.dart';
-
-class SettingNavigationItem {
-  final String title;
-  final IconData icon;
-
-  const SettingNavigationItem({required this.title, required this.icon});
-}
+import '../../Widgets/cloudotp/navigation_bar.dart';
 
 class SettingNavigationScreen extends StatefulWidget {
   final int initPageIndex;
@@ -35,7 +29,8 @@ class SettingNavigationScreen extends StatefulWidget {
       _SettingNavigationScreenState();
 }
 
-class _SettingNavigationScreenState extends State<SettingNavigationScreen>
+class _SettingNavigationScreenState
+    extends BaseDynamicState<SettingNavigationScreen>
     with AutomaticKeepAliveClientMixin {
   int _selectedIndex = 0;
   String _searchText = "";
@@ -43,7 +38,25 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   final SearchConfig _searchConfig = SearchConfig();
   Timer? _debounceTimer;
 
-  List<SettingNavigationItem> _navigationItems = [];
+  final List<SettingNavigationItem> _navigationItems = [
+    SettingNavigationItem(
+        title: () => appLocalizations.generalSetting,
+        icon: LucideIcons.settings2),
+    SettingNavigationItem(
+        title: () => appLocalizations.appearanceSetting,
+        icon: LucideIcons.paintbrushVertical),
+    SettingNavigationItem(
+        title: () => appLocalizations.operationSetting,
+        icon: LucideIcons.pointer),
+    SettingNavigationItem(
+        title: () => appLocalizations.backupSetting,
+        icon: LucideIcons.cloudUpload),
+    SettingNavigationItem(
+        title: () => appLocalizations.safeSetting,
+        icon: LucideIcons.shieldCheck),
+    SettingNavigationItem(
+        title: () => appLocalizations.about, icon: LucideIcons.info),
+  ];
 
   final List<Widget?> _pageCache = List.filled(8, null);
 
@@ -134,69 +147,38 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    _navigationItems = [
-      SettingNavigationItem(
-          title: S.current.generalSetting, icon: LucideIcons.settings2),
-      SettingNavigationItem(
-          title: S.current.appearanceSetting,
-          icon: LucideIcons.paintbrushVertical),
-      SettingNavigationItem(
-          title: S.current.operationSetting, icon: LucideIcons.pointer),
-      SettingNavigationItem(
-          title: S.current.backupSetting, icon: LucideIcons.cloudUpload),
-      SettingNavigationItem(
-          title: S.current.safeSetting, icon: LucideIcons.shieldCheck),
-      SettingNavigationItem(title: S.current.about, icon: LucideIcons.info),
-    ];
     return Consumer<AppProvider>(
-      builder: (context, provider, child) => Scaffold(
-        appBar: ResponsiveAppBar(
-          showBack: false,
-          titleLeftMargin: 15,
-          title: S.current.setting,
-        ),
-        body: Row(
-          children: [
-            Container(
-              width: 144,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: ChewieTheme.canvasColor,
-                border: ChewieTheme.rightDivider,
-              ),
-              child: ListView.builder(
-                itemCount: _navigationItems.length,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                itemBuilder: (context, index) {
-                  final item = _navigationItems[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 4),
-                    child: SettingNavigationItemWidget(
-                      title: item.title,
-                      icon: item.icon,
-                      selected: index == _selectedIndex,
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    ),
-                  );
+      builder: (context, provider, child) {
+        return Scaffold(
+          appBar: ResponsiveAppBar(
+            showBack: false,
+            titleLeftMargin: 15,
+            title: appLocalizations.setting,
+          ),
+          body: Row(
+            children: [
+              MyNavigationBar(
+                items: _navigationItems,
+                selectedIndex: _selectedIndex,
+                onSelected: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
                 },
               ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // _buildSearchRow(),
-                  Expanded(child: _buildCurrentPage(_selectedIndex)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // _buildSearchRow(),
+                    Expanded(child: _buildCurrentPage(_selectedIndex)),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -268,53 +250,6 @@ class _SettingNavigationScreenState extends State<SettingNavigationScreen>
   }
 }
 
-class SettingNavigationItemWidget extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const SettingNavigationItemWidget({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = selected ? ChewieTheme.primaryColor : Colors.transparent;
-    final textColor = selected ? ChewieTheme.primaryButtonColor : null;
-
-    return PressableAnimation(
-      onTap: onTap,
-      child: InkAnimation(
-        color: bgColor,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            children: [
-              // Icon(icon, color: textColor),
-              // const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: ChewieTheme.bodyMedium.copyWith(
-                    color: textColor,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _KeepAliveWrapper extends StatefulWidget {
   final Widget child;
 
@@ -324,7 +259,7 @@ class _KeepAliveWrapper extends StatefulWidget {
   State<_KeepAliveWrapper> createState() => _KeepAliveWrapperState();
 }
 
-class _KeepAliveWrapperState extends State<_KeepAliveWrapper>
+class _KeepAliveWrapperState extends BaseDynamicState<_KeepAliveWrapper>
     with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {

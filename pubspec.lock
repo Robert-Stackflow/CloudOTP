@@ -139,7 +139,14 @@ packages:
       path: "third-party/chewie"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
+  awesome_cloud:
+    dependency: "direct main"
+    description:
+      path: "third-party/tool/awesome_cloud"
+      relative: true
+    source: path
+    version: "1.6.2"
   biometric_storage:
     dependency: "direct main"
     description:
@@ -527,13 +534,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.4.1"
-  flutter_cloud:
-    dependency: "direct main"
-    description:
-      path: "third-party/tool/flutter_cloud"
-      relative: true
-    source: path
-    version: "1.6.2"
   flutter_context_menu:
     dependency: "direct main"
     description:
@@ -1058,35 +1058,26 @@ packages:
   image_gallery_saver:
     dependency: transitive
     description:
-      name: image_gallery_saver
-      sha256: "0aba74216a4d9b0561510cb968015d56b701ba1bd94aace26aacdd8ae5761816"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "third-party/tool/image_gallery_saver"
+      relative: true
+    source: path
     version: "2.0.3"
-  install_plugin:
-    dependency: "direct main"
-    description:
-      name: install_plugin
-      sha256: "6fb67ba0781e75de4f2f2266ed25e835bfd277c5bfc2ed034af52774355857c6"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.1.0"
   intl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: intl
       sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.19.0"
-  intl_utils:
-    dependency: "direct main"
+  intl_translation:
+    dependency: "direct dev"
     description:
-      name: intl_utils
-      sha256: "35f9a55004871f241e24b07465cf402914992d8549a60205ee0816576a8ddee7"
+      name: intl_translation
+      sha256: b3f1ebfab4109d1a946b45c57523628da92a0e2a2df5f2d9981ef4334fd24a26
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.8.8"
+    version: "0.20.1"
   io:
     dependency: transitive
     description:
@@ -1247,14 +1238,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.1.6"
-  local_proxy:
-    dependency: transitive
-    description:
-      name: local_proxy
-      sha256: f17e637d0388d278eff905cf7c66331f0f8fc3218d23174452c5ec3ccf99f76b
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.0.3"
   logger:
     dependency: "direct main"
     description:
@@ -1376,10 +1359,9 @@ packages:
   move_to_background:
     dependency: "direct main"
     description:
-      name: move_to_background
-      sha256: "00caad17a6ce149910777131503f43f8ed80025681f94684e3a6a87d979b914c"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "third-party/tool/move_to_background"
+      relative: true
+    source: path
     version: "1.0.2"
   msix:
     dependency: "direct dev"
@@ -1772,13 +1754,6 @@ packages:
       relative: true
     source: path
     version: "1.0.4"
-  saf:
-    dependency: "direct main"
-    description:
-      path: "third-party/tool/saf"
-      relative: true
-    source: path
-    version: "1.0.3+4"
   screen_capturer:
     dependency: "direct main"
     description:

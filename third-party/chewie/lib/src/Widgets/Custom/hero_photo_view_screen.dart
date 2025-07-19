@@ -1,28 +1,12 @@
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Utils/General/color_util.dart';
-import 'package:awesome_chewie/src/Utils/System/file_util.dart';
-import 'package:awesome_chewie/src/Utils/System/hive_util.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/constant.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Widgets/Component/translucent_tag.dart';
-import 'package:awesome_chewie/src/Widgets/Component/window_caption.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/window_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/appbar_wrapper.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/loading_widget.dart';
-import 'package:awesome_chewie/src/Widgets/Module/PhotoView/photo_view.dart';
-import 'package:awesome_chewie/src/Widgets/Module/PhotoView/photo_view_gallery.dart';
 
 enum DownloadState { none, loading, succeed, failed }
 
@@ -164,7 +148,7 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
                   color: currentIndex == 0
                       ? Colors.black.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.4),
-                  borderRadius: ChewieDimens.borderRadius20,
+                  borderRadius: ChewieDimens.defaultBorderRadius,
                 ),
                 child: GestureDetector(
                   onTap: () {
@@ -196,7 +180,7 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
                   color: currentIndex == imageUrls.length - 1
                       ? Colors.black.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.4),
-                  borderRadius: ChewieDimens.borderRadius20,
+                  borderRadius: ChewieDimens.defaultBorderRadius,
                 ),
                 child: GestureDetector(
                   onTap: () {
@@ -398,9 +382,9 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
     return AppBarWrapper(
       systemOverlayStyle: SystemUiOverlayStyle.light,
       backgroundColor: Colors.transparent,
-      titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+      titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
       leadingIcon:
-          ResponsiveUtil.isLandscape() ? null : Icons.arrow_back_rounded,
+          ResponsiveUtil.isLandscapeLayout() ? null : Icons.arrow_back_rounded,
       leadingColor: Colors.white,
       onLeadingTap: () {
         Navigator.pop(context);
@@ -463,7 +447,7 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
               }
             },
           ),
-          if (imageUrls.length > 1 || ResponsiveUtil.isLandscape())
+          if (imageUrls.length > 1 || ResponsiveUtil.isLandscapeLayout())
             const SizedBox(width: 5),
         ],
         if (imageUrls.length > 1) ...[
@@ -488,15 +472,15 @@ class HeroPhotoViewScreenState extends State<HeroPhotoViewScreen>
               }
             },
           ),
-          if (ResponsiveUtil.isLandscape()) const SizedBox(width: 5),
+          if (ResponsiveUtil.isLandscapeLayout()) const SizedBox(width: 5),
         ],
-        if (ResponsiveUtil.isLandscape())
+        if (ResponsiveUtil.isLandscapeLayout())
           ToolButton(
             context: context,
             iconBuilder: (_) =>
                 const Icon(Icons.close_rounded, color: Colors.white, size: 22),
             onPressed: () {
-              chewieProvider.dialogNavigatorState?.popPage();
+              DialogNavigatorHelper.popPage();
             },
           ),
       ],

@@ -15,6 +15,7 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
@@ -22,12 +23,13 @@ import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/webdav_backups_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
+import '../../Utils/app_provider.dart';
 import '../../Utils/regex_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class WebDavServiceScreen extends StatefulWidget {
   const WebDavServiceScreen({
@@ -40,7 +42,7 @@ class WebDavServiceScreen extends StatefulWidget {
   State<WebDavServiceScreen> createState() => _WebDavServiceScreenState();
 }
 
-class _WebDavServiceScreenState extends State<WebDavServiceScreen>
+class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -86,7 +88,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       _webDavCloudServiceConfig!.connected =
           await _webDavCloudService!.isConnected();
       if (!_webDavCloudServiceConfig!.connected) {
-        IToast.showTop(S.current.cloudConnectionError);
+        IToast.showTop(appLocalizations.cloudConnectionError);
       }
     }
     inited = true;
@@ -117,7 +119,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
         : ItemBuilder.buildLoadingDialog(
             context: context,
             background: Colors.transparent,
-            text: S.current.cloudConnecting,
+            text: appLocalizations.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
             topPadding: 100,
           );
@@ -128,7 +130,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
     await currentService.authenticate().then((value) {
       setState(() {
@@ -137,17 +139,17 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
       if (!currentConfig.connected) {
         switch (value) {
           case CloudServiceStatus.connectionError:
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
             break;
           case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.cloudUnauthorized);
+            IToast.show(appLocalizations.cloudUnauthorized);
             break;
           default:
-            IToast.show(S.current.cloudUnknownError);
+            IToast.show(appLocalizations.cloudUnknownError);
             break;
         }
       } else {
-        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -169,7 +171,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeWebDav,
+        title: appLocalizations.enable + appLocalizations.cloudTypeWebDav,
         value: _webDavCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -193,28 +195,28 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,
-              title: S.current.webDavServer,
+              title: appLocalizations.webDavServer,
               disabled: currentConfig.connected,
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.webDavServerCannotBeEmpty;
+                  return appLocalizations.webDavServerCannotBeEmpty;
                 }
                 if (!RegexUtil.isUrlOrIp(text)) {
-                  return S.current.webDavServerInvalid;
+                  return appLocalizations.webDavServerInvalid;
                 }
                 return null;
               },
-              hint: S.current.webDavServerHint,
+              hint: appLocalizations.webDavServerHint,
             ),
             InputItem(
               controller: _accountController,
               textInputAction: TextInputAction.next,
               disabled: currentConfig.connected,
-              title: S.current.webDavUsername,
-              hint: S.current.webDavUsernameHint,
+              title: appLocalizations.webDavUsername,
+              hint: appLocalizations.webDavUsernameHint,
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.webDavUsernameCannotBeEmpty;
+                  return appLocalizations.webDavUsernameCannotBeEmpty;
                 }
                 return null;
               },
@@ -222,7 +224,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             InputItem(
               controller: _secretController,
               textInputAction: TextInputAction.next,
-              title: S.current.webDavPassword,
+              title: appLocalizations.webDavPassword,
               style: InputItemStyle(
                 obscure: currentConfig.connected,
                 bottomRadius: true,
@@ -231,13 +233,13 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                 type: InputItemLeadingTailingType.password,
               ),
               disabled: currentConfig.connected,
-              hint: S.current.webDavPasswordHint,
+              hint: appLocalizations.webDavPasswordHint,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
               validator: (text) {
                 if (text.isEmpty) {
-                  return S.current.webDavPasswordCannotBeEmpty;
+                  return appLocalizations.webDavPasswordCannotBeEmpty;
                 }
                 return null;
               },
@@ -252,9 +254,9 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
+        text: appLocalizations.cloudSignin,
         width: double.infinity,
-        background: Theme.of(context).primaryColor,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           if (await isValid()) {
@@ -262,10 +264,15 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             _webDavCloudService =
                 WebDavCloudService(_webDavCloudServiceConfig!);
             try {
-              ping();
+              appProvider.preventLock = true;
+              windowManager.minimize();
+              await ping();
             } catch (e, t) {
               ILogger.error("Failed to connect to webdav", e, t);
-              IToast.show(S.current.cloudConnectionError);
+              IToast.show(appLocalizations.cloudConnectionError);
+            } finally {
+              appProvider.preventLock = false;
+              windowManager.restore();
             }
           }
         },
@@ -280,18 +287,19 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: S.current.cloudPullBackup,
+              text: appLocalizations.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<WebDavFileInfo>? files =
                       await _webDavCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -307,7 +315,7 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                         cloudService: _webDavCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res =
@@ -322,12 +330,12 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull from webdav", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -336,8 +344,8 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
-              text: S.current.cloudPushBackup,
+              background: ChewieTheme.primaryColor,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -352,12 +360,12 @@ class _WebDavServiceScreenState extends State<WebDavServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   setState(() {
                     currentConfig.connected = false;

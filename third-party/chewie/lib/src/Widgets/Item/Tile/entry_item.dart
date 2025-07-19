@@ -1,11 +1,6 @@
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Tile/searchable_stateful_widget.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Animation/ink_animation.dart';
-import 'highlight_text.dart';
 
 class EntryItem extends SearchableStatefulWidget {
   final double radius;
@@ -26,6 +21,7 @@ class EntryItem extends SearchableStatefulWidget {
   final bool dividerPadding;
   final IconData trailing;
   final double tipWidth;
+  final double minTipWidth;
   final Widget? tipWidget;
   final bool ink;
 
@@ -48,7 +44,8 @@ class EntryItem extends SearchableStatefulWidget {
     this.trailingLeftMargin = 5,
     this.dividerPadding = true,
     this.trailing = LucideIcons.chevronRight,
-    this.tipWidth = 80,
+    this.tipWidth = 140,
+    this.minTipWidth = 80,
     this.tipWidget,
     this.ink = true,
     required super.title,
@@ -185,9 +182,15 @@ class EntryItemState extends SearchableState<EntryItem> {
   Widget _buildTipWidget() {
     return widget.tip.isNotEmpty
         ? Container(
-            constraints: const BoxConstraints(minWidth: 100),
+            constraints: BoxConstraints(
+              minWidth: widget.minTipWidth,
+              maxWidth: widget.description.isNotEmpty
+                  ? widget.tipWidth
+                  : widget.tipWidth + 40,
+            ),
             child: RoundIconTextButton(
-              height: 32,
+              height: null,
+              minHeight: 32,
               onPressed: widget.onTap,
               text: widget.tip,
               textStyle: ChewieTheme.bodyMedium
@@ -199,6 +202,7 @@ class EntryItemState extends SearchableState<EntryItem> {
           )
         : RoundIconTextButton(
             height: 32,
+            minHeight: 32,
             onPressed: widget.onTap,
             icon: Icon(
               widget.trailing,
@@ -214,6 +218,7 @@ class EntryItemState extends SearchableState<EntryItem> {
   Widget _buildCustomTipWidget() {
     return Container(
       constraints: BoxConstraints(
+        minWidth: widget.minTipWidth,
         maxWidth: widget.description.isNotEmpty
             ? widget.tipWidth
             : widget.tipWidth + 40,
@@ -333,13 +338,15 @@ class SearchableCaptionItemState extends SearchableState<SearchableCaptionItem>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ChewieTheme.textDarkGreyColor,
-                    letterSpacing: 0.5,
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: ChewieTheme.textDarkGreyColor,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
                 RotationTransition(
@@ -407,7 +414,7 @@ class CaptionItem extends StatefulWidget {
   CaptionItemState createState() => CaptionItemState();
 }
 
-class CaptionItemState extends State<CaptionItem>
+class CaptionItemState extends BaseDynamicState<CaptionItem>
     with TickerProviderStateMixin {
   late bool _isExpanded;
   late AnimationController _controller;
@@ -464,13 +471,15 @@ class CaptionItemState extends State<CaptionItem>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ChewieTheme.textDarkGreyColor,
-                    letterSpacing: 0.5,
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: ChewieTheme.textDarkGreyColor,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
                 RotationTransition(

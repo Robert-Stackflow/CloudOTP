@@ -9,7 +9,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   isar_flutter_libs
   local_auth_windows
   local_notifier
-  local_proxy
   permission_handler_windows
   protocol_handler_windows
   screen_capturer_windows

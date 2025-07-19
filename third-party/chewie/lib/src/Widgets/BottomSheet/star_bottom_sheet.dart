@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 
 import 'package:awesome_chewie/src/Resources/dimens.dart';
 import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
 import 'package:awesome_chewie/src/Widgets/Item/General/my_divider.dart';
 
@@ -21,7 +21,7 @@ class StarBottomSheet extends StatefulWidget {
 
 class StarBottomSheetState extends State<StarBottomSheet> {
   int currentStar = 0;
-  String currentComment = ChewieS.current.pleaseRate;
+  String currentComment = chewieLocalizations.pleaseRate;
 
   @override
   void initState() {
@@ -40,8 +40,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
             color: ChewieTheme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.vertical(
                 top: radius,
-                bottom:
-                    ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+                bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
             border: ChewieTheme.border,
             boxShadow: ChewieTheme.defaultBoxShadow,
           ),
@@ -67,7 +66,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
       padding: const EdgeInsets.symmetric(vertical: 20),
       alignment: Alignment.center,
       child: Text(
-        ChewieS.current.scoreDialogTitle(ResponsiveUtil.appName),
+        chewieLocalizations.scoreDialogTitle(ResponsiveUtil.appName),
         style: ChewieTheme.titleLarge,
       ),
     );
@@ -76,19 +75,19 @@ class StarBottomSheetState extends State<StarBottomSheet> {
   updateComment() {
     switch (currentStar) {
       case 1:
-        currentComment = ChewieS.current.rate1Star;
+        currentComment = chewieLocalizations.rate1Star;
         break;
       case 2:
-        currentComment = ChewieS.current.rate2Star;
+        currentComment = chewieLocalizations.rate2Star;
         break;
       case 3:
-        currentComment = ChewieS.current.rate3Star;
+        currentComment = chewieLocalizations.rate3Star;
         break;
       case 4:
-        currentComment = ChewieS.current.rate4Star;
+        currentComment = chewieLocalizations.rate4Star;
         break;
       case 5:
-        currentComment = ChewieS.current.rate5Star;
+        currentComment = chewieLocalizations.rate5Star;
         break;
     }
   }
@@ -143,7 +142,7 @@ class StarBottomSheetState extends State<StarBottomSheet> {
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: ChewieS.current.rateLater,
+              text: chewieLocalizations.rateLater,
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -154,13 +153,13 @@ class StarBottomSheetState extends State<StarBottomSheet> {
           Expanded(
             child: RoundIconTextButton(
               background: ChewieTheme.primaryColor,
-              text: " ${ChewieS.current.confirm} ",
+              text: " ${chewieLocalizations.confirm} ",
               onPressed: () {
                 if (currentStar != 0) {
-                  IToast.showTop(ChewieS.current.rateSuccess);
+                  IToast.showTop(chewieLocalizations.rateSuccess);
                   Navigator.of(context).pop();
                 } else {
-                  IToast.showTop(ChewieS.current.pleaseClickToRate);
+                  IToast.showTop(chewieLocalizations.pleaseClickToRate);
                 }
               },
               fontSizeDelta: 2,

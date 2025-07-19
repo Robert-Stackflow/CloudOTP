@@ -19,12 +19,14 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/Cloud/googledrive_cloud_service.dart';
 
+import '../TokenUtils/Cloud/aliyundrive_cloud_service.dart';
+import '../TokenUtils/Cloud/box_cloud_service.dart';
 import '../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../TokenUtils/Cloud/webdav_cloud_service.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 
 enum CloudServiceType {
   Webdav,
@@ -32,22 +34,28 @@ enum CloudServiceType {
   GoogleDrive,
   Dropbox,
   S3Cloud,
-  HuaweiCloud;
+  HuaweiCloud,
+  Box,
+  AliyunDrive;
 
   String get label {
     switch (this) {
       case CloudServiceType.Webdav:
-        return S.current.cloudTypeWebDav;
+        return appLocalizations.cloudTypeWebDav;
       case CloudServiceType.GoogleDrive:
-        return S.current.cloudTypeGoogleDrive;
+        return appLocalizations.cloudTypeGoogleDrive;
       case CloudServiceType.OneDrive:
-        return S.current.cloudTypeOneDrive;
+        return appLocalizations.cloudTypeOneDrive;
       case CloudServiceType.Dropbox:
-        return S.current.cloudTypeDropbox;
+        return appLocalizations.cloudTypeDropbox;
       case CloudServiceType.S3Cloud:
-        return S.current.cloudTypeS3Cloud;
+        return appLocalizations.cloudTypeS3Cloud;
       case CloudServiceType.HuaweiCloud:
-        return S.current.cloudTypeHuaweiCloud;
+        return appLocalizations.cloudTypeHuaweiCloud;
+      case CloudServiceType.Box:
+        return appLocalizations.cloudTypeBox;
+      case CloudServiceType.AliyunDrive:
+        return appLocalizations.cloudTypeAliyunDrive;
     }
   }
 
@@ -61,6 +69,10 @@ enum CloudServiceType {
       CloudServiceType.Dropbox.label,
       CloudServiceType.Webdav.label,
       CloudServiceType.S3Cloud.label,
+      CloudServiceType.GoogleDrive.label,
+      CloudServiceType.Box.label,
+      CloudServiceType.AliyunDrive.label,
+      CloudServiceType.HuaweiCloud.label,
     ];
   }
 }
@@ -80,6 +92,10 @@ extension CloudServiceTypeExtensionOnint on int {
         return CloudServiceType.S3Cloud;
       case 5:
         return CloudServiceType.HuaweiCloud;
+      case 6:
+        return CloudServiceType.Box;
+      case 7:
+        return CloudServiceType.AliyunDrive;
       default:
         throw Exception('Invalid CloudServiceType');
     }
@@ -116,6 +132,8 @@ class CloudServiceConfig {
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:
       case CloudServiceType.HuaweiCloud:
+      case CloudServiceType.Box:
+      case CloudServiceType.AliyunDrive:
         return configured;
       case CloudServiceType.S3Cloud:
         return endpoint.notNullOrEmpty &&
@@ -139,13 +157,17 @@ class CloudServiceConfig {
         return HuaweiCloudService(this);
       case CloudServiceType.S3Cloud:
         return S3CloudService(this);
+      case CloudServiceType.Box:
+        return BoxCloudService(this);
+      case CloudServiceType.AliyunDrive:
+        return AliyunDriveCloudService(this);
     }
   }
 
   String get size {
     return totalSize < 0
         ? ""
-        : '${CacheUtil.renderSize(usedSize.toDouble())}/${CacheUtil.renderSize(totalSize.toDouble())}';
+        : '${CacheUtil.renderSize(usedSize.toDouble())}B / ${CacheUtil.renderSize(totalSize.toDouble())}B';
   }
 
   CloudServiceConfig({

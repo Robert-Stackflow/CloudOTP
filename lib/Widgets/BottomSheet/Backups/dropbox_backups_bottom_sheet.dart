@@ -14,13 +14,13 @@
  */
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/dropbox_response.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/Cloud/dropbox_cloud_service.dart';
 import '../../../Utils/utils.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class DropboxBackupsBottomSheet extends StatefulWidget {
   const DropboxBackupsBottomSheet({
@@ -39,7 +39,8 @@ class DropboxBackupsBottomSheet extends StatefulWidget {
       DropboxBackupsBottomSheetState();
 }
 
-class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
+class DropboxBackupsBottomSheetState
+    extends BaseDynamicState<DropboxBackupsBottomSheet> {
   late List<DropboxFileInfo> files;
 
   @override
@@ -48,7 +49,7 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +61,7 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(
             top: radius,
-            bottom: ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
         color: ChewieTheme.scaffoldBackgroundColor,
         border: ChewieTheme.border,
         boxShadow: ChewieTheme.defaultBoxShadow,
@@ -77,9 +78,7 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
         ],
       ),
     );
-    return ResponsiveUtil.isWideLandscape()
-        ? Center(child: mainBody)
-        : mainBody;
+    return ResponsiveUtil.isWideDevice() ? Center(child: mainBody) : mainBody;
   }
 
   _buildHeader() {
@@ -91,9 +90,8 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(widget.files.length),
-        style:
-            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        appLocalizations.cloudBackupFiles(widget.files.length),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -133,11 +131,11 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
                   children: [
                     Text(
                       file.name,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     Text(
                       "$time    $size",
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -154,17 +152,18 @@ class DropboxBackupsBottomSheetState extends State<DropboxBackupsBottomSheet> {
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.name);
                     setState(() {
                       files.remove(file);
                     });
-                    IToast.showTop(S.current.deleteSuccess);
+                    IToast.showTop(appLocalizations.deleteSuccess);
                   } catch (e, t) {
                     ILogger.error(
                         "Failed to delete backup file from dropbox", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

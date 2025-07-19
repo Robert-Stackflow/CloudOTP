@@ -19,7 +19,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/material.dart';
 
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'cloud_service_config.dart';
 
 enum AutoBackupStatus {
@@ -85,11 +85,11 @@ enum AutoBackupType {
   String get label {
     switch (this) {
       case AutoBackupType.local:
-        return S.current.backupToLocal;
+        return appLocalizations.backupToLocal;
       case AutoBackupType.cloud:
-        return S.current.backupToCloud;
+        return appLocalizations.backupToCloud;
       case AutoBackupType.localAndCloud:
-        return S.current.backupToLocalAndCloud;
+        return appLocalizations.backupToLocalAndCloud;
     }
   }
 }
@@ -117,43 +117,43 @@ enum AutoBackupTriggerType {
   String get label {
     switch (this) {
       case AutoBackupTriggerType.manual:
-        return S.current.triggerAutoBackupByManual;
+        return appLocalizations.triggerAutoBackupByManual;
       case AutoBackupTriggerType.other:
-        return S.current.triggerAutoBackupByOther;
+        return appLocalizations.triggerAutoBackupByOther;
       case AutoBackupTriggerType.configInited:
-        return S.current.triggerAutoBackupByConfigInited;
+        return appLocalizations.triggerAutoBackupByConfigInited;
       case AutoBackupTriggerType.configUpdated:
-        return S.current.triggerAutoBackupByConfigUpdated;
+        return appLocalizations.triggerAutoBackupByConfigUpdated;
       case AutoBackupTriggerType.tokenInserted:
-        return S.current.triggerAutoBackupByTokenInserted;
+        return appLocalizations.triggerAutoBackupByTokenInserted;
       case AutoBackupTriggerType.tokensInserted:
-        return S.current.triggerAutoBackupByTokensInserted;
+        return appLocalizations.triggerAutoBackupByTokensInserted;
       case AutoBackupTriggerType.tokenUpdated:
-        return S.current.triggerAutoBackupByTokenUpdated;
+        return appLocalizations.triggerAutoBackupByTokenUpdated;
       case AutoBackupTriggerType.tokensUpdated:
-        return S.current.triggerAutoBackupByTokensUpdated;
+        return appLocalizations.triggerAutoBackupByTokensUpdated;
       case AutoBackupTriggerType.tokenDeleted:
-        return S.current.triggerAutoBackupByTokenDeleted;
+        return appLocalizations.triggerAutoBackupByTokenDeleted;
       case AutoBackupTriggerType.categoryInserted:
-        return S.current.triggerAutoBackupByCategoryInserted;
+        return appLocalizations.triggerAutoBackupByCategoryInserted;
       case AutoBackupTriggerType.categoriesInserted:
-        return S.current.triggerAutoBackupByCategoriesInserted;
+        return appLocalizations.triggerAutoBackupByCategoriesInserted;
       case AutoBackupTriggerType.categoryUpdated:
-        return S.current.triggerAutoBackupByCategoryUpdated;
+        return appLocalizations.triggerAutoBackupByCategoryUpdated;
       case AutoBackupTriggerType.categoriesUpdated:
-        return S.current.triggerAutoBackupByCategoriesUpdated;
+        return appLocalizations.triggerAutoBackupByCategoriesUpdated;
       case AutoBackupTriggerType.categoryDeleted:
-        return S.current.triggerAutoBackupByCategoryDeleted;
+        return appLocalizations.triggerAutoBackupByCategoryDeleted;
       case AutoBackupTriggerType.categoriesUpdatedForToken:
-        return S.current.triggerAutoBackupByCategoriesUpdatedForToken;
+        return appLocalizations.triggerAutoBackupByCategoriesUpdatedForToken;
       case AutoBackupTriggerType.cloudServiceConfigInserted:
-        return S.current.triggerAutoBackupByCloudServiceConfigInserted;
+        return appLocalizations.triggerAutoBackupByCloudServiceConfigInserted;
       case AutoBackupTriggerType.cloudServiceConfigUpdated:
-        return S.current.triggerAutoBackupByCloudServiceConfigUpdated;
+        return appLocalizations.triggerAutoBackupByCloudServiceConfigUpdated;
       case AutoBackupTriggerType.cloudServiceConfigDeleted:
-        return S.current.triggerAutoBackupByCloudServiceConfigDeleted;
+        return appLocalizations.triggerAutoBackupByCloudServiceConfigDeleted;
       default:
-        return S.current.triggerAutoBackupByOther;
+        return appLocalizations.triggerAutoBackupByOther;
     }
   }
 }
@@ -303,70 +303,72 @@ class AutoBackupLogStatusItem {
   String get labelShort {
     switch (status) {
       case AutoBackupStatus.pending:
-        return S.current.pendingBackupShort;
+        return appLocalizations.pendingBackupShort;
       case AutoBackupStatus.encrypting:
-        return S.current.encryptingBackupFileShort;
+        return appLocalizations.encryptingBackupFileShort;
       case AutoBackupStatus.encryptFailed:
-        return S.current.encryptBackupFileFailedShort;
+        return appLocalizations.encryptBackupFileFailedShort;
       case AutoBackupStatus.encrpytSuccess:
-        return S.current.encryptBackupFileSuccessShort;
+        return appLocalizations.encryptBackupFileSuccessShort;
       case AutoBackupStatus.saving:
-        return S.current.savingBackupFileShort;
+        return appLocalizations.savingBackupFileShort;
       case AutoBackupStatus.saveFailed:
-        return S.current.saveBackupFileFailedShort;
+        return appLocalizations.saveBackupFileFailedShort;
       case AutoBackupStatus.saveSuccess:
-        return S.current.saveBackupFileSuccessShort;
+        return appLocalizations.saveBackupFileSuccessShort;
       case AutoBackupStatus.uploading:
-        return S.current.uploadingBackupFileShort;
+        return appLocalizations.uploadingBackupFileShort;
       case AutoBackupStatus.uploadFailed:
-        return S.current.uploadBackupFileFailedShort;
+        return appLocalizations.uploadBackupFileFailedShort;
       case AutoBackupStatus.uploadSuccess:
-        return S.current.uploadBackupFileSuccessShort;
+        return appLocalizations.uploadBackupFileSuccessShort;
       case AutoBackupStatus.complete:
-        return S.current.autoBackupCompleteShort;
+        return appLocalizations.autoBackupCompleteShort;
       case AutoBackupStatus.failed:
-        return S.current.autoBackupFailedShort;
+        return appLocalizations.autoBackupFailedShort;
       default:
-        return S.current.pendingBackupShort;
+        return appLocalizations.pendingBackupShort;
     }
   }
 
   String label(AutoBackupLog log) {
     switch (status) {
       case AutoBackupStatus.pending:
-        return S.current.pendingBackup(log.type.label);
+        return appLocalizations.pendingBackup(log.type.label);
       case AutoBackupStatus.encrypting:
-        return S.current.encryptingBackupFile;
+        return appLocalizations.encryptingBackupFile;
       case AutoBackupStatus.encryptFailed:
-        return S.current.encryptBackupFileFailed;
+        return appLocalizations.encryptBackupFileFailed;
       case AutoBackupStatus.encrpytSuccess:
-        return S.current.encryptBackupFileSuccess;
+        return appLocalizations.encryptBackupFileSuccess;
       case AutoBackupStatus.saving:
-        return S.current.savingBackupFile;
+        return appLocalizations.savingBackupFile;
       case AutoBackupStatus.saveFailed:
-        return S.current.saveBackupFileFailed;
+        return appLocalizations.saveBackupFileFailed;
       case AutoBackupStatus.saveSuccess:
-        return S.current.saveBackupFileSuccess(log.backupPath);
+        return appLocalizations.saveBackupFileSuccess(log.backupPath);
       case AutoBackupStatus.uploading:
         if (cloudServiceType == null) {
-          return S.current.uploadBackupFileFailed;
+          return appLocalizations.uploadBackupFileFailed;
         } else {
-          return S.current.uploadingBackupFileTo(cloudServiceType!.label);
+          return appLocalizations
+              .uploadingBackupFileTo(cloudServiceType!.label);
         }
       case AutoBackupStatus.uploadFailed:
-        return S.current.uploadBackupFileFailed;
+        return appLocalizations.uploadBackupFileFailed;
       case AutoBackupStatus.uploadSuccess:
         if (cloudServiceType == null) {
-          return S.current.uploadBackupFileFailed;
+          return appLocalizations.uploadBackupFileFailed;
         } else {
-          return S.current.uploadBackupFileSuccess(cloudServiceType!.label);
+          return appLocalizations
+              .uploadBackupFileSuccess(cloudServiceType!.label);
         }
       case AutoBackupStatus.complete:
-        return S.current.autoBackupComplete;
+        return appLocalizations.autoBackupComplete;
       case AutoBackupStatus.failed:
-        return S.current.autoBackupFailed;
+        return appLocalizations.autoBackupFailed;
       default:
-        return S.current.pendingBackup(log.type.label);
+        return appLocalizations.pendingBackup(log.type.label);
     }
   }
 }

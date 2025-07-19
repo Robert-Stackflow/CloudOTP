@@ -20,8 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../TokenUtils/export_token_util.dart';
-import '../../../Utils/utils.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class LocalBackupsBottomSheet extends StatefulWidget {
   const LocalBackupsBottomSheet({
@@ -35,7 +34,8 @@ class LocalBackupsBottomSheet extends StatefulWidget {
   LocalBackupsBottomSheetState createState() => LocalBackupsBottomSheetState();
 }
 
-class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
+class LocalBackupsBottomSheetState
+    extends BaseDynamicState<LocalBackupsBottomSheet> {
   List<FileSystemEntity> files = const [];
   List<FileSystemEntity> defaultPathBackupFiles = const [];
 
@@ -54,7 +54,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(
             top: radius,
-            bottom: ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
         color: ChewieTheme.scaffoldBackgroundColor,
         border: ChewieTheme.border,
         boxShadow: ChewieTheme.defaultBoxShadow,
@@ -83,9 +83,7 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
         ],
       ),
     );
-    return ResponsiveUtil.isWideLandscape()
-        ? Center(child: mainBody)
-        : mainBody;
+    return ResponsiveUtil.isWideDevice() ? Center(child: mainBody) : mainBody;
   }
 
   _buildHeader() {
@@ -97,10 +95,9 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current
+        appLocalizations
             .cloudBackupFiles(files.length + defaultPathBackupFiles.length),
-        style:
-            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -147,11 +144,11 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                   children: [
                     Text(
                       FileUtil.getFileNameWithExtension(file.path),
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     Text(
-                      "$time    $size${isDefaultPath ? "    ${S.current.fromInternalBackupPath}" : ""}",
-                      style: Theme.of(context).textTheme.bodySmall,
+                      "$time    $size${isDefaultPath ? "    ${appLocalizations.fromInternalBackupPath}" : ""}",
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -168,17 +165,18 @@ class LocalBackupsBottomSheetState extends State<LocalBackupsBottomSheet> {
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await file.delete();
                     setState(() {
                       files.remove(file);
                     });
-                    IToast.showTop(S.current.deleteSuccess);
+                    IToast.showTop(appLocalizations.deleteSuccess);
                   } catch (e, t) {
                     ILogger.error(
                         "Failed to delete backup file from local", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

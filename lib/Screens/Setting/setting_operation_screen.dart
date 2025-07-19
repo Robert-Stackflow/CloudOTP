@@ -15,12 +15,11 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../Database/token_dao.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'base_setting_screen.dart';
 
 class OperationSettingScreen extends BaseSettingScreen {
@@ -38,7 +37,8 @@ class OperationSettingScreen extends BaseSettingScreen {
   State<OperationSettingScreen> createState() => _OperationSettingScreenState();
 }
 
-class _OperationSettingScreenState extends State<OperationSettingScreen>
+class _OperationSettingScreenState
+    extends BaseDynamicState<OperationSettingScreen>
     with TickerProviderStateMixin {
   bool clipToCopy = ChewieHiveUtil.getBool(CloudOTPHiveUtil.clickToCopyKey);
   bool autoCopyNextCode =
@@ -71,9 +71,9 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
   Widget build(BuildContext context) {
     return ItemBuilder.buildSettingScreen(
       context: context,
-      title: S.current.operationSetting,
+      title: appLocalizations.operationSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
         _operationSettings(),
@@ -86,12 +86,12 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
 
   _operationSettings() {
     return SearchableCaptionItem(
-      title: S.current.tokenOperationSettings,
+      title: appLocalizations.tokenOperationSettings,
       children: [
         CheckboxItem(
           value: autoDisplayNextCode,
-          title: S.current.autoDisplayNextCode,
-          description: S.current.autoDisplayNextCodeTip,
+          title: appLocalizations.autoDisplayNextCode,
+          description: appLocalizations.autoDisplayNextCodeTip,
           onTap: () {
             setState(() {
               autoDisplayNextCode = !autoDisplayNextCode;
@@ -101,8 +101,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
         ),
         CheckboxItem(
           value: autoHideCode,
-          title: S.current.autoHideCode,
-          description: S.current.autoHideCodeTip,
+          title: appLocalizations.autoHideCode,
+          description: appLocalizations.autoHideCodeTip,
           onTap: () {
             setState(() {
               autoHideCode = !autoHideCode;
@@ -112,8 +112,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
         ),
         CheckboxItem(
           value: defaultHideCode,
-          title: S.current.defaultHideCode,
-          description: S.current.defaultHideCodeTip,
+          title: appLocalizations.defaultHideCode,
+          description: appLocalizations.defaultHideCodeTip,
           onTap: () {
             setState(() {
               defaultHideCode = !defaultHideCode;
@@ -128,12 +128,12 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
 
   _copyOperationSettings() {
     return SearchableCaptionItem(
-      title: S.current.tokenCopyOperationSettings,
+      title: appLocalizations.tokenCopyOperationSettings,
       children: [
         CheckboxItem(
           value: clipToCopy,
-          title: S.current.clickToCopy,
-          description: S.current.clickToCopyTip,
+          title: appLocalizations.clickToCopy,
+          description: appLocalizations.clickToCopyTip,
           onTap: () {
             setState(() {
               clipToCopy = !clipToCopy;
@@ -145,8 +145,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
           CheckboxItem(
             disabled: !clipToCopy,
             value: autoCopyNextCode,
-            title: S.current.autoCopyNextCode,
-            description: S.current.autoCopyNextCodeTip,
+            title: appLocalizations.autoCopyNextCode,
+            description: appLocalizations.autoCopyNextCodeTip,
             onTap: () {
               setState(() {
                 autoCopyNextCode = !autoCopyNextCode;
@@ -159,8 +159,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
           CheckboxItem(
             disabled: !clipToCopy,
             value: autoMinimizeAfterClickToCopy,
-            title: S.current.autoMinimizeAfterClickToCopy,
-            description: S.current.autoMinimizeAfterClickToCopyTip,
+            title: appLocalizations.autoMinimizeAfterClickToCopy,
+            description: appLocalizations.autoMinimizeAfterClickToCopyTip,
             onTap: () {
               setState(() {
                 autoMinimizeAfterClickToCopy = !autoMinimizeAfterClickToCopy;
@@ -175,16 +175,18 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
             autoMinimizeAfterClickToCopy &&
             showTray)
           InlineSelectionItem<SelectionItemModel<int>>(
-            title: S.current.autoMinimizeAfterClickToCopyOption,
+            title: appLocalizations.autoMinimizeAfterClickToCopyOption,
             selections: [
-              SelectionItemModel(S.current.minimizeWindowAfterClickToCopy, 0),
-              SelectionItemModel(S.current.minimizeToTrayAfterClickToCopy, 1),
+              SelectionItemModel(
+                  appLocalizations.minimizeWindowAfterClickToCopy, 0),
+              SelectionItemModel(
+                  appLocalizations.minimizeToTrayAfterClickToCopy, 1),
             ],
-            hint: S.current.chooseAutoMinimizeAfterClickToCopyOption,
+            hint: appLocalizations.chooseAutoMinimizeAfterClickToCopyOption,
             selected: SelectionItemModel(
                 autoMinimizeAfterClickToCopyOption == 0
-                    ? S.current.minimizeWindowAfterClickToCopy
-                    : S.current.minimizeToTrayAfterClickToCopy,
+                    ? appLocalizations.minimizeWindowAfterClickToCopy
+                    : appLocalizations.minimizeToTrayAfterClickToCopy,
                 autoMinimizeAfterClickToCopyOption),
             onChanged: (item) {
               setState(() {
@@ -201,20 +203,20 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
 
   _otherSettings() {
     return SearchableCaptionItem(
-      title: S.current.otherOperationSettings,
+      title: appLocalizations.otherOperationSettings,
       children: [
         EntryItem(
-          title: S.current.resetCopyTimes,
-          description: S.current.resetCopyTimesTip,
+          title: appLocalizations.resetCopyTimes,
+          description: appLocalizations.resetCopyTimesTip,
           onTap: () async {
             DialogBuilder.showConfirmDialog(
               context,
-              title: S.current.resetCopyTimesTitle,
-              message: S.current.resetCopyTimesConfirmMessage,
+              title: appLocalizations.resetCopyTimesTitle,
+              message: appLocalizations.resetCopyTimesConfirmMessage,
               onTapConfirm: () async {
                 await TokenDao.resetTokenCopyTimes();
                 homeScreenState?.resetCopyTimes();
-                IToast.showTop(S.current.resetSuccess);
+                IToast.showTop(appLocalizations.resetSuccess);
               },
               onTapCancel: () {},
             );
@@ -222,8 +224,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
         ),
         CheckboxItem(
           value: dragToReorder,
-          title: S.current.dragToReorder,
-          description: S.current.dragToReorderTip,
+          title: appLocalizations.dragToReorder,
+          description: appLocalizations.dragToReorderTip,
           onTap: () {
             setState(() {
               dragToReorder = !dragToReorder;
@@ -235,8 +237,8 @@ class _OperationSettingScreenState extends State<OperationSettingScreen>
         ),
         CheckboxItem(
           value: autoFocusSearchBar,
-          title: S.current.autoFocusSearchBar,
-          description: S.current.autoFocusSearchBarTip,
+          title: appLocalizations.autoFocusSearchBar,
+          description: appLocalizations.autoFocusSearchBarTip,
           onTap: () {
             setState(() {
               autoFocusSearchBar = !autoFocusSearchBar;

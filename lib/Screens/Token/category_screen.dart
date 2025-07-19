@@ -21,7 +21,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Database/category_dao.dart';
 import '../../Models/token_category.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({
@@ -34,7 +34,7 @@ class CategoryScreen extends StatefulWidget {
   State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen>
+class _CategoryScreenState extends BaseDynamicState<CategoryScreen>
     with TickerProviderStateMixin {
   List<TokenCategory> categories = [];
 
@@ -56,10 +56,10 @@ class _CategoryScreenState extends State<CategoryScreen>
   Widget build(BuildContext context) {
     return MyScaffold(
       appBar: ResponsiveAppBar(
-        title: S.current.category,
+        title: appLocalizations.category,
         showBorder: true,
-        showBack: !ResponsiveUtil.isLandscape(),
-        titleLeftMargin: ResponsiveUtil.isLandscape() ? 15 : 5,
+        showBack: !ResponsiveUtil.isLandscapeLayout(),
+        titleLeftMargin: ResponsiveUtil.isLandscapeLayout() ? 15 : 5,
         desktopActions: [
           ToolButton(
             context: context,
@@ -70,8 +70,7 @@ class _CategoryScreenState extends State<CategoryScreen>
         ],
         actions: [
           CircleIconButton(
-            icon: Icon(LucideIcons.plus,
-                color: Theme.of(context).iconTheme.color),
+            icon: Icon(LucideIcons.plus, color: ChewieTheme.iconColor),
             onTap: _add,
           ),
         ],
@@ -85,22 +84,21 @@ class _CategoryScreenState extends State<CategoryScreen>
         InputValidateAsyncController(
       validator: (text) async {
         if (text.isEmpty) {
-          return S.current.categoryNameCannotBeEmpty;
+          return appLocalizations.categoryNameCannotBeEmpty;
         }
         if (await CategoryDao.isCategoryExist(text)) {
-          return S.current.categoryNameDuplicate;
+          return appLocalizations.categoryNameDuplicate;
         }
         return null;
       },
       controller: TextEditingController(),
     );
     GlobalKey<InputBottomSheetState> key = GlobalKey();
-    BottomSheetBuilder.showBottomSheet(context,
-        responsive: true, useWideLandscape: true, (context) {
+    BottomSheetBuilder.showBottomSheet(context, responsive: true, (context) {
       return InputBottomSheet(
         key: key,
-        title: S.current.addCategory,
-        hint: S.current.inputCategory,
+        title: appLocalizations.addCategory,
+        hint: appLocalizations.inputCategory,
         validateAsyncController: validateAsyncController,
         style: InputItemStyle(
           maxLength: 32,
@@ -122,7 +120,7 @@ class _CategoryScreenState extends State<CategoryScreen>
           ? ListView(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               children: [
-                EmptyPlaceholder(text: S.current.noCategory),
+                EmptyPlaceholder(text: appLocalizations.noCategory),
               ],
             )
           : ReorderableListView.builder(
@@ -169,7 +167,7 @@ class _CategoryScreenState extends State<CategoryScreen>
       margin: const EdgeInsets.symmetric(vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).canvasColor,
+        color: ChewieTheme.canvasColor,
         borderRadius: ChewieDimens.borderRadius8,
         // border: Border.all(color: Theme.of(context).dividerColor, width: 0.5),
       ),
@@ -186,7 +184,7 @@ class _CategoryScreenState extends State<CategoryScreen>
           Expanded(
             child: Text(
               category.title,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: ChewieTheme.titleMedium,
             ),
           ),
           CircleIconButton(
@@ -196,11 +194,11 @@ class _CategoryScreenState extends State<CategoryScreen>
                   InputValidateAsyncController(
                 validator: (text) async {
                   if (text.isEmpty) {
-                    return S.current.categoryNameCannotBeEmpty;
+                    return appLocalizations.categoryNameCannotBeEmpty;
                   }
                   if (text != category.title &&
                       await CategoryDao.isCategoryExist(text)) {
-                    return S.current.categoryNameDuplicate;
+                    return appLocalizations.categoryNameDuplicate;
                   }
                   return null;
                 },
@@ -209,10 +207,9 @@ class _CategoryScreenState extends State<CategoryScreen>
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                useWideLandscape: true,
                 (context) => InputBottomSheet(
-                  title: S.current.editCategoryName,
-                  hint: S.current.inputCategory,
+                  title: appLocalizations.editCategoryName,
+                  hint: appLocalizations.inputCategory,
                   style: InputItemStyle(
                     maxLength: 32,
                   ),
@@ -246,14 +243,14 @@ class _CategoryScreenState extends State<CategoryScreen>
             onTap: () {
               DialogBuilder.showConfirmDialog(
                 context,
-                title: S.current.deleteCategory,
-                message: S.current.deleteCategoryHint(category.title),
-                confirmButtonText: S.current.confirm,
-                cancelButtonText: S.current.cancel,
+                title: appLocalizations.deleteCategory,
+                message: appLocalizations.deleteCategoryHint(category.title),
+                confirmButtonText: appLocalizations.confirm,
+                cancelButtonText: appLocalizations.cancel,
                 onTapConfirm: () async {
                   await CategoryDao.deleteCategory(category);
                   IToast.showTop(
-                      S.current.deleteCategorySuccess(category.title));
+                      appLocalizations.deleteCategorySuccess(category.title));
                   categories.remove(category);
                   setState(() {});
                   homeScreenState?.refreshCategories();

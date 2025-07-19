@@ -41,7 +41,7 @@ class SliverAppBarWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool showLeading = !ResponsiveUtil.isLandscape();
+    bool showLeading = !ResponsiveUtil.isLandscapeLayout();
     var finalTitleWidget = Container(
       margin: EdgeInsets.only(left: titleLeftMargin),
       child: title,

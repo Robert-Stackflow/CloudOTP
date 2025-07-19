@@ -553,14 +553,11 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "7.2.0"
-  flutter_math_fork:
+  flutter_localizations:
     dependency: "direct main"
-    description:
-      name: flutter_math_fork
-      sha256: "284bab89b2fbf1bc3a0baf13d011c1dd324d004e35d177626b77f2fc056366ac"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.7.3"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -812,19 +809,10 @@ packages:
   image_gallery_saver:
     dependency: "direct main"
     description:
-      name: image_gallery_saver
-      sha256: "0aba74216a4d9b0561510cb968015d56b701ba1bd94aace26aacdd8ae5761816"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "../tool/image_gallery_saver"
+      relative: true
+    source: path
     version: "2.0.3"
-  install_plugin:
-    dependency: "direct main"
-    description:
-      name: install_plugin
-      sha256: "6fb67ba0781e75de4f2f2266ed25e835bfd277c5bfc2ed034af52774355857c6"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.1.0"
   intl:
     dependency: "direct main"
     description:
@@ -833,14 +821,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.19.0"
-  intl_utils:
-    dependency: "direct main"
-    description:
-      name: intl_utils
-      sha256: "35f9a55004871f241e24b07465cf402914992d8549a60205ee0816576a8ddee7"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.8.8"
   io:
     dependency: transitive
     description:
@@ -993,14 +973,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.1.6"
-  local_proxy:
-    dependency: "direct main"
-    description:
-      name: local_proxy
-      sha256: f17e637d0388d278eff905cf7c66331f0f8fc3218d23174452c5ec3ccf99f76b
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.0.3"
   logger:
     dependency: "direct main"
     description:

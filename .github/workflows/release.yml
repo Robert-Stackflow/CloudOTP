@@ -97,9 +97,9 @@ jobs:
           git config --global core.longpaths true
           flutter doctor -v
           flutter pub get
-          dart run intl_utils:generate
+          flutter gen-l10n
           cd third-party/chewie
-          dart run intl_utils:generate
+          flutter gen-l10n
 
       # Get app version
       - name: Get app version

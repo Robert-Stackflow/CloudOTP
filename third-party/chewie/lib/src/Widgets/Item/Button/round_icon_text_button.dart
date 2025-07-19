@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-
 import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:awesome_chewie/src/Widgets/Item/Animation/pressable_animation.dart';
 import 'package:awesome_chewie/src/Widgets/Item/General/clickable_wrapper.dart';
 import 'package:awesome_chewie/src/Widgets/Item/General/tooltip_wrapper.dart';
+import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 class RoundIconTextButton extends StatelessWidget {
   final String? text;
@@ -17,7 +17,8 @@ class RoundIconTextButton extends StatelessWidget {
   final double fontSizeDelta;
   final TextStyle? textStyle;
   final double? width;
-  final double height;
+  final double? height;
+  final double? minHeight;
   final double spacing;
   final Border? border;
   final bool disabled;
@@ -37,6 +38,7 @@ class RoundIconTextButton extends StatelessWidget {
     this.textStyle,
     this.width,
     this.height = 48,
+    this.minHeight = 32,
     this.border,
     this.disabled = false,
   });
@@ -52,8 +54,14 @@ class RoundIconTextButton extends StatelessWidget {
     textColor = disabled ? textColor.withAlpha(127) : textColor;
     return ToolTipWrapper(
       message: tooltip,
-      child: SizedBox(
+      child: Container(
         height: height,
+        constraints: BoxConstraints(
+          minHeight: math.min(
+            minHeight ?? double.infinity,
+            height ?? double.infinity,
+          ),
+        ),
         child: PressableAnimation(
           scaleFactor: isClickable ? 0.02 : 0,
           onTap: isClickable ? onPressed : null,
@@ -80,14 +88,16 @@ class RoundIconTextButton extends StatelessWidget {
                       if (icon != null) icon!,
                       if (icon != null && text != null)
                         SizedBox(width: spacing),
-                      Text(
-                        text ?? "",
-                        style: textStyle ??
-                            ChewieTheme.titleSmall.apply(
-                              color: textColor,
-                              fontWeightDelta: 2,
-                              fontSizeDelta: fontSizeDelta,
-                            ),
+                      Flexible(
+                        child: Text(
+                          text ?? "",
+                          style: textStyle ??
+                              ChewieTheme.titleSmall.apply(
+                                color: textColor,
+                                fontWeightDelta: 2,
+                                fontSizeDelta: fontSizeDelta,
+                              ),
+                        ),
                       ),
                     ],
                   ),

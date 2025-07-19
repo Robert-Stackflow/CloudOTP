@@ -17,7 +17,6 @@ import 'dart:math';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -27,9 +26,7 @@ import '../../Utils/biometric_util.dart';
 import '../../Utils/hive_util.dart';
 import '../../Utils/lottie_util.dart';
 import '../../Utils/shortcuts_util.dart';
-import '../../Widgets/Shortcuts/app_shortcuts.dart';
-import '../../generated/l10n.dart';
-import '../main_screen.dart';
+import '../../l10n/l10n.dart';
 
 class PinVerifyScreen extends StatefulWidget {
   const PinVerifyScreen({
@@ -52,62 +49,20 @@ class PinVerifyScreen extends StatefulWidget {
   PinVerifyScreenState createState() => PinVerifyScreenState();
 }
 
-class PinVerifyScreenState extends State<PinVerifyScreen>
-    with WindowListener, TrayListener {
+class PinVerifyScreenState extends BaseWindowState<PinVerifyScreen>
+    with TrayListener {
   final String? _password =
       ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey);
   late final bool _enableBiometric =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableBiometricKey);
   late final GestureNotifier _notifier = GestureNotifier(
-      status: GestureStatus.verify, gestureText: S.current.verifyGestureLock);
+      status: GestureStatus.verify,
+      gestureText: appLocalizations.verifyGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
-  bool _isMaximized = false;
-  bool _isStayOnTop = false;
   String? canAuthenticateResponseString;
   CanAuthenticateResponse? canAuthenticateResponse;
 
   bool get _biometricAvailable => canAuthenticateResponse?.isSuccess ?? false;
-
-  @override
-  Future<void> onWindowResize() async {
-    super.onWindowResize();
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowResized() async {
-    super.onWindowResized();
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowMove() async {
-    super.onWindowMove();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  Future<void> onWindowMoved() async {
-    super.onWindowMoved();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  void onWindowMaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = false;
-    });
-  }
 
   @override
   void dispose() {
@@ -118,14 +73,20 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
 
   @override
   void initState() {
-    if (widget.jumpToMain) trayManager.addListener(this);
+    if (widget.jumpToMain) {
+      trayManager.addListener(this);
+      Utils.initSimpleTray();
+    }
     windowManager.addListener(this);
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-          LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
+      if (mounted) {
+        chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+            LottieFiles.load(
+                LottieFiles.getLoadingPath(chewieProvider.rootContext),
+                scale: 1.5);
+      }
     });
-    Utils.initSimpleTray();
     initBiometricAuthentication();
   }
 
@@ -135,26 +96,17 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
         await BiometricUtil.getCanAuthenticateResponseString();
     setState(() {});
     if (_biometricAvailable && _enableBiometric && widget.autoAuth) {
-      auth();
+      localAuth();
     }
   }
 
-  void auth() async {
-    ChewieUtils.localAuth(
-      onAuthed: () {
-        if (widget.onSuccess != null) widget.onSuccess!();
-        if (widget.jumpToMain) {
-          ShortcutsUtil.jumpToMain(context);
-        } else {
-          Navigator.of(context).pop();
-        }
-        _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
-      },
-    );
+  void localAuth() async {
+    ChewieUtils.localAuth(onAuthed: success);
   }
 
   @override
   Widget build(BuildContext context) {
+    chewieProvider.resetRootContext();
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -164,9 +116,9 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
           backgroundColor: ChewieTheme.scaffoldBackgroundColor,
           appBar: ResponsiveUtil.isDesktop() && widget.showWindowTitle
               ? ResponsiveAppBar(
-                  title: S.current.verifyGestureLock,
+                  title: appLocalizations.verifyGestureLock,
                   showBack: false,
-                  titleLeftMargin: 12,
+                  titleLeftMargin: 15,
                   actions: const [
                     BlankIconButton(),
                   ],
@@ -191,7 +143,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
                     const SizedBox(height: 50),
                     Text(
                       _notifier.gestureText,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     const SizedBox(height: 30),
                     Flexible(
@@ -201,7 +153,7 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
                         padding: 60,
                         roundSpace: 40,
                         defaultColor: Colors.grey.withOpacity(0.5),
-                        selectedColor: Theme.of(context).primaryColor,
+                        selectedColor: ChewieTheme.primaryColor,
                         failedColor: Colors.redAccent,
                         disableColor: Colors.grey,
                         solidRadiusRatio: 0.3,
@@ -214,9 +166,9 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
                       visible: _biometricAvailable && _enableBiometric,
                       child: RoundIconTextButton(
                         text: ResponsiveUtil.isWindows()
-                            ? S.current.biometricVerifyPin
-                            : S.current.biometric,
-                        onPressed: auth,
+                            ? appLocalizations.biometricVerifyPin
+                            : appLocalizations.biometric,
+                        onPressed: localAuth,
                       ),
                     ),
                     const SizedBox(height: 50),
@@ -234,12 +186,12 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
               height: 48,
               forceClose: true,
               backgroundColor: Colors.transparent,
-              isStayOnTop: _isStayOnTop,
-              isMaximized: _isMaximized,
+              isStayOnTop: isStayOnTop,
+              isMaximized: isMaximized,
               onStayOnTopTap: () {
                 setState(() {
-                  _isStayOnTop = !_isStayOnTop;
-                  windowManager.setAlwaysOnTop(_isStayOnTop);
+                  isStayOnTop = !isStayOnTop;
+                  windowManager.setAlwaysOnTop(isStayOnTop);
                 });
               },
             ),
@@ -248,24 +200,28 @@ class PinVerifyScreenState extends State<PinVerifyScreen>
     );
   }
 
+  success() {
+    if (widget.onSuccess != null) widget.onSuccess!();
+    if (widget.jumpToMain) {
+      ShortcutsUtil.jumpToMain();
+    } else {
+      Navigator.of(context).pop();
+    }
+    _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
+  }
+
   void _gestureComplete(List<int> selected, UnlockStatus status) async {
     switch (_notifier.status) {
       case GestureStatus.verify:
       case GestureStatus.verifyFailed:
         String password = GestureUnlockView.selectedToString(selected);
         if (_password == password) {
-          if (widget.onSuccess != null) widget.onSuccess!();
-          if (widget.jumpToMain) {
-            ShortcutsUtil.jumpToMain(context);
-          } else {
-            Navigator.of(context).pop();
-          }
-          _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
+          success();
         } else {
           setState(() {
             _notifier.setStatus(
               status: GestureStatus.verifyFailed,
-              gestureText: S.current.gestureLockWrong,
+              gestureText: appLocalizations.gestureLockWrong,
             );
           });
           _gestureUnlockView.currentState?.updateStatus(UnlockStatus.failed);

@@ -19,8 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:webdav_client/webdav_client.dart';
 
-import '../../../Utils/utils.dart';
-import '../../../generated/l10n.dart';
+import '../../../l10n/l10n.dart';
 
 class WebDavBackupsBottomSheet extends StatefulWidget {
   const WebDavBackupsBottomSheet({
@@ -39,7 +38,8 @@ class WebDavBackupsBottomSheet extends StatefulWidget {
       WebDavBackupsBottomSheetState();
 }
 
-class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
+class WebDavBackupsBottomSheetState
+    extends BaseDynamicState<WebDavBackupsBottomSheet> {
   late List<WebDavFileInfo> files;
 
   @override
@@ -48,7 +48,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
     super.initState();
   }
 
-  Radius radius = ChewieDimens.radius16;
+  Radius radius = ChewieDimens.defaultRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(
             top: radius,
-            bottom: ResponsiveUtil.isWideLandscape() ? radius : Radius.zero),
+            bottom: ResponsiveUtil.isWideDevice() ? radius : Radius.zero),
         color: ChewieTheme.scaffoldBackgroundColor,
         border: ChewieTheme.border,
         boxShadow: ChewieTheme.defaultBoxShadow,
@@ -77,9 +77,7 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
         ],
       ),
     );
-    return ResponsiveUtil.isWideLandscape()
-        ? Center(child: mainBody)
-        : mainBody;
+    return ResponsiveUtil.isWideDevice() ? Center(child: mainBody) : mainBody;
   }
 
   _buildHeader() {
@@ -91,9 +89,8 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       alignment: Alignment.center,
       child: Text(
-        S.current.cloudBackupFiles(widget.files.length),
-        style:
-            Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
+        appLocalizations.cloudBackupFiles(widget.files.length),
+        style: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
       ),
     );
   }
@@ -135,11 +132,11 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
                   children: [
                     Text(
                       file.name ?? "",
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: ChewieTheme.titleMedium,
                     ),
                     Text(
                       "$time    $size",
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: ChewieTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -156,16 +153,17 @@ class WebDavBackupsBottomSheetState extends State<WebDavBackupsBottomSheet> {
                 icon:
                     const Icon(LucideIcons.trash, color: Colors.red, size: 20),
                 onTap: () async {
-                  CustomLoadingDialog.showLoading(title: S.current.deleting);
+                  CustomLoadingDialog.showLoading(
+                      title: appLocalizations.deleting);
                   try {
                     await widget.cloudService.deleteFile(file.path ?? "");
                     setState(() {
                       files.remove(file);
                     });
-                    IToast.showTop(S.current.deleteSuccess);
+                    IToast.showTop(appLocalizations.deleteSuccess);
                   } catch (e, t) {
                     ILogger.error("Failed to delete file from webdav", e, t);
-                    IToast.showTop(S.current.deleteFailed);
+                    IToast.showTop(appLocalizations.deleteFailed);
                   }
                   CustomLoadingDialog.dismissLoading();
                 },

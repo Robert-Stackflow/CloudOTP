@@ -15,6 +15,7 @@
 
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:flutter/material.dart';
@@ -25,10 +26,9 @@ import '../../Database/database_manager.dart';
 import '../../Utils/biometric_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/lottie_util.dart';
 import '../../Utils/utils.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class DatabaseDecryptScreen extends StatefulWidget {
   const DatabaseDecryptScreen({super.key});
@@ -37,13 +37,11 @@ class DatabaseDecryptScreen extends StatefulWidget {
   DatabaseDecryptScreenState createState() => DatabaseDecryptScreenState();
 }
 
-class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
-    with WindowListener, TrayListener {
+class DatabaseDecryptScreenState extends BaseWindowState<DatabaseDecryptScreen>
+    with TrayListener {
   final FocusNode _focusNode = FocusNode();
   late InputValidateAsyncController validateAsyncController;
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  bool _isMaximized = false;
-  bool _isStayOnTop = false;
   bool _isValidated = true;
   final bool _allowDatabaseBiometric = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.allowDatabaseBiometricKey,
@@ -66,7 +64,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
             ChewieHiveUtil.put(
                 CloudOTPHiveUtil.allowDatabaseBiometricKey, false);
           });
-          IToast.showTop(S.current.biometricChanged);
+          IToast.showTop(appLocalizations.biometricChanged);
           FocusScope.of(context).requestFocus(_focusNode);
         }
         if (password != null && password.isNotEmpty) {
@@ -81,21 +79,21 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       if (e is AuthException) {
         switch (e.code) {
           case AuthExceptionCode.userCanceled:
-            IToast.showTop(S.current.biometricUserCanceled);
+            IToast.showTop(appLocalizations.biometricUserCanceled);
             break;
           case AuthExceptionCode.timeout:
-            IToast.showTop(S.current.biometricTimeout);
+            IToast.showTop(appLocalizations.biometricTimeout);
             break;
           case AuthExceptionCode.unknown:
-            IToast.showTop(S.current.biometricLockout);
+            IToast.showTop(appLocalizations.biometricLockout);
             break;
           case AuthExceptionCode.canceled:
           default:
-            IToast.showTop(S.current.biometricError);
+            IToast.showTop(appLocalizations.biometricError);
             break;
         }
       } else {
-        IToast.showTop(S.current.biometricError);
+        IToast.showTop(appLocalizations.biometricError);
       }
     }
   }
@@ -112,47 +110,6 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   }
 
   @override
-  Future<void> onWindowResize() async {
-    super.onWindowResize();
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowResized() async {
-    super.onWindowResized();
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowMove() async {
-    super.onWindowMove();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  Future<void> onWindowMoved() async {
-    super.onWindowMoved();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  void onWindowMaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = false;
-    });
-  }
-
-  @override
   void dispose() {
     super.dispose();
     trayManager.removeListener(this);
@@ -162,8 +119,9 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
   @override
   void initState() {
     super.initState();
-    chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-        LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
+    chewieProvider.loadingWidgetBuilder = (size, forceDark) => LottieFiles.load(
+        LottieFiles.getLoadingPath(chewieProvider.rootContext),
+        scale: 1.5);
     initBiometricAuthentication();
     trayManager.addListener(this);
     windowManager.addListener(this);
@@ -180,7 +138,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           } catch (e, t) {
             ILogger.error(
                 "Failed to decrypt database with wrong password", e, t);
-            return S.current.encryptDatabasePasswordWrong;
+            return appLocalizations.encryptDatabasePasswordWrong;
           }
         }
         return null;
@@ -191,6 +149,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
 
   @override
   Widget build(BuildContext context) {
+    chewieProvider.resetRootContext();
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -200,9 +159,9 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           backgroundColor: ChewieTheme.scaffoldBackgroundColor,
           appBar: ResponsiveUtil.isDesktop()
               ? ResponsiveAppBar(
-                  title: S.current.appName,
+                  title: appLocalizations.appName,
                   showBack: false,
-                  titleLeftMargin: 12,
+                  titleLeftMargin: 15,
                   actions: const [
                     BlankIconButton(),
                   ],
@@ -229,12 +188,12 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
               height: 48,
               forceClose: true,
               backgroundColor: Colors.transparent,
-              isStayOnTop: _isStayOnTop,
-              isMaximized: _isMaximized,
+              isStayOnTop: isStayOnTop,
+              isMaximized: isMaximized,
               onStayOnTopTap: () {
                 setState(() {
-                  _isStayOnTop = !_isStayOnTop;
-                  windowManager.setAlwaysOnTop(_isStayOnTop);
+                  isStayOnTop = !isStayOnTop;
+                  windowManager.setAlwaysOnTop(isStayOnTop);
                 });
               },
             ),
@@ -245,13 +204,13 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
 
   onSubmit() async {
     CustomLoadingDialog.showLoading(
-        title: S.current.decryptingDatabasePassword);
+        title: appLocalizations.decryptingDatabasePassword);
     String? error = await validateAsyncController.validate();
     bool isValidAsync = (error == null);
     CustomLoadingDialog.dismissLoading();
     if (isValidAsync) {
       if (DatabaseManager.initialized) {
-        ShortcutsUtil.jumpToMain(context);
+        ShortcutsUtil.jumpToMain();
       }
     } else {
       _focusNode.requestFocus();
@@ -264,8 +223,8 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Spacer(),
-        Text(S.current.decryptDatabasePassword,
-            style: Theme.of(context).textTheme.titleLarge),
+        Text(appLocalizations.decryptDatabasePassword,
+            style: ChewieTheme.titleLarge),
         const SizedBox(height: 30),
         Container(
           constraints: const BoxConstraints(maxWidth: 400),
@@ -285,7 +244,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
             child: InputItem(
               validator: (value) {
                 if (value.isEmpty) {
-                  return S.current.encryptDatabasePasswordCannotBeEmpty;
+                  return appLocalizations.encryptDatabasePasswordCannotBeEmpty;
                 }
                 return null;
               },
@@ -300,7 +259,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
               tailingConfig: InputItemLeadingTailingConfig(
                 type: InputItemLeadingTailingType.password,
               ),
-              hint: S.current.inputEncryptDatabasePassword,
+              hint: appLocalizations.inputEncryptDatabasePassword,
               inputFormatters: [
                 RegexInputFormatter.onlyNumberAndLetterAndSymbol,
               ],
@@ -313,7 +272,7 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           children: [
             if (_biometricAvailable)
               RoundIconTextButton(
-                text: S.current.biometric,
+                text: appLocalizations.biometric,
                 fontSizeDelta: 2,
                 disabled: !(_allowDatabaseBiometric && _isValidated),
                 padding:
@@ -322,9 +281,9 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
               ),
             if (_biometricAvailable) const SizedBox(width: 10),
             RoundIconTextButton(
-              text: S.current.confirm,
+              text: appLocalizations.confirm,
               fontSizeDelta: 2,
-              background: Theme.of(context).primaryColor,
+              background: ChewieTheme.primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
               onPressed: onSubmit,
             ),
@@ -342,9 +301,9 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
       children: [
         IgnorePointer(
           child: Text(
-            S.current.loadSqlcipherFailed,
+            appLocalizations.loadSqlcipherFailed,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: ChewieTheme.titleLarge,
           ),
         ),
         const SizedBox(height: 30),
@@ -352,18 +311,18 @@ class DatabaseDecryptScreenState extends State<DatabaseDecryptScreen>
           child: SizedBox(
             width: min(MediaQuery.sizeOf(context).width - 40, 500),
             child: Text(
-              S.current.loadSqlcipherFailedMessage,
+              appLocalizations.loadSqlcipherFailedMessage,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: ChewieTheme.titleMedium,
             ),
           ),
         ),
         const SizedBox(height: 30),
         RoundIconTextButton(
-          text: S.current.loadSqlcipherFailedLearnMore,
+          text: appLocalizations.loadSqlcipherFailedLearnMore,
           fontSizeDelta: 2,
           height: 48,
-          background: Theme.of(context).primaryColor,
+          background: ChewieTheme.primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 12),
           onPressed: () {
             UriUtil.launchUrlUri(context, sqlcipherLearnMore);

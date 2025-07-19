@@ -1,7 +1,5 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Widgets/Scaffold/my_tooltip.dart';
 
 class ToolTipWrapper extends StatelessWidget {
   final String? message;
@@ -23,8 +21,11 @@ class ToolTipWrapper extends StatelessWidget {
       return MyTooltip(
         message: message,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: ChewieTheme.defaultDecoration
-            .copyWith(color: ChewieTheme.canvasColor, border: null),
+        decoration: ChewieTheme.defaultDecoration.copyWith(
+          color: ChewieTheme.canvasColor,
+          border: null,
+          borderRadius: ChewieDimens.borderRadius8,
+        ),
         textStyle: ChewieTheme.bodyMedium,
         waitDuration: waitDuration,
         position: position ?? TooltipPosition.bottom,

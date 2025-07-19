@@ -18,9 +18,6 @@ import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/database_manager.dart';
-import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
-import 'package:cloudotp/Screens/Setting/about_setting_screen.dart';
-import 'package:cloudotp/Screens/Setting/mobile_setting_navigation_screen.dart';
 import 'package:cloudotp/Screens/Token/add_token_screen.dart';
 import 'package:cloudotp/Screens/Token/import_export_token_screen.dart';
 import 'package:cloudotp/Screens/home_screen.dart';
@@ -43,8 +40,9 @@ import '../Utils/hive_util.dart';
 import '../Utils/lottie_util.dart';
 import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/import_from_third_party_bottom_sheet.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'Backup/cloud_service_screen.dart';
+import 'Lock/database_decrypt_screen.dart';
 import 'Lock/pin_verify_screen.dart';
 import 'Setting/backup_log_screen.dart';
 import 'Setting/setting_navigation_screen.dart';
@@ -63,17 +61,14 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => MainScreenState();
 }
 
-class MainScreenState extends State<MainScreen>
+class MainScreenState extends BaseWindowState<MainScreen>
     with
         WidgetsBindingObserver,
         TickerProviderStateMixin,
         TrayListener,
         ProtocolListener,
-        WindowListener,
         AutomaticKeepAliveClientMixin {
   Timer? _timer;
-  bool _isMaximized = false;
-  bool _isStayOnTop = false;
   Orientation _oldOrientation = Orientation.portrait;
   TextEditingController searchController = TextEditingController();
 
@@ -96,31 +91,6 @@ class MainScreenState extends State<MainScreen>
   }
 
   @override
-  Future<void> onWindowResize() async {
-    super.onWindowResize();
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowResized() async {
-    super.onWindowResized();
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowMove() async {
-    super.onWindowMove();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  Future<void> onWindowMoved() async {
-    super.onWindowMoved();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
   void onWindowEvent(String eventName) {
     super.onWindowEvent(eventName);
     if (eventName == "hide") {
@@ -129,29 +99,8 @@ class MainScreenState extends State<MainScreen>
   }
 
   @override
-  void onWindowMaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = false;
-    });
-  }
-
-  void pushRootPage(Widget page) {
-    Navigator.pushAndRemoveUntil(
-        context, RouteUtil.getFadeRoute(page), (route) => false);
-  }
-
-  @override
   void onProtocolUrlReceived(String url) {
-    ILogger.info("Protocol url received", url);
+    ILogger.info("Received protocol url: $url");
   }
 
   Future<void> fetchReleases() async {
@@ -167,7 +116,6 @@ class MainScreenState extends State<MainScreen>
 
   @override
   void initState() {
-    _oldOrientation = MediaQuery.of(chewieProvider.rootContext).orientation;
     super.initState();
     if (ResponsiveUtil.isDesktop() && !ResponsiveUtil.isLinux()) {
       protocolHandler.addListener(this);
@@ -188,8 +136,25 @@ class MainScreenState extends State<MainScreen>
         trayManager.addListener(this);
         // keyboardHandlerState?.focus();
       }
+      if (mounted) {
+        initGlobalConfig();
+        _oldOrientation = MediaQuery.of(context).orientation;
+        EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
+              backgroundColor: ChewieTheme.canvasColor,
+              indicator: LottieFiles.load(LottieFiles.getLoadingPath(context),
+                  scale: 1.5),
+              hapticFeedback: true,
+              triggerOffset: 40,
+            );
+        EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
+              indicator: LottieFiles.load(LottieFiles.getLoadingPath(context)),
+            );
+        chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+            LottieFiles.load(
+                LottieFiles.getLoadingPath(chewieProvider.rootContext),
+                scale: 1.5);
+      }
     });
-    initGlobalConfig();
     searchController.addListener(() {
       homeScreenState?.performSearch(searchController.text);
     });
@@ -199,24 +164,12 @@ class MainScreenState extends State<MainScreen>
     if (ResponsiveUtil.isDesktop()) {
       windowManager
           .isAlwaysOnTop()
-          .then((value) => setState(() => _isStayOnTop = value));
+          .then((value) => setState(() => isStayOnTop = value));
       windowManager
           .isMaximized()
-          .then((value) => setState(() => _isMaximized = value));
+          .then((value) => setState(() => isMaximized = value));
     }
     ResponsiveUtil.checkSizeCondition();
-    EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
-          backgroundColor: Theme.of(context).canvasColor,
-          indicator:
-              LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5),
-          hapticFeedback: true,
-          triggerOffset: 40,
-        );
-    EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
-          indicator: LottieFiles.load(LottieFiles.getLoadingPath(context)),
-        );
-    chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-        LottieFiles.load(LottieFiles.getLoadingPath(context), scale: 1.5);
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -225,19 +178,23 @@ class MainScreenState extends State<MainScreen>
   Future<void> jumpToLock({
     bool autoAuth = false,
   }) async {
-    if (DatabaseManager.isDatabaseEncrypted &&
-        CloudOTPHiveUtil.getEncryptDatabaseStatus() ==
-            EncryptDatabaseStatus.customPassword) {
+    if (CloudOTPHiveUtil.canDatabaseLock()) {
+      ILogger.debug("Jump to database lock screen");
       await DatabaseManager.resetDatabase();
-      pushRootPage(const DatabaseDecryptScreen());
+      RouteUtil.pushRootPage(const DatabaseDecryptScreen());
     } else {
-      pushRootPage(
+      appProvider.preventLock = true;
+      ILogger.debug("Jump to pin lock screen");
+      RouteUtil.pushFadeRoute(
+        context,
         PinVerifyScreen(
-          onSuccess: () {},
+          onSuccess: () {
+            appProvider.preventLock = false;
+          },
           showWindowTitle: true,
           isModal: true,
           autoAuth: autoAuth,
-          jumpToMain: true,
+          jumpToMain: false,
         ),
       );
     }
@@ -245,69 +202,46 @@ class MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+    chewieProvider.setRootContext(context);
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
     super.build(context);
     return OrientationBuilder(builder: (ctx, ori) {
-      if (ori != _oldOrientation) {
-        // globalNavigatorState?.popUntil((route) => route.isFirst);
-      }
+      if (ori != _oldOrientation) {}
       _oldOrientation = ori;
       return _buildBodyByPlatform();
     });
   }
 
-  goHome() {
-    while (Navigator.of(chewieProvider.rootContext).canPop()) {
-      Navigator.of(chewieProvider.rootContext).pop();
-    }
-  }
-
   _buildBodyByPlatform() {
-    if (!ResponsiveUtil.isLandscape()) {
-      return _buildMobileBody();
-    } else if (ResponsiveUtil.isMobile()) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (_, __) {
-          SystemNavigator.pop();
-        },
-        child: Scaffold(
-          backgroundColor: ChewieTheme.appBarBackgroundColor,
-          resizeToAvoidBottomInset: false,
-          body: SafeArea(child: _buildDesktopBody()),
-        ),
-      );
-    } else {
-      return _buildDesktopBody();
-    }
-  }
-
-  _buildMobileBody() {
-    return HomeScreen(key: chewieProvider.panelScreenKey);
+    return ResponsiveUtil.selectByResponsive(
+      desktop: _buildDesktopBody(),
+      landscape: SafeArea(child: _buildDesktopBody()),
+      portrait: HomeScreen(key: chewieProvider.panelScreenKey),
+    );
   }
 
   _buildDesktopBody() {
-    var leftPosWidget = Row(
-      children: [
-        _sideBar(),
-        Expanded(
-          child: Stack(
-            children: [
-              HomeScreen(key: chewieProvider.panelScreenKey),
-              Positioned(
-                right: 0,
-                child: _titleBar(),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
     return MyScaffold(
+      backgroundColor: ChewieTheme.appBarBackgroundColor,
       resizeToAvoidBottomInset: false,
-      body: leftPosWidget,
+      body: Row(
+        children: [
+          _buildSideBar(),
+          Expanded(
+            child: Stack(
+              children: [
+                HomeScreen(key: chewieProvider.panelScreenKey),
+                Positioned(
+                  right: 0,
+                  child: _buildTitleBar(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -328,63 +262,63 @@ class MainScreenState extends State<MainScreen>
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem.checkbox(
-          S.current.defaultOrder,
+          appLocalizations.defaultOrder,
           checked: homeScreenState?.orderType == OrderType.Default,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.Default);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.alphabeticalASCOrder,
+          appLocalizations.alphabeticalASCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.AlphabeticalASC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.alphabeticalDESCOrder,
+          appLocalizations.alphabeticalDESCOrder,
           checked: homeScreenState?.orderType == OrderType.AlphabeticalDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.AlphabeticalDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.copyTimesDESCOrder,
+          appLocalizations.copyTimesDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CopyTimesDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.copyTimesASCOrder,
+          appLocalizations.copyTimesASCOrder,
           checked: homeScreenState?.orderType == OrderType.CopyTimesASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CopyTimesASC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.lastCopyTimeDESCOrder,
+          appLocalizations.lastCopyTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.lastCopyTimeASCOrder,
+          appLocalizations.lastCopyTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.LastCopyTimeASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.LastCopyTimeASC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.createTimeDESCOrder,
+          appLocalizations.createTimeDESCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeDESC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CreateTimeDESC);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.createTimeASCOrder,
+          appLocalizations.createTimeASCOrder,
           checked: homeScreenState?.orderType == OrderType.CreateTimeASC,
           onPressed: () {
             homeScreenState?.changeOrderType(type: OrderType.CreateTimeASC);
@@ -398,35 +332,28 @@ class MainScreenState extends State<MainScreen>
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem.checkbox(
-          S.current.simpleLayoutType,
+          appLocalizations.simpleLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Simple,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.Simple);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.compactLayoutType,
+          appLocalizations.compactLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Compact,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.Compact);
           },
         ),
-        // ContextMenuButtonConfig.checkbox(
-        //   S.current.tileLayoutType,
-        //   checked: homeScreenState?.layoutType == LayoutType.Tile,
-        //   onPressed: () {
-        //     homeScreenState?.changeLayoutType(LayoutType.Tile);
-        //   },
-        // ),
         FlutterContextMenuItem.checkbox(
-          S.current.listLayoutType,
+          appLocalizations.listLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.List,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.List);
           },
         ),
         FlutterContextMenuItem.checkbox(
-          S.current.spotlightLayoutType,
+          appLocalizations.spotlightLayoutType,
           checked: homeScreenState?.layoutType == LayoutType.Spotlight,
           onPressed: () {
             homeScreenState?.changeLayoutType(LayoutType.Spotlight);
@@ -436,11 +363,11 @@ class MainScreenState extends State<MainScreen>
     );
   }
 
-  _buildQrCodeContextMenuButtons() {
+  FlutterContextMenu buildQrCodeContextMenuButtons() {
     return FlutterContextMenu(
       entries: [
         FlutterContextMenuItem(
-          S.current.scanFromImageFile,
+          appLocalizations.scanFromImageFile,
           iconData: LucideIcons.fileImage,
           onPressed: () async {
             FilePickerResult? result = await FileUtil.pickFiles(
@@ -455,7 +382,7 @@ class MainScreenState extends State<MainScreen>
           },
         ),
         FlutterContextMenuItem(
-          S.current.scanFromClipboard,
+          appLocalizations.scanFromClipboard,
           iconData: LucideIcons.clipboardList,
           onPressed: () {
             ScreenCapturerPlatform.instance
@@ -464,28 +391,28 @@ class MainScreenState extends State<MainScreen>
               if (value != null) {
                 ImportTokenUtil.analyzeImage(value, context: context);
               } else {
-                IToast.showTop(S.current.clipboardNoImage);
+                IToast.showTop(appLocalizations.clipboardNoImage);
               }
             });
           },
         ),
         FlutterContextMenuItem.divider(),
         FlutterContextMenuItem(
-          S.current.scanFromRegionCapture,
+          appLocalizations.scanFromRegionCapture,
           iconData: LucideIcons.scanQrCode,
           onPressed: () async {
             await capture(CaptureMode.region);
           },
         ),
         FlutterContextMenuItem(
-          S.current.scanFromWindowCapture,
+          appLocalizations.scanFromWindowCapture,
           iconData: LucideIcons.scanSearch,
           onPressed: () async {
             await capture(CaptureMode.window);
           },
         ),
         FlutterContextMenuItem(
-          S.current.scanFromScreenCapture,
+          appLocalizations.scanFromScreenCapture,
           iconData: LucideIcons.fullscreen,
           onPressed: () async {
             await capture(CaptureMode.screen);
@@ -500,6 +427,7 @@ class MainScreenState extends State<MainScreen>
     bool reCaptureWhenFailed = true,
   }) async {
     try {
+      appProvider.preventLock = true;
       windowManager.minimize();
       Directory directory = Directory(await FileUtil.getScreenshotDir());
       String imageName =
@@ -512,7 +440,7 @@ class MainScreenState extends State<MainScreen>
         silent: true,
       );
       windowManager.restore();
-      CustomLoadingDialog.showLoading(title: S.current.analyzing);
+      CustomLoadingDialog.showLoading(title: appLocalizations.analyzing);
       Uint8List? imageBytes = capturedData?.imageBytes;
       File file = File(imagePath);
       if (imageBytes == null) {
@@ -535,7 +463,7 @@ class MainScreenState extends State<MainScreen>
         }
       }
       if (imageBytes == null) {
-        IToast.showTop(S.current.captureFailed);
+        IToast.showTop(appLocalizations.captureFailed);
         CustomLoadingDialog.dismissLoading();
         return;
       }
@@ -553,14 +481,16 @@ class MainScreenState extends State<MainScreen>
         windowManager.restore();
         if (ResponsiveUtil.isLinux()) {
           LinuxOSType osType = ResponsiveUtil.getLinuxOSType();
-          IToast.showTop(
-              S.current.captureFailedNoProcess(osType.captureProcessName));
+          IToast.showTop(appLocalizations
+              .captureFailedNoProcess(osType.captureProcessName));
         }
       }
+    } finally {
+      appProvider.preventLock = false;
     }
   }
 
-  _sideBar({
+  Widget _buildSideBar({
     double width = 56,
     bool rightBorder = true,
   }) {
@@ -580,7 +510,7 @@ class MainScreenState extends State<MainScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ResponsiveUtil.buildGeneralWidget(
+                ResponsiveUtil.selectByResponsive(
                   desktop: const SizedBox(height: 8),
                   landscape: const SizedBox(height: 12),
                   portrait: const SizedBox(height: 8),
@@ -589,7 +519,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 8),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.addToken,
+                  tooltip: appLocalizations.addToken,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
                   iconSize: 22,
@@ -602,7 +532,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.category,
+                  tooltip: appLocalizations.category,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
                   iconSize: 22,
@@ -617,20 +547,20 @@ class MainScreenState extends State<MainScreen>
                 if (!ResponsiveUtil.isLandscapeTablet())
                   ToolButton(
                     context: context,
-                    tooltip: S.current.scanToken,
+                    tooltip: appLocalizations.scanToken,
                     tooltipPosition: TooltipPosition.right,
                     padding: const EdgeInsets.all(8),
                     iconSize: 22,
                     icon: LucideIcons.qrCode,
                     onPressed: () async {
                       BottomSheetBuilder.showContextMenu(
-                          context, _buildQrCodeContextMenuButtons());
+                          context, buildQrCodeContextMenuButtons());
                     },
                   ),
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.exportImport,
+                  tooltip: appLocalizations.exportImport,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
                   iconSize: 22,
@@ -645,7 +575,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.importFromThirdParty,
+                  tooltip: appLocalizations.importFromThirdParty,
                   icon: LucideIcons.waypoints,
                   tooltipPosition: TooltipPosition.right,
                   padding: const EdgeInsets.all(8),
@@ -662,21 +592,21 @@ class MainScreenState extends State<MainScreen>
                     provider.showCloudBackupButton)
                   ToolButton(
                     context: context,
-                    tooltip: S.current.cloudBackupServiceSetting,
+                    tooltip: appLocalizations.cloudBackupServiceSetting,
                     icon: LucideIcons.cloudUpload,
                     tooltipPosition: TooltipPosition.right,
                     padding: const EdgeInsets.all(8),
                     iconSize: 22,
                     onPressed: () async {
                       DialogBuilder.showPageDialog(context,
-                          child: const CloudServiceScreen());
+                          child: const CloudServiceScreen(showBack: false));
                     },
                   ),
                 const Spacer(),
                 if (provider.showBackupLogButton) ...[
                   ToolButton(
                     context: context,
-                    tooltip: S.current.backupLogs,
+                    tooltip: appLocalizations.backupLogs,
                     tooltipPosition: TooltipPosition.right,
                     iconBuilder: (buttonContext) =>
                         Selector<AppProvider, LoadingStatus>(
@@ -728,7 +658,7 @@ class MainScreenState extends State<MainScreen>
                   const SizedBox(height: 4),
                 ],
                 ToolButton.dynamicButton(
-                  tooltip: S.current.themeMode,
+                  tooltip: appLocalizations.themeMode,
                   iconBuilder: (context, isDark) =>
                       isDark ? LucideIcons.sun : LucideIcons.moon,
                   onTap: changeMode,
@@ -739,7 +669,7 @@ class MainScreenState extends State<MainScreen>
                 const SizedBox(height: 4),
                 ToolButton(
                   context: context,
-                  tooltip: S.current.setting,
+                  tooltip: appLocalizations.setting,
                   tooltipPosition: TooltipPosition.right,
                   icon: LucideIcons.bolt,
                   padding: const EdgeInsets.all(8),
@@ -749,19 +679,6 @@ class MainScreenState extends State<MainScreen>
                         context, const SettingNavigationScreen());
                   },
                 ),
-                // const SizedBox(height: 4),
-                // ToolButton(
-                //   context: context,
-                //   tooltip: S.current.about,
-                //   icon: LucideIcons.info,
-                //   tooltipPosition: TooltipPosition.right,
-                //   padding: const EdgeInsets.all(8),
-                //   iconSize: 22,
-                //   onPressed: () async {
-                //     RouteUtil.pushDialogRoute(
-                //         context, const AboutSettingScreen());
-                //   },
-                // ),
                 const SizedBox(height: 8),
               ],
             ),
@@ -771,7 +688,7 @@ class MainScreenState extends State<MainScreen>
     );
   }
 
-  _buildLogo({
+  Widget _buildLogo({
     double size = 32,
   }) {
     return IgnorePointer(
@@ -792,17 +709,17 @@ class MainScreenState extends State<MainScreen>
     );
   }
 
-  _titleBar() {
-    return ResponsiveUtil.buildDesktopWidget(
+  Widget _buildTitleBar() {
+    return ResponsiveUtil.selectByPlatform(
       desktop: WindowTitleWrapper(
         height: 48,
-        isStayOnTop: _isStayOnTop,
-        isMaximized: _isMaximized,
+        isStayOnTop: isStayOnTop,
+        isMaximized: isMaximized,
         backgroundColor: Colors.transparent,
         onStayOnTopTap: () {
           setState(() {
-            _isStayOnTop = !_isStayOnTop;
-            windowManager.setAlwaysOnTop(_isStayOnTop);
+            isStayOnTop = !isStayOnTop;
+            windowManager.setAlwaysOnTop(isStayOnTop);
           });
         },
       ),
@@ -816,14 +733,14 @@ class MainScreenState extends State<MainScreen>
   }
 
   void setTimer() {
-    // _timer = Timer(
-    //   Duration(seconds: appProvider.autoLockTime.seconds),
-    //   () {
-    //     if (!appProvider.preventLock && ChewieHiveUtil.shouldAutoLock()) {
-    //       jumpToLock();
-    //     }
-    //   },
-    // );
+    _timer = Timer(
+      Duration(seconds: appProvider.autoLockTime.seconds),
+      () {
+        if (!appProvider.preventLock && CloudOTPHiveUtil.shouldAutoLock()) {
+          jumpToLock();
+        }
+      },
+    );
   }
 
   @override

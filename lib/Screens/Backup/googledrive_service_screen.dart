@@ -15,18 +15,21 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cloud/googledrive_response.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
+import '../../Utils/app_provider.dart';
+import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 
 class GoogleDriveServiceScreen extends StatefulWidget {
   const GoogleDriveServiceScreen({
@@ -40,7 +43,8 @@ class GoogleDriveServiceScreen extends StatefulWidget {
       _GoogleDriveServiceScreenState();
 }
 
-class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
+class _GoogleDriveServiceScreenState
+    extends BaseDynamicState<GoogleDriveServiceScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -63,6 +67,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
   void initState() {
     super.initState();
     loadConfig();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => Utils.showQAuthDialog(context));
   }
 
   loadConfig() async {
@@ -92,7 +98,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
           await _googledriveCloudService!.isConnected();
       if (_googledriveCloudServiceConfig!.configured &&
           !_googledriveCloudServiceConfig!.connected) {
-        IToast.showTop(S.current.cloudConnectionError);
+        IToast.showTop(appLocalizations.cloudConnectionError);
       }
       updateConfig(_googledriveCloudServiceConfig!);
     }
@@ -118,7 +124,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
         : ItemBuilder.buildLoadingDialog(
             context: context,
             background: Colors.transparent,
-            text: S.current.cloudConnecting,
+            text: appLocalizations.cloudConnecting,
             mainAxisAlignment: MainAxisAlignment.start,
             topPadding: 100,
           );
@@ -129,28 +135,36 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     bool showSuccessToast = true,
   }) async {
     if (showLoading) {
-      CustomLoadingDialog.showLoading(title: S.current.cloudConnecting);
+      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
     }
-    await currentService.authenticate().then((value) async {
-      setState(() {
-        currentConfig.connected = value == CloudServiceStatus.success;
-      });
-      if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(S.current.cloudConnectionError);
-            break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(S.current.cloudOauthFailed);
-            break;
-          default:
-            IToast.show(S.current.cloudUnknownError);
-            break;
-        }
+    await currentService.checkServer().then((value) async {
+      if (!value) {
+        IToast.show(appLocalizations
+            .cloudOAuthUnavailable(CloudService.serverEndpoint));
       } else {
-        _googledriveCloudServiceConfig!.configured = true;
-        updateConfig(_googledriveCloudServiceConfig!);
-        if (showSuccessToast) IToast.show(S.current.cloudAuthSuccess);
+        await currentService.authenticate().then((value) async {
+          setState(() {
+            currentConfig.connected = value == CloudServiceStatus.success;
+          });
+          if (!currentConfig.connected) {
+            switch (value) {
+              case CloudServiceStatus.connectionError:
+                IToast.show(appLocalizations.cloudConnectionError);
+                break;
+              case CloudServiceStatus.unauthorized:
+                IToast.show(appLocalizations.cloudOauthFailed);
+                break;
+              default:
+                IToast.show(appLocalizations.cloudUnknownError);
+                break;
+            }
+          } else {
+            _googledriveCloudServiceConfig!.configured = true;
+            updateConfig(_googledriveCloudServiceConfig!);
+            if (showSuccessToast)
+              IToast.show(appLocalizations.cloudAuthSuccess);
+          }
+        });
       }
     });
     if (showLoading) CustomLoadingDialog.dismissLoading();
@@ -173,7 +187,9 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
-        title: S.current.enable + S.current.cloudTypeGoogleDrive,
+        title: appLocalizations.enable + appLocalizations.cloudTypeGoogleDrive,
+        description: appLocalizations.cloudOAuthSafeTip(
+            CloudService.serverEndpoint, appLocalizations.cloudTypeGoogleDrive),
         value: _googledriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -197,19 +213,19 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             controller: _accountController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudDisplayName,
+            title: appLocalizations.cloudDisplayName,
           ),
           InputItem(
             controller: _emailController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudEmail,
+            title: appLocalizations.cloudEmail,
           ),
           InputItem(
             controller: _sizeController,
             textInputAction: TextInputAction.next,
             disabled: true,
-            title: S.current.cloudSize,
+            title: appLocalizations.cloudSize,
           ),
         ],
       ),
@@ -220,15 +236,20 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RoundIconTextButton(
-        text: S.current.cloudSignin,
-        background: Theme.of(context).primaryColor,
+        text: appLocalizations.cloudSignin,
+        background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
           try {
-            ping();
+            appProvider.preventLock = true;
+            windowManager.minimize();
+            await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to google drive", e, t);
-            IToast.show(S.current.cloudConnectionError);
+            IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
+            windowManager.restore();
           }
         },
       ),
@@ -242,18 +263,19 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
         children: [
           Expanded(
             child: RoundIconTextButton(
-              text: S.current.cloudPullBackup,
+              text: appLocalizations.cloudPullBackup,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Theme.of(context).primaryColor,
+              color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(title: S.current.cloudPulling);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.cloudPulling);
                 try {
                   List<GoogleDriveFileInfo>? files =
                       await _googledriveCloudService!.listBackups();
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
-                    IToast.show(S.current.cloudPullFailed);
+                    IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
                   CloudServiceConfigDao.updateLastPullTime(
@@ -270,7 +292,7 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                         cloudService: _googledriveCloudService!,
                         onSelected: (selectedFile) async {
                           var dialog = showProgressDialog(
-                            S.current.cloudPulling,
+                            appLocalizations.cloudPulling,
                             showProgress: true,
                           );
                           Uint8List? res =
@@ -285,12 +307,12 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
                       ),
                     );
                   } else {
-                    IToast.show(S.current.cloudNoBackupFile);
+                    IToast.show(appLocalizations.cloudNoBackupFile);
                   }
                 } catch (e, t) {
                   ILogger.error("Failed to pull from google drive", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(S.current.cloudPullFailed);
+                  IToast.show(appLocalizations.cloudPullFailed);
                 }
               },
             ),
@@ -299,8 +321,8 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
           Expanded(
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              background: Theme.of(context).primaryColor,
-              text: S.current.cloudPushBackup,
+              background: ChewieTheme.primaryColor,
+              text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
                 ExportTokenUtil.backupEncryptToCloud(
@@ -315,12 +337,12 @@ class _GoogleDriveServiceScreenState extends State<GoogleDriveServiceScreen>
             child: RoundIconTextButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               background: Colors.red,
-              text: S.current.cloudLogout,
+              text: appLocalizations.cloudLogout,
               fontSizeDelta: 2,
               onPressed: () async {
                 DialogBuilder.showConfirmDialog(context,
-                    title: S.current.cloudLogout,
-                    message: S.current.cloudLogoutMessage,
+                    title: appLocalizations.cloudLogout,
+                    message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   await _googledriveCloudService!.signOut();
                   setState(() {

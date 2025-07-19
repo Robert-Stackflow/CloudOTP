@@ -24,7 +24,7 @@ import 'package:provider/provider.dart';
 import '../../Database/database_manager.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/hive_util.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import '../Lock/pin_change_screen.dart';
 import '../Lock/pin_verify_screen.dart';
 import 'base_setting_screen.dart';
@@ -44,7 +44,7 @@ class SafeSettingScreen extends BaseSettingScreen {
   State<SafeSettingScreen> createState() => _SafeSettingScreenState();
 }
 
-class _SafeSettingScreenState extends State<SafeSettingScreen>
+class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
     with TickerProviderStateMixin {
   bool _enableGuesturePasswd =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableGuesturePasswdKey);
@@ -95,12 +95,16 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
   Widget build(BuildContext context) {
     return ItemBuilder.buildSettingScreen(
       context: context,
-      title: S.current.safeSetting,
+      title: appLocalizations.safeSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
-        _databaseSettings(),
+        if (!DatabaseManager.isDatabaseEncrypted) ...[
+          const SizedBox(height: 10),
+          TipBanner(message: appLocalizations.databaseNotEncrypted),
+        ],
+        if (DatabaseManager.isDatabaseEncrypted) _databaseSettings(),
         _gestureSettings(),
         if (_autoLockAvailable) _autoLockSettings(),
         if (ResponsiveUtil.isMobile()) _safeModeSettings(),
@@ -111,24 +115,25 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _gestureSettings() {
     return CaptionItem(
-      title: S.current.gestureLockSettings,
+      title: appLocalizations.gestureLockSettings,
       children: [
         const SizedBox(height: 10),
         CheckboxItem(
           disabled: _encryptedAndCustomPassword,
           value: _enableGuesturePasswd,
-          title: S.current.enableGestureLock,
-          description: S.current.enableGestureLockTip,
+          title: appLocalizations.enableGestureLock,
+          description: appLocalizations.enableGestureLockTip,
           onTap: onEnablePinTapped,
         ),
         Visibility(
           visible: _geusturePasswdAvailable,
           child: EntryItem(
             title: _hasGuesturePasswd
-                ? S.current.changeGestureLock
-                : S.current.setGestureLock,
-            description:
-                _hasGuesturePasswd ? "" : S.current.haveToSetGestureLockTip,
+                ? appLocalizations.changeGestureLock
+                : appLocalizations.setGestureLock,
+            description: _hasGuesturePasswd
+                ? ""
+                : appLocalizations.haveToSetGestureLockTip,
             onTap: onChangePinTapped,
           ),
         ),
@@ -136,10 +141,10 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
           visible: _gesturePasswdAvailableAndSet && _biometricAvailable,
           child: CheckboxItem(
             value: _allowGuestureBiometric,
-            title: S.current.biometricUnlock,
+            title: appLocalizations.biometricUnlock,
             disabled: canAuthenticateResponse?.isSuccess != true,
-            description:
-                canAuthenticateResponseString ?? S.current.biometricUnlockTip,
+            description: canAuthenticateResponseString ??
+                appLocalizations.biometricUnlockTip,
             onTap: onBiometricTapped,
           ),
         ),
@@ -149,29 +154,28 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _databaseSettings() {
     return CaptionItem(
-      title: S.current.databaseEncryptionSettings,
+      title: appLocalizations.databaseEncryptionSettings,
       children: [
         Visibility(
           visible: DatabaseManager.isDatabaseEncrypted,
           child: EntryItem(
-            title: S.current.editEncryptDatabasePassword,
-            description: S.current.encryptDatabaseTip,
+            title: appLocalizations.editEncryptDatabasePassword,
+            description: appLocalizations.encryptDatabaseTip,
             tip: _encryptDatabaseStatus == EncryptDatabaseStatus.defaultPassword
-                ? S.current.defaultEncryptDatabasePassword
-                : S.current.customEncryptDatabasePassword,
+                ? appLocalizations.defaultEncryptDatabasePassword
+                : appLocalizations.customEncryptDatabasePassword,
             onTap: () {
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                useWideLandscape: true,
                 (context) => InputPasswordBottomSheet(
-                  title: S.current.editEncryptDatabasePassword,
-                  message: S.current.editEncryptDatabasePasswordTip,
+                  title: appLocalizations.editEncryptDatabasePassword,
+                  message: appLocalizations.editEncryptDatabasePasswordTip,
                   onConfirm: (passord, confirmPassword) async {},
                   onValidConfirm: (passord, confirmPassword) async {
                     bool res = await DatabaseManager.changePassword(passord);
                     if (res) {
-                      IToast.showTop(S.current.editSuccess);
+                      IToast.showTop(appLocalizations.editSuccess);
                       CloudOTPHiveUtil.setEncryptDatabaseStatus(
                           EncryptDatabaseStatus.customPassword);
                       setState(() {
@@ -188,7 +192,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
                             _allowDatabaseBiometric);
                       }
                     } else {
-                      IToast.showTop(S.current.editFailed);
+                      IToast.showTop(appLocalizations.editFailed);
                     }
                   },
                 ),
@@ -199,14 +203,14 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
         Visibility(
           visible: _encryptedAndCustomPassword,
           child: EntryItem(
-            title: S.current.clearEncryptDatabasePassword,
-            description: S.current.clearEncryptDatabasePasswordTip,
+            title: appLocalizations.clearEncryptDatabasePassword,
+            description: appLocalizations.clearEncryptDatabasePasswordTip,
             trailing: LucideIcons.refreshCcw,
             onTap: () {
               DialogBuilder.showConfirmDialog(
                 context,
-                title: S.current.clearEncryptDatabasePassword,
-                message: S.current.clearEncryptDatabasePasswordTip,
+                title: appLocalizations.clearEncryptDatabasePassword,
+                message: appLocalizations.clearEncryptDatabasePasswordTip,
                 onTapConfirm: () async {
                   bool res = await DatabaseManager.changePassword(
                       await CloudOTPHiveUtil.regeneratePassword());
@@ -221,10 +225,10 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
                       await BiometricUtil.clearDatabasePassword();
                     }
                     IToast.showTop(
-                        S.current.clearEncryptDatabasePasswordSuccess);
+                        appLocalizations.clearEncryptDatabasePasswordSuccess);
                   } else {
                     IToast.showTop(
-                        S.current.clearEncryptDatabasePasswordFailed);
+                        appLocalizations.clearEncryptDatabasePasswordFailed);
                   }
                 },
                 onTapCancel: () {},
@@ -238,8 +242,8 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
             value: _allowDatabaseBiometric,
             disabled: canAuthenticateResponse?.isSuccess != true,
             description: canAuthenticateResponseString ??
-                S.current.biometricDecryptDatabaseTip,
-            title: S.current.biometricDecryptDatabase,
+                appLocalizations.biometricDecryptDatabaseTip,
+            title: appLocalizations.biometricDecryptDatabase,
             onTap: () async {
               if (canAuthenticateResponse != CanAuthenticateResponse.success) {
                 return;
@@ -249,9 +253,9 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
                     await BiometricUtil.setDatabasePassword(
                         appProvider.currentDatabasePassword);
                 if (_allowDatabaseBiometric) {
-                  IToast.showTop(S.current.enableBiometricSuccess);
+                  IToast.showTop(appLocalizations.enableBiometricSuccess);
                 } else {
-                  IToast.showTop(S.current.biometricError);
+                  IToast.showTop(appLocalizations.biometricError);
                 }
                 setState(() {});
               } else {
@@ -269,12 +273,12 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _autoLockSettings() {
     return CaptionItem(
-      title: S.current.autoLockSettings,
+      title: appLocalizations.autoLockSettings,
       children: [
         CheckboxItem(
           value: _autoLock,
-          title: S.current.autoLock,
-          description: S.current.autoLockTip,
+          title: appLocalizations.autoLock,
+          description: appLocalizations.autoLockTip,
           onTap: onEnableAutoLockTapped,
         ),
         Visibility(
@@ -283,8 +287,8 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
             selector: (context, appProvider) => appProvider.autoLockTime,
             builder: (context, autoLockTime, child) =>
                 InlineSelectionItem<AutoLockOption>(
-              title: S.current.autoLockDelay,
-              hint: S.current.chooseAutoLockDelay,
+              title: appLocalizations.autoLockDelay,
+              hint: appLocalizations.chooseAutoLockDelay,
               selections: AutoLockOption.getOptions(),
               selected: AutoLockOption.fromAutoLockTime(autoLockTime),
               onChanged: (autoLockOption) {
@@ -302,13 +306,13 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
 
   _safeModeSettings() {
     return CaptionItem(
-      title: S.current.safeMode,
+      title: appLocalizations.safeMode,
       children: [
         CheckboxItem(
           value: _enableSafeMode,
-          title: S.current.safeMode,
+          title: appLocalizations.safeMode,
           disabled: ResponsiveUtil.isDesktop(),
-          description: S.current.safeModeTip,
+          description: appLocalizations.safeModeTip,
           onTap: onSafeModeTapped,
         ),
       ],
@@ -325,6 +329,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
       ChewieHiveUtil.put(
           CloudOTPHiveUtil.allowDatabaseBiometricKey, _allowDatabaseBiometric);
     }
+    setState(() {});
   }
 
   onEnablePinTapped() {
@@ -336,8 +341,8 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
             setState(() {
               _enableGuesturePasswd = !_enableGuesturePasswd;
               IToast.showTop(_enableGuesturePasswd
-                  ? S.current.enableGestureLockSuccess
-                  : S.current.disableGestureLockSuccess);
+                  ? appLocalizations.enableGestureLockSuccess
+                  : appLocalizations.disableGestureLockSuccess);
               ChewieHiveUtil.put(CloudOTPHiveUtil.enableGuesturePasswdKey,
                   _enableGuesturePasswd);
               _hasGuesturePasswd = ChewieHiveUtil.getString(
@@ -359,7 +364,7 @@ class _SafeSettingScreenState extends State<SafeSettingScreen>
         context,
         PinVerifyScreen(
           onSuccess: () {
-            IToast.showTop(S.current.enableBiometricSuccess);
+            IToast.showTop(appLocalizations.enableBiometricSuccess);
             setState(() {
               _allowGuestureBiometric = !_allowGuestureBiometric;
               ChewieHiveUtil.put(

@@ -2,7 +2,7 @@ import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.da
 import 'package:flutter/cupertino.dart';
 
 import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/generated/l10n.dart';
+import 'package:awesome_chewie/src/l10n/l10n.dart';
 
 class ErrorWidget extends StatefulWidget {
   final String? text;
@@ -32,12 +32,12 @@ class ErrorWidgetState extends State<ErrorWidget> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            widget.text ?? ChewieS.current.loadFailed,
+            widget.text ?? chewieLocalizations.loadFailed,
             style: ChewieTheme.titleMedium,
           ),
           const SizedBox(height: 10),
           RoundIconTextButton(
-            text: widget.buttonText ?? ChewieS.current.retry,
+            text: widget.buttonText ?? chewieLocalizations.retry,
             onPressed: widget.onTap,
           ),
         ],

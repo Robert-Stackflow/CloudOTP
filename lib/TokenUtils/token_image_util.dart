@@ -15,11 +15,9 @@
 
 import 'dart:convert';
 
-import 'package:cloudotp/Models/opt_token.dart';
-import 'package:cloudotp/Utils/utils.dart';
-import 'package:flutter/services.dart';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Models/opt_token.dart';
+import 'package:flutter/services.dart';
 
 class TokenImageUtil {
   static const int matchThreshold = 5;
@@ -112,8 +110,10 @@ class TokenImageUtil {
 
       final bool containsEither =
           issuer.contains(brand) || brand.contains(issuer);
-
-      if (containsEither || lcs >= substringMatchThreshold) {
+      final bool equal = issuer == brand;
+      if (equal) {
+        matches.add(MapEntry(logo, 10000));
+      } else if (containsEither || lcs >= substringMatchThreshold) {
         matches.add(MapEntry(logo, lcs));
       }
     }

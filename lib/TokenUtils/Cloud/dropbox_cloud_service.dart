@@ -15,9 +15,8 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
-import 'package:flutter_cloud/dropbox.dart';
-import 'package:flutter_cloud/dropbox_response.dart';
 import 'package:path/path.dart';
 
 import '../../Models/cloud_service_config.dart';
@@ -28,11 +27,8 @@ import 'cloud_service.dart';
 class DropboxCloudService extends CloudService {
   @override
   CloudServiceType get type => CloudServiceType.Dropbox;
-  static const String _redirectUrl =
-      'https://apps.cloudchewie.com/oauth/cloudotp/dropbox/callback';
   static const String _callbackUrl = 'cloudotp://auth/dropbox/callback';
   static const String _clientId = 'ljyx5bk2jq92esr';
-  static const String _dropboxEmptyPath = '';
   static const String _dropboxPath = '/';
   final CloudServiceConfig _config;
   late Dropbox dropbox;
@@ -48,7 +44,6 @@ class DropboxCloudService extends CloudService {
   @override
   Future<void> init() async {
     dropbox = Dropbox(
-      redirectUrl: _callbackUrl,
       callbackUrl: _callbackUrl,
       clientId: _clientId,
     );
@@ -96,7 +91,8 @@ class DropboxCloudService extends CloudService {
 
   @override
   Future<bool> deleteFile(String path) async {
-    DropboxResponse response = await dropbox.delete(join(_dropboxPath, path));
+    DropboxResponse response =
+        await dropbox.deleteById(join(_dropboxPath, path));
     return response.isSuccess;
   }
 
@@ -123,7 +119,7 @@ class DropboxCloudService extends CloudService {
     String path, {
     Function(int p1, int p2)? onProgress,
   }) async {
-    DropboxResponse response = await dropbox.pull(path);
+    DropboxResponse response = await dropbox.pullById(path);
     return response.isSuccess ? response.bodyBytes ?? Uint8List(0) : null;
   }
 
@@ -144,7 +140,7 @@ class DropboxCloudService extends CloudService {
 
   @override
   Future<List<DropboxFileInfo>?> listFiles() async {
-    DropboxResponse response = await dropbox.list(_dropboxEmptyPath);
+    DropboxResponse response = await dropbox.list(_dropboxPath);
     if (!response.isSuccess) return null;
     List<DropboxFileInfo> files = response.files;
     return files;
@@ -163,7 +159,8 @@ class DropboxCloudService extends CloudService {
   }) async {
     DropboxResponse response = await dropbox.push(
       fileData,
-      join(_dropboxPath, fileName),
+      _dropboxPath,
+      fileName,
     );
     deleteOldBackup();
     return response.isSuccess;

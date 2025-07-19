@@ -13,10 +13,10 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
-import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
@@ -27,9 +27,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/hive_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Widgets/BottomSheet/Backups/local_backups_bottom_sheet.dart';
-import '../../generated/l10n.dart';
+import '../../l10n/l10n.dart';
 import 'base_setting_screen.dart';
 
 class BackupSettingScreen extends BaseSettingScreen {
@@ -58,8 +57,9 @@ extension GetOffset on Widget {
   }
 }
 
-class _BackupSettingScreenState extends State<BackupSettingScreen>
+class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
     with TickerProviderStateMixin {
+  bool inited = false;
   bool _enableAutoBackup =
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableAutoBackupKey);
   bool _enableLocalBackup =
@@ -81,6 +81,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
     ConfigDao.getConfig().then((config) {
       setState(() {
         _autoBackupPassword = config.backupPassword;
+        inited = true;
       });
     });
     CloudOTPHiveUtil.getBackupPath().then((path) {
@@ -110,11 +111,15 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
   Widget build(BuildContext context) {
     return ItemBuilder.buildSettingScreen(
       context: context,
-      title: S.current.backupSetting,
+      title: appLocalizations.backupSetting,
       showTitleBar: widget.showTitleBar,
-      showBack: !ResponsiveUtil.isLandscape(),
+      showBack: !ResponsiveUtil.isLandscapeLayout(),
       padding: widget.padding,
       children: [
+        if (inited && !canBackup) ...[
+          const SizedBox(height: 10),
+          TipBanner(message: appLocalizations.notSetBackupPasswordTip),
+        ],
         ..._backupSettings(),
         const SizedBox(height: 30),
       ],
@@ -160,34 +165,33 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
   _backupSettings() {
     return [
       SearchableCaptionItem(
-        title: S.current.backupPasswordSettings,
+        title: appLocalizations.backupPasswordSettings,
         children: [
           EntryItem(
             key: _setAutoBackupPasswordKey,
             title: _autoBackupPassword.notNullOrEmpty
-                ? S.current.editAutoBackupPassword
-                : S.current.setAutoBackupPassword,
+                ? appLocalizations.editAutoBackupPassword
+                : appLocalizations.setAutoBackupPassword,
             trailing: LucideIcons.pencilLine,
             onTap: () {
               BottomSheetBuilder.showBottomSheet(
                 context,
                 responsive: true,
-                useWideLandscape: true,
                 (context) => InputBottomSheet(
                   title: _autoBackupPassword.notNullOrEmpty
-                      ? S.current.editAutoBackupPassword
-                      : S.current.setAutoBackupPassword,
+                      ? appLocalizations.editAutoBackupPassword
+                      : appLocalizations.setAutoBackupPassword,
                   text: _autoBackupPassword,
                   message: _autoBackupPassword.notNullOrEmpty
-                      ? S.current.editAutoBackupPasswordTip
-                      : S.current.setAutoBackupPasswordTip,
-                  hint: S.current.inputAutoBackupPassword,
+                      ? appLocalizations.editAutoBackupPasswordTip
+                      : appLocalizations.setAutoBackupPasswordTip,
+                  hint: appLocalizations.inputAutoBackupPassword,
                   tailingConfig: InputItemLeadingTailingConfig(
                     type: InputItemLeadingTailingType.password,
                   ),
                   validator: (text) {
                     if (text.isEmpty) {
-                      return S.current.autoBackupPasswordCannotBeEmpty;
+                      return appLocalizations.autoBackupPasswordCannotBeEmpty;
                     }
                     return null;
                   },
@@ -197,8 +201,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                   onConfirm: (text) async {},
                   onValidConfirm: (text) async {
                     IToast.showTop(_autoBackupPassword.notNullOrEmpty
-                        ? S.current.editSuccess
-                        : S.current.setSuccess);
+                        ? appLocalizations.editSuccess
+                        : appLocalizations.setSuccess);
                     ConfigDao.updateBackupPassword(text);
                     setState(() {
                       _autoBackupPassword = text;
@@ -211,8 +215,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           ),
           CheckboxItem(
             value: canBackup ? _useBackupPasswordToExportImport : false,
-            title: S.current.useBackupPasswordToExportImport,
-            description: S.current.useBackupPasswordToExportImportTip,
+            title: appLocalizations.useBackupPasswordToExportImport,
+            description: appLocalizations.useBackupPasswordToExportImportTip,
             disabled: _autoBackupPassword.isEmpty,
             onTap: () {
               setState(() {
@@ -227,12 +231,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         ],
       ),
       CaptionItem(
-        title: S.current.autoBackupSettings,
+        title: appLocalizations.autoBackupSettings,
         children: [
           CheckboxItem(
             value: canBackup ? _enableAutoBackup : false,
-            title: S.current.autoBackup,
-            description: S.current.autoBackupTip,
+            title: appLocalizations.autoBackup,
+            description: appLocalizations.autoBackupTip,
             disabled: !canBackup || !canImmediateBackup,
             onTap: () {
               setState(() {
@@ -245,8 +249,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           Visibility(
             visible: canImmediateBackup,
             child: EntryItem(
-              title: S.current.immediatelyBackup,
-              description: S.current.immediatelyBackupTip,
+              title: appLocalizations.immediatelyBackup,
+              description: appLocalizations.immediatelyBackupTip,
               trailing: LucideIcons.cloudUpload,
               onTap: () async {
                 ExportTokenUtil.autoBackup(
@@ -257,11 +261,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           Visibility(
             visible: canImmediateBackup,
             child: EntryItem(
-              title: S.current.maxBackupCount,
-              description: S.current.maxBackupCountTip,
+              title: appLocalizations.maxBackupCount,
+              description: appLocalizations.maxBackupCountTip,
               tip: _maxBackupsCount.toString(),
               onTap: () async {
-                CustomLoadingDialog.showLoading(title: S.current.loading);
+                CustomLoadingDialog.showLoading(
+                    title: appLocalizations.loading);
                 List<int> counts = await getBackupsCount();
                 CustomLoadingDialog.dismissLoading();
                 InputValidateAsyncController validateAsyncController =
@@ -275,26 +280,25 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                 BottomSheetBuilder.showBottomSheet(
                   context,
                   responsive: true,
-                  useWideLandscape: true,
                   (context) => InputBottomSheet(
-                    title: S.current.maxBackupCount,
+                    title: appLocalizations.maxBackupCount,
                     text: _maxBackupsCount.toString(),
                     message:
-                        '${S.current.maxBackupCountTip}\n${S.current.currentBackupCountTip(counts[0])}',
-                    hint: S.current.inputMaxBackupCount,
+                        '${appLocalizations.maxBackupCountTip}\n${appLocalizations.currentBackupCountTip(counts[0])}',
+                    hint: appLocalizations.inputMaxBackupCount,
                     inputFormatters: [RegexInputFormatter.onlyNumber],
                     preventPop: true,
                     validateAsyncController: validateAsyncController,
                     validator: (text) {
                       if (text.isEmpty) {
-                        return S.current.maxBackupCountCannotBeEmpty;
+                        return appLocalizations.maxBackupCountCannotBeEmpty;
                       }
                       int? count = int.tryParse(text);
                       if (count == null) {
-                        return S.current.maxBackupCountTooLong;
+                        return appLocalizations.maxBackupCountTooLong;
                       }
                       if (count > maxBackupCountThrehold) {
-                        return S.current
+                        return appLocalizations
                             .maxBackupCountExceed(maxBackupCountThrehold);
                       }
                       return null;
@@ -316,8 +320,8 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
                         if (count > 0 && (counts[0] > count)) {
                           DialogBuilder.showConfirmDialog(
                             context,
-                            title: S.current.maxBackupCountWarning,
-                            message: S.current
+                            title: appLocalizations.maxBackupCountWarning,
+                            message: appLocalizations
                                 .maxBackupCountWarningMessage(counts[0]),
                             onTapConfirm: () {
                               onValid();
@@ -339,12 +343,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         ],
       ),
       CaptionItem(
-        title: S.current.localBackupSettings,
+        title: appLocalizations.localBackupSettings,
         children: [
           CheckboxItem(
             value: canBackup ? _enableLocalBackup : false,
-            title: S.current.enableLocalBackup,
-            description: S.current.enableLocalBackupTip,
+            title: appLocalizations.enableLocalBackup,
+            description: appLocalizations.enableLocalBackupTip,
             disabled: !canLocalBackup,
             onTap: () {
               setState(() {
@@ -357,12 +361,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           Visibility(
             visible: canBackup && _enableLocalBackup,
             child: EntryItem(
-              title: S.current.autoBackupPath,
+              title: appLocalizations.autoBackupPath,
               description: _autoBackupPath,
               trailing: LucideIcons.ellipsis,
               onTap: () async {
                 String? selectedDirectory = await FileUtil.getDirectoryPath(
-                  dialogTitle: S.current.autoBackupPath,
+                  dialogTitle: appLocalizations.autoBackupPath,
                   lockParentWindow: true,
                 );
                 if (selectedDirectory != null) {
@@ -378,7 +382,7 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           Visibility(
             visible: canBackup && _enableLocalBackup,
             child: EntryItem(
-              title: S.current.viewLocalBackup,
+              title: appLocalizations.viewLocalBackup,
               trailing: LucideIcons.squareArrowOutUpRight,
               onTap: () async {
                 BottomSheetBuilder.showBottomSheet(
@@ -397,12 +401,12 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
         ],
       ),
       CaptionItem(
-        title: S.current.cloudBackupSettings,
+        title: appLocalizations.cloudBackupSettings,
         children: [
           CheckboxItem(
             value: canBackup ? _enableCloudBackup : false,
-            title: S.current.enableCloudBackup,
-            description: S.current.enableCloudBackupTip,
+            title: appLocalizations.enableCloudBackup,
+            description: appLocalizations.enableCloudBackupTip,
             disabled: !canCloudBackup,
             onTap: () {
               setState(() {
@@ -416,10 +420,10 @@ class _BackupSettingScreenState extends State<BackupSettingScreen>
           Visibility(
             visible: canBackup && _enableCloudBackup,
             child: EntryItem(
-              title: S.current.cloudBackupServiceSetting,
+              title: appLocalizations.cloudBackupServiceSetting,
               description: validConfigs.isNotEmpty
-                  ? S.current.haveSetCloudBackupService(validConfigs)
-                  : S.current.notCloudBackupService,
+                  ? appLocalizations.haveSetCloudBackupService(validConfigs)
+                  : appLocalizations.notCloudBackupService,
               onTap: () async {
                 RouteUtil.pushCupertinoRoute(
                   context,

@@ -40,7 +40,7 @@ import '../Database/token_dao.dart';
 import '../Models/token_category.dart';
 import '../Utils/app_provider.dart';
 import '../Widgets/BottomSheet/select_token_bottom_sheet.dart';
-import '../generated/l10n.dart';
+import '../l10n/l10n.dart';
 import 'Token/category_screen.dart';
 import 'Token/token_layout.dart';
 
@@ -93,6 +93,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     }
   }
 
+  bool get shouldCloseSearchBar => _shownSearchbarNotifier.value;
+
   @override
   void initState() {
     super.initState();
@@ -107,7 +109,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       duration: const Duration(milliseconds: 300),
     );
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (!ResponsiveUtil.isLandscape() &&
+      if (!ResponsiveUtil.isLandscapeLayout() &&
           ChewieHiveUtil.getBool(CloudOTPHiveUtil.autoFocusSearchBarKey,
               defaultValue: false)) {
         changeSearchBar(true);
@@ -266,37 +268,42 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   @override
+  void onLocaleChanged(Locale newLocale) {
+    super.onLocaleChanged(newLocale);
+    initTab();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MyScaffold(
       resizeToAvoidBottomInset: false,
-      appBar: ResponsiveUtil.isLandscape()
-          ? ResponsiveAppBar(
-              titleLeftMargin: 10,
-              titleWidget: Container(
-                constraints: const BoxConstraints(
-                    maxWidth: 300, minWidth: 200, maxHeight: 36),
-                child: MySearchBar(
-                  borderRadius: 8,
-                  bottomMargin: 18,
-                  focusNode: appProvider.searchFocusNode,
-                  controller: _searchController,
-                  background: ChewieTheme.scaffoldBackgroundColor,
-                  hintText: S.current.searchToken,
-                  onSubmitted: (text) {
-                    performSearch(text);
-                  },
-                ),
-              ),
-            )
-          : null,
-      body: ResponsiveUtil.buildLandscapeWidget(
+      appBar: ResponsiveUtil.selectByOrientationNullable(
+        landscape: ResponsiveAppBar(
+          titleLeftMargin: 10,
+          titleWidget: Container(
+            constraints: const BoxConstraints(
+                maxWidth: 300, minWidth: 200, maxHeight: 36),
+            child: MySearchBar(
+              borderRadius: 8,
+              bottomMargin: 18,
+              focusNode: appProvider.searchFocusNode,
+              controller: _searchController,
+              background: ChewieTheme.scaffoldBackgroundColor,
+              hintText: appLocalizations.searchToken,
+              onSubmitted: (text) {
+                performSearch(text);
+              },
+            ),
+          ),
+        ),
+        portrait: null,
+      ) as PreferredSizeWidget?,
+      body: ResponsiveUtil.selectByOrientation(
         landscape: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTabBar(),
-            Expanded(
-              child: _buildMainContent(),
-            ),
+            Expanded(child: _buildMainContent()),
           ],
         ),
         portrait: PopScope(
@@ -311,10 +318,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           child: _buildMobileBody(),
         ),
       ),
-      bottomNavigationBar: ResponsiveUtil.buildDesktopWidget(
+      bottomNavigationBar: ResponsiveUtil.selectByPlatform(
         mobile: _buildMobileBottombar(),
       ),
-      floatingActionButton: ResponsiveUtil.buildDesktopWidget(
+      floatingActionButton: ResponsiveUtil.selectByPlatform(
         mobile: _buildFloatingActionButton(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
@@ -326,9 +333,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     return NestedScrollView(
       controller: _nestScrollController,
       headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          _buildMobileAppbar(),
-        ];
+        return [_buildMobileAppbar()];
       },
       body: Builder(
         builder: (context) {
@@ -360,7 +365,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       heroTag: "Hero-${categories.length}",
       onPressed: () {
         BottomSheetBuilder.showBottomSheet(
-          chewieProvider.rootContext,
+          context,
           enableDrag: false,
           responsive: true,
           (context) => AddBottomSheet(
@@ -370,7 +375,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       },
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: ChewieTheme.primaryColor,
       child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 28),
     );
     return Selector<AppProvider, bool>(
@@ -399,8 +404,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   appProvider.autoBackupLoadingStatus,
               builder: (context, autoBackupLoadingStatus, child) => LoadingIcon(
                 status: autoBackupLoadingStatus,
-                normalIcon: Icon(Icons.history_rounded,
-                    color: Theme.of(context).iconTheme.color),
+                normalIcon:
+                    Icon(Icons.history_rounded, color: ChewieTheme.iconColor),
               ),
             ),
             onTap: () {
@@ -458,7 +463,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             FlutterContextMenu(
               entries: [
                 FlutterContextMenuItem(
-                  S.current.category,
+                  appLocalizations.category,
                   iconData: LucideIcons.shapes,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
@@ -466,7 +471,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   },
                 ),
                 FlutterContextMenuItem(
-                  S.current.setting,
+                  appLocalizations.setting,
                   iconData: LucideIcons.bolt,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
@@ -474,7 +479,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   },
                 ),
                 FlutterContextMenuItem(
-                  S.current.about,
+                  appLocalizations.about,
                   iconData: LucideIcons.info,
                   onPressed: () {
                     RouteUtil.pushCupertinoRoute(
@@ -500,8 +505,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           useBackdropFilter: provider.enableFrostedGlassEffect,
           floating: provider.hideAppbarWhenScrolling,
           pinned: !provider.hideAppbarWhenScrolling,
-          backgroundColor: Theme.of(context)
-              .scaffoldBackgroundColor
+          backgroundColor: ChewieTheme.scaffoldBackgroundColor
               .withOpacity(provider.enableFrostedGlassEffect ? 0.2 : 1),
           title: SizedBox(
             height: kToolbarHeight,
@@ -519,10 +523,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                       },
                       child: Text(
                         ResponsiveUtil.appName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .apply(fontWeightDelta: 2),
+                        style:
+                            ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
                       ),
                     ),
                   );
@@ -537,7 +539,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                           CircleIconButton(
                             icon: Icon(
                               Icons.arrow_back_rounded,
-                              color: Theme.of(context).iconTheme.color,
+                              color: ChewieTheme.iconColor,
                             ),
                             onTap: () {
                               changeSearchBar(false);
@@ -546,7 +548,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                           const SizedBox(width: 4),
                           Expanded(
                             child: InputItem(
-                              hint: S.current.searchToken,
+                              hint: appLocalizations.searchToken,
                               onSubmit: (text) {
                                 performSearch(text);
                               },
@@ -701,7 +703,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(chewieProvider.rootContext).shadowColor,
+                      color: ChewieTheme.shadowColor,
                       offset: const Offset(0, 4),
                       blurRadius: 10,
                       spreadRadius: 1,
@@ -730,8 +732,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             children: [
               EmptyPlaceholder(
                 text: _searchKey.isEmpty
-                    ? S.current.noToken
-                    : S.current.noTokenContainingSearchKey(_searchKey),
+                    ? appLocalizations.noToken
+                    : appLocalizations.noTokenContainingSearchKey(_searchKey),
               ),
             ],
           )
@@ -750,13 +752,9 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       padding: padding,
       tabAlignment: TabAlignment.start,
       physics: const ClampingScrollPhysics(),
-      labelStyle:
-          Theme.of(context).textTheme.titleMedium?.apply(fontWeightDelta: 2),
-      unselectedLabelStyle:
-          Theme.of(context).textTheme.titleMedium?.apply(color: Colors.grey),
-      indicator: UnderlinedTabIndicator(
-        borderColor: Theme.of(context).primaryColor,
-      ),
+      labelStyle: ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
+      unselectedLabelStyle: ChewieTheme.titleMedium.apply(color: Colors.grey),
+      indicator: UnderlinedTabIndicator(borderColor: ChewieTheme.primaryColor),
       onTap: (index) {
         if (_nestScrollController.hasClients) {
           _nestScrollController.animateTo(0,
@@ -771,19 +769,6 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   _buildTab(TokenCategory? category) {
-    // {
-    // bool normalUserBold = false,
-    // bool sameFontSize = false,
-    // double fontSizeDelta = 0,
-    // }) {
-    // TextStyle normalStyle = Theme.of(context).textTheme.titleLarge!.apply(
-    //       color: Colors.grey,
-    //       fontSizeDelta: fontSizeDelta - (sameFontSize ? 0 : 1),
-    //       fontWeightDelta: normalUserBold ? 0 : -2,
-    //     );
-    // TextStyle selectedStyle = Theme.of(context).textTheme.titleLarge!.apply(
-    //       fontSizeDelta: fontSizeDelta + (sameFontSize ? 0 : 1),
-    //     );
     return Tab(
       child: ContextMenuRegion(
         contextMenu: _buildTabContextMenuButtons(category),
@@ -798,19 +783,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
               );
             }
           },
-          // child: AnimatedDefaultTextStyle(
-          //   style: (category == null
-          //           ? _currentTabIndex == 0
-          //           : currentCategoryId == category.id)
-          //       ? selectedStyle
-          //       : normalStyle,
-          //   duration: const Duration(milliseconds: 100),
-          //   child: Container(
-          //     alignment: Alignment.center,
-          child: Text(category?.title ?? S.current.allTokens),
+          child: Text(category?.title ?? (() => appLocalizations.allTokens)()),
         ),
-        // ),
-        // ),
       ),
     );
   }
@@ -820,10 +794,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         InputValidateAsyncController(
       validator: (text) async {
         if (text.isEmpty) {
-          return S.current.categoryNameCannotBeEmpty;
+          return appLocalizations.categoryNameCannotBeEmpty;
         }
         if (text != category.title && await CategoryDao.isCategoryExist(text)) {
-          return S.current.categoryNameDuplicate;
+          return appLocalizations.categoryNameDuplicate;
         }
         return null;
       },
@@ -832,17 +806,16 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
-      useWideLandscape: true,
       (context) => InputBottomSheet(
-        title: S.current.editCategoryName,
-        hint: S.current.inputCategory,
+        title: appLocalizations.editCategoryName,
+        hint: appLocalizations.inputCategory,
         style: InputItemStyle(
           maxLength: 32,
         ),
         text: category.title,
         validator: (text) {
           if (text.isEmpty) {
-            return S.current.categoryNameCannotBeEmpty;
+            return appLocalizations.categoryNameCannotBeEmpty;
           }
           return null;
         },
@@ -864,10 +837,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         InputValidateAsyncController(
       validator: (text) async {
         if (text.isEmpty) {
-          return S.current.categoryNameCannotBeEmpty;
+          return appLocalizations.categoryNameCannotBeEmpty;
         }
         if (await CategoryDao.isCategoryExist(text)) {
-          return S.current.categoryNameDuplicate;
+          return appLocalizations.categoryNameDuplicate;
         }
         return null;
       },
@@ -876,13 +849,12 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     BottomSheetBuilder.showBottomSheet(
       context,
       responsive: true,
-      useWideLandscape: true,
       (context) => InputBottomSheet(
-        title: S.current.addCategory,
-        hint: S.current.inputCategory,
+        title: appLocalizations.addCategory,
+        hint: appLocalizations.inputCategory,
         validator: (text) {
           if (text.isEmpty) {
-            return S.current.categoryNameCannotBeEmpty;
+            return appLocalizations.categoryNameCannotBeEmpty;
           }
           return null;
         },
@@ -907,7 +879,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       return FlutterContextMenu(
         entries: [
           FlutterContextMenuItem(
-            S.current.addCategory,
+            appLocalizations.addCategory,
+            iconData: LucideIcons.plus,
             onPressed: () {
               addCategory(context);
             },
@@ -917,33 +890,47 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     }
     return FlutterContextMenu(
       entries: [
-        FlutterContextMenuItem(S.current.editCategoryName, onPressed: () {
-          processEditCategory(category);
-        }),
-        FlutterContextMenuItem(S.current.editCategoryTokens, onPressed: () {
-          BottomSheetBuilder.showBottomSheet(
-            context,
-            responsive: true,
-            (context) => SelectTokenBottomSheet(category: category),
-          );
-        }),
-        FlutterContextMenuItem.divider(),
-        FlutterContextMenuItem(S.current.addCategory, onPressed: () {
-          addCategory(context);
-        }),
         FlutterContextMenuItem(
-          S.current.deleteCategory,
-          status: MenuItemStatus.warning,
+          appLocalizations.editCategoryName,
+          iconData: LucideIcons.pencilLine,
+          onPressed: () {
+            processEditCategory(category);
+          },
+        ),
+        FlutterContextMenuItem(
+          appLocalizations.editCategoryTokens,
+          iconData: LucideIcons.coins,
+          onPressed: () {
+            BottomSheetBuilder.showBottomSheet(
+              context,
+              responsive: true,
+              (context) => SelectTokenBottomSheet(category: category),
+            );
+          },
+        ),
+        FlutterContextMenuItem.divider(),
+        FlutterContextMenuItem(
+          appLocalizations.addCategory,
+          iconData: LucideIcons.plus,
+          onPressed: () {
+            addCategory(context);
+          },
+        ),
+        FlutterContextMenuItem(
+          appLocalizations.deleteCategory,
+          iconData: LucideIcons.trash2,
+          status: MenuItemStatus.error,
           onPressed: () {
             DialogBuilder.showConfirmDialog(
               context,
-              title: S.current.deleteCategory,
-              message: S.current.deleteCategoryHint(category.title),
-              confirmButtonText: S.current.confirm,
-              cancelButtonText: S.current.cancel,
+              title: appLocalizations.deleteCategory,
+              message: appLocalizations.deleteCategoryHint(category.title),
+              confirmButtonText: appLocalizations.confirm,
+              cancelButtonText: appLocalizations.cancel,
               onTapConfirm: () async {
                 await CategoryDao.deleteCategory(category);
-                IToast.showTop(S.current.deleteCategorySuccess(category.title));
+                IToast.showTop(
+                    appLocalizations.deleteCategorySuccess(category.title));
                 refreshCategories();
               },
               onTapCancel: () {},
@@ -1057,17 +1044,17 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   @override
   FutureOr popAll([bool initPage = true]) {
-    Navigator.pop(chewieProvider.rootContext);
+    Navigator.pop(context);
   }
 
   @override
   FutureOr popPage() {
-    Navigator.pop(chewieProvider.rootContext);
+    Navigator.pop(context);
   }
 
   @override
   FutureOr pushPage(Widget page) {
-    RouteUtil.pushCupertinoRoute(chewieProvider.rootContext, page);
+    RouteUtil.pushCupertinoRoute(context, page);
   }
 
   @override
@@ -1134,15 +1121,15 @@ enum LayoutType {
   String get title {
     switch (this) {
       case LayoutType.Simple:
-        return S.current.simpleLayoutType;
+        return appLocalizations.simpleLayoutType;
       case LayoutType.Compact:
-        return S.current.compactLayoutType;
+        return appLocalizations.compactLayoutType;
       // case LayoutType.Tile:
-      //   return S.current.tileLayout;
+      //   return appLocalizations.tileLayout;
       case LayoutType.List:
-        return S.current.listLayoutType;
+        return appLocalizations.listLayoutType;
       case LayoutType.Spotlight:
-        return S.current.spotlightLayoutType;
+        return appLocalizations.spotlightLayoutType;
     }
   }
 }
@@ -1161,23 +1148,23 @@ enum OrderType {
   String get title {
     switch (this) {
       case OrderType.Default:
-        return S.current.defaultOrder;
+        return appLocalizations.defaultOrder;
       case OrderType.AlphabeticalASC:
-        return S.current.alphabeticalASCOrder;
+        return appLocalizations.alphabeticalASCOrder;
       case OrderType.AlphabeticalDESC:
-        return S.current.alphabeticalDESCOrder;
+        return appLocalizations.alphabeticalDESCOrder;
       case OrderType.CopyTimesDESC:
-        return S.current.copyTimesDESCOrder;
+        return appLocalizations.copyTimesDESCOrder;
       case OrderType.CopyTimesASC:
-        return S.current.copyTimesASCOrder;
+        return appLocalizations.copyTimesASCOrder;
       case OrderType.LastCopyTimeDESC:
-        return S.current.lastCopyTimeDESCOrder;
+        return appLocalizations.lastCopyTimeDESCOrder;
       case OrderType.LastCopyTimeASC:
-        return S.current.lastCopyTimeASCOrder;
+        return appLocalizations.lastCopyTimeASCOrder;
       case OrderType.CreateTimeDESC:
-        return S.current.createTimeDESCOrder;
+        return appLocalizations.createTimeDESCOrder;
       case OrderType.CreateTimeASC:
-        return S.current.createTimeASCOrder;
+        return appLocalizations.createTimeASCOrder;
     }
   }
 
