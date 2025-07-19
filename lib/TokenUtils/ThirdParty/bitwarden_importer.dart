@@ -16,12 +16,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/TokenUtils/otp_token_parser.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pointycastle/api.dart';
@@ -35,7 +35,6 @@ import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
 import 'package:pointycastle/paddings/pkcs7.dart';
 
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../l10n/l10n.dart';
 
 class BitwardenFolder {

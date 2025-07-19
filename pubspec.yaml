@@ -97,7 +97,8 @@ dependencies:
   screen_protector: ^1.4.2+1
   flutter_windowmanager:
     path: third-party/tool/flutter_windowmanager
-  move_to_background: ^1.0.2 # 移动到后台
+  move_to_background:
+    path: third-party/tool/move_to_background
   launch_at_startup: ^0.3.1 # 开机启动
   local_notifier: ^0.1.6 # 本地通知
   shell_executor: ^0.1.6 # 执行命令

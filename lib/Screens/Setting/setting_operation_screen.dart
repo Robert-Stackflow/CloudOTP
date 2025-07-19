@@ -15,7 +15,6 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../Database/token_dao.dart';
 import '../../Utils/app_provider.dart';

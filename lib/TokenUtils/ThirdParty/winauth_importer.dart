@@ -16,13 +16,13 @@
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../Models/opt_token.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../l10n/l10n.dart';
 import '../import_token_util.dart';
 

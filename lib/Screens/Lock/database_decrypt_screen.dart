@@ -15,6 +15,7 @@
 
 import 'dart:math';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,6 @@ import '../../Database/database_manager.dart';
 import '../../Utils/biometric_util.dart';
 import '../../Utils/constant.dart';
 import '../../Utils/hive_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/lottie_util.dart';
 import '../../Utils/utils.dart';
 import '../../l10n/l10n.dart';
@@ -37,13 +37,11 @@ class DatabaseDecryptScreen extends StatefulWidget {
   DatabaseDecryptScreenState createState() => DatabaseDecryptScreenState();
 }
 
-class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
-    with WindowListener, TrayListener {
+class DatabaseDecryptScreenState extends BaseWindowState<DatabaseDecryptScreen>
+    with TrayListener {
   final FocusNode _focusNode = FocusNode();
   late InputValidateAsyncController validateAsyncController;
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  bool _isMaximized = false;
-  bool _isStayOnTop = false;
   bool _isValidated = true;
   final bool _allowDatabaseBiometric = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.allowDatabaseBiometricKey,
@@ -112,47 +110,6 @@ class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
   }
 
   @override
-  Future<void> onWindowResize() async {
-    super.onWindowResize();
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowResized() async {
-    super.onWindowResized();
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowMove() async {
-    super.onWindowMove();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  Future<void> onWindowMoved() async {
-    super.onWindowMoved();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  void onWindowMaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = false;
-    });
-  }
-
-  @override
   void dispose() {
     super.dispose();
     trayManager.removeListener(this);
@@ -192,7 +149,7 @@ class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
 
   @override
   Widget build(BuildContext context) {
-    chewieProvider.rootContext = context;
+    chewieProvider.resetRootContext();
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -231,12 +188,12 @@ class DatabaseDecryptScreenState extends BaseDynamicState<DatabaseDecryptScreen>
               height: 48,
               forceClose: true,
               backgroundColor: Colors.transparent,
-              isStayOnTop: _isStayOnTop,
-              isMaximized: _isMaximized,
+              isStayOnTop: isStayOnTop,
+              isMaximized: isMaximized,
               onStayOnTopTap: () {
                 setState(() {
-                  _isStayOnTop = !_isStayOnTop;
-                  windowManager.setAlwaysOnTop(_isStayOnTop);
+                  isStayOnTop = !isStayOnTop;
+                  windowManager.setAlwaysOnTop(isStayOnTop);
                 });
               },
             ),

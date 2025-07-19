@@ -15,17 +15,18 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
-import 'package:awesome_cloud/awesome_cloud.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
 import '../../TokenUtils/import_token_util.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/app_provider.dart';
 import '../../l10n/l10n.dart';
 
@@ -65,8 +66,9 @@ class _OneDriveServiceScreenState
     super.initState();
     try {
       loadConfig();
-    } catch (e) {
+    } catch (e, t) {
       inited = true;
+      ILogger.error("Failed to load OneDrive config", e, t);
       IToast.show(appLocalizations.cloudConnectionError);
     }
   }
@@ -251,12 +253,14 @@ class _OneDriveServiceScreenState
         onPressed: () async {
           try {
             appProvider.preventLock = true;
+            windowManager.minimize();
             await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to onedrive", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
           } finally {
             appProvider.preventLock = false;
+            windowManager.restore();
           }
         },
       ),

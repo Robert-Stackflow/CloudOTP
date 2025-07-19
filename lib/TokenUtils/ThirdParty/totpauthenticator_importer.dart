@@ -16,10 +16,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/Utils/Base32/base32.dart';
-import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -28,7 +28,6 @@ import 'package:pointycastle/block/aes.dart';
 import 'package:pointycastle/block/modes/cbc.dart';
 import 'package:pointycastle/paddings/pkcs7.dart';
 
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../l10n/l10n.dart';
 
 class TotpAuthenticatorAccount {

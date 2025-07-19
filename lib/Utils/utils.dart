@@ -15,7 +15,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/category_dao.dart';
@@ -27,16 +26,12 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Utils/shortcuts_util.dart';
 import 'package:flutter/material.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../Screens/Setting/about_setting_screen.dart';
-import '../Screens/Setting/mobile_setting_navigation_screen.dart';
-import '../Screens/Setting/setting_navigation_screen.dart';
-import '../Screens/Setting/setting_safe_screen.dart';
 import '../TokenUtils/Cloud/cloud_service.dart';
 import '../TokenUtils/code_generator.dart';
-import 'package:screen_retriever/screen_retriever.dart';
 import '../l10n/l10n.dart';
 import 'app_provider.dart';
 import 'constant.dart';

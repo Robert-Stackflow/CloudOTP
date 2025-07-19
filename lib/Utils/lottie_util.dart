@@ -14,7 +14,6 @@
  */
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:cloudotp/Utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
 

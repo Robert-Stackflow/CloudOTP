@@ -19,7 +19,6 @@ import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-import '../Utils/utils.dart';
 import 'database_manager.dart';
 
 class BindingDao {

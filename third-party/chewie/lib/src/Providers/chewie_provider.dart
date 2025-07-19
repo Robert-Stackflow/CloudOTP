@@ -19,13 +19,23 @@ class ChewieProvider with ChangeNotifier {
 
   BuildContext get globalNavigatorContext => globalNavigatorKey.currentContext!;
 
-  late BuildContext rootContext;
+  late BuildContext _rootContext;
+
+  BuildContext get rootContext => _rootContext;
 
   bool initedRootContext = false;
 
+  void setRootContext(BuildContext context) {
+    _rootContext = context;
+  }
+
+  void resetRootContext() {
+    _rootContext = globalNavigatorContext;
+  }
+
   void initRootContext(BuildContext context) {
     if (!initedRootContext) {
-      rootContext = context;
+      _rootContext = context;
       initedRootContext = true;
     }
   }
@@ -68,18 +78,6 @@ class ChewieProvider with ChangeNotifier {
 
   Widget Function(double size, bool forceDark) loadingWidgetBuilder =
       (size, forceDark) => const Center(child: CircularProgressIndicator());
-
-  ProxyConfig _proxyConfig = ChewieHiveUtil.getProxyConfig() ??
-      ProxyConfig(proxyType: ProxyType.NoProxy);
-
-  ProxyConfig get proxyConfig => _proxyConfig;
-
-  set proxyConfig(ProxyConfig value) {
-    _proxyConfig = value;
-    ChewieHiveUtil.setProxyConfig(value);
-    notifyListeners();
-    ProxyUtil.refresh();
-  }
 
   bool _enableLandscapeInTablet =
       ChewieHiveUtil.getBool(ChewieHiveUtil.enableLandscapeInTabletKey);

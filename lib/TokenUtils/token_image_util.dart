@@ -15,11 +15,9 @@
 
 import 'dart:convert';
 
-import 'package:cloudotp/Models/opt_token.dart';
-import 'package:cloudotp/Utils/utils.dart';
-import 'package:flutter/services.dart';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Models/opt_token.dart';
+import 'package:flutter/services.dart';
 
 class TokenImageUtil {
   static const int matchThreshold = 5;

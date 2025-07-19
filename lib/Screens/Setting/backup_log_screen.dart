@@ -23,7 +23,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Database/config_dao.dart';
-import '../../Utils/utils.dart';
 import '../../l10n/l10n.dart';
 
 class BackupLogScreen extends StatefulWidget {

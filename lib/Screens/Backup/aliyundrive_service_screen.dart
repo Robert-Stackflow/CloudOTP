@@ -16,11 +16,12 @@
 import 'dart:typed_data';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:awesome_cloud/awesome_cloud.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/aliyundrive_cloud_service.dart';
@@ -242,12 +243,14 @@ class _AliyunDriveServiceScreenState
         onPressed: () async {
           try {
             appProvider.preventLock = true;
+            windowManager.minimize();
             await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to aliyunDrive", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
           } finally {
             appProvider.preventLock = false;
+            windowManager.restore();
           }
         },
       ),

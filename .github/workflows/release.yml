@@ -89,6 +89,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: gradle
 
       # Flutter Pub Get
       - name: Flutter Pub Get
@@ -113,7 +114,7 @@ jobs:
       - name: Build Android
         if: matrix.target == 'Android'
         run: |
-          flutter build apk --release
+          flutter build apk --release --verbose
           flutter build apk --release --split-per-abi
           cd build/app/outputs/flutter-apk
           mv app-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-universal.apk

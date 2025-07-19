@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:awesome_chewie/src/Resources/theme_color_data.dart';
 import 'package:awesome_chewie/src/Utils/System/file_util.dart';
-import 'package:awesome_chewie/src/Utils/System/proxy_util.dart';
 import 'package:awesome_chewie/src/Utils/enums.dart';
 import 'package:awesome_chewie/src/Utils/utils.dart';
 import 'package:awesome_chewie/src/Utils/constant.dart';
@@ -139,19 +138,6 @@ class ChewieHiveUtil {
     } else {
       List<dynamic> list = jsonDecode(json);
       return list.map((e) => CustomFont.fromJson(e)).toList();
-    }
-  }
-
-  static setProxyConfig(ProxyConfig config) async {
-    await put(ChewieHiveUtil.proxyConfigKey, jsonEncode(config.toMap()));
-  }
-
-  static ProxyConfig? getProxyConfig() {
-    try {
-      return ProxyConfig.fromMap(jsonDecode(
-          ChewieHiveUtil.getString(ChewieHiveUtil.proxyConfigKey) ?? "{}"));
-    } catch (e) {
-      return null;
     }
   }
 

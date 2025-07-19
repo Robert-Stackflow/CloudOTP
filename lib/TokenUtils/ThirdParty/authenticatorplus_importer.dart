@@ -15,6 +15,7 @@
 
 import 'dart:io';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
@@ -26,7 +27,6 @@ import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../Utils/Base32/base32.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../l10n/l10n.dart';
 
 enum AuthenticatorType {

@@ -100,7 +100,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
 
   @override
   void onProtocolUrlReceived(String url) {
-    ILogger.info("Received protocol url:", url);
+    ILogger.info("Received protocol url: $url");
   }
 
   Future<void> fetchReleases() async {
@@ -178,12 +178,13 @@ class MainScreenState extends BaseWindowState<MainScreen>
   Future<void> jumpToLock({
     bool autoAuth = false,
   }) async {
-    ILogger.info("Jump to lock screen");
     if (CloudOTPHiveUtil.canDatabaseLock()) {
+      ILogger.debug("Jump to database lock screen");
       await DatabaseManager.resetDatabase();
       RouteUtil.pushRootPage(const DatabaseDecryptScreen());
     } else {
       appProvider.preventLock = true;
+      ILogger.debug("Jump to pin lock screen");
       RouteUtil.pushFadeRoute(
         context,
         PinVerifyScreen(
@@ -201,7 +202,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
 
   @override
   Widget build(BuildContext context) {
-    chewieProvider.rootContext = context;
+    chewieProvider.setRootContext(context);
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -234,7 +235,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
                 HomeScreen(key: chewieProvider.panelScreenKey),
                 Positioned(
                   right: 0,
-                  child: buildTitleBar(),
+                  child: _buildTitleBar(),
                 ),
               ],
             ),
@@ -426,6 +427,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
     bool reCaptureWhenFailed = true,
   }) async {
     try {
+      appProvider.preventLock = true;
       windowManager.minimize();
       Directory directory = Directory(await FileUtil.getScreenshotDir());
       String imageName =
@@ -483,6 +485,8 @@ class MainScreenState extends BaseWindowState<MainScreen>
               .captureFailedNoProcess(osType.captureProcessName));
         }
       }
+    } finally {
+      appProvider.preventLock = false;
     }
   }
 
@@ -705,7 +709,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
     );
   }
 
-  Widget buildTitleBar() {
+  Widget _buildTitleBar() {
     return ResponsiveUtil.selectByPlatform(
       desktop: WindowTitleWrapper(
         height: 48,

@@ -49,8 +49,8 @@ class PinVerifyScreen extends StatefulWidget {
   PinVerifyScreenState createState() => PinVerifyScreenState();
 }
 
-class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
-    with WindowListener, TrayListener {
+class PinVerifyScreenState extends BaseWindowState<PinVerifyScreen>
+    with TrayListener {
   final String? _password =
       ChewieHiveUtil.getString(CloudOTPHiveUtil.guesturePasswdKey);
   late final bool _enableBiometric =
@@ -59,53 +59,10 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
       status: GestureStatus.verify,
       gestureText: appLocalizations.verifyGestureLock);
   final GlobalKey<GestureState> _gestureUnlockView = GlobalKey();
-  bool _isMaximized = false;
-  bool _isStayOnTop = false;
   String? canAuthenticateResponseString;
   CanAuthenticateResponse? canAuthenticateResponse;
 
   bool get _biometricAvailable => canAuthenticateResponse?.isSuccess ?? false;
-
-  @override
-  Future<void> onWindowResize() async {
-    super.onWindowResize();
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowResized() async {
-    super.onWindowResized();
-    ChewieHiveUtil.setWindowSize(await windowManager.getSize());
-  }
-
-  @override
-  Future<void> onWindowMove() async {
-    super.onWindowMove();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  Future<void> onWindowMoved() async {
-    super.onWindowMoved();
-    ChewieHiveUtil.setWindowPosition(await windowManager.getPosition());
-  }
-
-  @override
-  void onWindowMaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    windowManager.setMinimumSize(ChewieProvider.minimumWindowSize);
-    setState(() {
-      _isMaximized = false;
-    });
-  }
 
   @override
   void dispose() {
@@ -149,6 +106,7 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
 
   @override
   Widget build(BuildContext context) {
+    chewieProvider.resetRootContext();
     ChewieUtils.setSafeMode(ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.enableSafeModeKey,
         defaultValue: defaultEnableSafeMode));
@@ -228,12 +186,12 @@ class PinVerifyScreenState extends BaseDynamicState<PinVerifyScreen>
               height: 48,
               forceClose: true,
               backgroundColor: Colors.transparent,
-              isStayOnTop: _isStayOnTop,
-              isMaximized: _isMaximized,
+              isStayOnTop: isStayOnTop,
+              isMaximized: isMaximized,
               onStayOnTopTap: () {
                 setState(() {
-                  _isStayOnTop = !_isStayOnTop;
-                  windowManager.setAlwaysOnTop(_isStayOnTop);
+                  isStayOnTop = !isStayOnTop;
+                  windowManager.setAlwaysOnTop(isStayOnTop);
                 });
               },
             ),

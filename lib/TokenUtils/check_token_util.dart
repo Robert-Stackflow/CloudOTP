@@ -13,9 +13,9 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/l10n/l10n.dart';
 
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../Models/opt_token.dart';
 import '../Utils/Base32/base32.dart';
 

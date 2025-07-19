@@ -15,6 +15,7 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
@@ -22,10 +23,10 @@ import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/webdav_backups_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/webdav_cloud_service.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/regex_util.dart';
 import '../../l10n/l10n.dart';
@@ -264,12 +265,14 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                 WebDavCloudService(_webDavCloudServiceConfig!);
             try {
               appProvider.preventLock = true;
+              windowManager.minimize();
               await ping();
             } catch (e, t) {
               ILogger.error("Failed to connect to webdav", e, t);
               IToast.show(appLocalizations.cloudConnectionError);
             } finally {
               appProvider.preventLock = false;
+              windowManager.restore();
             }
           }
         },

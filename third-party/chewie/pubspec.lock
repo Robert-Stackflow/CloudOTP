@@ -809,10 +809,9 @@ packages:
   image_gallery_saver:
     dependency: "direct main"
     description:
-      name: image_gallery_saver
-      sha256: "0aba74216a4d9b0561510cb968015d56b701ba1bd94aace26aacdd8ae5761816"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "../tool/image_gallery_saver"
+      relative: true
+    source: path
     version: "2.0.3"
   intl:
     dependency: "direct main"
@@ -974,14 +973,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.1.6"
-  local_proxy:
-    dependency: "direct main"
-    description:
-      name: local_proxy
-      sha256: f17e637d0388d278eff905cf7c66331f0f8fc3218d23174452c5ec3ccf99f76b
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.0.3"
   logger:
     dependency: "direct main"
     description:

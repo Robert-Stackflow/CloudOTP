@@ -18,7 +18,6 @@ import 'dart:convert';
 import 'package:awesome_chewie/awesome_chewie.dart';
 
 import '../Database/token_category_binding_dao.dart';
-import '../Utils/utils.dart';
 import 'Proto/TokenCategory/token_category_payload.pb.dart';
 import 'opt_token.dart';
 
