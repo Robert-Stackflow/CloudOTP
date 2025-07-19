@@ -72,9 +72,9 @@ class ImportAnalysis {
 
   showToast([String noTokenToast = ""]) {
     String tokenToast =
-        appLocalizations.importResultTip(parseSuccess, importSuccess);
+        appLocalizations.importResultTip(importSuccess, parseSuccess);
     String categoryToast = appLocalizations.importCategoryResultTip(
-        parseCategorySuccess, importCategorySuccess);
+      importCategorySuccess, parseCategorySuccess);
     if (parseSuccess > 0) {
       if (parseCategorySuccess > 0) {
         IToast.showTop("$tokenToast; $categoryToast");
