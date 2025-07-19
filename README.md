@@ -47,7 +47,7 @@ It supports Android, Windows, and Linux, offering secure cloud backups, powerful
 
 ### 📱 Android
 
-**Choose the correct ABI:**
+**Choose the correct ABI.** If unsure, use the `universal` version.
 
 | Variant       | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
@@ -55,8 +55,6 @@ It supports Android, Windows, and Linux, offering secure cloud backups, powerful
 | `armeabi-v7a` | For most older 32-bit Android devices                        |
 | `x86_64`      | For Android emulators or specific x86 tablets (not for regular devices) |
 | `universal`   | Supports **all CPU architectures**, larger file size (recommended for most) |
-
-If unsure, use the `universal` version. You can use tools like [Droid Info](https://play.google.com/store/apps/details?id=com.vndnguyen.deviceinfo) to check your device's architecture.
 
 ### 💻 Windows
 
@@ -84,8 +82,6 @@ flatpak run com.cloudchewie.cloudotp
 ```
 
 #### 📥 Direct Downloads
-
-Also available as `.deb` and `.tar.gz` packages from the [Releases](https://github.com/your-repo/releases) page.
 
 | Architecture | Formats Available | Notes                         |
 | ------------ | ----------------- | ----------------------------- |
@@ -119,7 +115,7 @@ Feel free to check the [issues page](https://github.com/Robert-Stackflow/CloudOT
 
 ## 📄 License
 
-This project is licensed under the GPL-V3.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## 📷 Screenshots
 

@@ -196,7 +196,7 @@ class _AliyunDriveServiceScreenState
       child: CheckboxItem(
         title: appLocalizations.enable + appLocalizations.cloudTypeAliyunDrive,
         description: appLocalizations.cloudOAuthSafeTip(
-            appLocalizations.cloudTypeAliyunDrive, CloudService.serverEndpoint),
+            CloudService.serverEndpoint, appLocalizations.cloudTypeAliyunDrive),
         value: _aliyunDriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {

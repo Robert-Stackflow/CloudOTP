@@ -204,7 +204,7 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
       child: CheckboxItem(
         title: appLocalizations.enable + appLocalizations.cloudTypeBox,
         description: appLocalizations.cloudOAuthSafeTip(
-            appLocalizations.cloudTypeBox, CloudService.serverEndpoint),
+            CloudService.serverEndpoint,appLocalizations.cloudTypeBox),
         value: _boxCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {

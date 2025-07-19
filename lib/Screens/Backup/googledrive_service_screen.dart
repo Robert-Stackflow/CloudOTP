@@ -189,7 +189,7 @@ class _GoogleDriveServiceScreenState
       child: CheckboxItem(
         title: appLocalizations.enable + appLocalizations.cloudTypeGoogleDrive,
         description: appLocalizations.cloudOAuthSafeTip(
-            appLocalizations.cloudTypeGoogleDrive, CloudService.serverEndpoint),
+            CloudService.serverEndpoint, appLocalizations.cloudTypeGoogleDrive),
         value: _googledriveCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
