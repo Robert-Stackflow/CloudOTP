@@ -300,14 +300,12 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
               await CloudServiceConfigDao.updateConfig(currentConfig);
               _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
               appProvider.preventLock = true;
-              windowManager.minimize();
               await ping();
             } catch (e, t) {
               ILogger.error("Failed to connect to S3 cloud", e, t);
               IToast.show(appLocalizations.cloudConnectionError);
             } finally {
               appProvider.preventLock = false;
-              windowManager.restore();
             }
           }
         },

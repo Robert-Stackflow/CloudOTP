@@ -242,14 +242,14 @@ class _GoogleDriveServiceScreenState
         onPressed: () async {
           try {
             appProvider.preventLock = true;
-            windowManager.minimize();
+            if(ResponsiveUtil.isDesktop()) windowManager.minimize();
             await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to google drive", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
           } finally {
             appProvider.preventLock = false;
-            windowManager.restore();
+            if(ResponsiveUtil.isDesktop()) windowManager.restore();
           }
         },
       ),
