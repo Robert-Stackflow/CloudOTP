@@ -204,7 +204,7 @@ class ChewieUtils {
         onUpdate?.call(latestVersion, latestReleaseItem!);
         chewieProvider.latestVersion = latestVersion;
         if (showUpdateDialog && latestReleaseItem != null) {
-          if (!ResponsiveUtil.isMobile()) {
+          if (ResponsiveUtil.isMobile()) {
             DialogBuilder.showConfirmDialog(
               context,
               renderHtml: true,
