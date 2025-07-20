@@ -71,7 +71,7 @@ class BiometricUtil {
           ILogger.info("No passcode set on this device");
           break;
         default:
-          ILogger.info("Unknown error");
+          ILogger.info("Biometric Unknown error");
           break;
       }
     }
