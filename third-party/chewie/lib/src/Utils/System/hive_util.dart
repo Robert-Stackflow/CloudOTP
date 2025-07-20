@@ -101,7 +101,6 @@ class ChewieHiveUtil {
   }
 
   static void setWindowPosition(Offset offset) {
-    ILogger.info("Set window position at ${offset.dx},${offset.dy}");
     ChewieHiveUtil.put(
         ChewieHiveUtil.windowPositionKey, "${offset.dx},${offset.dy}");
   }
@@ -117,8 +116,6 @@ class ChewieHiveUtil {
     }
     try {
       List<String> list = position.split(",");
-      ILogger.info(
-          "Get window position ${double.parse(list[0])},${double.parse(list[1])}");
       return Offset(double.parse(list[0]), double.parse(list[1]));
     } catch (e, t) {
       ILogger.error("Failed to get window position", e, t);

@@ -101,7 +101,11 @@ class ResponsiveUtil {
   }
 
   static bool isAppBundle() {
-    ILogger.debug("BUILD_TYPE is $buildType");
+    if (buildType.isNotEmpty) {
+      ILogger.debug("BUILD_TYPE is $buildType");
+    } else {
+      ILogger.debug("BUILD_TYPE is not set, defaulting to false");
+    }
     if (Platform.isAndroid) {
       if (buildType == 'appbundle') {
         ILogger.debug("Building appbundle for google play store");
