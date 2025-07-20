@@ -806,7 +806,7 @@ class FileUtil {
         final currentPath = Platform.resolvedExecutable;
         final installPath =
             "${installPathPtr.cast<Utf16>().toDartString()}\\${ResponsiveUtil.appName}.exe";
-        ILogger.info(ResponsiveUtil.appName,
+        ILogger.info(
             "Get install path: $installPath and current path: $currentPath");
         tmp = installPath == currentPath
             ? WindowsVersion.installed

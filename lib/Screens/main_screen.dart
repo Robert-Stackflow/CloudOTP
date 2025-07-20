@@ -69,7 +69,6 @@ class MainScreenState extends BaseWindowState<MainScreen>
         ProtocolListener,
         AutomaticKeepAliveClientMixin {
   Timer? _timer;
-  Orientation _oldOrientation = Orientation.portrait;
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -120,6 +119,10 @@ class MainScreenState extends BaseWindowState<MainScreen>
     if (ResponsiveUtil.isDesktop() && !ResponsiveUtil.isLinux()) {
       protocolHandler.addListener(this);
     }
+    if (ResponsiveUtil.isDesktop()) {
+      Utils.initTray();
+    }
+    trayManager.addListener(this);
     windowManager.addListener(this);
     WidgetsBinding.instance.addObserver(this);
     CloudOTPHiveUtil.showCloudEntry().then((value) {
@@ -131,30 +134,23 @@ class MainScreenState extends BaseWindowState<MainScreen>
           defaultValue: false)) {
         ShortcutsUtil.focusSearch();
       }
-      if (ResponsiveUtil.isDesktop()) {
-        await Utils.initTray();
-        trayManager.addListener(this);
-        // keyboardHandlerState?.focus();
-      }
-      if (mounted) {
-        initGlobalConfig();
-        _oldOrientation = MediaQuery.of(context).orientation;
-        EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
-              backgroundColor: ChewieTheme.canvasColor,
-              indicator: LottieFiles.load(LottieFiles.getLoadingPath(context),
-                  scale: 1.5),
-              hapticFeedback: true,
-              triggerOffset: 40,
-            );
-        EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
-              indicator: LottieFiles.load(LottieFiles.getLoadingPath(context)),
-            );
-        chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
-            LottieFiles.load(
+      EasyRefresh.defaultHeaderBuilder = () => LottieCupertinoHeader(
+            backgroundColor: ChewieTheme.canvasColor,
+            indicator: LottieFiles.load(LottieFiles.getLoadingPath(context),
+                scale: 1.5),
+            hapticFeedback: true,
+            triggerOffset: 40,
+          );
+      EasyRefresh.defaultFooterBuilder = () => LottieCupertinoFooter(
+            indicator: LottieFiles.load(LottieFiles.getLoadingPath(context)),
+          );
+      chewieProvider.loadingWidgetBuilder =
+          (size, forceDark) => LottieFiles.load(
                 LottieFiles.getLoadingPath(chewieProvider.rootContext),
-                scale: 1.5);
-      }
+                scale: 1.5,
+              );
     });
+    initGlobalConfig();
     searchController.addListener(() {
       homeScreenState?.performSearch(searchController.text);
     });
@@ -208,8 +204,6 @@ class MainScreenState extends BaseWindowState<MainScreen>
         defaultValue: defaultEnableSafeMode));
     super.build(context);
     return OrientationBuilder(builder: (ctx, ori) {
-      if (ori != _oldOrientation) {}
-      _oldOrientation = ori;
       return _buildBodyByPlatform();
     });
   }

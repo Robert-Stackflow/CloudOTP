@@ -101,8 +101,11 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   await BiometricUtil.initStorage();
   await TokenImageUtil.loadBrandLogos();
   CustomFont.downloadFont(showToast: false);
-  if (ResponsiveUtil.isAndroid()) initAndroid();
-  if (ResponsiveUtil.isDesktop()) initDesktop();
+  if (ResponsiveUtil.isAndroid()) await initAndroid();
+  if (ResponsiveUtil.isDesktop()) await initDesktop();
+  ILogger.debug(
+      "Running on ${ResponsiveUtil.platformName} with version ${ResponsiveUtil.version}");
+  ILogger.debug(ResponsiveUtil.deviceDescription);
 }
 
 Future<void> initHive() async {
@@ -148,6 +151,8 @@ Future<void> initDesktop() async {
     appName: ResponsiveUtil.appName,
     shortcutPolicy: ShortcutPolicy.requireCreate,
   );
+  ILogger.debug(
+      "LaunchAtStartup: ${await LaunchAtStartup.instance.isEnabled()}");
   ChewieHiveUtil.put(ChewieHiveUtil.launchAtStartupKey,
       await LaunchAtStartup.instance.isEnabled());
   for (String scheme in kWindowsSchemes) {

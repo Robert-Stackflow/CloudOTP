@@ -73,7 +73,7 @@ class PinVerifyScreenState extends BaseWindowState<PinVerifyScreen>
 
   @override
   void initState() {
-    if (widget.jumpToMain) {
+    if (widget.isModal) {
       trayManager.addListener(this);
       Utils.initSimpleTray();
     }

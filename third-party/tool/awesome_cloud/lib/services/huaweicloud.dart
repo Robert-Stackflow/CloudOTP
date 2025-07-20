@@ -292,8 +292,8 @@ class HuaweiCloud extends BaseCloudService {
   @override
   Future<HuaweiCloudResponse> push(
     Uint8List bytes,
-    String fileName,
-    String remotePath, {
+    String remotePath,
+    String fileName, {
     Function(int, int)? onProgress,
   }) async {
     CloudLogger.info(

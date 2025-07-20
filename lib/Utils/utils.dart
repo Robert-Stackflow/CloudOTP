@@ -136,133 +136,148 @@ class Utils {
   }
 
   static Future<void> initTray() async {
-    if (!ResponsiveUtil.isDesktop()) return;
-    await trayManager.destroy();
-    if (!ChewieHiveUtil.getBool(ChewieHiveUtil.showTrayKey)) {
+    try {
+      if (!ResponsiveUtil.isDesktop()) return;
+      ILogger.debug("Initializing tray...");
       await trayManager.destroy();
-      return;
-    }
+      if (!ChewieHiveUtil.getBool(ChewieHiveUtil.showTrayKey)) {
+        ILogger.debug("Tray is disabled, not initializing.");
+        await trayManager.destroy();
+        return;
+      }
+      // Ensure tray icon display in linux sandboxed environments
+      if (Platform.environment.containsKey('FLATPAK_ID') ||
+          Platform.environment.containsKey('SNAP')) {
+        await trayManager.setIcon('com.cloudchewie.cloudotp');
+      } else if (ResponsiveUtil.isWindows()) {
+        await trayManager.setIcon('assets/logo-transparent.ico');
+      } else {
+        await trayManager.setIcon('assets/logo-transparent.png');
+      }
 
-    // Ensure tray icon display in linux sandboxed environments
-    if (Platform.environment.containsKey('FLATPAK_ID') ||
-        Platform.environment.containsKey('SNAP')) {
-      await trayManager.setIcon('com.cloudchewie.cloudotp');
-    } else if (ResponsiveUtil.isWindows()) {
-      await trayManager.setIcon('assets/logo-transparent.ico');
-    } else {
-      await trayManager.setIcon('assets/logo-transparent.png');
+      bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
+      if (!ResponsiveUtil.isLinux()) {
+        ILogger.debug(
+            "Setting tray tooltip to app name ${ResponsiveUtil.appName}");
+        await trayManager.setToolTip(ResponsiveUtil.appName);
+      }
+      Menu menu = Menu(
+        items: [
+          MenuItem(
+            key: TrayKey.checkUpdates.key,
+            label: appProvider.latestVersion.isNotEmpty
+                ? appLocalizations.getNewVersion(appProvider.latestVersion)
+                : appLocalizations.checkUpdates,
+          ),
+          MenuItem(
+            key: TrayKey.shortcutHelp.key,
+            label: appLocalizations.shortcutHelp,
+          ),
+          MenuItem.separator(),
+          MenuItem(
+            key: TrayKey.displayApp.key,
+            label: appLocalizations.displayAppTray,
+          ),
+          MenuItem(
+            key: TrayKey.lockApp.key,
+            label: appLocalizations.lockAppTray,
+          ),
+          ...await getTrayTokenMenuItems(),
+          MenuItem.separator(),
+          MenuItem(
+            key: TrayKey.setting.key,
+            label: appLocalizations.setting,
+          ),
+          MenuItem(
+            key: TrayKey.officialWebsite.key,
+            label: appLocalizations.officialWebsiteTray,
+          ),
+          MenuItem(
+            key: TrayKey.about.key,
+            label: appLocalizations.about,
+          ),
+          MenuItem(
+            key: TrayKey.githubRepository.key,
+            label: appLocalizations.repoTray,
+          ),
+          MenuItem.separator(),
+          MenuItem.checkbox(
+            checked: lauchAtStartup,
+            key: TrayKey.launchAtStartup.key,
+            label: appLocalizations.launchAtStartup,
+          ),
+          MenuItem.separator(),
+          MenuItem(
+            key: TrayKey.exitApp.key,
+            label: appLocalizations.exitAppTray,
+          ),
+        ],
+      );
+      await trayManager.setContextMenu(menu);
+      ILogger.debug("Tray initialized successfully.");
+    } catch (e, t) {
+      ILogger.error("Failed to initialize simple tray", e, t);
     }
-
-    bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
-    if (!ResponsiveUtil.isLinux()) {
-      await trayManager.setToolTip(ResponsiveUtil.appName);
-    }
-    Menu menu = Menu(
-      items: [
-        MenuItem(
-          key: TrayKey.checkUpdates.key,
-          label: appProvider.latestVersion.isNotEmpty
-              ? appLocalizations.getNewVersion(appProvider.latestVersion)
-              : appLocalizations.checkUpdates,
-        ),
-        MenuItem(
-          key: TrayKey.shortcutHelp.key,
-          label: appLocalizations.shortcutHelp,
-        ),
-        MenuItem.separator(),
-        MenuItem(
-          key: TrayKey.displayApp.key,
-          label: appLocalizations.displayAppTray,
-        ),
-        MenuItem(
-          key: TrayKey.lockApp.key,
-          label: appLocalizations.lockAppTray,
-        ),
-        ...await getTrayTokenMenuItems(),
-        MenuItem.separator(),
-        MenuItem(
-          key: TrayKey.setting.key,
-          label: appLocalizations.setting,
-        ),
-        MenuItem(
-          key: TrayKey.officialWebsite.key,
-          label: appLocalizations.officialWebsiteTray,
-        ),
-        MenuItem(
-          key: TrayKey.about.key,
-          label: appLocalizations.about,
-        ),
-        MenuItem(
-          key: TrayKey.githubRepository.key,
-          label: appLocalizations.repoTray,
-        ),
-        MenuItem.separator(),
-        MenuItem.checkbox(
-          checked: lauchAtStartup,
-          key: TrayKey.launchAtStartup.key,
-          label: appLocalizations.launchAtStartup,
-        ),
-        MenuItem.separator(),
-        MenuItem(
-          key: TrayKey.exitApp.key,
-          label: appLocalizations.exitAppTray,
-        ),
-      ],
-    );
-    await trayManager.setContextMenu(menu);
   }
 
   static Future<void> initSimpleTray() async {
-    if (!ResponsiveUtil.isDesktop()) return;
-    await trayManager.destroy();
-    if (!ChewieHiveUtil.getBool(ChewieHiveUtil.showTrayKey)) {
+    try {
+      if (!ResponsiveUtil.isDesktop()) return;
+      ILogger.debug("Initializing simple tray...");
       await trayManager.destroy();
-      return;
-    }
+      if (!ChewieHiveUtil.getBool(ChewieHiveUtil.showTrayKey)) {
+        ILogger.debug("Tray is disabled, not initializing.");
+        await trayManager.destroy();
+        return;
+      }
 
-    // Ensure tray icon display in linux sandboxed environments
-    if (Platform.environment.containsKey('FLATPAK_ID') ||
-        Platform.environment.containsKey('SNAP')) {
-      await trayManager.setIcon('com.cloudchewie.cloudotp');
-    } else if (ResponsiveUtil.isWindows()) {
-      await trayManager.setIcon('assets/logo-transparent.ico');
-    } else {
-      await trayManager.setIcon('assets/logo-transparent.png');
-    }
+      // Ensure tray icon display in linux sandboxed environments
+      if (Platform.environment.containsKey('FLATPAK_ID') ||
+          Platform.environment.containsKey('SNAP')) {
+        await trayManager.setIcon('com.cloudchewie.cloudotp');
+      } else if (ResponsiveUtil.isWindows()) {
+        await trayManager.setIcon('assets/logo-transparent.ico');
+      } else {
+        await trayManager.setIcon('assets/logo-transparent.png');
+      }
 
-    bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
-    if (!ResponsiveUtil.isLinux()) {
-      await trayManager.setToolTip(ResponsiveUtil.appName);
+      bool lauchAtStartup = await LaunchAtStartup.instance.isEnabled();
+      if (!ResponsiveUtil.isLinux()) {
+        await trayManager.setToolTip(ResponsiveUtil.appName);
+      }
+      Menu menu = Menu(
+        items: [
+          MenuItem(
+            key: TrayKey.displayApp.key,
+            label: appLocalizations.displayAppTray,
+          ),
+          MenuItem.separator(),
+          MenuItem(
+            key: TrayKey.officialWebsite.key,
+            label: appLocalizations.officialWebsiteTray,
+          ),
+          MenuItem(
+            key: TrayKey.githubRepository.key,
+            label: appLocalizations.repoTray,
+          ),
+          MenuItem.separator(),
+          MenuItem.checkbox(
+            checked: lauchAtStartup,
+            key: TrayKey.launchAtStartup.key,
+            label: appLocalizations.launchAtStartup,
+          ),
+          MenuItem.separator(),
+          MenuItem(
+            key: TrayKey.exitApp.key,
+            label: appLocalizations.exitAppTray,
+          ),
+        ],
+      );
+      await trayManager.setContextMenu(menu);
+      ILogger.debug("Simple tray initialized successfully.");
+    } catch (e, t) {
+      ILogger.error("Failed to initialize simple tray", e, t);
     }
-    Menu menu = Menu(
-      items: [
-        MenuItem(
-          key: TrayKey.displayApp.key,
-          label: appLocalizations.displayAppTray,
-        ),
-        MenuItem.separator(),
-        MenuItem(
-          key: TrayKey.officialWebsite.key,
-          label: appLocalizations.officialWebsiteTray,
-        ),
-        MenuItem(
-          key: TrayKey.githubRepository.key,
-          label: appLocalizations.repoTray,
-        ),
-        MenuItem.separator(),
-        MenuItem.checkbox(
-          checked: lauchAtStartup,
-          key: TrayKey.launchAtStartup.key,
-          label: appLocalizations.launchAtStartup,
-        ),
-        MenuItem.separator(),
-        MenuItem(
-          key: TrayKey.exitApp.key,
-          label: appLocalizations.exitAppTray,
-        ),
-      ],
-    );
-    await trayManager.setContextMenu(menu);
   }
 
   static processTrayMenuItemClick(
@@ -270,6 +285,7 @@ class Utils {
     MenuItem menuItem, [
     bool isSimple = false,
   ]) async {
+    ILogger.debug("Processing tray menu item click: ${menuItem.key}");
     if (menuItem.key == TrayKey.displayApp.key) {
       ChewieUtils.displayApp();
     } else if (menuItem.key == TrayKey.shortcutHelp.key) {

@@ -263,11 +263,7 @@ class DatabaseManager {
       if (Platform.isLinux || Platform.isAndroid) {
         try {
           lib = DynamicLibrary.open('libsqlcipher.so');
-        } catch (e, t) {
-          ILogger.error(
-              "Failed to load libsqlcipher.so, perhaps the library is not installed or not in the correct path.",
-              e,
-              t);
+        } catch (e) {
           if (Platform.isAndroid) {
             final appIdAsBytes = File('/proc/self/cmdline').readAsBytesSync();
             final endOfAppId = max(appIdAsBytes.indexOf(0), 0);
