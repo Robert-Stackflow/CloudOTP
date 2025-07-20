@@ -20,7 +20,6 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:win32/win32.dart';
 
@@ -30,7 +29,6 @@ import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:awesome_chewie/src/Utils/itoast.dart';
 import 'hive_util.dart';
-import 'notification_util.dart';
 
 enum WindowsVersion { installed, portable }
 
@@ -422,84 +420,6 @@ class FileUtil {
 
   static String extractFileExtensionFromUrl(String imageUrl) {
     return extractFileNameFromUrl(imageUrl).split('.').last;
-  }
-
-  static Future<void> downloadAndUpdate(
-    BuildContext context,
-    String apkUrl,
-    String htmlUrl, {
-    String? version,
-    bool isUpdate = true,
-    Function(double)? onReceiveProgress,
-  }) async {
-    await Permission.storage.onDeniedCallback(() {
-      IToast.showTop("请授予文件存储权限");
-    }).onGrantedCallback(() async {
-      if (apkUrl.notNullOrEmpty) {
-        double progressValue = 0.0;
-        var appDocDir = await getTemporaryDirectory();
-        String savePath =
-            "${appDocDir.path}/${FileUtil.extractFileNameFromUrl(apkUrl)}";
-        try {
-          await Dio().download(
-            apkUrl,
-            savePath,
-            onReceiveProgress: (count, total) {
-              final value = count / total;
-              if (progressValue != value) {
-                if (progressValue < 1.0) {
-                  progressValue = count / total;
-                } else {
-                  progressValue = 0.0;
-                }
-                NotificationUtil.sendProgressNotification(
-                  0,
-                  (progressValue * 100).toInt(),
-                  title: isUpdate
-                      ? '正在下载新版本安装包...'
-                      : '正在下载版本${version ?? ""}的安装包...',
-                  payload: version ?? "",
-                );
-                onReceiveProgress?.call(progressValue);
-              }
-            },
-          ).then((response) async {
-            if (response.statusCode == 200) {
-              NotificationUtil.closeNotification(0);
-              NotificationUtil.sendInfoNotification(
-                1,
-                "下载完成",
-                isUpdate
-                    ? "新版本安装包已经下载完成，点击立即安装"
-                    : "版本${version ?? ""}的安装包已经下载完成，点击立即安装",
-                payload: savePath,
-              );
-            } else {
-              UriUtil.openExternal(htmlUrl);
-            }
-          });
-        } catch (e, t) {
-          ILogger.error("Failed to download", e, t);
-          NotificationUtil.closeNotification(0);
-          NotificationUtil.sendInfoNotification(
-            2,
-            "下载失败，请重试",
-            "新版本安装包下载失败，请重试",
-          );
-        }
-      } else {
-        UriUtil.openExternal(htmlUrl);
-      }
-    }).onPermanentlyDeniedCallback(() {
-      IToast.showTop("已拒绝文件存储权限，将跳转到浏览器下载");
-      UriUtil.openExternal(apkUrl);
-    }).onRestrictedCallback(() {
-      IToast.showTop("请授予文件存储权限");
-    }).onLimitedCallback(() {
-      IToast.showTop("请授予文件存储权限");
-    }).onProvisionalCallback(() {
-      IToast.showTop("请授予文件存储权限");
-    }).request();
   }
 
   static Future<ShareResultStatus> shareImage(

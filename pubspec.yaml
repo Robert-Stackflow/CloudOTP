@@ -92,7 +92,6 @@ dependencies:
   hotkey_manager: ^0.2.3 # 热键
   responsive_builder: ^0.7.1 # 响应式布局
   flutter_displaymode: ^0.6.0 # 设置刷新率
-  flutter_local_notifications: ^17.2.1+2 # 本地通知
   flutter_resizable_container: ^2.0.0 # 可调整大小的容器
   screen_protector: ^1.4.2+1
   flutter_windowmanager:
