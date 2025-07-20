@@ -22,7 +22,9 @@ jobs:
           - target: Android
             os: ubuntu-latest
             artifact_name: release-Android
-            artifact_path: build/app/outputs/flutter-apk/*.apk
+            artifact_path: |
+              build/app/outputs/flutter-apk/*.apk
+              build/app/outputs/bundle/release/*.aab
           - target: Windows
             os: windows-latest
             artifact_name: release-Windows
@@ -110,17 +112,22 @@ jobs:
           echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
           echo "arch=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      # Build Android .apk
+      # Build Android .apk & .aab
       - name: Build Android
         if: matrix.target == 'Android'
         run: |
           flutter build apk --release
           flutter build apk --release --split-per-abi
+          flutter build appbundle --release --dart-define=BUILD_TYPE=appbundle
+          
           cd build/app/outputs/flutter-apk
           mv app-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-universal.apk
           mv app-arm64-v8a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-arm64-v8a.apk
           mv app-armeabi-v7a-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-armeabi-v7a.apk
           mv app-x86_64-release.apk CloudOTP-${{ steps.get_version.outputs.version }}-android-x86_64.apk
+
+          cd ../bundle/release
+          mv app-release.aab CloudOTP-${{ steps.get_version.outputs.version }}-android.aab
 
       # Build Windows .zip
       - name: Build Windows
@@ -211,6 +218,7 @@ jobs:
         run: |
           mkdir -p /tmp/artifacts/final
           mv /tmp/artifacts/release-Android/*.apk /tmp/artifacts/final/
+          mv /tmp/artifacts/release-Android/*.aab /tmp/artifacts/final/
           mv /tmp/artifacts/release-Windows/*.zip /tmp/artifacts/final/
           mv /tmp/artifacts/release-Windows/*.exe /tmp/artifacts/final/
           mv /tmp/artifacts/release-Linux/*.deb /tmp/artifacts/final/
