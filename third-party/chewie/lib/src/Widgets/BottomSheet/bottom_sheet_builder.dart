@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
+
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
@@ -44,7 +44,7 @@ class BottomSheetBuilder {
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return DialogAnimation(
             animation: animation,
-            child: FloatingModal(
+            child: BottomSheetWrapperWidget(
               preferMinWidth: preferMinWidth,
               child: builder(context),
             ),
@@ -62,7 +62,7 @@ class BottomSheetBuilder {
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         builder: builder,
-        containerWidget: (_, animation, child) => FloatingModal(
+        containerWidget: (_, animation, child) => BottomSheetWrapperWidget(
           preferMinWidth: preferMinWidth,
           child: child,
         ),

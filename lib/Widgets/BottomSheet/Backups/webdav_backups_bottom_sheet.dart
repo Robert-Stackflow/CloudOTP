@@ -17,7 +17,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:webdav_client/webdav_client.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../../l10n/l10n.dart';
 

@@ -15,7 +15,6 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'color_generator.dart';
 import 'contrast_helper.dart';
 
@@ -107,10 +106,10 @@ class TextDrawableState extends State<TextDrawable> {
               color: contrast > 1.8 ? Colors.white : Colors.black,
               fontSize: widget.height * 0.5,
             ) ??
-            ChewieTheme.titleMedium.copyWith(
-              fontSize: widget.height * 0.5,
-              color: contrast > 1.8 ? Colors.white : Colors.black,
-            ),
+            Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: widget.height * 0.5,
+                  color: contrast > 1.8 ? Colors.white : Colors.black,
+                ),
       ),
     );
   }

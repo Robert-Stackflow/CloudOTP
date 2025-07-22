@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/window_button.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class ChewieColors {
   static const Color defaultPrimaryColor = Color(0xFF009BFF);

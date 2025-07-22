@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Utils/constant.dart';
 import 'drag_and_drop_builder_parameters.dart';
 import 'drag_and_drop_list_interface.dart';
 import 'drag_handle.dart';
@@ -79,7 +78,7 @@ class _DragAndDropListWrapper extends State<DragAndDropListWrapper>
                     offset: _feedbackContainerOffset(),
                     child: feedback,
                   ),
-                  childWhenDragging: emptyWidget,
+                  childWhenDragging: const SizedBox.shrink(),
                   onDragStarted: () => _setDragging(true),
                   onDragCompleted: () => _setDragging(false),
                   onDraggableCanceled: (_, __) => _setDragging(false),
@@ -96,7 +95,7 @@ class _DragAndDropListWrapper extends State<DragAndDropListWrapper>
           child: dragAndDropListContents,
           feedback:
               buildFeedbackWithoutHandle(context, dragAndDropListContents),
-          childWhenDragging: emptyWidget,
+          childWhenDragging: const SizedBox.shrink(),
           onDragStarted: () => _setDragging(true),
           onDragCompleted: () => _setDragging(false),
           onDraggableCanceled: (_, __) => _setDragging(false),
@@ -109,7 +108,7 @@ class _DragAndDropListWrapper extends State<DragAndDropListWrapper>
           child: dragAndDropListContents,
           feedback:
               buildFeedbackWithoutHandle(context, dragAndDropListContents),
-          childWhenDragging: emptyWidget,
+          childWhenDragging: const SizedBox.shrink(),
           onDragStarted: () => _setDragging(true),
           onDragCompleted: () => _setDragging(false),
           onDraggableCanceled: (_, __) => _setDragging(false),
@@ -141,7 +140,7 @@ class _DragAndDropListWrapper extends State<DragAndDropListWrapper>
                           _hoveredDraggable!.generateWidget(widget.parameters),
                     ),
               )
-            : emptyWidget,
+            : const SizedBox.shrink(),
       ),
       Listener(
         child: draggable,
@@ -165,7 +164,7 @@ class _DragAndDropListWrapper extends State<DragAndDropListWrapper>
           child: DragTarget<DragAndDropListInterface>(
             builder: (context, candidateData, rejectedData) {
               if (candidateData.isNotEmpty) {}
-              return emptyWidget;
+              return const SizedBox.shrink();
             },
             onWillAccept: (incoming) {
               bool accept = true;

@@ -18,8 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:awesome_chewie/src/Utils/constant.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'drag_and_drop_builder_parameters.dart';
 import 'drag_and_drop_item.dart';
 import 'drag_and_drop_item_target.dart';
@@ -37,6 +35,8 @@ export 'drag_and_drop_list_expansion.dart';
 export 'drag_and_drop_list_target.dart';
 export 'drag_and_drop_list_wrapper.dart';
 export 'drag_handle.dart';
+export 'drag_and_drop_interface.dart';
+export 'drag_and_drop_list_interface.dart';
 
 typedef OnItemReorder = void Function(
   int oldItemIndex,
@@ -468,7 +468,7 @@ class DragAndDropListsState extends State<DragAndDropLists> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            widget.header ?? emptyWidget,
+            widget.header ?? const SizedBox.shrink(),
             widget.contentsWhenEmpty ?? const Text('Empty'),
             dragAndDropListTarget,
           ],
@@ -528,7 +528,7 @@ class DragAndDropListsState extends State<DragAndDropLists> {
     bool includeSeparators = widget.listDivider != null;
     int childrenCount = _calculateChildrenCount(includeSeparators);
 
-    List<Widget> list = [widget.header ?? emptyWidget];
+    List<Widget> list = [widget.header ?? const SizedBox.shrink()];
     list.addAll(List.generate(childrenCount, (index) {
       return _buildInnerList(index, childrenCount, dragAndDropListTarget,
           includeSeparators, parameters);
@@ -753,7 +753,7 @@ class DragAndDropListsState extends State<DragAndDropLists> {
           }
         }
       } catch (e, t) {
-        ILogger.error("Failed to drag and drop", e, t);
+        debugPrint("Failed to drag and drop: $e\n$t");
       }
 
       if (newOffset != null) {

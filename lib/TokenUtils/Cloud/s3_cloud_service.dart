@@ -18,8 +18,7 @@ import 'dart:typed_data';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/s3_cloud_file_info.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:s3_storage/models.dart';
-import 'package:s3_storage/s3_storage.dart';
+import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Models/cloud_service_config.dart';
 import '../../Utils/hive_util.dart';

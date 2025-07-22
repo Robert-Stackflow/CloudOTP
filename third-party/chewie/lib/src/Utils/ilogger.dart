@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/System/file_util.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class ILogger {
   static final List<Logger> _loggers = [

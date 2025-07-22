@@ -1,0 +1,31 @@
+name: awesome_cloud
+description: Easily upload and download files across OneDrive, Dropbox, Google Drive, Box, Huawei Cloud, Aliyun Drive, and more.
+version: 1.6.2
+homepage: https://github.com/Robert-Stackflow/awesome_cloud
+publish_to: none
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: ^8.1.0
+  http: ^1.2.1
+  flutter_web_auth_2:
+    path: ../tool/flutter_web_auth_2
+  googleapis: ^13.2.0
+  hashlib: ^1.19.2
+  path:
+  meta: ^1.8.0
+  crypto: ^3.0.2
+  convert: ^3.1.1
+  xml: ^6.1.0
+  buffer: ^1.1.1
+  intl: ^0.19.0
+  mime: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1

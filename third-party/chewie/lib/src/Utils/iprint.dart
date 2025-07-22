@@ -1,10 +1,9 @@
 import 'dart:io';
 
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class IPrint {
   static final _buffer = StringBuffer();

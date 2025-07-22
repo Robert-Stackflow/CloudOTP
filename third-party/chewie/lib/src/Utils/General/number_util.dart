@@ -1,5 +1,4 @@
-import 'package:awesome_chewie/src/l10n/l10n.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class NumberUtil {
   static int hexToInt(String hex) {

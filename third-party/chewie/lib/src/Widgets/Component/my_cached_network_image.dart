@@ -14,12 +14,9 @@
  */
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:awesome_chewie/src/Utils/General/mock_util.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Widgets/Item/Button/circle_icon_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/loading_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class MyCachedNetworkImage extends StatefulWidget {
   const MyCachedNetworkImage({

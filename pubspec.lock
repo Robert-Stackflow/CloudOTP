@@ -143,7 +143,7 @@ packages:
   awesome_cloud:
     dependency: "direct main"
     description:
-      path: "third-party/tool/awesome_cloud"
+      path: "third-party/awesome_cloud"
       relative: true
     source: path
     version: "1.6.2"
@@ -458,13 +458,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "5.0.3"
-  ente_crypto_dart:
-    dependency: "direct main"
-    description:
-      path: "third-party/tool/ente_crypto"
-      relative: true
-    source: path
-    version: "1.0.0"
   equatable:
     dependency: transitive
     description:
@@ -534,13 +527,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.4.1"
-  flutter_context_menu:
-    dependency: "direct main"
-    description:
-      path: "third-party/widget/flutter_context_menu"
-      relative: true
-    source: path
-    version: "0.2.0"
   flutter_displaymode:
     dependency: "direct main"
     description:
@@ -888,13 +874,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.3.2"
-  group_button:
-    dependency: "direct main"
-    description:
-      path: "third-party/widget/group_button"
-      relative: true
-    source: path
-    version: "5.3.4"
   gtk:
     dependency: transitive
     description:
@@ -1223,7 +1202,7 @@ packages:
     source: hosted
     version: "2.5.0"
   logging:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: logging
       sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"
@@ -1723,13 +1702,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.28.0"
-  s3_storage:
-    dependency: "direct main"
-    description:
-      path: "third-party/tool/s3_storage"
-      relative: true
-    source: path
-    version: "1.0.4"
   screen_capturer:
     dependency: "direct main"
     description:
@@ -1882,7 +1854,7 @@ packages:
     source: path
     version: "1.0.0"
   sodium:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: sodium
       sha256: d9830a388e37c82891888e64cfd4c6764fa3ac716bed80ac6eab89ee42c3cd76
@@ -1890,7 +1862,7 @@ packages:
     source: hosted
     version: "2.3.1+1"
   sodium_libs:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: sodium_libs
       sha256: aa764acd6ccc6113e119c2d99471aeeb4637a9a501639549b297d3a143ff49b3
@@ -2289,13 +2261,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.1"
-  webdav_client:
-    dependency: "direct main"
-    description:
-      path: "third-party/tool/webdav_client"
-      relative: true
-    source: path
-    version: "1.2.2"
   webview_flutter:
     dependency: transitive
     description:

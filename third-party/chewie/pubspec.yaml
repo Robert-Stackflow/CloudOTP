@@ -21,14 +21,10 @@ dependencies:
     path: ../widget/smart_snackbars
   lucide_icons:
     path: ../widget/lucide_icons
-  flutter_context_menu:
-    path: ../widget/flutter_context_menu
   markdown_widget:
     path: ../widget/markdown_widget
   animated_custom_dropdown:
     path: ../widget/animated_custom_dropdown
-  group_button:
-    path: ../widget/group_button
   modal_bottom_sheet: ^3.0.0
   highlighting: ^0.9.0+11.8.0
   flutter_highlighting: ^0.9.0+11.8.0

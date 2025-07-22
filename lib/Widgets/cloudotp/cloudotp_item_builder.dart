@@ -20,7 +20,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Widgets/cloudotp/qrcodes_dialog_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:group_button/group_button.dart';
+
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../Models/opt_token.dart';
@@ -313,7 +313,7 @@ class QrcodeDialog {
           align: align,
           asset: asset,
         ),
-        containerWidget: (_, animation, child) => FloatingModal(
+        containerWidget: (_, animation, child) => BottomSheetWrapperWidget(
           child: child,
         ),
       );

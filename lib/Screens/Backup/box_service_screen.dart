@@ -204,7 +204,7 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
       child: CheckboxItem(
         title: appLocalizations.enable + appLocalizations.cloudTypeBox,
         description: appLocalizations.cloudOAuthSafeTip(
-            CloudService.serverEndpoint,appLocalizations.cloudTypeBox),
+            CloudService.serverEndpoint, appLocalizations.cloudTypeBox),
         value: _boxCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -255,14 +255,14 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
         onPressed: () async {
           try {
             appProvider.preventLock = true;
-            if(ResponsiveUtil.isDesktop()) windowManager.minimize();
+            if (ResponsiveUtil.isDesktop()) windowManager.minimize();
             await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to box", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
           } finally {
             appProvider.preventLock = false;
-            if(ResponsiveUtil.isDesktop()) windowManager.restore();
+            if (ResponsiveUtil.isDesktop()) windowManager.restore();
           }
         },
       ),

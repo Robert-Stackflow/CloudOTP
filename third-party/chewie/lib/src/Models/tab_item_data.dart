@@ -15,10 +15,8 @@
 
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
-import 'package:awesome_chewie/src/Models/refresh_interface.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class TabItemData {
   final Widget tab;

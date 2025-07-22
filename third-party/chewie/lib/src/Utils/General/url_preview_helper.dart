@@ -13,16 +13,10 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
 import 'package:flutter/material.dart';
 import 'package:metadata_fetch/metadata_fetch.dart';
 import 'package:smart_snackbars/widgets/snackbars/base_snackbar.dart';
-
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/item_builder.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class UrlPreviewHelper {
   static String _currentUrl = "";

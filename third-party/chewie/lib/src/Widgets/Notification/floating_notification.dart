@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Utils/General/color_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 enum NotificationType {
   normal,

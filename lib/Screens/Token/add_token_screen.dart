@@ -21,7 +21,7 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:group_button/group_button.dart';
+
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../Database/category_dao.dart';

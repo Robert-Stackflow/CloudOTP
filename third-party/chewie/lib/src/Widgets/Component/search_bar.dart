@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/l10n/l10n.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Tile/input_item.dart';
-import 'package:awesome_chewie/src/Widgets/Item/item_builder.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class MySearchBar extends StatefulWidget {
   final String hintText;

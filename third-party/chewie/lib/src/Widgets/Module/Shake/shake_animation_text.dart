@@ -1,7 +1,6 @@
-import 'package:awesome_chewie/src/Widgets/Module/Shake/shake_animation_type.dart';
-import 'package:awesome_chewie/src/Widgets/Module/Shake/shake_animation_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'index.dart';
 
 /// 抖动文本组件
 class ShakeTextAnimationWidget extends StatefulWidget {

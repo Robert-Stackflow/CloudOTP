@@ -1,16 +1,7 @@
 import 'dart:ui';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Widgets/Component/custom_html_widget.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_text_button.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/colors.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
 
 class CustomInfoDialogWidget extends StatefulWidget {
   final String? title;

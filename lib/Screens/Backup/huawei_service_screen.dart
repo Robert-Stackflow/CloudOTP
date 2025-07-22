@@ -252,14 +252,14 @@ class _HuaweiCloudServiceScreenState
         onPressed: () async {
           try {
             appProvider.preventLock = true;
-            if(ResponsiveUtil.isDesktop()) windowManager.minimize();
+            if (ResponsiveUtil.isDesktop()) windowManager.minimize();
             await ping();
           } catch (e, t) {
             ILogger.error("Failed to connect to huawei cloud", e, t);
             IToast.show(appLocalizations.cloudConnectionError);
           } finally {
             appProvider.preventLock = false;
-            if(ResponsiveUtil.isDesktop()) windowManager.restore();
+            if (ResponsiveUtil.isDesktop()) windowManager.restore();
           }
         },
       ),

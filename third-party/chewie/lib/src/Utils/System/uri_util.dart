@@ -1,11 +1,3 @@
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/System/hive_util.dart';
-import 'package:awesome_chewie/src/Utils/System/route_util.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
-import 'package:awesome_chewie/src/l10n/l10n.dart';
-import 'package:awesome_chewie/src/Screens/webview_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class UriUtil {
   static final _urlRegex = RegExp(

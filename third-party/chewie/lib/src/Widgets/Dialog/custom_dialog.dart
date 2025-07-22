@@ -1,12 +1,6 @@
-import 'package:awesome_chewie/src/Widgets/Dialog/widgets/loading_dialog_widget.dart';
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Animation/dialog_animation.dart';
-import 'animations.dart';
-import 'widgets/custom_confirm_dialog_widget.dart';
-import 'widgets/custom_info_dialog_widget.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 enum CustomDialogType { success, normal, warning, error, custom }
 

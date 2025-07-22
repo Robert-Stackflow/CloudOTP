@@ -1,8 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Resources/theme.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class GithubCalendar extends StatelessWidget {
   const GithubCalendar({

@@ -46,7 +46,7 @@ dependencies:
 ### Add import package
 
 ```dart
-import 'package:group_button/group_button.dart';
+
 ```
 
 ### Easy to use

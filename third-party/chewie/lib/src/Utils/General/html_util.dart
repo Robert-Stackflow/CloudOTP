@@ -1,8 +1,6 @@
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
-
-import 'package:awesome_chewie/src/Widgets/Component/custom_html_widget.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class HtmlUtil {
   static String detectLanguage(String code) {

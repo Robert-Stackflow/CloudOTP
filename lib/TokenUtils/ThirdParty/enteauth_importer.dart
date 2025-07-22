@@ -22,7 +22,7 @@ import 'package:cloudotp/Models/token_category.dart';
 import 'package:cloudotp/Models/token_category_binding.dart';
 import 'package:cloudotp/TokenUtils/ThirdParty/base_token_importer.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
-import 'package:ente_crypto_dart/ente_crypto_dart.dart';
+import '../../Utils/EnteCrypto/ente_crypto_dart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 

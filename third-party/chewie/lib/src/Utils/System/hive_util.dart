@@ -1,17 +1,8 @@
 import 'dart:convert';
 
-import 'package:awesome_chewie/src/Resources/theme_color_data.dart';
-import 'package:awesome_chewie/src/Utils/System/file_util.dart';
-import 'package:awesome_chewie/src/Utils/enums.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Utils/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-
-import 'package:awesome_chewie/src/Models/sortable_item.dart';
-import 'package:awesome_chewie/src/Resources/fonts.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class ChewieHiveUtil {
   //HiveBox

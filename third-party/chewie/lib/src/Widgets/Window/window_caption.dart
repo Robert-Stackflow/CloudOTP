@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:window_manager/window_manager.dart';
-
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class _MoveWindow extends StatelessWidget {
   const _MoveWindow({this.child, this.onDoubleTap});

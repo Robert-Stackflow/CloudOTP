@@ -6,12 +6,12 @@ library;
 
 import 'dart:async';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 /// Signature for when a tooltip is triggered.
 typedef TooltipTriggeredCallback = void Function();

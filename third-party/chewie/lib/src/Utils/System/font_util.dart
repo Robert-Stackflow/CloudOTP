@@ -5,8 +5,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
-import 'file_util.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 enum _FontSource { asset, file, url }
 

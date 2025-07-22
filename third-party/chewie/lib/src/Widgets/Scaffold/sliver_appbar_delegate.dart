@@ -1,6 +1,5 @@
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Resources/theme.dart';
 
 class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final PreferredSizeWidget tabBar;

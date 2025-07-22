@@ -1,18 +1,9 @@
 import "dart:io";
 
-import "package:awesome_chewie/src/Utils/General/responsive_util.dart";
-import "package:awesome_chewie/src/Utils/System/file_util.dart";
-import "package:awesome_chewie/src/Utils/ilogger.dart";
 import "package:flutter/cupertino.dart";
 import "package:path/path.dart";
 
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Utils/System/font_util.dart';
-import 'package:awesome_chewie/src/Utils/System/hive_util.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/progress_dialog.dart';
-import 'package:awesome_chewie/src/l10n/l10n.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class CustomFont {
   static const CustomFont Default =

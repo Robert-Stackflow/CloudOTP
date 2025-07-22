@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Utils/constant.dart';
 import 'drag_and_drop_builder_parameters.dart';
 import 'drag_and_drop_item.dart';
 import 'drag_and_drop_item_target.dart';
@@ -104,7 +103,7 @@ class DragAndDropListExpansion implements DragAndDropListExpansionInterface {
               child: DragTarget<DragAndDropItem>(
                 builder: (context, candidateData, rejectedData) {
                   if (candidateData.isNotEmpty) {}
-                  return emptyWidget;
+                  return const SizedBox.shrink();
                 },
                 onAcceptWithDetails: (incoming) {
                   _startExpansionTimer();

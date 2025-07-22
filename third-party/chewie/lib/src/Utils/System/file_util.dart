@@ -1,12 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
-import 'package:awesome_chewie/src/Utils/General/time_util.dart';
-import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -22,13 +17,6 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:win32/win32.dart';
-
-import 'package:awesome_chewie/src/Models/github_response.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/custom_dialog.dart';
-import 'package:awesome_chewie/src/l10n/l10n.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
-import 'package:awesome_chewie/src/Utils/itoast.dart';
-import 'hive_util.dart';
 
 enum WindowsVersion { installed, portable }
 

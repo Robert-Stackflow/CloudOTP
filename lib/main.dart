@@ -25,7 +25,7 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:cloudotp/Utils/biometric_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/generated/app_localizations.dart';
-import 'package:ente_crypto_dart/ente_crypto_dart.dart';
+import 'Utils/EnteCrypto/ente_crypto_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';

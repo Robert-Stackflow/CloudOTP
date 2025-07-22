@@ -1,4 +1,3 @@
-import 'package:awesome_chewie/src/Utils/General/color_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
 

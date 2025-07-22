@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:awesome_chewie/src/Utils/constant.dart';
 import 'drag_and_drop_lists.dart';
 import 'measure_size.dart';
 
@@ -86,7 +85,7 @@ class _DragAndDropItemWrapper extends State<DragAndDropItemWrapper>
                   ),
                 ),
               ),
-              childWhenDragging: emptyWidget,
+              childWhenDragging: const SizedBox.shrink(),
               onDragStarted: () => _setDragging(true),
               onDragCompleted: () => _setDragging(false),
               onDraggableCanceled: (_, __) => _setDragging(false),
@@ -142,7 +141,7 @@ class _DragAndDropItemWrapper extends State<DragAndDropItemWrapper>
                 ),
               ),
             ),
-            childWhenDragging: emptyWidget,
+            childWhenDragging: const SizedBox.shrink(),
             onDragStarted: () => _setDragging(true),
             onDragCompleted: () => _setDragging(false),
             onDraggableCanceled: (_, __) => _setDragging(false),
@@ -176,7 +175,7 @@ class _DragAndDropItemWrapper extends State<DragAndDropItemWrapper>
                 ),
               ),
             ),
-            childWhenDragging: emptyWidget,
+            childWhenDragging: const SizedBox.shrink(),
             onDragStarted: () => _setDragging(true),
             onDragCompleted: () => _setDragging(false),
             onDraggableCanceled: (_, __) => _setDragging(false),
@@ -190,7 +189,9 @@ class _DragAndDropItemWrapper extends State<DragAndDropItemWrapper>
         duration: Duration(
             milliseconds: widget.parameters!.itemSizeAnimationDuration),
         alignment: Alignment.bottomCenter,
-        child: _hoveredDraggable != null ? emptyWidget : widget.child.child,
+        child: _hoveredDraggable != null
+            ? const SizedBox.shrink()
+            : widget.child.child,
       );
     }
     return Stack(
@@ -209,7 +210,7 @@ class _DragAndDropItemWrapper extends State<DragAndDropItemWrapper>
                       child: widget.parameters!.itemGhost ??
                           _hoveredDraggable!.child,
                     )
-                  : emptyWidget,
+                  : const SizedBox.shrink(),
             ),
             Listener(
               onPointerMove: _onPointerMove,
@@ -223,7 +224,7 @@ class _DragAndDropItemWrapper extends State<DragAndDropItemWrapper>
           child: DragTarget<DragAndDropItem>(
             builder: (context, candidateData, rejectedData) {
               if (candidateData.isNotEmpty) {}
-              return emptyWidget;
+              return const SizedBox.shrink();
             },
             onWillAccept: (incoming) {
               bool accept = true;

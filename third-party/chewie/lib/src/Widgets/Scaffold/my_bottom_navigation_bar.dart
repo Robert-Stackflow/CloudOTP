@@ -1,7 +1,7 @@
 import 'dart:collection' show Queue;
 import 'dart:math' as math;
 
-import 'package:awesome_chewie/src/Widgets/Custom/multi_tappable.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 

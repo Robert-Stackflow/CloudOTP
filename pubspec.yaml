@@ -26,14 +26,10 @@ dependencies:
   flutter_slidable:
     path: third-party/widget/flutter_slidable
   flutter_widget_from_html: ^0.15.2 # 将HTML渲染成组件
-  group_button:
-    path: third-party/widget/group_button
   lucide_icons:
     path: third-party/widget/lucide_icons
   animated_custom_dropdown:
     path: third-party/widget/animated_custom_dropdown
-  flutter_context_menu:
-    path: third-party/widget/flutter_context_menu
   # 二维码
   image: ^4.2.0 # 图片
   zxing2: ^0.2.3 # 二维码
@@ -56,12 +52,8 @@ dependencies:
   dio_cookie_manager: ^3.1.1 # dio cookie管理
   flutter_cache_manager: ^3.3.1 # 缓存管理
   # 云服务
-  s3_storage:
-    path: third-party/tool/s3_storage
-  webdav_client:
-    path: third-party/tool/webdav_client
   awesome_cloud:
-    path: third-party/tool/awesome_cloud
+    path: third-party/awesome_cloud
   # 工具
   intl: ^0.19.0
   html: ^0.15.0
@@ -73,8 +65,9 @@ dependencies:
   protoc_plugin: ^21.1.2  # Protobuf
   flutter_native_splash: ^2.4.1 # Splash屏
   queue: ^3.1.0+2 # 队列
-  ente_crypto_dart:
-    path: third-party/tool/ente_crypto
+  logging: ^1.2.0
+  sodium: ^2.3.0
+  sodium_libs: ^2.2.0+5
   # 系统
   provider: ^6.0.5 # 状态管理
   local_auth: ^2.2.0 # 指纹验证

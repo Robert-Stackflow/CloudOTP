@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../../awesome_chewie.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class RouteUtil {
   static void pushRootPage(Widget page) {

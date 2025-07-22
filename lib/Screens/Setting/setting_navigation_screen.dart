@@ -9,7 +9,7 @@ import 'package:cloudotp/Screens/Setting/setting_operation_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_safe_screen.dart';
 import 'package:cloudotp/l10n/l10n.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
+
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 

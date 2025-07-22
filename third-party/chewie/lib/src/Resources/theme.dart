@@ -1,13 +1,5 @@
-import 'package:awesome_chewie/src/Resources/theme_color_data.dart';
-import 'package:awesome_chewie/src/Utils/General/color_util.dart';
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/Resources/colors.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Resources/styles.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class ChewieTheme {
   ChewieTheme._();

@@ -1,6 +1,5 @@
-import 'package:awesome_chewie/src/Models/github_response.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
 import 'package:dio/dio.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class GithubApi {
   static Future<List<ReleaseItem>> getReleases(String user, String repo) async {

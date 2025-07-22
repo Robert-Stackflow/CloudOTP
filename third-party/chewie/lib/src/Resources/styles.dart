@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Resources/colors.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class ChewieStyles {
   static const TextStyle text = TextStyle(

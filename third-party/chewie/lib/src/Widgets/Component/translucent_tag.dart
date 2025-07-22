@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'package:awesome_chewie/src/Resources/theme.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class TranslucentTag extends StatelessWidget {
   final String text;

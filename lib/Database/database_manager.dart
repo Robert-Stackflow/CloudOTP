@@ -283,7 +283,6 @@ class DatabaseManager {
       }
       return lib;
     } catch (e, t) {
-      ILogger.error("Failed to load sqlcipher dynamic library", e, t);
       return null;
     }
   }

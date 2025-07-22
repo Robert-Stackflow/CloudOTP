@@ -1,11 +1,5 @@
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Widgets/Dialog/widgets/dialog_wrapper_widget.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Animation/dialog_animation.dart';
-import 'package:awesome_chewie/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
-
-import 'custom_dialog.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class DialogBuilder {
   static showConfirmDialog(

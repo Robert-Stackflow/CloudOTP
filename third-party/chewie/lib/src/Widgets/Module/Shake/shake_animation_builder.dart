@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:awesome_chewie/src/Widgets/Module/Shake/shake_animation_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'index.dart';
 
 /// 抖动动画效果的 Builder
 class ShakeAnimationBuilder extends StatelessWidget {

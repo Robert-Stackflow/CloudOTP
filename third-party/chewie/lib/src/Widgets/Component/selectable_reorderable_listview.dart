@@ -2,8 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'package:awesome_chewie/src/Resources/theme.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class SelectableListViewController<T> extends ChangeNotifier {
   final Set<T> _selectedItems = {};

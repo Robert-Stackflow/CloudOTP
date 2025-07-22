@@ -15,41 +15,17 @@
 
 import 'dart:async';
 
-import 'package:awesome_chewie/src/Resources/theme.dart';
-import 'package:awesome_chewie/src/Utils/General/responsive_util.dart';
-import 'package:awesome_chewie/src/Utils/General/string_util.dart';
-import 'package:awesome_chewie/src/Utils/System/file_util.dart';
-import 'package:awesome_chewie/src/Widgets/BottomSheet/bottom_sheet_builder.dart';
-import 'package:awesome_chewie/src/Widgets/Item/Button/round_icon_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:code_highlight_view/code_highlight_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_context_menu/flutter_context_menu.dart';
+
 import 'package:flutter_highlighting/themes/github-dark.dart';
 import 'package:flutter_highlighting/themes/github.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:highlighting/languages/dart.dart';
 import 'package:provider/provider.dart';
 
-import 'package:awesome_chewie/src/Providers/chewie_provider.dart';
-import 'package:awesome_chewie/src/Resources/colors.dart';
-import 'package:awesome_chewie/src/Resources/dimens.dart';
-import 'package:awesome_chewie/src/Utils/General/html_util.dart';
-import 'package:awesome_chewie/src/Utils/General/url_preview_helper.dart';
-import 'package:awesome_chewie/src/Utils/System/route_util.dart';
-import 'package:awesome_chewie/src/Utils/System/uri_util.dart';
-import 'package:awesome_chewie/src/Utils/constant.dart';
-import 'package:awesome_chewie/src/Utils/enums.dart';
-import 'package:awesome_chewie/src/Utils/ilogger.dart';
-import 'package:awesome_chewie/src/Utils/utils.dart';
-import 'package:awesome_chewie/src/l10n/l10n.dart';
-import 'package:awesome_chewie/src/Widgets/Custom/hero_photo_view_screen.dart';
-import 'package:awesome_chewie/src/Widgets/Custom/mouse_state_builder.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/clickable_gesture_detector.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/clickable_wrapper.dart';
-import 'package:awesome_chewie/src/Widgets/Item/General/selectable_area_wrapper.dart';
-import 'package:awesome_chewie/src/Widgets/Item/item_builder.dart';
-import 'package:awesome_chewie/src/Widgets/Selectable/my_selectable_region.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 enum AnchorType {
   top,
