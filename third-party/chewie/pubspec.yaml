@@ -77,6 +77,9 @@ dependencies:
   local_notifier: ^0.1.6
   screen_protector: ^1.4.2+1
   shell_executor: ^0.1.6
+  # 插件依赖
+  decimal: ^3.0.2
+  equatable: ^2.0.7
 
 dependency_overrides:
   webview_flutter_android: 3.16.1

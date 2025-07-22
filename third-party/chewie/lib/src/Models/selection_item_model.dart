@@ -1,4 +1,4 @@
-import 'package:animated_custom_dropdown/models/dropdown_mixin.dart';
+import 'package:awesome_chewie/awesome_chewie.dart';
 
 class SelectionItemModel<T> with DropdownMixin {
   String key;

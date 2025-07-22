@@ -25,3 +25,6 @@ export 'Hidable/scroll_to_hide.dart';
 export 'LottieCupertinoRefresh/lottie_cupertino_refresh.dart';
 export 'FlutterContextMenu/flutter_context_menu.dart';
 export 'GroupButton/group_button.dart';
+export 'FlutterResizableContainer/flutter_resizable_container.dart';
+export 'FlutterSlidable/flutter_slidable.dart';
+export 'AnimatedCustomDropdown/custom_dropdown.dart';

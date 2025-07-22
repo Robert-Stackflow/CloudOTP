@@ -23,13 +23,9 @@ dependencies:
   path_drawing: ^1.0.1 # 路径绘制
   auto_size_text: ^3.0.0 # 自适应文本
   flutter_inappwebview: ^6.0.0 # Webview
-  flutter_slidable:
-    path: third-party/widget/flutter_slidable
   flutter_widget_from_html: ^0.15.2 # 将HTML渲染成组件
   lucide_icons:
     path: third-party/widget/lucide_icons
-  animated_custom_dropdown:
-    path: third-party/widget/animated_custom_dropdown
   # 二维码
   image: ^4.2.0 # 图片
   zxing2: ^0.2.3 # 二维码
