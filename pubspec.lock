@@ -30,13 +30,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "6.11.0"
-  animated_custom_dropdown:
-    dependency: "direct main"
-    description:
-      path: "third-party/widget/animated_custom_dropdown"
-      relative: true
-    source: path
-    version: "3.1.1"
   animations:
     dependency: "direct main"
     description:

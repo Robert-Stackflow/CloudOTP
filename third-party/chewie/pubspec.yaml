@@ -23,8 +23,6 @@ dependencies:
     path: ../widget/lucide_icons
   markdown_widget:
     path: ../widget/markdown_widget
-  animated_custom_dropdown:
-    path: ../widget/animated_custom_dropdown
   modal_bottom_sheet: ^3.0.0
   highlighting: ^0.9.0+11.8.0
   flutter_highlighting: ^0.9.0+11.8.0
