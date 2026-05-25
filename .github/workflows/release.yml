@@ -96,7 +96,7 @@ jobs:
       # Cache CocoaPods
       - name: Cache CocoaPods
         if: matrix.cache_pod_key != ''
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ matrix.cache_pod_path }}
           key: ${{ matrix.cache_pod_key }}-${{ hashFiles(matrix.cache_pod_restore_keys_hash_file) }}
