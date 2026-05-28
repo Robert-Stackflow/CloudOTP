@@ -370,14 +370,18 @@ class ExportTokenUtil {
             final count = cloudServices.length;
             for (int i = 0; i < count; i++) {
               final cloudService = cloudServices[i];
+              final configName = configs != null && i < configs.length
+                  ? configs[i].displayName
+                  : cloudService.type.label;
               try {
                 log.addStatus(AutoBackupStatus.uploading,
-                    type: cloudService.type);
+                    type: cloudService.type,
+                    cloudServiceName: configName);
                 if (showLoading && dialog != null) {
                   final serviceMsg = count > 1
-                      ? "${appLocalizations.cloudPushingTo(cloudService.type.label)} (${i + 1}/$count)"
+                      ? "${appLocalizations.cloudPushingTo(configName)} (${i + 1}/$count)"
                       : appLocalizations
-                          .cloudPushingTo(cloudService.type.label);
+                          .cloudPushingTo(configName);
                   dialog.updateMessage(
                     msg: serviceMsg,
                     showProgress: true,
@@ -395,15 +399,18 @@ class ExportTokenUtil {
                 );
                 if (uploadStatus) {
                   log.addStatus(AutoBackupStatus.uploadSuccess,
-                      type: cloudService.type);
+                      type: cloudService.type,
+                      cloudServiceName: configName);
                 } else {
                   log.addStatus(AutoBackupStatus.uploadFailed,
-                      type: cloudService.type);
+                      type: cloudService.type,
+                      cloudServiceName: configName);
                 }
               } catch (e, t) {
                 ILogger.error("Failed to cloud backup to $cloudService}", e, t);
                 log.addStatus(AutoBackupStatus.uploadFailed,
-                    type: cloudService.type);
+                    type: cloudService.type,
+                    cloudServiceName: configName);
               }
             }
           }

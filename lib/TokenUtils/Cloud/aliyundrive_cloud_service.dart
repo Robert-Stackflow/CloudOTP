@@ -80,7 +80,10 @@ class AliyunDriveCloudService extends CloudService {
       _config.account = userInfo.name ?? "";
       _config.totalSize = userInfo.spaceAmount ?? 0;
       _config.usedSize = userInfo.spaceUsed ?? 0;
-      _config.remark = userInfo.toJson();
+      _config.remark = {
+        ...userInfo.toJson(),
+        if (_config.title.isNotEmpty) "title": _config.title,
+      };
       onConfigChanged?.call(_config);
     }
     return userInfo;

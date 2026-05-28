@@ -34,7 +34,12 @@ import '../../l10n/l10n.dart';
 class WebDavServiceScreen extends StatefulWidget {
   const WebDavServiceScreen({
     super.key,
+    required this.configId,
+    this.onTitleChanged,
   });
+
+  final int configId;
+  final VoidCallback? onTitleChanged;
 
   static const String routeName = "/service/webdav";
 
@@ -43,9 +48,9 @@ class WebDavServiceScreen extends StatefulWidget {
 }
 
 class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
+  final TextEditingController _titleController = TextEditingController();
+  final FocusNode _titleFocusNode = FocusNode();
   final TextEditingController _endpointController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _secretController = TextEditingController();
@@ -71,18 +76,16 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
   }
 
   loadConfig() async {
-    _webDavCloudServiceConfig = await CloudServiceConfigDao.getWebdavConfig();
+    _webDavCloudServiceConfig =
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_webDavCloudServiceConfig != null) {
+      _titleController.text = _webDavCloudServiceConfig!.title;
       _endpointController.text = _webDavCloudServiceConfig!.endpoint ?? "";
       _accountController.text = _webDavCloudServiceConfig!.account ?? "";
       _secretController.text = _webDavCloudServiceConfig!.secret ?? "";
       if (await _webDavCloudServiceConfig!.isValid()) {
         _webDavCloudService = WebDavCloudService(_webDavCloudServiceConfig!);
       }
-    } else {
-      _webDavCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.Webdav);
-      await CloudServiceConfigDao.insertConfig(_webDavCloudServiceConfig!);
     }
     if (_webDavCloudService != null) {
       _webDavCloudServiceConfig!.connected =
@@ -96,6 +99,10 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
   }
 
   initFields() {
+    _titleController.addListener(() {
+      _webDavCloudServiceConfig!.title = _titleController.text;
+    });
+    _titleFocusNode.addListener(_onTitleFocusChanged);
     _endpointController.addListener(() {
       _webDavCloudServiceConfig!.endpoint = _endpointController.text;
     });
@@ -107,13 +114,26 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
     });
   }
 
+  void _onTitleFocusChanged() {
+    if (!_titleFocusNode.hasFocus && _configInitialized) {
+      CloudServiceConfigDao.updateConfig(_webDavCloudServiceConfig!);
+      widget.onTitleChanged?.call();
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleFocusNode.removeListener(_onTitleFocusChanged);
+    _titleFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<bool> isValid() async {
     return formKey.currentState?.validate() ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
@@ -174,7 +194,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
         ink: false,
-        title: appLocalizations.enable + appLocalizations.cloudTypeWebDav,
+        title: appLocalizations.enable + currentConfig.displayName,
         value: _webDavCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -195,6 +215,13 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
         key: formKey,
         child: Column(
           children: [
+            InputItem(
+              controller: _titleController,
+              focusNode: _titleFocusNode,
+              textInputAction: TextInputAction.next,
+              title: appLocalizations.cloudConfigTitle,
+              hint: appLocalizations.cloudConfigTitleHint,
+            ),
             InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,

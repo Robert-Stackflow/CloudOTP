@@ -33,18 +33,23 @@ import '../../l10n/l10n.dart';
 class S3CloudServiceScreen extends StatefulWidget {
   const S3CloudServiceScreen({
     super.key,
+    required this.configId,
+    this.onTitleChanged,
   });
 
-  static const String routeName = "/service/webdav";
+  final int configId;
+  final VoidCallback? onTitleChanged;
+
+  static const String routeName = "/service/s3";
 
   @override
   State<S3CloudServiceScreen> createState() => _S3CloudServiceScreenState();
 }
 
 class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
+  final TextEditingController _titleController = TextEditingController();
+  final FocusNode _titleFocusNode = FocusNode();
   final TextEditingController _endpointController = TextEditingController();
   final TextEditingController _bucketController = TextEditingController();
   final TextEditingController _secretKeyController = TextEditingController();
@@ -73,8 +78,10 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
   }
 
   loadConfig() async {
-    _s3CloudServiceConfig = await CloudServiceConfigDao.getS3CloudConfig();
+    _s3CloudServiceConfig =
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_s3CloudServiceConfig != null) {
+      _titleController.text = _s3CloudServiceConfig!.title;
       _endpointController.text = _s3CloudServiceConfig!.endpoint ?? "";
       _bucketController.text = _s3CloudServiceConfig!.account ?? "";
       _secretKeyController.text = _s3CloudServiceConfig!.secret ?? "";
@@ -83,10 +90,6 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
       if (await _s3CloudServiceConfig!.isValid()) {
         _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
       }
-    } else {
-      _s3CloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.S3Cloud);
-      await CloudServiceConfigDao.insertConfig(_s3CloudServiceConfig!);
     }
     if (_s3CloudService != null) {
       _s3CloudServiceConfig!.connected = await _s3CloudService!.isConnected();
@@ -96,6 +99,10 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
   }
 
   initFields() {
+    _titleController.addListener(() {
+      _s3CloudServiceConfig!.title = _titleController.text;
+    });
+    _titleFocusNode.addListener(_onTitleFocusChanged);
     _endpointController.addListener(() {
       _s3CloudServiceConfig!.endpoint = _endpointController.text;
     });
@@ -113,13 +120,26 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
     });
   }
 
+  void _onTitleFocusChanged() {
+    if (!_titleFocusNode.hasFocus && _configInitialized) {
+      CloudServiceConfigDao.updateConfig(_s3CloudServiceConfig!);
+      widget.onTitleChanged?.call();
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleFocusNode.removeListener(_onTitleFocusChanged);
+    _titleFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<bool> isValid() async {
     return formKey.currentState?.validate() ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
@@ -181,7 +201,7 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
         ink: false,
-        title: appLocalizations.enable + appLocalizations.cloudTypeS3Cloud,
+        title: appLocalizations.enable + currentConfig.displayName,
         value: _s3CloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -201,6 +221,13 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
         key: formKey,
         child: Column(
           children: [
+            InputItem(
+              controller: _titleController,
+              focusNode: _titleFocusNode,
+              textInputAction: TextInputAction.next,
+              title: appLocalizations.cloudConfigTitle,
+              hint: appLocalizations.cloudConfigTitleHint,
+            ),
             InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,

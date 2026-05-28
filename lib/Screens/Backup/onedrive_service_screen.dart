@@ -33,7 +33,10 @@ import '../../l10n/l10n.dart';
 class OneDriveServiceScreen extends StatefulWidget {
   const OneDriveServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/onedrive";
 
@@ -43,9 +46,7 @@ class OneDriveServiceScreen extends StatefulWidget {
 
 class _OneDriveServiceScreenState
     extends BaseDynamicState<OneDriveServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -75,19 +76,11 @@ class _OneDriveServiceScreenState
 
   loadConfig() async {
     _oneDriveCloudServiceConfig =
-        await CloudServiceConfigDao.getOneDriveConfig();
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_oneDriveCloudServiceConfig != null) {
       _sizeController.text = _oneDriveCloudServiceConfig!.size;
       _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
       _emailController.text = _oneDriveCloudServiceConfig!.email ?? "";
-      _oneDriveCloudService = OneDriveCloudService(
-        _oneDriveCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _oneDriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.OneDrive);
-      await CloudServiceConfigDao.insertConfig(_oneDriveCloudServiceConfig!);
       _oneDriveCloudService = OneDriveCloudService(
         _oneDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -122,7 +115,6 @@ class _OneDriveServiceScreenState
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited

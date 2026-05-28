@@ -34,7 +34,10 @@ import '../../l10n/l10n.dart';
 class GoogleDriveServiceScreen extends StatefulWidget {
   const GoogleDriveServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/googledrive";
 
@@ -45,9 +48,7 @@ class GoogleDriveServiceScreen extends StatefulWidget {
 
 class _GoogleDriveServiceScreenState
     extends BaseDynamicState<GoogleDriveServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -73,19 +74,11 @@ class _GoogleDriveServiceScreenState
 
   loadConfig() async {
     _googledriveCloudServiceConfig =
-        await CloudServiceConfigDao.getGoogleDriveConfig();
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_googledriveCloudServiceConfig != null) {
       _sizeController.text = _googledriveCloudServiceConfig!.size;
       _accountController.text = _googledriveCloudServiceConfig!.account ?? "";
       _emailController.text = _googledriveCloudServiceConfig!.email ?? "";
-      _googledriveCloudService = GoogleDriveCloudService(
-        _googledriveCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _googledriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.GoogleDrive);
-      await CloudServiceConfigDao.insertConfig(_googledriveCloudServiceConfig!);
       _googledriveCloudService = GoogleDriveCloudService(
         _googledriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -118,7 +111,6 @@ class _GoogleDriveServiceScreenState
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(

@@ -23,7 +23,7 @@ class CloudServiceConfigDao {
 
   static Future<int> insertConfig(CloudServiceConfig config) async {
     final db = await DatabaseManager.getDataBase();
-    if (await getSpecifyConfig(config.type) != null) {
+    if (!config.type.allowMultiple && await getSpecifyConfig(config.type) != null) {
       return -1;
     }
     config.id = await getMaxId() + 1;
@@ -143,6 +143,37 @@ class CloudServiceConfigDao {
     } else {
       return null;
     }
+  }
+
+  static Future<CloudServiceConfig?> getConfigById(int id) async {
+    final db = await DatabaseManager.getDataBase();
+    List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return CloudServiceConfig.fromMap(maps.first);
+    } else {
+      return null;
+    }
+  }
+
+  static Future<List<CloudServiceConfig>> getConfigsByType(
+      CloudServiceType type) async {
+    final db = await DatabaseManager.getDataBase();
+    List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'type = ?',
+      whereArgs: [type.index],
+    );
+    return maps.map((m) => CloudServiceConfig.fromMap(m)).toList();
+  }
+
+  static Future<List<CloudServiceConfig>> getConfigsByCategory(
+      CloudServiceCategory category) async {
+    List<CloudServiceConfig> all = await getConfigs();
+    return all.where((c) => c.type.category == category).toList();
   }
 
   static Future<CloudServiceConfig?> getWebdavConfig() async {

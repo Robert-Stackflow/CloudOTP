@@ -35,7 +35,10 @@ import '../../l10n/l10n.dart';
 class BoxServiceScreen extends StatefulWidget {
   const BoxServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/box";
 
@@ -44,9 +47,7 @@ class BoxServiceScreen extends StatefulWidget {
 }
 
 class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -71,19 +72,12 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
   }
 
   loadConfig() async {
-    _boxCloudServiceConfig = await CloudServiceConfigDao.getBoxConfig();
+    _boxCloudServiceConfig =
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_boxCloudServiceConfig != null) {
       _sizeController.text = _boxCloudServiceConfig!.size;
       _accountController.text = _boxCloudServiceConfig!.account ?? "";
       _emailController.text = _boxCloudServiceConfig!.email ?? "";
-      _boxCloudService = BoxCloudService(
-        _boxCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _boxCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.Box);
-      await CloudServiceConfigDao.insertConfig(_boxCloudServiceConfig!);
       _boxCloudService = BoxCloudService(
         _boxCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -117,7 +111,6 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited

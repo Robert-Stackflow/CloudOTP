@@ -33,7 +33,10 @@ import '../../l10n/l10n.dart';
 class DropboxServiceScreen extends StatefulWidget {
   const DropboxServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/dropbox";
 
@@ -42,9 +45,7 @@ class DropboxServiceScreen extends StatefulWidget {
 }
 
 class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -67,19 +68,12 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
   }
 
   loadConfig() async {
-    _dropboxCloudServiceConfig = await CloudServiceConfigDao.getDropboxConfig();
+    _dropboxCloudServiceConfig =
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_dropboxCloudServiceConfig != null) {
       _sizeController.text = _dropboxCloudServiceConfig!.size;
       _accountController.text = _dropboxCloudServiceConfig!.account ?? "";
       _emailController.text = _dropboxCloudServiceConfig!.email ?? "";
-      _dropboxCloudService = DropboxCloudService(
-        _dropboxCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _dropboxCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.Dropbox);
-      await CloudServiceConfigDao.insertConfig(_dropboxCloudServiceConfig!);
       _dropboxCloudService = DropboxCloudService(
         _dropboxCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -114,7 +108,6 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited

@@ -34,7 +34,10 @@ import '../../l10n/l10n.dart';
 class AliyunDriveServiceScreen extends StatefulWidget {
   const AliyunDriveServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/aliyunDrive";
 
@@ -45,9 +48,7 @@ class AliyunDriveServiceScreen extends StatefulWidget {
 
 class _AliyunDriveServiceScreenState
     extends BaseDynamicState<AliyunDriveServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   CloudServiceConfig? _aliyunDriveCloudServiceConfig;
@@ -72,18 +73,10 @@ class _AliyunDriveServiceScreenState
 
   loadConfig() async {
     _aliyunDriveCloudServiceConfig =
-        await CloudServiceConfigDao.getAliyunDriveConfig();
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_aliyunDriveCloudServiceConfig != null) {
       _sizeController.text = _aliyunDriveCloudServiceConfig!.size;
       _accountController.text = _aliyunDriveCloudServiceConfig!.account ?? "";
-      _aliyunDriveCloudService = AliyunDriveCloudService(
-        _aliyunDriveCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _aliyunDriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.AliyunDrive);
-      await CloudServiceConfigDao.insertConfig(_aliyunDriveCloudServiceConfig!);
       _aliyunDriveCloudService = AliyunDriveCloudService(
         _aliyunDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -117,7 +110,6 @@ class _AliyunDriveServiceScreenState
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited

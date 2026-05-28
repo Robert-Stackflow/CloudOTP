@@ -1032,5 +1032,17 @@
   "enableModalSheet": "ページをステータスバーまで延長",
   "enableModalSheetTip": "無効にすると、ページがステータスバーの背後まで延長されます",
   "clearBackupLogs": "バックアップログを消去",
-  "clearBackupLogsConfirm": "すべてのバックアップログを消去しますか？"
+  "clearBackupLogsConfirm": "すべてのバックアップログを消去しますか？",
+  "cloudConfigTitle": "タイトル",
+  "cloudConfigTitleHint": "設定のカスタム名",
+  "addCloudService": "クラウドサービスを追加",
+  "cloudServiceAlreadyConfigured": "{service}は既に設定済みです",
+  "deleteCloudService": "設定を削除",
+  "deleteCloudServiceMessage": "設定「{configName}」を削除してもよろしいですか？この操作はローカル設定のみを削除し、リモートのバックアップファイルは削除されません。",
+  "noCloudServiceConfigured": "クラウドサービスの設定がありません",
+  "cloudCategoryOAuth": "OAuth",
+  "cloudCategoryOAuthBridge": "OAuth-Bridge",
+  "cloudCategoryWebDav": "WebDAV",
+  "cloudCategoryS3": "S3",
+  "cloudDefaultConfigTitle": "新しい設定"
 }

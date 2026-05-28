@@ -34,7 +34,10 @@ import '../../l10n/l10n.dart';
 class HuaweiCloudServiceScreen extends StatefulWidget {
   const HuaweiCloudServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/huaweiCloud";
 
@@ -45,9 +48,7 @@ class HuaweiCloudServiceScreen extends StatefulWidget {
 
 class _HuaweiCloudServiceScreenState
     extends BaseDynamicState<HuaweiCloudServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   CloudServiceConfig? _huaweiCloudCloudServiceConfig;
@@ -72,18 +73,10 @@ class _HuaweiCloudServiceScreenState
 
   loadConfig() async {
     _huaweiCloudCloudServiceConfig =
-        await CloudServiceConfigDao.getHuaweiCloudConfig();
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_huaweiCloudCloudServiceConfig != null) {
       _sizeController.text = _huaweiCloudCloudServiceConfig!.size;
       _accountController.text = _huaweiCloudCloudServiceConfig!.account ?? "";
-      _huaweiCloudCloudService = HuaweiCloudService(
-        _huaweiCloudCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _huaweiCloudCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.HuaweiCloud);
-      await CloudServiceConfigDao.insertConfig(_huaweiCloudCloudServiceConfig!);
       _huaweiCloudCloudService = HuaweiCloudService(
         _huaweiCloudCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -117,7 +110,6 @@ class _HuaweiCloudServiceScreenState
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited

@@ -1032,5 +1032,22 @@
   "enableModalSheet": "Extend Page to Status Bar",
   "enableModalSheetTip": "When disabled, pages extend behind the status bar instead of stopping below it",
   "clearBackupLogs": "Clear Backup Logs",
-  "clearBackupLogsConfirm": "Are you sure you want to clear all backup logs?"
+  "clearBackupLogsConfirm": "Are you sure you want to clear all backup logs?",
+  "cloudConfigTitle": "Title",
+  "cloudConfigTitleHint": "Custom name for this configuration",
+  "addCloudService": "Add Cloud Service",
+  "cloudServiceAlreadyConfigured": "{service} has already been configured",
+  "deleteCloudService": "Delete Configuration",
+  "deleteCloudServiceMessage": "Are you sure you want to delete the configuration \"{configName}\"? This will only remove the local configuration and will not delete any remote backups.",
+  "@deleteCloudServiceMessage": {
+    "placeholders": {
+      "configName": {"type": "String"}
+    }
+  },
+  "noCloudServiceConfigured": "No cloud service configured",
+  "cloudCategoryOAuth": "OAuth",
+  "cloudCategoryOAuthBridge": "OAuth-Bridge",
+  "cloudCategoryWebDav": "WebDAV",
+  "cloudCategoryS3": "S3",
+  "cloudDefaultConfigTitle": "New Configuration"
 }

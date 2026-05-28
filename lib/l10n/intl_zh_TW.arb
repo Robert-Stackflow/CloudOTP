@@ -1032,5 +1032,17 @@
   "enableModalSheet": "頁面延伸至狀態列",
   "enableModalSheetTip": "關閉後，頁面將延伸至狀態列後方而非停留在狀態列下方",
   "clearBackupLogs": "清除備份日誌",
-  "clearBackupLogsConfirm": "確定要清除所有備份日誌嗎？"
+  "clearBackupLogsConfirm": "確定要清除所有備份日誌嗎？",
+  "cloudConfigTitle": "標題",
+  "cloudConfigTitleHint": "自訂配置名稱",
+  "addCloudService": "新增雲端服務",
+  "cloudServiceAlreadyConfigured": "{service}已配置",
+  "deleteCloudService": "刪除配置",
+  "deleteCloudServiceMessage": "確定要刪除配置「{configName}」嗎？此操作僅刪除本地配置，不會刪除遠端的備份檔案。",
+  "noCloudServiceConfigured": "暫無雲端服務配置",
+  "cloudCategoryOAuth": "OAuth",
+  "cloudCategoryOAuthBridge": "OAuth-Bridge",
+  "cloudCategoryWebDav": "WebDAV",
+  "cloudCategoryS3": "S3",
+  "cloudDefaultConfigTitle": "新配置"
 }
