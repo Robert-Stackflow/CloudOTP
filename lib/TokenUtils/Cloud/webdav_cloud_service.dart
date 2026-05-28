@@ -56,44 +56,53 @@ class WebDavCloudService extends CloudService {
     client.setConnectTimeout(8000);
     client.setSendTimeout(8000);
     client.setReceiveTimeout(8000);
-    CloudServiceStatus status = await authenticate();
-    if (status == CloudServiceStatus.success) {
+  }
+
+  Future<void> _ensureDir() async {
+    try {
       await client.mkdir(_webdavPath);
-    }
+    } catch (_) {}
   }
 
   @override
   Future<bool> isConnected() async {
     CloudServiceStatus status = await authenticate();
-    return status == CloudServiceStatus.success;
+    return status.isSuccess;
   }
 
   @override
   Future<CloudServiceStatus> authenticate() async {
     try {
       await client.ping();
+      await _ensureDir();
       return CloudServiceStatus.success;
     } catch (e, t) {
       ILogger.error("Failed to authenticate webdav", e, t);
       if (e is DioException) {
+        final msg = e.message ?? e.error?.toString();
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
           case DioExceptionType.receiveTimeout:
           case DioExceptionType.sendTimeout:
           case DioExceptionType.badCertificate:
           case DioExceptionType.connectionError:
-            return CloudServiceStatus.connectionError;
+            return CloudServiceStatus(CloudServiceStatusType.connectionError,
+                message: msg);
           case DioExceptionType.badResponse:
             if (e.response!.statusCode == 401) {
-              return CloudServiceStatus.unauthorized;
+              return CloudServiceStatus(CloudServiceStatusType.unauthorized,
+                  message: msg);
             } else {
-              return CloudServiceStatus.connectionError;
+              return CloudServiceStatus(CloudServiceStatusType.connectionError,
+                  message:
+                      "HTTP ${e.response?.statusCode} ${e.response?.statusMessage ?? msg}");
             }
           default:
             break;
         }
       }
-      return CloudServiceStatus.unknownError;
+      return CloudServiceStatus(CloudServiceStatusType.unknownError,
+          message: e.toString());
     }
   }
 

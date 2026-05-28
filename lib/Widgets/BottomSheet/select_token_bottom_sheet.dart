@@ -89,11 +89,14 @@ class SelectTokenBottomSheetState
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildHeader(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Container(
-                    constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height - 320),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: ResponsiveUtil.isWideDevice()
+                        ? MediaQuery.of(context).size.height * 0.4
+                        : MediaQuery.of(context).size.height - 320,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     child: _buildButtons(),
                   ),
                 ),
@@ -125,8 +128,8 @@ class SelectTokenBottomSheetState
           Expanded(
             child: Text(
               appLocalizations.setTokenForCategory(widget.category.title),
-              style: ChewieTheme.titleMedium
-                  .copyWith(fontWeight: FontWeight.bold),
+              style:
+                  ChewieTheme.titleMedium.copyWith(fontWeight: FontWeight.bold),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

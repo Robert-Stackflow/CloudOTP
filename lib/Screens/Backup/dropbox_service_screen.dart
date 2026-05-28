@@ -151,20 +151,22 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
     }
     await currentService.authenticate().then((value) async {
       setState(() {
-        currentConfig.connected = (value == CloudServiceStatus.success);
+        currentConfig.connected = value.isSuccess;
       });
       if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(appLocalizations.cloudConnectionError);
+        String toast;
+        switch (value.type) {
+          case CloudServiceStatusType.connectionError:
+            toast = appLocalizations.cloudConnectionError;
             break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(appLocalizations.cloudOauthFailed);
+          case CloudServiceStatusType.unauthorized:
+            toast = appLocalizations.cloudOauthFailed;
             break;
           default:
-            IToast.show(appLocalizations.cloudUnknownError);
+            toast = appLocalizations.cloudUnknownError;
             break;
         }
+        IToast.show(value.message != null ? "$toast: ${value.message}" : toast);
       } else {
         _dropboxCloudServiceConfig!.configured = true;
         updateConfig(_dropboxCloudServiceConfig!);

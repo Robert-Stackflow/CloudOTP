@@ -17,12 +17,30 @@ import 'dart:typed_data';
 
 import 'package:cloudotp/Models/cloud_service_config.dart';
 
-enum CloudServiceStatus {
+enum CloudServiceStatusType {
   success,
   connectionError,
   unauthorized,
   unknownError,
   expired,
+}
+
+class CloudServiceStatus {
+  final CloudServiceStatusType type;
+  final String? message;
+
+  const CloudServiceStatus(this.type, {this.message});
+
+  bool get isSuccess => type == CloudServiceStatusType.success;
+
+  static const success = CloudServiceStatus(CloudServiceStatusType.success);
+  static const connectionError =
+      CloudServiceStatus(CloudServiceStatusType.connectionError);
+  static const unauthorized =
+      CloudServiceStatus(CloudServiceStatusType.unauthorized);
+  static const unknownError =
+      CloudServiceStatus(CloudServiceStatusType.unknownError);
+  static const expired = CloudServiceStatus(CloudServiceStatusType.expired);
 }
 
 abstract class CloudService {

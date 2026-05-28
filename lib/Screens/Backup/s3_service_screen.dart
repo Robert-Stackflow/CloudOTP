@@ -140,20 +140,22 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
     }
     await currentService.authenticate().then((value) {
       setState(() {
-        currentConfig.connected = value == CloudServiceStatus.success;
+        currentConfig.connected = value.isSuccess;
       });
       if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(appLocalizations.cloudConnectionError);
+        String toast;
+        switch (value.type) {
+          case CloudServiceStatusType.connectionError:
+            toast = appLocalizations.cloudConnectionError;
             break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(appLocalizations.cloudUnauthorized);
+          case CloudServiceStatusType.unauthorized:
+            toast = appLocalizations.cloudUnauthorized;
             break;
           default:
-            IToast.show(appLocalizations.cloudUnknownError);
+            toast = appLocalizations.cloudUnknownError;
             break;
         }
+        IToast.show(value.message != null ? "$toast: ${value.message}" : toast);
       } else {
         if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
       }
