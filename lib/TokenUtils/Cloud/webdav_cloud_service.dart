@@ -60,7 +60,7 @@ class WebDavCloudService extends CloudService {
 
   Future<void> _ensureDir() async {
     try {
-      await client.mkdir(_webdavPath);
+      await client.mkdirAll(_webdavPath);
     } catch (_) {}
   }
 
@@ -108,13 +108,8 @@ class WebDavCloudService extends CloudService {
 
   @override
   Future<List<WebDavFileInfo>?> listFiles() async {
-    try {
-      var list = await client.readDir(_webdavPath);
-      return list;
-    } catch (e, t) {
-      ILogger.error("Failed to list file from webdav", e, t);
-      return null;
-    }
+    var list = await client.readDir(_webdavPath);
+    return list;
   }
 
   @override
@@ -138,28 +133,19 @@ class WebDavCloudService extends CloudService {
     Uint8List fileData, {
     Function(int, int)? onProgress,
   }) async {
-    try {
-      CancelToken c = CancelToken();
-      double progress = 0;
-      await client.write(
-        join(_webdavPath, fileName),
-        fileData,
-        onProgress: (c, t) {
-          onProgress?.call(c, t);
-          progress = c / t;
-        },
-        cancelToken: c,
-      );
-      deleteOldBackup();
-      if (progress >= 1) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e, t) {
-      ILogger.error("Failed to upload file to webdav", e, t);
-      return false;
-    }
+    CancelToken c = CancelToken();
+    double progress = 0;
+    await client.write(
+      join(_webdavPath, fileName),
+      fileData,
+      onProgress: (c, t) {
+        onProgress?.call(c, t);
+        progress = c / t;
+      },
+      cancelToken: c,
+    );
+    deleteOldBackup();
+    return progress >= 1;
   }
 
   @override

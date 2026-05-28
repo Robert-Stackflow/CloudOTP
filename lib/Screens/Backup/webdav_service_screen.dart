@@ -21,6 +21,7 @@ import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/webdav_backups_bottom_sheet.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 
@@ -338,7 +339,15 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                 } catch (e, t) {
                   ILogger.error("Failed to pull from webdav", e, t);
                   CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                  String detail = e is DioException
+                      ? (e.response?.statusMessage ??
+                          e.message ??
+                          e.error?.toString() ??
+                          '')
+                      : e.toString();
+                  IToast.show(detail.isNotEmpty
+                      ? "${appLocalizations.cloudPullFailed}: $detail"
+                      : appLocalizations.cloudPullFailed);
                 }
               },
             ),

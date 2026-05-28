@@ -15,6 +15,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:awesome_cloud/services/base_service.dart';
@@ -299,7 +300,7 @@ class HuaweiCloud extends BaseCloudService {
       var pushUri =
           Uri.parse("$uploadApiEndpoint?uploadType=multipart&fields=*");
 
-      var boundary = 'OP8XTaXZ0UZs-Sjlefcj2OWskqXWwVQO';
+      var boundary = 'dart-boundary-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(0x7fffffff).toRadixString(36)}';
       final accessToken = await checkToken();
       var headers = {
         "Authorization": "Bearer $accessToken",

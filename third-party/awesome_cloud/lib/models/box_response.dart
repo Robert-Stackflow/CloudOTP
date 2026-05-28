@@ -125,8 +125,8 @@ class BoxFileInfo extends BaseCloudFileInfo {
 
   factory BoxFileInfo.fromJson(Map<String, dynamic> json) {
     return BoxFileInfo(
-      id: json['id'],
-      name: json['name'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
       size: json['size'] ?? 0,
       createdDateTime: json['created_at'] != null
           ? DateTime.parse(json['created_at']).millisecondsSinceEpoch

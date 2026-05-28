@@ -134,12 +134,12 @@ abstract class BaseCloudService with ChangeNotifier {
     try {
       String codeVerifier = OAuth2Helper.generateCodeVerifier(keepPadding);
 
-      String codeChanllenge =
+      String codeChallenge =
           OAuth2Helper.generateCodeChallenge(codeVerifier, keepPadding);
 
       Uri uri = Uri.parse(authEndpoint);
       final authUri = Uri.https(uri.authority, uri.path, {
-        'code_challenge': codeChanllenge,
+        'code_challenge': codeChallenge,
         "code_challenge_method": "S256",
         'response_type': 'code',
         'client_id': clientId,

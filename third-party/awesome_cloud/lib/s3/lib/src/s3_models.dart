@@ -53,7 +53,7 @@ class CompleteMultipartUpload {
 
 class ListMultipartUploadsOutput {
   ListMultipartUploadsOutput.fromXml(XmlElement xml) {
-    isTruncated = getProp(xml, 'IsLatest')?.text.toUpperCase() == 'TRUE';
+    isTruncated = getProp(xml, 'IsTruncated')?.text.toUpperCase() == 'TRUE';
     nextKeyMarker = getProp(xml, 'NextKeyMarker')?.text;
     nextUploadIdMarker = getProp(xml, 'NextUploadIdMarker')?.text;
     uploads = xml
@@ -70,10 +70,10 @@ class ListMultipartUploadsOutput {
 
 class ListPartsOutput {
   ListPartsOutput.fromXml(XmlElement xml) {
-    isTruncated = getProp(xml, 'IsLatest')?.text.toUpperCase() == 'TRUE';
+    isTruncated = getProp(xml, 'IsTruncated')?.text.toUpperCase() == 'TRUE';
     nextPartNumberMarker =
         int.parse(getProp(xml, 'NextPartNumberMarker')!.text);
-    parts = xml.findElements('Upload').map((e) => Part.fromXml(e)).toList();
+    parts = xml.findElements('Part').map((e) => Part.fromXml(e)).toList();
   }
 
   late bool isTruncated;
@@ -153,20 +153,20 @@ class PostPolicy {
   /// set object name prefix, i.e policy allows any keys with this prefix
   void setKeyStartsWith(String prefix) {
     StorageInvalidPrefixError.check(prefix);
-    policy['conditions'].push(['starts-with', r'$key', prefix]);
+    policy['conditions'].add(['starts-with', r'$key', prefix]);
     formData['key'] = prefix;
   }
 
   /// set bucket name
   void setBucket(bucket) {
     StorageInvalidBucketNameError.check(bucket);
-    policy['conditions'].push(['eq', r'$bucket', bucket]);
+    policy['conditions'].add(['eq', r'$bucket', bucket]);
     formData['bucket'] = bucket;
   }
 
   /// set Content-Type
   void setContentType(String type) {
-    policy['conditions'].push(['eq', r'$Content-Type', type]);
+    policy['conditions'].add(['eq', r'$Content-Type', type]);
     formData['Content-Type'] = type;
   }
 
@@ -181,7 +181,7 @@ class PostPolicy {
     if (max < 0) {
       throw StorageError('max should be > 0');
     }
-    policy['conditions'].push(['content-length-range', min, max]);
+    policy['conditions'].add(['content-length-range', min, max]);
   }
 }
 

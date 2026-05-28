@@ -214,7 +214,7 @@ class AliyunDriveCloud extends BaseCloudService {
         "drive_id": driveId,
         "parent_file_id": folderResp.parentId,
         "limit": 100,
-        "fileds": "*"
+        "fields": "*"
       }),
       headers: {"Content-Type": "application/json"},
     );

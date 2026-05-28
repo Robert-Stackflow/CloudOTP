@@ -33,6 +33,12 @@ class GoogleAuthClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     return _client.send(request..headers.addAll(_headers));
   }
+
+  @override
+  void close() {
+    _client.close();
+    super.close();
+  }
 }
 
 class GoogleDrive extends BaseCloudService {

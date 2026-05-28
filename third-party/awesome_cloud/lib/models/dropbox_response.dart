@@ -32,11 +32,13 @@ class DropboxUserInfo extends BaseCloudUserInfo {
 
   factory DropboxUserInfo.fromJson(
       Map<String, dynamic> json, Map<String, dynamic> usageJson) {
+    final name = json['name'] as Map<String, dynamic>?;
+    final allocation = usageJson['allocation'] as Map<String, dynamic>?;
     return DropboxUserInfo(
-      email: json['email'],
-      displayName: json['name']['display_name'],
-      total: usageJson['allocation']['allocated'],
-      used: usageJson['used'],
+      email: json['email'] as String?,
+      displayName: name?['display_name'] as String?,
+      total: allocation?['allocated'] as int?,
+      used: usageJson['used'] as int?,
     );
   }
 
@@ -68,15 +70,17 @@ class DropboxFileInfo extends BaseCloudFileInfo {
 
   factory DropboxFileInfo.fromJson(Map<String, dynamic> json) {
     return DropboxFileInfo(
-      id: json['id'],
-      name: json['name'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
       size: json['size'] ?? 0,
-      createdDateTime: json['file_lock_info'] != null
+      createdDateTime: json['file_lock_info'] != null &&
+              json['file_lock_info']['created'] != null
           ? DateTime.parse(json['file_lock_info']['created'])
               .millisecondsSinceEpoch
           : 0,
-      lastModifiedDateTime:
-          DateTime.parse(json['client_modified']).millisecondsSinceEpoch,
+      lastModifiedDateTime: json['client_modified'] != null
+          ? DateTime.parse(json['client_modified']).millisecondsSinceEpoch
+          : 0,
     );
   }
 }

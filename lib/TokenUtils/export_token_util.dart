@@ -530,7 +530,9 @@ class ExportTokenUtil {
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
-        if (showToast) IToast.showTop(appLocalizations.backupFailed);
+        if (showToast) {
+          IToast.showTop("${appLocalizations.backupFailed}: $e");
+        }
       }
     } finally {
       if (showLoading && dialog != null) dialog.dismiss();
