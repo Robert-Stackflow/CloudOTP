@@ -104,9 +104,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
 
-  late final AnimationController _entranceController;
-  late final Animation<double> _entranceAnimation;
-
   AnimationController? _wobbleController;
   late Animation<double> _wobbleAnimation;
 
@@ -120,11 +117,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   Future<void> closeSlidable() async {
     await _slidableController?.close();
-  }
-
-  void replayEntrance() {
-    _entranceController.reset();
-    _entranceController.forward();
   }
 
   void _startWobble() {
@@ -172,7 +164,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   @override
   void dispose() {
-    _entranceController.dispose();
     _tickerSubscription?.cancel();
     _stopWobble();
     _slidableController?.dispose();
@@ -207,15 +198,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   @override
   void initState() {
     super.initState();
-    _entranceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _entranceAnimation = CurvedAnimation(
-      parent: _entranceController,
-      curve: Curves.easeOutBack,
-    );
-    _entranceController.forward();
     updateCode();
     progressNotifier.value = currentProgress;
     resetTimer();
@@ -242,23 +224,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _entranceAnimation,
-      builder: (context, child) {
-        final value = _entranceAnimation.value;
-        return Transform.translate(
-          offset: Offset(0, 40 * (1 - value)),
-          child: Transform.scale(
-            scale: 0.75 + 0.25 * value,
-            child: Opacity(
-              opacity: value.clamp(0.0, 1.0),
-              child: child,
-            ),
-          ),
-        );
-      },
-      child: RepaintBoundary(child: _buildContextMenuRegion()),
-    );
+    return RepaintBoundary(child: _buildContextMenuRegion());
   }
 
   String getCurrentCode() {

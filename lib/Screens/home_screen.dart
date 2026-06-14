@@ -1494,7 +1494,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       builder: (context, settings, child) {
         double bottomPadding = MediaQuery.of(context).padding.bottom;
         return ReorderableGridView.builder(
-          cacheExtent: 1000,
+          cacheExtent: 999,
           // controller: _scrollController,
           gridItemsNotifier: gridItemsNotifier,
           autoScroll: true,
@@ -1533,10 +1533,39 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             }
             final item = tokens.removeAt(oldIndex);
             tokens.insert(newIndex, item);
-            for (int i = 0; i < tokens.length; i++) {
-              tokens[i].seq = tokens.length - i;
+            // `tokens` may be a filtered subset (a category tab or active
+            // search), but `seq` is a single global field. Rebuild the full
+            // global order so it stays consistent with this reorder: move the
+            // dragged token next to its new visible neighbour in the complete
+            // list, then renumber every token's seq. Non-visible tokens keep
+            // their relative order, and the global "all" view matches what the
+            // user sees here. Renumbering also heals any legacy seq collisions.
+            final all = await TokenDao.listTokens();
+            all.removeWhere((t) => t.uid == item.uid);
+            int anchorPos;
+            if (newIndex > 0) {
+              // place right below the visible token now above the dragged one
+              final prevUid = tokens[newIndex - 1].uid;
+              anchorPos = all.indexWhere((t) => t.uid == prevUid) + 1;
+            } else if (tokens.length > 1) {
+              // dropped at the very top: place right above the token now below
+              final nextUid = tokens[newIndex + 1].uid;
+              anchorPos = all.indexWhere((t) => t.uid == nextUid);
+            } else {
+              anchorPos = 0;
             }
-            await TokenDao.updateTokens(tokens, autoBackup: false);
+            if (anchorPos < 0) anchorPos = 0;
+            all.insert(anchorPos, item);
+            for (int i = 0; i < all.length; i++) {
+              all[i].seq = all.length - i;
+            }
+            // Keep the in-memory visible tokens' seq in sync with the DB so a
+            // later performSort (e.g. on pin toggle) stays correct.
+            final seqByUid = {for (final t in all) t.uid: t.seq};
+            for (final t in tokens) {
+              t.seq = seqByUid[t.uid] ?? t.seq;
+            }
+            await TokenDao.updateTokens(all, autoBackup: false);
             changeOrderType(type: OrderType.Default, doPerformSort: false);
           },
           proxyDecorator:
@@ -1697,11 +1726,6 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         _currentTabIndex = index;
         getTokens();
         CloudOTPHiveUtil.setSelectedCategoryUid(currentCategoryUid);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          for (final key in tokenKeyMap.values) {
-            key.currentState?.replayEntrance();
-          }
-        });
       },
     );
   }

@@ -47,8 +47,12 @@ class TokenDao {
     int maxSeq = await getMaxSeq();
     int maxId = await getMaxId();
     Batch batch = db.batch();
+    // The incoming list is in display order (top first). Assign descending seq
+    // so the first item gets the highest seq, preserving the original order
+    // (display is ordered by seq DESC). A plain `maxSeq + 1 + i` would reverse
+    // the list on backup restore / cloud pull.
     for (int i = 0; i < tokens.length; i++) {
-      tokens[i].seq = maxSeq + 1 + i;
+      tokens[i].seq = maxSeq + tokens.length - i;
       tokens[i].id = maxId + 1 + i;
       batch.insert(
         tableName,
