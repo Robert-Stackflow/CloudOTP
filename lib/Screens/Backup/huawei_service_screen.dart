@@ -284,7 +284,7 @@ class _HuaweiCloudServiceScreenState
                     IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
-                  CloudServiceConfigDao.updateLastPullTime(
+                  await CloudServiceConfigDao.updateLastPullTime(
                       _huaweiCloudCloudServiceConfig!);
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>

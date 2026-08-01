@@ -284,7 +284,7 @@ class _OneDriveServiceScreenState
                     IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
-                  CloudServiceConfigDao.updateLastPullTime(
+                  await CloudServiceConfigDao.updateLastPullTime(
                       _oneDriveCloudServiceConfig!);
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>

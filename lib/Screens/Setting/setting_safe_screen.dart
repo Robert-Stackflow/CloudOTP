@@ -189,7 +189,7 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
                     );
                     if (res) {
                       IToast.showTop(appLocalizations.editSuccess);
-                      CloudOTPHiveUtil.setEncryptDatabaseStatus(
+                      await CloudOTPHiveUtil.setEncryptDatabaseStatus(
                           EncryptDatabaseStatus.customPassword);
                       setState(() {
                         _encryptDatabaseStatus =
@@ -225,7 +225,7 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
                 onTapConfirm: () async {
                   bool res = await DatabaseManager.resetToDefaultPassword();
                   if (res) {
-                    CloudOTPHiveUtil.setEncryptDatabaseStatus(
+                    await CloudOTPHiveUtil.setEncryptDatabaseStatus(
                         EncryptDatabaseStatus.defaultPassword);
                     setState(() {
                       _encryptDatabaseStatus =

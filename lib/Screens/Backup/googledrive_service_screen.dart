@@ -274,7 +274,7 @@ class _GoogleDriveServiceScreenState
                     IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
-                  CloudServiceConfigDao.updateLastPullTime(
+                  await CloudServiceConfigDao.updateLastPullTime(
                       _googledriveCloudServiceConfig!);
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>

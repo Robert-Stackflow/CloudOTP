@@ -364,7 +364,7 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
                     IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
-                  CloudServiceConfigDao.updateLastPullTime(
+                  await CloudServiceConfigDao.updateLastPullTime(
                       _s3CloudServiceConfig!);
                   CustomLoadingDialog.dismissLoading();
                   files.sort(

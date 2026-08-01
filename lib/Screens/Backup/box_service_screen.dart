@@ -288,7 +288,7 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
                     IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
-                  CloudServiceConfigDao.updateLastPullTime(
+                  await CloudServiceConfigDao.updateLastPullTime(
                       _boxCloudServiceConfig!);
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>

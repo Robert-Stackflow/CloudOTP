@@ -333,7 +333,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                     IToast.show(appLocalizations.cloudPullFailed);
                     return;
                   }
-                  CloudServiceConfigDao.updateLastPullTime(
+                  await CloudServiceConfigDao.updateLastPullTime(
                       _webDavCloudServiceConfig!);
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) => b.mTime!.compareTo(a.mTime!));

@@ -308,7 +308,7 @@ class ExportTokenUtil {
     });
   }
 
-  static backupEncryptToLocalAndCloud({
+  static Future<void> backupEncryptToLocalAndCloud({
     Uint8List? encryptedData,
     bool showLoading = true,
     bool showToast = true,
@@ -375,13 +375,11 @@ class ExportTokenUtil {
                   : cloudService.type.label;
               try {
                 log.addStatus(AutoBackupStatus.uploading,
-                    type: cloudService.type,
-                    cloudServiceName: configName);
+                    type: cloudService.type, cloudServiceName: configName);
                 if (showLoading && dialog != null) {
                   final serviceMsg = count > 1
                       ? "${appLocalizations.cloudPushingTo(configName)} (${i + 1}/$count)"
-                      : appLocalizations
-                          .cloudPushingTo(configName);
+                      : appLocalizations.cloudPushingTo(configName);
                   dialog.updateMessage(
                     msg: serviceMsg,
                     showProgress: true,
@@ -398,25 +396,22 @@ class ExportTokenUtil {
                   },
                 );
                 if (uploadStatus) {
+                  if (configs != null && i < configs.length) {
+                    await CloudServiceConfigDao.updateLastBackupTime(
+                      configs[i],
+                    );
+                  }
                   log.addStatus(AutoBackupStatus.uploadSuccess,
-                      type: cloudService.type,
-                      cloudServiceName: configName);
+                      type: cloudService.type, cloudServiceName: configName);
                 } else {
                   log.addStatus(AutoBackupStatus.uploadFailed,
-                      type: cloudService.type,
-                      cloudServiceName: configName);
+                      type: cloudService.type, cloudServiceName: configName);
                 }
               } catch (e, t) {
                 ILogger.error("Failed to cloud backup to $cloudService}", e, t);
                 log.addStatus(AutoBackupStatus.uploadFailed,
-                    type: cloudService.type,
-                    cloudServiceName: configName);
+                    type: cloudService.type, cloudServiceName: configName);
               }
-            }
-          }
-          if (configs != null && configs.isNotEmpty) {
-            for (CloudServiceConfig config in configs) {
-              CloudServiceConfigDao.updateLastBackupTime(config);
             }
           }
         }
@@ -442,12 +437,17 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(appLocalizations.backupFailed);
       }
     } finally {
-      AutoBackupLogDao.insertLog(log);
-      if (showLoading && dialog != null) dialog.dismiss();
+      try {
+        await AutoBackupLogDao.insertLog(log);
+      } catch (e, t) {
+        ILogger.error("Failed to persist auto backup log", e, t);
+      } finally {
+        if (showLoading && dialog != null) dialog.dismiss();
+      }
     }
   }
 
-  static backupEncryptToLocal({
+  static Future<void> backupEncryptToLocal({
     bool showLoading = false,
     bool showToast = false,
     Uint8List? encryptedData,
@@ -471,7 +471,7 @@ class ExportTokenUtil {
           File file = File("${directory.path}/${getExportFileName("bin")}");
           file.writeAsBytesSync(encryptedData!);
         }, null);
-        ExportTokenUtil.deleteOldBackup();
+        await ExportTokenUtil.deleteOldBackup();
         if (showToast) IToast.showTop(appLocalizations.backupSuccess);
       }
     } catch (e, t) {
@@ -488,7 +488,7 @@ class ExportTokenUtil {
     }
   }
 
-  static backupEncryptToCloud({
+  static Future<void> backupEncryptToCloud({
     Uint8List? encryptedData,
     bool showLoading = true,
     bool showToast = true,
@@ -523,7 +523,9 @@ class ExportTokenUtil {
             }
           },
         );
-        CloudServiceConfigDao.updateLastBackupTime(config);
+        if (uploadStatus) {
+          await CloudServiceConfigDao.updateLastBackupTime(config);
+        }
         if (showToast) {
           if (uploadStatus) {
             IToast.showTop(appLocalizations.backupSuccess);
