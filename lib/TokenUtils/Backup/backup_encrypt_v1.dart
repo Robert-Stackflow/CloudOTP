@@ -103,9 +103,22 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
       throw InvalidPasswordOrDataCorruptedException();
     }
 
-    final json = utf8.decode(unencryptedData);
-    Backup res = Backup.fromJson(jsonDecode(json));
-    return res;
+    try {
+      final json = utf8.decode(unencryptedData);
+      final decoded = jsonDecode(json);
+      if (decoded is! Map) {
+        throw const BackupFormatException('Backup root must be an object');
+      }
+      return Backup.fromJson(Map<String, dynamic>.from(decoded));
+    } on BackupSchemaUnsupportedException {
+      throw BackupVersionUnsupportException();
+    } on BackupFormatException catch (e) {
+      throw InvalidPasswordOrDataCorruptedException(message: e.message);
+    } on FormatException {
+      throw InvalidPasswordOrDataCorruptedException();
+    } catch (_) {
+      throw InvalidPasswordOrDataCorruptedException();
+    }
   }
 
   @override

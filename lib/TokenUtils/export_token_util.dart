@@ -65,7 +65,12 @@ class ExportTokenUtil {
       for (final category in categories) {
         category.bindings = bindingsByCategory[category.uid] ?? [];
       }
-      return Backup(tokens: tokens, categories: categories);
+      return Backup(
+        tokens: tokens,
+        categories: categories,
+        appVersion: ResponsiveUtil.version,
+        sourceDevice: ResponsiveUtil.deviceName,
+      );
     });
   }
 
@@ -258,6 +263,8 @@ class ExportTokenUtil {
         Backup backup = Backup(
           tokens: tokens,
           categories: categories,
+          appVersion: ResponsiveUtil.version,
+          sourceDevice: ResponsiveUtil.deviceName,
         );
         BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
         Uint8List encryptedData =
