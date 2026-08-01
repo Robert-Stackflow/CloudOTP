@@ -624,6 +624,8 @@
     }
   },
   "importFailed": "インポート失敗",
+  "backupFileTooLarge": "バックアップファイルが大きすぎるため、安全にインポートできません。",
+  "backupContentTooLarge": "バックアップ内の項目が多すぎるため、安全にインポートできません。",
   "searchIconName": "アイコン名を検索",
   "setIconForToken": "トークンのアイコンを選択",
   "setIconForTokenDetail": "トークン「{issuer}」のアイコンを選択",

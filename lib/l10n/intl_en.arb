@@ -624,6 +624,8 @@
     }
   },
   "importFailed": "Import failed",
+  "backupFileTooLarge": "The backup file is too large to import safely.",
+  "backupContentTooLarge": "The backup contains too many items to import safely.",
   "searchIconName": "Search icon name",
   "setIconForToken": "Choose token icon",
   "setIconForTokenDetail": "Choose icon for token \"{issuer}\"",

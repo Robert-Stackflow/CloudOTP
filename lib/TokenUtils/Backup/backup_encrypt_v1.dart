@@ -112,6 +112,8 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
       return Backup.fromJson(Map<String, dynamic>.from(decoded));
     } on BackupSchemaUnsupportedException {
       throw BackupVersionUnsupportException();
+    } on BackupLimitExceededException {
+      rethrow;
     } on BackupFormatException catch (e) {
       throw InvalidPasswordOrDataCorruptedException(message: e.message);
     } on FormatException {

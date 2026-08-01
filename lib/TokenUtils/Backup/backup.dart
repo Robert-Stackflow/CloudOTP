@@ -20,6 +20,9 @@ import '../../Models/token_category.dart';
 
 class Backup {
   static const int currentSchemaVersion = 2;
+  static const int maxTokenEntries = 50000;
+  static const int maxCategoryEntries = 10000;
+  static const int maxBindingEntries = 500000;
 
   final List<OtpToken> tokens;
   final List<TokenCategory> categories;
@@ -71,17 +74,27 @@ class Backup {
         'Backup tokens and categories must be lists',
       );
     }
+    if (tokenData.length > maxTokenEntries) {
+      throw const BackupLimitExceededException('tokens');
+    }
+    if (categoryData.length > maxCategoryEntries) {
+      throw const BackupLimitExceededException('categories');
+    }
     final tokens = tokenData.map(_parseToken).toList();
     final categories = categoryData.map(_parseCategory).toList();
+    final bindingCount = categories.fold<int>(
+      0,
+      (count, category) => count + category.bindings.length,
+    );
+    if (bindingCount > maxBindingEntries) {
+      throw const BackupLimitExceededException('bindings');
+    }
     _validateCount(json, 'tokenCount', tokens.length);
     _validateCount(json, 'categoryCount', categories.length);
     _validateCount(
       json,
       'bindingCount',
-      categories.fold<int>(
-        0,
-        (count, category) => count + category.bindings.length,
-      ),
+      bindingCount,
     );
     return Backup(
       tokens: tokens,
@@ -158,4 +171,11 @@ class BackupSchemaUnsupportedException extends BackupFormatException {
 
   BackupSchemaUnsupportedException(this.schemaVersion)
       : super('Unsupported backup schema version: $schemaVersion');
+}
+
+class BackupLimitExceededException extends BackupFormatException {
+  final String entryType;
+
+  const BackupLimitExceededException(this.entryType)
+      : super('Backup contains too many $entryType');
 }

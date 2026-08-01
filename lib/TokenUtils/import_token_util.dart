@@ -53,6 +53,30 @@ extension TrimPadding on String {
   }
 }
 
+enum BackupImportStatus {
+  success,
+  invalidPasswordOrCorrupted,
+  unsupportedVersion,
+  invalidFormat,
+  fileNotFound,
+  fileTooLarge,
+  contentTooLarge,
+  failed,
+}
+
+class BackupImportResult {
+  final BackupImportStatus status;
+  final Backup? backup;
+  final Object? error;
+
+  const BackupImportResult(this.status, {this.backup, this.error});
+
+  bool get isSuccess => status == BackupImportStatus.success;
+
+  bool get shouldRequestPassword =>
+      status == BackupImportStatus.invalidPasswordOrCorrupted;
+}
+
 class ImportAnalysis {
   int parseTokenSuccess;
   int parseTokenFailed;
@@ -98,6 +122,7 @@ class ImportAnalysis {
 }
 
 class ImportTokenUtil {
+  static const int maxBackupFileBytes = 16 * 1024 * 1024;
   static Future<List<dynamic>> parseRawUri(
     List<String> rawUris, {
     bool autoPopup = true,
@@ -349,12 +374,13 @@ class ImportTokenUtil {
         if (text.isEmpty) {
           return appLocalizations.autoBackupPasswordCannotBeEmpty;
         }
-        bool success = await ImportTokenUtil.importEncryptFile(path, text);
-        if (success) {
+        final result = await ImportTokenUtil.importEncryptFile(path, text);
+        if (result.isSuccess) {
           return null;
-        } else {
+        } else if (result.shouldRequestPassword) {
           return appLocalizations.invalidPasswordOrDataCorrupted;
         }
+        return appLocalizations.importFailed;
       },
     );
     BottomSheetBuilder.showBottomSheet(
@@ -393,15 +419,15 @@ class ImportTokenUtil {
     }
 
     if (await CloudOTPHiveUtil.canImportOrExportUseBackupPassword()) {
-      bool success = await ImportTokenUtil.importEncryptFile(
+      final result = await ImportTokenUtil.importEncryptFile(
           filePath, await ConfigDao.getBackupPassword());
-      if (!success) operation();
+      if (result.shouldRequestPassword) operation();
     } else {
       operation();
     }
   }
 
-  static Future<bool> importEncryptFile(
+  static Future<BackupImportResult> importEncryptFile(
     String filePath,
     String password, {
     bool showLoading = true,
@@ -409,38 +435,35 @@ class ImportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: appLocalizations.importing);
     }
+    BackupImportResult result;
     try {
       File file = File(filePath);
       if (!file.existsSync()) {
-        IToast.showTop(appLocalizations.fileNotExist);
-        return true;
+        result = const BackupImportResult(BackupImportStatus.fileNotFound);
+      } else if (await file.length() > maxBackupFileBytes) {
+        result = const BackupImportResult(BackupImportStatus.fileTooLarge);
       } else {
         Uint8List content = await compute((_) async {
           return file.readAsBytesSync();
         }, null);
-        await importUint8List(content, password: password);
-        return true;
+        result = await importUint8List(content, password: password);
       }
     } catch (e, t) {
       ILogger.error("Failed to import encrypt file from $filePath", e, t);
-      if (e is BackupBaseException) {
-        IToast.showTop(e.intlMessage);
-        if (e is InvalidPasswordOrDataCorruptedException) {
-          return false;
-        }
-        return true;
-      } else {
-        IToast.showTop(appLocalizations.importFailed);
-        return true;
-      }
+      result = BackupImportResult(
+        BackupImportStatus.failed,
+        error: e,
+      );
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
       }
     }
+    if (!result.isSuccess) _showBackupImportError(result);
+    return result;
   }
 
-  static Future<bool> importBackupFile(
+  static Future<BackupImportResult> importBackupFile(
     Uint8List content, {
     String? password,
     bool showLoading = true,
@@ -450,41 +473,89 @@ class ImportTokenUtil {
       CustomLoadingDialog.showLoading(
           title: loadingText ?? appLocalizations.importing);
     }
+    BackupImportResult result;
     try {
-      await importUint8List(content, password: password);
-      return true;
+      result = await importUint8List(content, password: password);
     } catch (e, t) {
       ILogger.error("Failed to import backup file", e, t);
-      if (e is BackupBaseException) {
-        IToast.showTop(e.intlMessage);
-        if (e is InvalidPasswordOrDataCorruptedException) {
-          return false;
-        }
-        return true;
-      } else {
-        IToast.showTop(appLocalizations.importFailed);
-        return true;
-      }
+      result = BackupImportResult(
+        BackupImportStatus.failed,
+        error: e,
+      );
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
       }
     }
+    if (!result.isSuccess) _showBackupImportError(result);
+    return result;
   }
 
-  static Future<bool> importUint8List(
+  static Future<BackupImportResult> importUint8List(
     Uint8List content, {
     String? password,
   }) async {
-    String tmpPassword = password ?? await ConfigDao.getBackupPassword();
-    Backup backup = await compute((_) async {
-      return await BackupEncryptionV1().decrypt(content, tmpPassword);
-    }, null);
-    ImportPreviewScreen.show(
-      tokens: backup.tokens,
-      categories: backup.categories,
-    );
-    return true;
+    if (content.length > maxBackupFileBytes) {
+      return const BackupImportResult(BackupImportStatus.fileTooLarge);
+    }
+    try {
+      String tmpPassword = password ?? await ConfigDao.getBackupPassword();
+      Backup backup = await compute((_) async {
+        return await BackupEncryptionV1().decrypt(content, tmpPassword);
+      }, null);
+      ImportPreviewScreen.show(
+        tokens: backup.tokens,
+        categories: backup.categories,
+      );
+      return BackupImportResult(
+        BackupImportStatus.success,
+        backup: backup,
+      );
+    } on InvalidPasswordOrDataCorruptedException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.invalidPasswordOrCorrupted,
+        error: e,
+      );
+    } on BackupVersionUnsupportException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.unsupportedVersion,
+        error: e,
+      );
+    } on FileNotBackupException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.invalidFormat,
+        error: e,
+      );
+    } on BackupLimitExceededException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.contentTooLarge,
+        error: e,
+      );
+    } catch (e, t) {
+      ILogger.error('Failed to decode backup data', e, t);
+      return BackupImportResult(BackupImportStatus.failed, error: e);
+    }
+  }
+
+  static void _showBackupImportError(BackupImportResult result) {
+    switch (result.status) {
+      case BackupImportStatus.success:
+        return;
+      case BackupImportStatus.invalidPasswordOrCorrupted:
+        IToast.showTop(appLocalizations.invalidPasswordOrDataCorrupted);
+      case BackupImportStatus.unsupportedVersion:
+        IToast.showTop(appLocalizations.backupVersionUnsupport);
+      case BackupImportStatus.invalidFormat:
+        IToast.showTop(appLocalizations.fileNotBackup);
+      case BackupImportStatus.fileNotFound:
+        IToast.showTop(appLocalizations.fileNotExist);
+      case BackupImportStatus.fileTooLarge:
+        IToast.showTop(appLocalizations.backupFileTooLarge);
+      case BackupImportStatus.contentTooLarge:
+        IToast.showTop(appLocalizations.backupContentTooLarge);
+      case BackupImportStatus.failed:
+        IToast.showTop(appLocalizations.importFailed);
+    }
   }
 
   static Future<List<OtpToken>> importText(
@@ -555,12 +626,12 @@ class ImportTokenUtil {
       IToast.showTop(appLocalizations.cloudPullFailed);
       return;
     }
-    bool success = await ImportTokenUtil.importBackupFile(
+    final result = await ImportTokenUtil.importBackupFile(
       res,
       showLoading: false,
     );
     dialog.dismiss();
-    if (!success) {
+    if (result.shouldRequestPassword) {
       InputValidateAsyncController validateAsyncController =
           InputValidateAsyncController(
         listen: false,
@@ -572,17 +643,18 @@ class ImportTokenUtil {
             msg: appLocalizations.importing,
             showProgress: false,
           );
-          bool success = await ImportTokenUtil.importBackupFile(
+          final result = await ImportTokenUtil.importBackupFile(
             password: text,
             res,
             showLoading: false,
           );
           dialog.dismiss();
-          if (success) {
+          if (result.isSuccess) {
             return null;
-          } else {
+          } else if (result.shouldRequestPassword) {
             return appLocalizations.invalidPasswordOrDataCorrupted;
           }
+          return appLocalizations.importFailed;
         },
         controller: TextEditingController(),
       );

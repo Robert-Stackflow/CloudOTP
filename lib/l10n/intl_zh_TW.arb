@@ -624,6 +624,8 @@
     }
   },
   "importFailed": "導入失敗",
+  "backupFileTooLarge": "備份檔案過大，無法安全導入",
+  "backupContentTooLarge": "備份包含的項目過多，無法安全導入",
   "searchIconName": "搜尋圖示名稱",
   "setIconForToken": "選擇令牌圖示",
   "setIconForTokenDetail": "選擇令牌「{issuer}」的圖示",
