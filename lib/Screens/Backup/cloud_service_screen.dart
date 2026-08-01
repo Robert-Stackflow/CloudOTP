@@ -16,14 +16,6 @@
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
-import 'package:cloudotp/Screens/Backup/aliyundrive_service_screen.dart';
-import 'package:cloudotp/Screens/Backup/box_service_screen.dart';
-import 'package:cloudotp/Screens/Backup/dropbox_service_screen.dart';
-import 'package:cloudotp/Screens/Backup/googledrive_service_screen.dart';
-import 'package:cloudotp/Screens/Backup/huawei_service_screen.dart';
-import 'package:cloudotp/Screens/Backup/onedrive_service_screen.dart';
-import 'package:cloudotp/Screens/Backup/s3_service_screen.dart';
-import 'package:cloudotp/Screens/Backup/webdav_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_backup_screen.dart';
 import 'package:cloudotp/Screens/Setting/setting_navigation_screen.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +26,7 @@ import '../../Database/cloud_service_config_dao.dart';
 import '../../Utils/utils.dart';
 import '../../l10n/l10n.dart';
 import '../Setting/base_setting_screen.dart';
+import 'cloud_service_detail_screen.dart';
 
 class CloudServiceScreen extends BaseSettingScreen {
   const CloudServiceScreen({
@@ -85,30 +78,10 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
   }
 
   Widget _buildServiceScreen(CloudServiceConfig config) {
-    switch (config.type) {
-      case CloudServiceType.Webdav:
-        return WebDavServiceScreen(
-          configId: config.id,
-          onTitleChanged: () => _refreshTitle(config.id),
-        );
-      case CloudServiceType.S3Cloud:
-        return S3CloudServiceScreen(
-          configId: config.id,
-          onTitleChanged: () => _refreshTitle(config.id),
-        );
-      case CloudServiceType.OneDrive:
-        return OneDriveServiceScreen(configId: config.id);
-      case CloudServiceType.Dropbox:
-        return DropboxServiceScreen(configId: config.id);
-      case CloudServiceType.GoogleDrive:
-        return GoogleDriveServiceScreen(configId: config.id);
-      case CloudServiceType.Box:
-        return BoxServiceScreen(configId: config.id);
-      case CloudServiceType.AliyunDrive:
-        return AliyunDriveServiceScreen(configId: config.id);
-      case CloudServiceType.HuaweiCloud:
-        return HuaweiCloudServiceScreen(configId: config.id);
-    }
+    return buildCloudServiceScreen(
+      config,
+      onTitleChanged: () => _refreshTitle(config.id),
+    );
   }
 
   void _refreshTitle(int configId) async {
@@ -148,7 +121,7 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
     if (!type.allowMultiple) {
       for (final existing in _configs) {
         if (existing.type == type) {
-          setState(() => _selectedConfigId = existing.id);
+          _openConfig(existing);
           return;
         }
       }
@@ -157,7 +130,23 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
     config.title = appLocalizations.cloudDefaultConfigTitle;
     await CloudServiceConfigDao.insertConfig(config);
     await _loadConfigs();
-    if (mounted) setState(() => _selectedConfigId = config.id);
+    if (mounted) _openConfig(config);
+  }
+
+  void _openConfig(CloudServiceConfig config) {
+    if (ResponsiveUtil.isLandscapeLayout()) {
+      setState(() => _selectedConfigId = config.id);
+      return;
+    }
+    RouteUtil.pushCupertinoRoute(
+      context,
+      CloudServiceDetailScreen(configId: config.id),
+      onThen: (_) {
+        if (!mounted) return;
+        _selectedConfigId = null;
+        _loadConfigs();
+      },
+    );
   }
 
   @override
@@ -391,7 +380,7 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
       color: ChewieTheme.canvasColor,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () => setState(() => _selectedConfigId = config.id),
+        onTap: () => _openConfig(config),
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.all(14),
