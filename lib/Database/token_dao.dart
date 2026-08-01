@@ -273,6 +273,12 @@ class TokenDao {
     });
   }
 
+  static Future<int> getTokenCount({DatabaseExecutor? overrideDb}) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final result = await db.rawQuery('SELECT COUNT(*) FROM $tableName');
+    return (result.first.values.first as num).toInt();
+  }
+
   static Future<List<OtpToken>> listTokensByCategoryUid(
     String categoryUid, {
     String searchKey = "",

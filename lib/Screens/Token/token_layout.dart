@@ -108,6 +108,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   late Animation<double> _wobbleAnimation;
 
   int _lastTimeStep = -1;
+  int _lastProgressPaintTimestamp = 0;
 
   SlidableController? _slidableController;
 
@@ -169,6 +170,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
     _slidableController?.dispose();
     _slidableController = null;
     tokenLayoutNotifier.dispose();
+    progressNotifier.dispose();
     super.dispose();
   }
 
@@ -208,12 +210,19 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
     _tickerSubscription?.cancel();
     _tickerSubscription = globalTokenTicker.stream.listen((_) {
       if (mounted) {
-        progressNotifier.value = currentProgress;
-        if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final remaining = remainingMilliseconds;
+        if (!ResponsiveUtil.isAndroid() ||
+            now - _lastProgressPaintTimestamp >= 200 ||
+            remaining <= 200) {
+          _lastProgressPaintTimestamp = now;
+          progressNotifier.value = currentProgress;
+        }
+        if (remaining <= 180 && appProvider.autoHideCode) {
           tokenLayoutNotifier.codeVisiable = false;
         }
         updateCode();
-        if (remainingMilliseconds <= 100) {
+        if (remaining <= 100) {
           tokenLayoutNotifier.haveToResetHOTP = true;
           tokenLayoutNotifier.code = getNextCode();
         }
@@ -879,41 +888,33 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
               width: 24,
               height: 24,
               margin: const EdgeInsets.only(left: 8, right: 4),
-              child: Stack(
-                children: [
-                  ValueListenableBuilder(
-                    valueListenable: progressNotifier,
-                    builder: (context, value, child) {
-                      return CircularProgressIndicator(
-                        value: progressNotifier.value,
+              child: ValueListenableBuilder<double>(
+                valueListenable: progressNotifier,
+                builder: (context, progress, child) {
+                  final color = progress > autoCopyNextCodeProgressThrehold
+                      ? ChewieTheme.primaryColor
+                      : Colors.red;
+                  return Stack(
+                    children: [
+                      CircularProgressIndicator(
+                        value: progress,
                         semanticsLabel: appLocalizations.tokenProgressLabel,
-                        color: progressNotifier.value >
-                                autoCopyNextCodeProgressThrehold
-                            ? ChewieTheme.primaryColor
-                            : Colors.red,
+                        color: color,
                         backgroundColor: Colors.grey.withOpacity(0.3),
                         strokeCap: StrokeCap.round,
-                      );
-                    },
-                  ),
-                  Center(
-                    child: ValueListenableBuilder(
-                      valueListenable: progressNotifier,
-                      builder: (context, value, child) {
-                        return Text(
-                          (remainingMilliseconds / 1000).toStringAsFixed(0),
+                      ),
+                      Center(
+                        child: Text(
+                          (progress * widget.token.period).toStringAsFixed(0),
                           style: ChewieTheme.bodyMedium.apply(
-                            color: currentProgress >
-                                    autoCopyNextCodeProgressThrehold
-                                ? ChewieTheme.primaryColor
-                                : Colors.red,
+                            color: color,
                             fontSizeDelta: -3,
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
     );

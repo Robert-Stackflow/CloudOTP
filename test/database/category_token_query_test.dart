@@ -36,6 +36,7 @@ void main() {
     );
 
     expect(tokens.map((token) => token.uid), ['token-a']);
+    expect(await TokenDao.getTokenCount(overrideDb: database), 2);
   });
 }
 
