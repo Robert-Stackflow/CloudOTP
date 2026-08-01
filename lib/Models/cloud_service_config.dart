@@ -113,6 +113,8 @@ enum CloudServiceType {
 }
 
 class CloudServiceConfig {
+  static const String allowInsecureWebDavHttpKey = "allow_insecure_webdav_http";
+
   int id;
   CloudServiceType type;
   String? endpoint;
@@ -142,12 +144,28 @@ class CloudServiceConfig {
     return type.allowMultiple ? "$title (${type.label})" : type.label;
   }
 
+  bool get usesInsecureWebDavHttp =>
+      type == CloudServiceType.Webdav &&
+      (endpoint?.trim().toLowerCase().startsWith("http://") ?? false);
+
+  bool get allowsInsecureWebDavHttp =>
+      remark[allowInsecureWebDavHttpKey] == true;
+
+  set allowsInsecureWebDavHttp(bool value) {
+    if (value) {
+      remark[allowInsecureWebDavHttpKey] = true;
+    } else {
+      remark.remove(allowInsecureWebDavHttpKey);
+    }
+  }
+
   Future<bool> isValid() async {
     switch (type) {
       case CloudServiceType.Webdav:
         return endpoint.notNullOrEmpty &&
             account.notNullOrEmpty &&
-            secret.notNullOrEmpty;
+            secret.notNullOrEmpty &&
+            (!usesInsecureWebDavHttp || allowsInsecureWebDavHttp);
       case CloudServiceType.GoogleDrive:
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:

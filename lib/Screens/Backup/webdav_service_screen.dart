@@ -116,9 +116,35 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
 
   void _onTitleFocusChanged() {
     if (!_titleFocusNode.hasFocus && _configInitialized) {
-      CloudServiceConfigDao.updateConfig(_webDavCloudServiceConfig!);
+      CloudServiceConfigDao.updateConfigTitle(_webDavCloudServiceConfig!);
       widget.onTitleChanged?.call();
     }
+  }
+
+  Future<bool> _confirmInsecureHttp() async {
+    if (!currentConfig.usesInsecureWebDavHttp ||
+        currentConfig.allowsInsecureWebDavHttp) {
+      return true;
+    }
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(appLocalizations.webDavServer),
+            content: Text(appLocalizations.webDavHttpWarning),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(chewieLocalizations.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(chewieLocalizations.confirm),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   @override
@@ -234,9 +260,6 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                 if (!RegexUtil.isUrlOrIp(text)) {
                   return appLocalizations.webDavServerInvalid;
                 }
-                if (text.startsWith('http://')) {
-                  return appLocalizations.webDavHttpWarning;
-                }
                 return null;
               },
               hint: appLocalizations.webDavServerHint,
@@ -292,19 +315,20 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
         background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
-          if (await isValid()) {
-            await CloudServiceConfigDao.updateConfig(currentConfig);
-            _webDavCloudService =
-                WebDavCloudService(_webDavCloudServiceConfig!);
-            try {
-              appProvider.preventLock = true;
-              await ping();
-            } catch (e, t) {
-              ILogger.error("Failed to connect to webdav", e, t);
-              IToast.show(appLocalizations.cloudConnectionError);
-            } finally {
-              appProvider.preventLock = false;
-            }
+          if (!await isValid() || !mounted) return;
+          if (!await _confirmInsecureHttp() || !mounted) return;
+          currentConfig.allowsInsecureWebDavHttp =
+              currentConfig.usesInsecureWebDavHttp;
+          await CloudServiceConfigDao.updateConfig(currentConfig);
+          _webDavCloudService = WebDavCloudService(_webDavCloudServiceConfig!);
+          try {
+            appProvider.preventLock = true;
+            await ping();
+          } catch (e, t) {
+            ILogger.error("Failed to connect to webdav", e, t);
+            IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),

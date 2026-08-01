@@ -104,12 +104,29 @@ class CloudServiceConfigDao {
     config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
     int id = await db.update(
       tableName,
-      config.toMap(),
+      {
+        'enabled': enabled ? 1 : 0,
+        'edit_timestamp': config.editTimestamp,
+      },
       where: 'id = ?',
       whereArgs: [config.id],
     );
     // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigUpdated);
     return id;
+  }
+
+  static Future<int> updateConfigTitle(CloudServiceConfig config) async {
+    final db = await DatabaseManager.getDataBase();
+    config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
+    return db.update(
+      tableName,
+      {
+        'remark': config.toMap()['remark'],
+        'edit_timestamp': config.editTimestamp,
+      },
+      where: 'id = ?',
+      whereArgs: [config.id],
+    );
   }
 
   static Future<int> deleteConfig(int id) async {
