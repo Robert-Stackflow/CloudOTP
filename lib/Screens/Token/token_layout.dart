@@ -206,7 +206,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   resetTimer() {
     tokenLayoutNotifier.haveToResetHOTP = false;
     _tickerSubscription?.cancel();
-    globalTokenTicker.start();
     _tickerSubscription = globalTokenTicker.stream.listen((_) {
       if (mounted) {
         progressNotifier.value = currentProgress;

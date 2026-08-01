@@ -108,10 +108,8 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   initCloudLogger();
   await ResponsiveUtil.init();
   await FileUtil.migrationDataToSupportDirectory();
-  final cacheSize = ResponsiveUtil.isMobile()
-      ? 256 * 1024 * 1024 // 256MB for mobile
-      : 1024 * 1024 * 1024; // 1GB for desktop
-  imageCache.maximumSizeBytes = cacheSize;
+  final cacheSize =
+      ResponsiveUtil.isMobile() ? 128 * 1024 * 1024 : 256 * 1024 * 1024;
   PaintingBinding.instance.imageCache.maximumSizeBytes = cacheSize;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await initHive();

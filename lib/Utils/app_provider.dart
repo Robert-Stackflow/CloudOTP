@@ -44,19 +44,24 @@ Queue autoBackupQueue = Queue();
 class GlobalTokenTicker {
   static final GlobalTokenTicker _instance = GlobalTokenTicker._();
   factory GlobalTokenTicker() => _instance;
-  GlobalTokenTicker._();
+  GlobalTokenTicker._() {
+    _controller = StreamController<void>.broadcast(
+      onListen: _start,
+      onCancel: _stop,
+    );
+  }
 
   Timer? _timer;
-  final StreamController<void> _controller = StreamController.broadcast();
+  late final StreamController<void> _controller;
 
   Stream<void> get stream => _controller.stream;
 
-  void start() {
+  void _start() {
     _timer ??= Timer.periodic(
         const Duration(milliseconds: 100), (_) => _controller.add(null));
   }
 
-  void stop() {
+  void _stop() {
     _timer?.cancel();
     _timer = null;
   }
