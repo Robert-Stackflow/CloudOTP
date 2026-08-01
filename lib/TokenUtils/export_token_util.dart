@@ -696,6 +696,8 @@ class ExportTokenUtil {
     }
   }
 
+  static const int _qrMetadataReserveBytes = 64;
+
   static Future<List<dynamic>?> exportToGoogleAuthentcatorQrcodes({
     bool showLoading = true,
     List<OtpToken>? selectedTokens,
@@ -709,30 +711,39 @@ class ExportTokenUtil {
     try {
       List<OtpToken> tokens = selectedTokens ?? await TokenDao.listTokens();
       OtpMigrationPayload payload = OtpMigrationPayload.create();
-      String preRes = "";
       for (OtpToken token in tokens) {
         if (!token.isGoogleAuthenticatorCompatible) {
           passCount++;
           continue;
         }
-        payload.otpParameters.add(token.toOtpMigrationParameters());
-        String currentRes = base64Encode(payload.writeToBuffer());
-        if (currentRes.bytesLength > maxBytesLength) {
-          preRes = currentRes = "";
+        final parameters = token.toOtpMigrationParameters();
+        final candidate = payload.clone()..otpParameters.add(parameters);
+        final candidateSize =
+            base64Encode(candidate.writeToBuffer()).bytesLength;
+        if (candidateSize > maxBytesLength - _qrMetadataReserveBytes &&
+            payload.otpParameters.isNotEmpty) {
           payloads.add(payload);
-          payload = OtpMigrationPayload.create();
+          payload = OtpMigrationPayload.create()..otpParameters.add(parameters);
         } else {
-          preRes = currentRes;
+          if (candidateSize > maxBytesLength - _qrMetadataReserveBytes) {
+            throw StateError('A token is too large for a single QR code');
+          }
+          payload = candidate;
         }
       }
-      if (preRes.isNotEmpty) payloads.add(payload);
+      if (payload.otpParameters.isNotEmpty) payloads.add(payload);
       int batchId = Random().nextInt(1000000000) * -1;
-      for (OtpMigrationPayload payload in payloads) {
+      for (int index = 0; index < payloads.length; index++) {
+        final payload = payloads[index];
         payload.batchSize = payloads.length;
-        payload.batchIndex = payloads.indexOf(payload);
+        payload.batchIndex = index;
         payload.batchId = batchId;
         payload.version = 1;
-        tokenQrcodes.add(base64Encode(payload.writeToBuffer()));
+        final encoded = base64Encode(payload.writeToBuffer());
+        if (encoded.bytesLength > maxBytesLength) {
+          throw StateError('QR payload exceeds the supported size');
+        }
+        tokenQrcodes.add(encoded);
       }
       tokenQrcodes = tokenQrcodes
           .map((e) =>
@@ -765,55 +776,76 @@ class ExportTokenUtil {
       //Tokens
       List<OtpToken> tokens = selectedTokens ?? await TokenDao.listTokens();
       CloudOtpTokenPayload payload = CloudOtpTokenPayload.create();
-      String preRes = "";
       for (OtpToken token in tokens) {
-        payload.tokenParameters.add(token.toCloudOtpTokenParameters());
-        String currentRes = base64Encode(payload.writeToBuffer());
-        if (currentRes.bytesLength > maxBytesLength) {
+        final parameters = token.toCloudOtpTokenParameters();
+        final candidate = payload.clone()..tokenParameters.add(parameters);
+        final candidateSize =
+            base64Encode(candidate.writeToBuffer()).bytesLength;
+        if (candidateSize > maxBytesLength - _qrMetadataReserveBytes &&
+            payload.tokenParameters.isNotEmpty) {
           payloads.add(payload);
-          preRes = currentRes = "";
-          payload = CloudOtpTokenPayload.create();
+          payload = CloudOtpTokenPayload.create()
+            ..tokenParameters.add(parameters);
         } else {
-          preRes = currentRes;
+          if (candidateSize > maxBytesLength - _qrMetadataReserveBytes) {
+            throw StateError('A token is too large for a single QR code');
+          }
+          payload = candidate;
         }
       }
-      if (preRes.isNotEmpty) payloads.add(payload);
+      if (payload.tokenParameters.isNotEmpty) payloads.add(payload);
       //Categories (skip when exporting selected tokens only)
       if (selectedTokens == null) {
         List<TokenCategory> categories = await CategoryDao.listCategories();
         TokenCategoryPayload categoryPayload = TokenCategoryPayload.create();
-        preRes = "";
         for (TokenCategory category in categories) {
           TokenCategoryParameters parameters =
               await category.toCategoryParameters();
-          categoryPayload.categoryParameters.add(parameters);
-          String currentRes = base64Encode(categoryPayload.writeToBuffer());
-          if (currentRes.bytesLength > maxBytesLength) {
+          final candidate = categoryPayload.clone()
+            ..categoryParameters.add(parameters);
+          final candidateSize =
+              base64Encode(candidate.writeToBuffer()).bytesLength;
+          if (candidateSize > maxBytesLength - _qrMetadataReserveBytes &&
+              categoryPayload.categoryParameters.isNotEmpty) {
             categoryPayloads.add(categoryPayload);
-            preRes = currentRes = "";
-            categoryPayload = TokenCategoryPayload.create();
+            categoryPayload = TokenCategoryPayload.create()
+              ..categoryParameters.add(parameters);
           } else {
-            preRes = currentRes;
+            if (candidateSize > maxBytesLength - _qrMetadataReserveBytes) {
+              throw StateError('A category is too large for a single QR code');
+            }
+            categoryPayload = candidate;
           }
         }
-        if (preRes.isNotEmpty) categoryPayloads.add(categoryPayload);
+        if (categoryPayload.categoryParameters.isNotEmpty) {
+          categoryPayloads.add(categoryPayload);
+        }
       }
-      for (CloudOtpTokenPayload payload in payloads) {
+      for (int index = 0; index < payloads.length; index++) {
+        final payload = payloads[index];
         payload.version = 1;
         payload.batchSize = payloads.length + categoryPayloads.length;
-        payload.batchIndex = payloads.indexOf(payload);
+        payload.batchIndex = index;
         payload.batchId = batchId;
+        final encoded = base64Encode(payload.writeToBuffer());
+        if (encoded.bytesLength > maxBytesLength) {
+          throw StateError('QR payload exceeds the supported size');
+        }
         qrcodes.add(
-            "cloudotpauth-migration://offline?tokens=${Uri.encodeComponent(base64Encode(payload.writeToBuffer()))}");
+            "cloudotpauth-migration://offline?tokens=${Uri.encodeComponent(encoded)}");
       }
-      for (TokenCategoryPayload payload in categoryPayloads) {
+      for (int index = 0; index < categoryPayloads.length; index++) {
+        final payload = categoryPayloads[index];
         payload.version = 1;
         payload.batchSize = payloads.length + categoryPayloads.length;
-        payload.batchIndex =
-            payloads.length + categoryPayloads.indexOf(payload);
+        payload.batchIndex = payloads.length + index;
         payload.batchId = batchId;
+        final encoded = base64Encode(payload.writeToBuffer());
+        if (encoded.bytesLength > maxBytesLength) {
+          throw StateError('QR payload exceeds the supported size');
+        }
         qrcodes.add(
-            "cloudotpauth-migration://offline?categories=${Uri.encodeComponent(base64Encode(payload.writeToBuffer()))}");
+            "cloudotpauth-migration://offline?categories=${Uri.encodeComponent(encoded)}");
       }
       return qrcodes;
     } catch (e, t) {
