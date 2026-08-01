@@ -162,11 +162,13 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
 
   @override
   Widget build(BuildContext context) {
+    final selectedConfig = canBackup ? _selectedConfig : null;
+    final canDeleteSelected = selectedConfig?.type.allowMultiple ?? false;
     return ItemBuilder.buildSettingScreen(
       context: context,
       padding: widget.padding,
       showTitleBar: widget.showTitleBar,
-      title: _selectedConfig?.displayName ??
+      title: selectedConfig?.displayName ??
           appLocalizations.cloudBackupServiceSetting,
       showBack: widget.showBack,
       titleLeftMargin: widget.showBack ? 5 : 15,
@@ -180,6 +182,15 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
       },
       overrideBody: _buildBody(),
       desktopActions: [
+        if (canDeleteSelected)
+          ToolButton(
+            context: context,
+            icon: LucideIcons.trash2,
+            buttonSize: const Size(32, 32),
+            onPressed: () => _confirmDeleteConfig(selectedConfig!),
+            tooltipPosition: TooltipPosition.bottom,
+            tooltip: appLocalizations.deleteCloudService,
+          ),
         ToolButton(
           context: context,
           icon: LucideIcons.shieldCheck,
@@ -190,6 +201,11 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
         ),
       ],
       actions: [
+        if (canDeleteSelected)
+          CircleIconButton(
+            icon: const Icon(LucideIcons.trash2, color: Colors.red),
+            onTap: () => _confirmDeleteConfig(selectedConfig!),
+          ),
         CircleIconButton(
           icon: Icon(
             LucideIcons.shieldCheck,
@@ -215,6 +231,7 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
         topPadding: 100,
       );
     }
+    if (!canBackup) return _buildBackupPasswordPlaceholder();
     final selectedConfig = _selectedConfig;
     if (selectedConfig != null) {
       return _buildConfigDetails(selectedConfig);
@@ -231,10 +248,6 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
-        if (!canBackup) ...[
-          _buildBackupPasswordBanner(),
-          const SizedBox(height: 18),
-        ],
         Text(
           appLocalizations.cloudOverviewDescription,
           style: ChewieTheme.bodyMedium.copyWith(
@@ -308,47 +321,33 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
     );
   }
 
-  Widget _buildBackupPasswordBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.orange.withAlpha(20),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.orange.withAlpha(80), width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 1),
-                child: Icon(
-                  LucideIcons.keyRound,
-                  size: 20,
-                  color: Colors.orange,
-                ),
+  Widget _buildBackupPasswordPlaceholder() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: TipBanner(
+            message: appLocalizations.notSetBackupPasswordTip,
+            customIcon: LucideIcons.keyRound,
+            padding: const EdgeInsets.all(16),
+            actionSpacing: 14,
+            action: RoundIconTextButton(
+              height: 36,
+              minHeight: 36,
+              radius: 8,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              background: ChewieTheme.primaryColor,
+              icon: const Icon(
+                LucideIcons.keyRound,
+                size: 16,
+                color: Colors.white,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  appLocalizations.haveNotSetBackupPassword,
-                  style: ChewieTheme.bodyMedium,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
+              text: appLocalizations.setAutoBackupPassword,
               onPressed: _openBackupPasswordSettings,
-              child: Text(appLocalizations.goToSetBackupPassword),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -495,42 +494,9 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
   }
 
   Widget _buildConfigDetails(CloudServiceConfig config) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Row(
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  setState(() => _selectedConfigId = null);
-                  _loadConfigs();
-                },
-                icon: const Icon(LucideIcons.chevronLeft, size: 17),
-                label: Text(appLocalizations.cloudServiceOverview),
-              ),
-              const Spacer(),
-              if (config.type.allowMultiple)
-                IconButton(
-                  onPressed: () => _confirmDeleteConfig(config),
-                  tooltip: appLocalizations.deleteCloudService,
-                  icon: const Icon(LucideIcons.trash2, size: 18),
-                ),
-            ],
-          ),
-        ),
-        if (!canBackup)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: _buildBackupPasswordBanner(),
-          ),
-        Expanded(
-          child: KeyedSubtree(
-            key: ValueKey(config.id),
-            child: _buildServiceScreen(config),
-          ),
-        ),
-      ],
+    return KeyedSubtree(
+      key: ValueKey(config.id),
+      child: _buildServiceScreen(config),
     );
   }
 }
