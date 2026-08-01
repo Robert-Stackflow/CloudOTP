@@ -819,6 +819,8 @@
   "importMergeStrategy": "合并策略",
   "importKeepLocal": "保留本地",
   "importOverwriteLocal": "覆盖本地",
+  "importPreviewSafetyTip": "请先预览并选择要恢复的内容。确认前不会写入数据，默认保留本地内容。",
+  "importOverwriteWarning": "已选中的现有项目将使用此备份中的数据更新，未选中的项目不会改变。是否继续？",
   "tokenCount": "令牌",
   "categoryCount": "分类",
   "themeEditor": "主题编辑器",

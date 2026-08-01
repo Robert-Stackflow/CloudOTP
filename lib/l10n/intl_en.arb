@@ -819,6 +819,8 @@
   "importMergeStrategy": "Merge Strategy",
   "importKeepLocal": "Keep Local",
   "importOverwriteLocal": "Overwrite Local",
+  "importPreviewSafetyTip": "Review and select the items first. Nothing changes until you confirm, and local data is kept by default.",
+  "importOverwriteWarning": "Selected existing items will be updated with data from this backup. Unselected items will remain unchanged. Continue?",
   "tokenCount": "Tokens",
   "categoryCount": "Categories",
   "themeEditor": "Theme Editor",

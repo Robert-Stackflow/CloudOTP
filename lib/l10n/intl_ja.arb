@@ -819,6 +819,8 @@
   "importMergeStrategy": "マージ方法",
   "importKeepLocal": "ローカルを保持",
   "importOverwriteLocal": "ローカルを上書き",
+  "importPreviewSafetyTip": "復元する項目を確認して選択してください。確定するまでデータは変更されず、既定ではローカルデータが保持されます。",
+  "importOverwriteWarning": "選択した既存項目は、このバックアップのデータで更新されます。選択していない項目は変更されません。続行しますか？",
   "tokenCount": "トークン",
   "categoryCount": "カテゴリ",
   "themeEditor": "テーマエディタ",

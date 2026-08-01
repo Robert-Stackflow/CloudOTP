@@ -819,6 +819,8 @@
   "importMergeStrategy": "合併策略",
   "importKeepLocal": "保留本地",
   "importOverwriteLocal": "覆蓋本地",
+  "importPreviewSafetyTip": "請先預覽並選擇要還原的內容。確認前不會寫入資料，預設保留本機內容。",
+  "importOverwriteWarning": "已選取的現有項目將使用此備份中的資料更新，未選取的項目不會改變。是否繼續？",
   "tokenCount": "令牌",
   "categoryCount": "分類",
   "themeEditor": "主題編輯器",

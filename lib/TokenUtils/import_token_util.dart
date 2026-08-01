@@ -847,10 +847,21 @@ class ImportTokenUtil {
     analysis.parseTokenFailed =
         tokenItems.where((e) => e.status == ImportTokenStatus.error).length;
     analysis.parseCategorySuccess = categoryItems.length;
+    final previewOriginalUids = tokenItems.map((e) => e.token.uid).toList();
     if (!overwriteExisting) {
-      var result = await mergeTokensAndCategories(selectedTokens, categories);
-      analysis.importTokenSuccess = result.importTokenSuccess;
-      analysis.importCategorySuccess = result.importCategorySuccess;
+      if (tokenItems.isEmpty) {
+        var result = await mergeTokensAndCategories(selectedTokens, categories);
+        analysis.importTokenSuccess = result.importTokenSuccess;
+        analysis.importCategorySuccess = result.importCategorySuccess;
+        return analysis;
+      }
+      analysis.importTokenSuccess = await mergeTokens(selectedTokens);
+      resolvePreviewCategoryBindings(
+        categories,
+        tokenItems,
+        originalTokenUids: previewOriginalUids,
+      );
+      analysis.importCategorySuccess = await mergeCategories(categories);
       return analysis;
     }
     final originalUids = selectedTokens.map((token) => token.uid).toList();
@@ -875,16 +886,27 @@ class ImportTokenUtil {
       await TokenDao.updateTokens(overwriteTokens);
       analysis.importTokenSuccess += overwriteTokens.length;
     }
-    Map<String, List<String>> uidMap = await _getResolvedUidMap(
-      selectedTokens,
-      originalUids: originalUids,
-    );
+    Map<String, List<String>> uidMap = {};
+    if (tokenItems.isNotEmpty) {
+      resolvePreviewCategoryBindings(
+        categories,
+        tokenItems,
+        originalTokenUids: previewOriginalUids,
+      );
+    } else {
+      uidMap = await _getResolvedUidMap(
+        selectedTokens,
+        originalUids: originalUids,
+      );
+    }
     List<TokenCategory> newCategories = [];
     for (var catItem in categoryItems) {
       if (!catItem.selected) continue;
       var cat = catItem.category;
-      cat.bindings =
-          cat.bindings.expand((uid) => uidMap[uid] ?? [uid]).toSet().toList();
+      if (tokenItems.isEmpty) {
+        cat.bindings =
+            cat.bindings.expand((uid) => uidMap[uid] ?? [uid]).toSet().toList();
+      }
       if (!catItem.isNew && catItem.existingCategory != null) {
         TokenCategory existing = catItem.existingCategory!;
         existing.pinned = cat.pinned;
@@ -902,6 +924,38 @@ class ImportTokenUtil {
     }
     homeScreenState?.refresh();
     return analysis;
+  }
+
+  static void resolvePreviewCategoryBindings(
+    List<TokenCategory> categories,
+    List<ImportTokenItem> tokenItems, {
+    List<String>? originalTokenUids,
+  }) {
+    if (tokenItems.isEmpty) return;
+    final resolvedUids = <String, Set<String>>{};
+    for (int index = 0; index < tokenItems.length; index++) {
+      final item = tokenItems[index];
+      final originalUid =
+          originalTokenUids != null && index < originalTokenUids.length
+              ? originalTokenUids[index]
+              : item.token.uid;
+      String? resolvedUid;
+      if (item.status == ImportTokenStatus.duplicate &&
+          item.existingToken != null) {
+        resolvedUid = item.existingToken!.uid;
+      } else if (item.status == ImportTokenStatus.ready && item.selected) {
+        resolvedUid = item.token.uid;
+      }
+      if (resolvedUid != null && resolvedUid.isNotEmpty) {
+        resolvedUids.putIfAbsent(originalUid, () => {}).add(resolvedUid);
+      }
+    }
+    for (final category in categories) {
+      category.bindings = category.bindings
+          .expand((uid) => resolvedUids[uid] ?? const <String>{})
+          .toSet()
+          .toList();
+    }
   }
 }
 
