@@ -269,6 +269,10 @@ class _AliyunDriveServiceScreenState
                 try {
                   List<AliyunDriveFileInfo>? files =
                       await _aliyunDriveCloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -276,6 +280,10 @@ class _AliyunDriveServiceScreenState
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _aliyunDriveCloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>
                       b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
@@ -298,6 +306,10 @@ class _AliyunDriveServiceScreenState
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),
@@ -343,6 +355,7 @@ class _AliyunDriveServiceScreenState
                   CustomLoadingDialog.showLoading(
                       title: appLocalizations.cloudLoggingOut);
                   await _aliyunDriveCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _aliyunDriveCloudServiceConfig!.connected = false;
                     _aliyunDriveCloudServiceConfig!.account = "";

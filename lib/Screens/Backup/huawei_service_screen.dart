@@ -279,6 +279,10 @@ class _HuaweiCloudServiceScreenState
                 try {
                   List<HuaweiCloudFileInfo>? files =
                       await _huaweiCloudCloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -286,6 +290,10 @@ class _HuaweiCloudServiceScreenState
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _huaweiCloudCloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>
                       b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
@@ -308,6 +316,10 @@ class _HuaweiCloudServiceScreenState
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),
@@ -351,6 +363,7 @@ class _HuaweiCloudServiceScreenState
                     message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   await _huaweiCloudCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _huaweiCloudCloudServiceConfig!.connected = false;
                     _huaweiCloudCloudServiceConfig!.account = "";

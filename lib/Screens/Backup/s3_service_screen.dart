@@ -359,6 +359,10 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
                 try {
                   List<S3CloudFileInfo>? files =
                       await _s3CloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -366,6 +370,10 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _s3CloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort(
                       (a, b) => b.modifyTimestamp.compareTo(a.modifyTimestamp));
@@ -387,6 +395,10 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),

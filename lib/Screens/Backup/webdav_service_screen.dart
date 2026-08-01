@@ -328,6 +328,10 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                 try {
                   List<WebDavFileInfo>? files =
                       await _webDavCloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -335,6 +339,10 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _webDavCloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
                   if (files.isNotEmpty) {
@@ -356,6 +364,10 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),

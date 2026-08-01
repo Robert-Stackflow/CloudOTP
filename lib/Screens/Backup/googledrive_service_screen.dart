@@ -269,6 +269,10 @@ class _GoogleDriveServiceScreenState
                 try {
                   List<GoogleDriveFileInfo>? files =
                       await _googledriveCloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -276,6 +280,10 @@ class _GoogleDriveServiceScreenState
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _googledriveCloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>
                       b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
@@ -298,6 +306,10 @@ class _GoogleDriveServiceScreenState
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),
@@ -341,6 +353,7 @@ class _GoogleDriveServiceScreenState
                     message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   await _googledriveCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _googledriveCloudServiceConfig!.connected = false;
                     _googledriveCloudServiceConfig!.account = "";

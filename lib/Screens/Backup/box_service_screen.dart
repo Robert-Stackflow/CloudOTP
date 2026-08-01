@@ -283,6 +283,10 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
                 try {
                   List<BoxFileInfo>? files =
                       await _boxCloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -290,6 +294,10 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _boxCloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>
                       b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
@@ -311,6 +319,10 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),
@@ -356,6 +368,7 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
                   CustomLoadingDialog.showLoading(
                       title: appLocalizations.cloudLoggingOut);
                   await _boxCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _boxCloudServiceConfig!.connected = false;
                     _boxCloudServiceConfig!.account = "";

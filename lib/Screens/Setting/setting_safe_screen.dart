@@ -187,10 +187,12 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
                       passord,
                       clearStoredDefault: true,
                     );
+                    if (!mounted) return;
                     if (res) {
                       IToast.showTop(appLocalizations.editSuccess);
                       await CloudOTPHiveUtil.setEncryptDatabaseStatus(
                           EncryptDatabaseStatus.customPassword);
+                      if (!mounted) return;
                       setState(() {
                         _encryptDatabaseStatus =
                             EncryptDatabaseStatus.customPassword;
@@ -199,6 +201,7 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
                         _allowDatabaseBiometric =
                             await BiometricUtil.setDatabasePassword(
                                 appProvider.currentDatabasePassword);
+                        if (!mounted) return;
                         setState(() {});
                         ChewieHiveUtil.put(
                             CloudOTPHiveUtil.allowDatabaseBiometricKey,
@@ -224,9 +227,11 @@ class _SafeSettingScreenState extends BaseDynamicState<SafeSettingScreen>
                 message: appLocalizations.clearEncryptDatabasePasswordTip,
                 onTapConfirm: () async {
                   bool res = await DatabaseManager.resetToDefaultPassword();
+                  if (!mounted) return;
                   if (res) {
                     await CloudOTPHiveUtil.setEncryptDatabaseStatus(
                         EncryptDatabaseStatus.defaultPassword);
+                    if (!mounted) return;
                     setState(() {
                       _encryptDatabaseStatus =
                           EncryptDatabaseStatus.defaultPassword;

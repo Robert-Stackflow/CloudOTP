@@ -271,6 +271,10 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
                 try {
                   List<DropboxFileInfo>? files =
                       await _dropboxCloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -278,6 +282,10 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _dropboxCloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>
                       b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
@@ -300,6 +308,10 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),
@@ -345,6 +357,7 @@ class _DropboxServiceScreenState extends BaseDynamicState<DropboxServiceScreen>
                   CustomLoadingDialog.showLoading(
                       title: appLocalizations.cloudLoggingOut);
                   await _dropboxCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _dropboxCloudServiceConfig!.connected = false;
                     _dropboxCloudServiceConfig!.account = "";

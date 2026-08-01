@@ -279,6 +279,10 @@ class _OneDriveServiceScreenState
                 try {
                   List<OneDriveFileInfo>? files =
                       await _oneDriveCloudService!.listBackups();
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   if (files == null) {
                     CustomLoadingDialog.dismissLoading();
                     IToast.show(appLocalizations.cloudPullFailed);
@@ -286,6 +290,10 @@ class _OneDriveServiceScreenState
                   }
                   await CloudServiceConfigDao.updateLastPullTime(
                       _oneDriveCloudServiceConfig!);
+                  if (!mounted) {
+                    CustomLoadingDialog.dismissLoading();
+                    return;
+                  }
                   CustomLoadingDialog.dismissLoading();
                   files.sort((a, b) =>
                       b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
@@ -308,6 +316,10 @@ class _OneDriveServiceScreenState
                               dialog.updateProgress(progress: c / t);
                             },
                           );
+                          if (!mounted) {
+                            dialog.dismiss();
+                            return;
+                          }
                           ImportTokenUtil.importFromCloud(context, res, dialog);
                         },
                       ),
@@ -353,6 +365,7 @@ class _OneDriveServiceScreenState
                   CustomLoadingDialog.showLoading(
                       title: appLocalizations.cloudLoggingOut);
                   await _oneDriveCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _oneDriveCloudServiceConfig!.connected = false;
                     _oneDriveCloudServiceConfig!.account = "";
