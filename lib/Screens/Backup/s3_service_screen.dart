@@ -22,6 +22,8 @@ import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:flutter/material.dart';
 
+import 'cloud_service_ui_helper.dart';
+
 import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../TokenUtils/Cloud/s3_cloud_service.dart';
@@ -155,32 +157,32 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.authenticate().then((value) {
-      setState(() {
-        currentConfig.connected = value.isSuccess;
-      });
-      if (!currentConfig.connected) {
-        String toast;
-        switch (value.type) {
-          case CloudServiceStatusType.connectionError:
-            toast = appLocalizations.cloudConnectionError;
-            break;
-          case CloudServiceStatusType.unauthorized:
-            toast = appLocalizations.cloudUnauthorized;
-            break;
-          default:
-            toast = appLocalizations.cloudUnknownError;
-            break;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.authenticate().then((value) {
+        setState(() {
+          currentConfig.connected = value.isSuccess;
+        });
+        if (!currentConfig.connected) {
+          String toast;
+          switch (value.type) {
+            case CloudServiceStatusType.connectionError:
+              toast = appLocalizations.cloudConnectionError;
+              break;
+            case CloudServiceStatusType.unauthorized:
+              toast = appLocalizations.cloudUnauthorized;
+              break;
+            default:
+              toast = appLocalizations.cloudUnknownError;
+              break;
+          }
+          IToast.show(
+              value.message != null ? "$toast: ${value.message}" : toast);
+        } else {
+          if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
         }
-        IToast.show(value.message != null ? "$toast: ${value.message}" : toast);
-      } else {
-        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+      }),
+    );
   }
 
   _buildBody() {

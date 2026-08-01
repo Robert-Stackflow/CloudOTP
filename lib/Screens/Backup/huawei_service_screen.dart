@@ -20,6 +20,8 @@ import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
+
+import 'cloud_service_ui_helper.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
@@ -141,44 +143,43 @@ class _HuaweiCloudServiceScreenState
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.checkServer().then((value) async {
-      if (!value) {
-        IToast.show(appLocalizations
-            .cloudOAuthUnavailable(CloudService.serverEndpoint));
-      } else {
-        await currentService.authenticate().then((value) async {
-          setState(() {
-            currentConfig.connected = value.isSuccess;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.checkServer().then((value) async {
+        if (!value) {
+          IToast.show(appLocalizations
+              .cloudOAuthUnavailable(CloudService.serverEndpoint));
+        } else {
+          await currentService.authenticate().then((value) async {
+            setState(() {
+              currentConfig.connected = value.isSuccess;
+            });
+            if (!currentConfig.connected) {
+              String toast;
+              switch (value.type) {
+                case CloudServiceStatusType.connectionError:
+                  toast = appLocalizations.cloudConnectionError;
+                  break;
+                case CloudServiceStatusType.unauthorized:
+                  toast = appLocalizations.cloudOauthFailed;
+                  break;
+                default:
+                  toast = appLocalizations.cloudUnknownError;
+                  break;
+              }
+              IToast.show(
+                  value.message != null ? "$toast: ${value.message}" : toast);
+            } else {
+              _huaweiCloudCloudServiceConfig!.configured = true;
+              updateConfig(_huaweiCloudCloudServiceConfig!);
+              if (showSuccessToast) {
+                IToast.show(appLocalizations.cloudAuthSuccess);
+              }
+            }
           });
-          if (!currentConfig.connected) {
-            String toast;
-            switch (value.type) {
-              case CloudServiceStatusType.connectionError:
-                toast = appLocalizations.cloudConnectionError;
-                break;
-              case CloudServiceStatusType.unauthorized:
-                toast = appLocalizations.cloudOauthFailed;
-                break;
-              default:
-                toast = appLocalizations.cloudUnknownError;
-                break;
-            }
-            IToast.show(
-                value.message != null ? "$toast: ${value.message}" : toast);
-          } else {
-            _huaweiCloudCloudServiceConfig!.configured = true;
-            updateConfig(_huaweiCloudCloudServiceConfig!);
-            if (showSuccessToast) {
-              IToast.show(appLocalizations.cloudAuthSuccess);
-            }
-          }
-        });
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+        }
+      }),
+    );
   }
 
   _buildBody() {
