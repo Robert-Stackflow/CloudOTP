@@ -1200,6 +1200,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   _buildMobileBody() {
     return NestedScrollView(
       controller: _nestScrollController,
+      floatHeaderSlivers: true,
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [_buildMobileAppbar()];
       },
@@ -1751,17 +1752,38 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       indicator: UnderlinedTabIndicator(borderColor: ChewieTheme.primaryColor),
       onTap: (index) {
         if (_multiSelectMode) exitMultiSelectMode();
-        if (_nestScrollController.hasClients) {
-          _nestScrollController.jumpTo(0);
-        }
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(0);
-        }
         _currentTabIndex = index;
-        unawaited(getTokens());
         CloudOTPHiveUtil.setSelectedCategoryUid(currentCategoryUid);
+        unawaited(_loadSelectedCategory(index));
       },
     );
+  }
+
+  Future<void> _loadSelectedCategory(int index) async {
+    final generation = _tokenLoadGeneration + 1;
+    await getTokens();
+    if (!mounted ||
+        index != _currentTabIndex ||
+        generation != _tokenLoadGeneration) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          index != _currentTabIndex ||
+          generation != _tokenLoadGeneration) {
+        return;
+      }
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+      }
+      if (_nestScrollController.hasClients) {
+        _nestScrollController
+            .jumpTo(_nestScrollController.position.minScrollExtent);
+      }
+      _fabScrollToHideController.show();
+      _bottombarScrollToHideController.show();
+    });
   }
 
   _buildTab(TokenCategory? category) {
