@@ -659,6 +659,8 @@
   "tokenIssuerHint": "应用名称",
   "tokenAccount": "帐户",
   "tokenAccountHint": "帐户名称或邮箱",
+  "tokenRemark": "备注",
+  "tokenRemarkHint": "可选备注，也可用于搜索",
   "tokenSecret": "密钥",
   "tokenSecretHint": "Base32编码的密钥",
   "tokenPin": "PIN",

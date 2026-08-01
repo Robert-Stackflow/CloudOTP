@@ -659,6 +659,8 @@
   "tokenIssuerHint": "Issuer name",
   "tokenAccount": "Account",
   "tokenAccountHint": "Account name or email",
+  "tokenRemark": "Note",
+  "tokenRemarkHint": "Optional note, also available in search",
   "tokenSecret": "Secret key",
   "tokenSecretHint": "Base32 encoded secret key",
   "tokenPin": "PIN",

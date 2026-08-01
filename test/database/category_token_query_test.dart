@@ -38,9 +38,34 @@ void main() {
     expect(tokens.map((token) => token.uid), ['token-a']);
     expect(await TokenDao.getTokenCount(overrideDb: database), 2);
   });
+
+  test('token search includes notes', () async {
+    await database.insert(
+      'otp_token',
+      _token(
+        'token-note',
+        1,
+        'user@example.com',
+        description: 'Recovery phone is in the safe',
+      ),
+    );
+
+    final tokens = await TokenDao.listTokens(
+      searchKey: 'recovery phone',
+      overrideDb: database,
+    );
+
+    expect(tokens.map((token) => token.uid), ['token-note']);
+  });
 }
 
-Map<String, Object> _token(String uid, int seq, String account) => {
+Map<String, Object> _token(
+  String uid,
+  int seq,
+  String account, {
+  String description = '',
+}) =>
+    {
       'uid': uid,
       'seq': seq,
       'issuer': 'Issuer',
@@ -59,6 +84,6 @@ Map<String, Object> _token(String uid, int seq, String account) => {
       'copy_times': 0,
       'last_copy_timestamp': 0,
       'pin': '',
-      'description': '',
+      'description': description,
       'tags': '',
     };

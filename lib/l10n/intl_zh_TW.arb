@@ -659,6 +659,8 @@
   "tokenIssuerHint": "套用名稱",
   "tokenAccount": "帳戶",
   "tokenAccountHint": "帳戶名稱或郵件信箱",
+  "tokenRemark": "備註",
+  "tokenRemarkHint": "選填備註，也可用於搜尋",
   "tokenSecret": "密鑰",
   "tokenSecretHint": "Base32編碼的金鑰",
   "tokenPin": "PIN",

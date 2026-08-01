@@ -50,6 +50,7 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
   final TextEditingController _issuerController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _secretController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _periodController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
   final TextEditingController _counterController = TextEditingController();
@@ -97,6 +98,7 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
     _issuerController.text = _otpToken.issuer;
     _accountController.text = _otpToken.account;
     _secretController.text = _otpToken.secret;
+    _descriptionController.text = _otpToken.description;
     _pinController.text = _otpToken.pin;
     _periodController.text = _otpToken.period.toString();
     _counterController.text = _otpToken.counter.toString();
@@ -117,6 +119,9 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
     _secretController.addListener(() {
       _otpToken.secret = _secretController.text;
     });
+    _descriptionController.addListener(() {
+      _otpToken.description = _descriptionController.text;
+    });
     _pinController.addListener(() {
       _otpToken.pin = _pinController.text;
     });
@@ -127,6 +132,18 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
       _otpToken.counterString = _counterController.text;
     });
     getCategories();
+  }
+
+  @override
+  void dispose() {
+    _issuerController.dispose();
+    _accountController.dispose();
+    _secretController.dispose();
+    _descriptionController.dispose();
+    _periodController.dispose();
+    _pinController.dispose();
+    _counterController.dispose();
+    super.dispose();
   }
 
   getCategories() async {
@@ -380,6 +397,20 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
               }
               return null;
             },
+          ),
+          InputItem(
+            controller: _descriptionController,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            title: appLocalizations.tokenRemark,
+            hint: appLocalizations.tokenRemarkHint,
+            style: InputItemStyle(
+              topMargin: 0,
+              bottomMargin: 0,
+              maxLength: 500,
+              minLines: 1,
+              maxLines: 3,
+            ),
           ),
           Visibility(
             visible: isMotp || isYandex,

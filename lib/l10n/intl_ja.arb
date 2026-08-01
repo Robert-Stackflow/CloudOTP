@@ -659,6 +659,8 @@
   "tokenIssuerHint": "アプリケーション名",
   "tokenAccount": "アカウント",
   "tokenAccountHint": "アカウント名またはメールアドレス",
+  "tokenRemark": "メモ",
+  "tokenRemarkHint": "任意のメモ（検索対象になります）",
   "tokenSecret": "キー",
   "tokenSecretHint": "Base32エンコードされたキー",
   "tokenPin": "PIN",
