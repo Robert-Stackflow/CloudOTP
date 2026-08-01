@@ -18,7 +18,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:awesome_cloud/awesome_cloud.dart';
+import 'package:awesome_cloud/awesome_cloud.dart' show CloudLogger;
 import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Screens/Lock/database_decrypt_screen.dart';
 import 'package:cloudotp/Screens/Lock/pin_verify_screen.dart';
@@ -52,7 +52,17 @@ const List<String> kWindowsSchemes = ["cloudotp", "com.cloudchewie.cloudotp"];
 const String kWindowSingleInstanceName = "cloudotp_singleinstance";
 
 Future<void> main(List<String> args) async {
-  runMyApp(args);
+  final appFuture = runZonedGuarded<Future<void>>(
+    () async {
+      FlutterError.onError = onFlutterError;
+      ui.PlatformDispatcher.instance.onError = onPlatformError;
+      await runMyApp(args);
+    },
+    (error, stackTrace) {
+      unawaited(writeErrorLog(error, stackTrace));
+    },
+  );
+  if (appFuture != null) await appFuture;
 }
 
 Future<void> runMyApp(List<String> args) async {
@@ -98,7 +108,6 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   initCloudLogger();
   await ResponsiveUtil.init();
   await FileUtil.migrationDataToSupportDirectory();
-  FlutterError.onError = onError;
   final cacheSize = ResponsiveUtil.isMobile()
       ? 256 * 1024 * 1024 // 256MB for mobile
       : 1024 * 1024 * 1024; // 1GB for desktop
@@ -216,20 +225,45 @@ Future<void> initDisplayMode() async {
   await FlutterDisplayMode.setPreferredMode(await FlutterDisplayMode.preferred);
 }
 
-Future<void> onError(FlutterErrorDetails details) async {
-  File errorFile = File(join(await FileUtil.getLogDir(), "error.log"));
-  if (!errorFile.existsSync()) errorFile.createSync();
-  final currentTime = DateTime.now().toIso8601String();
-  final errorDetails = [
-    'Time: $currentTime',
-    'Exception: ${details.exception}',
-    'Stack trace:\n${details.stack ?? 'No stack trace available'}',
-    'Library: ${details.library ?? 'Unknown library'}',
-    'Context: ${details.context?.toDescription() ?? 'No context available'}',
-  ].join('\n');
-  errorFile.writeAsStringSync('$errorDetails\n\n', mode: FileMode.append);
-  if (details.stack != null) {
-    Zone.current.handleUncaughtError(details.exception, details.stack!);
+void onFlutterError(FlutterErrorDetails details) {
+  FlutterError.presentError(details);
+  unawaited(writeErrorLog(
+    details.exception,
+    details.stack ?? StackTrace.current,
+    library: details.library,
+    context: details.context?.toDescription(),
+  ));
+}
+
+bool onPlatformError(Object error, StackTrace stackTrace) {
+  unawaited(writeErrorLog(error, stackTrace));
+  return true;
+}
+
+Future<void> writeErrorLog(
+  Object error,
+  StackTrace stackTrace, {
+  String? library,
+  String? context,
+}) async {
+  try {
+    final errorFile = File(join(await FileUtil.getLogDir(), 'error.log'));
+    await errorFile.parent.create(recursive: true);
+    final errorDetails = [
+      'Time: ${DateTime.now().toIso8601String()}',
+      'Exception: ${CloudLogger.redactForLogging(error.toString())}',
+      'Stack trace:\n${CloudLogger.redactForLogging(stackTrace.toString())}',
+      'Library: ${library ?? 'Unknown library'}',
+      'Context: ${context ?? 'No context available'}',
+    ].join('\n');
+    await errorFile.writeAsString(
+      '$errorDetails\n\n',
+      mode: FileMode.append,
+      flush: true,
+    );
+  } catch (loggingError, loggingStack) {
+    debugPrint('Failed to persist application error: $loggingError');
+    debugPrintStack(stackTrace: loggingStack);
   }
 }
 
