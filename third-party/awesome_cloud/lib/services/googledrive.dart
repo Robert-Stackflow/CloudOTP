@@ -289,7 +289,7 @@ class GoogleDrive extends BaseCloudService {
       );
 
       if (res.id == null) {
-        CloudLogger.error(serviceName, "Upload failed: ${res.toJson()}");
+        CloudLogger.error(serviceName, "Upload failed: response id is missing");
         return GoogleDriveResponse.error(message: "Upload failed.");
       }
       CloudLogger.info(

@@ -88,8 +88,8 @@ class BaseCloudResponse<U extends BaseCloudUserInfo,
   String toString() {
     return "BaseResponse("
         "statusCode: $statusCode, "
-        "body: $body, "
-        "bodyBytes: $bodyBytes, "
+        "bodyLength: ${body?.length ?? 0}, "
+        "bodyBytesLength: ${bodyBytes?.length ?? 0}, "
         "message: $message, "
         "isSuccess: $isSuccess"
         ")";

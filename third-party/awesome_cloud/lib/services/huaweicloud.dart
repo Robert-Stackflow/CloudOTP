@@ -300,7 +300,8 @@ class HuaweiCloud extends BaseCloudService {
       var pushUri =
           Uri.parse("$uploadApiEndpoint?uploadType=multipart&fields=*");
 
-      var boundary = 'dart-boundary-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(0x7fffffff).toRadixString(36)}';
+      var boundary =
+          'dart-boundary-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(0x7fffffff).toRadixString(36)}';
       final accessToken = await checkToken();
       var headers = {
         "Authorization": "Bearer $accessToken",
@@ -342,7 +343,8 @@ class HuaweiCloud extends BaseCloudService {
           message: "Upload finished.",
         );
       } else {
-        CloudLogger.error(serviceName, "Upload failed: $body");
+        CloudLogger.error(
+            serviceName, "Upload failed with status ${resp.statusCode}");
         return HuaweiCloudResponse.error(
           statusCode: resp.statusCode,
           body: body,

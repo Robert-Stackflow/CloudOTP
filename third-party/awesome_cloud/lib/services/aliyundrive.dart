@@ -99,7 +99,7 @@ class AliyunDriveCloud extends BaseCloudService {
         "space": spaceInfo,
       };
 
-      CloudLogger.info(serviceName, "AliyunDrive full user info: $fullInfo");
+      CloudLogger.info(serviceName, "AliyunDrive user info loaded");
 
       return AliyunDriveResponse.success(
         userInfo: AliyunDriveUserInfo.fromJson(fullInfo),
