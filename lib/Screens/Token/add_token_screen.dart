@@ -185,6 +185,7 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
+      resizeToAvoidBottomInset: false,
       appBar: ResponsiveAppBar(
         title:
             _isEditing ? appLocalizations.editToken : appLocalizations.addToken,
@@ -287,6 +288,7 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
               if (_isEditing) _copyTimesInfo(),
               if (_isEditing) ..._deleteButton(),
               SizedBox(height: _isEditing ? 0 : 30),
+              const _KeyboardInsetSpacer(),
             ],
           ),
         ),
@@ -735,5 +737,14 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
       ),
       const SizedBox(height: 20),
     ];
+  }
+}
+
+class _KeyboardInsetSpacer extends StatelessWidget {
+  const _KeyboardInsetSpacer();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(height: MediaQuery.viewInsetsOf(context).bottom);
   }
 }
