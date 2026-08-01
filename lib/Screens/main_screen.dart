@@ -1489,7 +1489,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
 
   @override
   Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
-    Utils.processTrayMenuItemClick(context, menuItem, false);
+    await Utils.processTrayMenuItemClick(context, menuItem, false);
   }
 
   @override
