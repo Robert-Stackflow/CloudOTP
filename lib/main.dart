@@ -133,13 +133,6 @@ Future<void> initHive() async {
   } catch (e, t) {
     ILogger.error("Failed to init database", e, t);
     await DatabaseManager.resetDatabase();
-    if (DatabaseManager.lib != null) {
-      CloudOTPHiveUtil.setEncryptDatabaseStatus(
-          EncryptDatabaseStatus.customPassword);
-    } else {
-      CloudOTPHiveUtil.setEncryptDatabaseStatus(
-          EncryptDatabaseStatus.defaultPassword);
-    }
   }
 }
 

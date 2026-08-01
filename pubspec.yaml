@@ -42,6 +42,8 @@ dependencies:
   archive: ^4.0.0 # 压缩
   hive: ^4.0.0-dev.2 # 轻量存储
   isar_flutter_libs: ^4.0.0-dev.13
+  sqflite: ^2.3.3
+  sqflite_common_ffi: ^2.3.3
   sqflite_sqlcipher: 3.1.0+1 # SQLite加密
   sqlite3: 2.7.5 # SQLite
   # 网络
@@ -107,7 +109,6 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   json_serializable: ^6.7.1
   msix: ^3.16.7
-  sqflite_common_ffi: ^2.3.3
   flutter_launcher_icons: ^0.13.1
   intl_translation: ^0.20.1
 

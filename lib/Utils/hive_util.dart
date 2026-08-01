@@ -206,6 +206,8 @@ class CloudOTPHiveUtil {
 
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   static const String _secureDbPasswordKey = 'cloudotp_db_password';
+  static const String _pendingSecureDbPasswordKey =
+      'cloudotp_db_password_pending';
 
   static String generateDatabasePassword() {
     final random = Random.secure();
@@ -225,6 +227,60 @@ class CloudOTPHiveUtil {
 
   static Future<void> saveDatabasePassword(String password) async {
     await _writeAndVerifySecurePassword(password);
+    try {
+      await ChewieHiveUtil.delete(defaultDatabasePasswordKey);
+    } catch (e, t) {
+      ILogger.warning(
+        'Secure database password was saved, but legacy cleanup was deferred',
+        e,
+        t,
+      );
+    }
+  }
+
+  static Future<void> stageDatabasePassword(String password) async {
+    await _secureStorage.write(
+      key: _pendingSecureDbPasswordKey,
+      value: password,
+    );
+    final persisted =
+        await _secureStorage.read(key: _pendingSecureDbPasswordKey);
+    if (persisted != password) {
+      throw const DatabasePasswordStorageException(
+        'Pending database password could not be verified in secure storage.',
+      );
+    }
+  }
+
+  static Future<String?> getPendingDatabasePassword() async {
+    return _secureStorage.read(key: _pendingSecureDbPasswordKey);
+  }
+
+  static Future<void> promotePendingDatabasePassword() async {
+    final pending = await getPendingDatabasePassword();
+    if (pending == null || pending.isEmpty) {
+      throw const DatabasePasswordStorageException(
+        'Pending database password is missing.',
+      );
+    }
+    await saveDatabasePassword(pending);
+    try {
+      await clearPendingDatabasePassword();
+    } catch (e, t) {
+      ILogger.warning(
+        'Database password was promoted, but pending-key cleanup was deferred',
+        e,
+        t,
+      );
+    }
+  }
+
+  static Future<void> clearPendingDatabasePassword() async {
+    await _secureStorage.delete(key: _pendingSecureDbPasswordKey);
+  }
+
+  static Future<void> clearDefaultDatabasePassword() async {
+    await _secureStorage.delete(key: _secureDbPasswordKey);
     await ChewieHiveUtil.delete(defaultDatabasePasswordKey);
   }
 
