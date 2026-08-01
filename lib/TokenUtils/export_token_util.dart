@@ -20,6 +20,7 @@ import 'dart:math';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/auto_backup_log_dao.dart';
 import 'package:cloudotp/Database/category_dao.dart';
+import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
@@ -34,6 +35,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../Database/cloud_service_config_dao.dart';
 import '../Database/config_dao.dart';
@@ -46,6 +48,57 @@ import 'Backup/backup_encrypt_interface.dart';
 import 'Cloud/cloud_service.dart';
 
 class ExportTokenUtil {
+  static Future<Backup> createBackupSnapshot({Database? overrideDb}) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    return db.transaction((transaction) async {
+      final tokens = await TokenDao.listTokens(overrideDb: transaction);
+      final categories =
+          await CategoryDao.listCategories(overrideDb: transaction);
+      final bindings = await BindingDao.listBindings(overrideDb: transaction);
+      final bindingsByCategory = <String, List<String>>{};
+      for (final binding in bindings) {
+        if (!StringUtil.isUid(binding.tokenUid)) continue;
+        bindingsByCategory
+            .putIfAbsent(binding.categoryUid, () => [])
+            .add(binding.tokenUid);
+      }
+      for (final category in categories) {
+        category.bindings = bindingsByCategory[category.uid] ?? [];
+      }
+      return Backup(tokens: tokens, categories: categories);
+    });
+  }
+
+  static Future<List<TokenCategory>> createCategorySnapshotForTokens(
+    Set<String> tokenUids, {
+    Database? overrideDb,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    return db.transaction((transaction) async {
+      var categories = await CategoryDao.listCategories(
+        overrideDb: transaction,
+      );
+      final bindings = await BindingDao.listBindings(
+        overrideDb: transaction,
+      );
+      final bindingsByCategory = <String, List<String>>{};
+      for (final binding in bindings) {
+        if (!tokenUids.contains(binding.tokenUid)) continue;
+        bindingsByCategory
+            .putIfAbsent(binding.categoryUid, () => [])
+            .add(binding.tokenUid);
+      }
+      categories = categories
+          .where((category) =>
+              bindingsByCategory[category.uid]?.isNotEmpty ?? false)
+          .toList();
+      for (final category in categories) {
+        category.bindings = bindingsByCategory[category.uid]!;
+      }
+      return categories;
+    });
+  }
+
   static Future<File> writeBackupAtomically(
     File destination,
     Uint8List data,
@@ -177,16 +230,8 @@ class ExportTokenUtil {
   }) async {
     try {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
-      List<OtpToken> tokens = await TokenDao.listTokens();
-      List<TokenCategory> categories = await CategoryDao.listCategories();
-      for (TokenCategory category in categories) {
-        category.bindings = await BindingDao.getTokenUids(category.uid);
-      }
+      final backup = await createBackupSnapshot();
       return await compute((_) async {
-        Backup backup = Backup(
-          tokens: tokens,
-          categories: categories,
-        );
         BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
         Uint8List encryptedData =
             await backupEncryption.encrypt(backup, tmpPassword);
@@ -207,18 +252,8 @@ class ExportTokenUtil {
   }) async {
     try {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
-      List<TokenCategory> categories = await CategoryDao.listCategories();
-      for (TokenCategory category in categories) {
-        category.bindings = await BindingDao.getTokenUids(category.uid);
-      }
       Set<String> tokenUids = tokens.map((t) => t.uid).toSet();
-      categories = categories.where((c) {
-        return c.bindings.any((uid) => tokenUids.contains(uid));
-      }).toList();
-      for (var c in categories) {
-        c.bindings =
-            c.bindings.where((uid) => tokenUids.contains(uid)).toList();
-      }
+      final categories = await createCategorySnapshotForTokens(tokenUids);
       return await compute((_) async {
         Backup backup = Backup(
           tokens: tokens,

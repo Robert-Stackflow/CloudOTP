@@ -227,8 +227,10 @@ class BindingDao {
     return uids.toSet().toList();
   }
 
-  static Future<List<TokenCategoryBinding>> listBindings() async {
-    final db = await DatabaseManager.getDataBase();
+  static Future<List<TokenCategoryBinding>> listBindings({
+    DatabaseExecutor? overrideDb,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     List<Map<String, dynamic>> maps = await db.query(tableName);
     return List.generate(maps.length, (i) {
       return TokenCategoryBinding.fromMap(maps[i]);
