@@ -452,7 +452,12 @@ class ExportTokenUtil {
     bool showToast = false,
     Uint8List? encryptedData,
   }) async {
-    if (!await CloudOTPHiveUtil.canBackup()) return;
+    if (!await CloudOTPHiveUtil.canBackup()) {
+      if (showToast) {
+        IToast.showTop(appLocalizations.haveNotSetBackupPassword);
+      }
+      return;
+    }
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: appLocalizations.backuping);
     }
@@ -495,7 +500,12 @@ class ExportTokenUtil {
     required CloudServiceConfig config,
     required CloudService cloudService,
   }) async {
-    if (!await CloudOTPHiveUtil.canBackup()) return;
+    if (!await CloudOTPHiveUtil.canBackup()) {
+      if (showToast) {
+        IToast.showTop(appLocalizations.haveNotSetBackupPassword);
+      }
+      return;
+    }
     ProgressDialog? dialog;
     if (showLoading) {
       dialog = showProgressDialog(

@@ -206,63 +206,6 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
   }
 
   _buildBody() {
-    if (!canBackup) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: ChewieTheme.primaryColor.withAlpha(20),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  LucideIcons.keyRound,
-                  size: 26,
-                  color: ChewieTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                appLocalizations.haveNotSetBackupPassword,
-                style: ChewieTheme.bodyMedium.copyWith(
-                  color: ChewieTheme.bodyMedium.color?.withAlpha(150),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              RoundIconTextButton(
-                height: 38,
-                text: appLocalizations.goToSetBackupPassword,
-                background: ChewieTheme.primaryColor,
-                onPressed: () {
-                  if (ResponsiveUtil.isLandscapeLayout()) {
-                    RouteUtil.pushDialogRoute(context,
-                        const SettingNavigationScreen(initPageIndex: 3));
-                  } else {
-                    RouteUtil.pushCupertinoRoute(
-                      context,
-                      const BackupSettingScreen(jumpToAutoBackupPassword: true),
-                      onThen: (_) {
-                        ConfigDao.getConfig().then((config) {
-                          setState(() {
-                            _autoBackupPassword = config.backupPassword;
-                          });
-                        });
-                      },
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     if (_loading) {
       return ItemBuilder.buildLoadingDialog(
         context: context,
@@ -288,6 +231,10 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
+        if (!canBackup) ...[
+          _buildBackupPasswordBanner(),
+          const SizedBox(height: 18),
+        ],
         Text(
           appLocalizations.cloudOverviewDescription,
           style: ChewieTheme.bodyMedium.copyWith(
@@ -359,6 +306,74 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
         ],
       ),
     );
+  }
+
+  Widget _buildBackupPasswordBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.orange.withAlpha(20),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.orange.withAlpha(80), width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 1),
+                child: Icon(
+                  LucideIcons.keyRound,
+                  size: 20,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  appLocalizations.haveNotSetBackupPassword,
+                  style: ChewieTheme.bodyMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _openBackupPasswordSettings,
+              child: Text(appLocalizations.goToSetBackupPassword),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openBackupPasswordSettings() {
+    void refreshPassword(dynamic _) {
+      ConfigDao.getConfig().then((config) {
+        if (!mounted) return;
+        setState(() => _autoBackupPassword = config.backupPassword);
+      });
+    }
+
+    if (ResponsiveUtil.isLandscapeLayout()) {
+      RouteUtil.pushDialogRoute(
+        context,
+        const SettingNavigationScreen(initPageIndex: 3),
+        onThen: refreshPassword,
+      );
+    } else {
+      RouteUtil.pushCupertinoRoute(
+        context,
+        const BackupSettingScreen(jumpToAutoBackupPassword: true),
+        onThen: refreshPassword,
+      );
+    }
   }
 
   Widget _buildServiceCard(CloudServiceConfig config) {
@@ -504,6 +519,11 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
             ],
           ),
         ),
+        if (!canBackup)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: _buildBackupPasswordBanner(),
+          ),
         Expanded(
           child: KeyedSubtree(
             key: ValueKey(config.id),
