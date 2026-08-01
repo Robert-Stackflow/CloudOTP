@@ -38,7 +38,7 @@ class BindingDao {
 
   static Future<int> bingdings(
     List<TokenCategoryBinding> bindings, {
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
   }) async {
     if (bindings.isEmpty) return 0;
     final db = overrideDb ?? await DatabaseManager.getDataBase();

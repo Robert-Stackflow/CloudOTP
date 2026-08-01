@@ -26,24 +26,17 @@ class CloudServiceConfigDao {
     if (!config.type.allowMultiple && await getSpecifyConfig(config.type) != null) {
       return -1;
     }
-    config.id = await getMaxId() + 1;
     config.createTimestamp = DateTime.now().millisecondsSinceEpoch;
     config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
-    int id = await db.insert(
+    final values = config.toMap()..remove('id');
+    final id = await db.insert(
       tableName,
-      config.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
     );
+    config.id = id;
     // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigInserted);
     return id;
-  }
-
-  static Future<int> getMaxId() async {
-    final db = await DatabaseManager.getDataBase();
-    List<Map<String, dynamic>> maps = await db.rawQuery(
-      "SELECT MAX(id) as id FROM $tableName",
-    );
-    return maps[0]["id"] ?? -1;
   }
 
   static Future<List<CloudServiceConfig>> getConfigs() async {

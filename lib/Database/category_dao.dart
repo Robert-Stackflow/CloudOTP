@@ -22,6 +22,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../Models/opt_token.dart';
 import '../Models/token_category.dart';
+import '../Models/token_category_binding.dart';
 import '../Utils/utils.dart';
 import 'database_manager.dart';
 
@@ -31,13 +32,14 @@ class CategoryDao {
   static Future<int> insertCategory(TokenCategory category) async {
     final db = await DatabaseManager.getDataBase();
     category.seq = await getMaxSeq() + 1;
-    category.id = await getMaxId() + 1;
     if (category.uid.isEmpty) category.uid = StringUtil.generateUid();
-    int id = await db.insert(
+    final values = category.toMap()..remove('id');
+    final id = await db.insert(
       tableName,
-      category.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
     );
+    category.id = id;
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.categoriesInserted);
     Utils.initTray();
@@ -48,37 +50,42 @@ class CategoryDao {
     if (categories.isEmpty) return 0;
     final db = await DatabaseManager.getDataBase();
     int maxSeq = await getMaxSeq();
-    int maxId = await getMaxId();
-    Batch batch = db.batch();
     for (int i = 0; i < categories.length; i++) {
       TokenCategory category = categories[i];
       if (category.seq <= 0) {
         category.seq = maxSeq + 1 + i;
       }
-      category.id = maxId + 1 + i;
       if (category.uid.isEmpty) category.uid = StringUtil.generateUid();
-      batch.insert(
-        tableName,
-        category.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-      if (category.bindings.isNotEmpty) {
-        BindingDao.bingdingsForCategory(category.uid, category.bindings);
-      }
     }
-    List<dynamic> results = await batch.commit();
+    final results = await db.transaction((transaction) async {
+      final batch = transaction.batch();
+      for (final category in categories) {
+        final values = category.toMap()..remove('id');
+        batch.insert(
+          tableName,
+          values,
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+      }
+      final insertedIds = await batch.commit(noResult: false);
+      final bindings = categories
+          .expand((category) => category.bindings.map(
+                (tokenUid) => TokenCategoryBinding(
+                  tokenUid: tokenUid,
+                  categoryUid: category.uid,
+                ),
+              ))
+          .toList();
+      await BindingDao.bingdings(bindings, overrideDb: transaction);
+      return insertedIds;
+    });
+    for (int i = 0; i < results.length; i++) {
+      categories[i].id = results[i] as int;
+    }
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.categoriesInserted);
     Utils.initTray();
     return results.length;
-  }
-
-  static Future<int> getMaxId() async {
-    final db = await DatabaseManager.getDataBase();
-    List<Map<String, dynamic>> maps = await db.rawQuery(
-      "SELECT MAX(id) as id FROM $tableName",
-    );
-    return maps[0]["id"] ?? -1;
   }
 
   static Future<int> getMaxSeq() async {
