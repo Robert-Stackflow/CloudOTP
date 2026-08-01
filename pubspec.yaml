@@ -127,8 +127,8 @@ msix_config:
   output_name: CloudOTP
   build_windows: false
   capabilities: internetClient
-  certificate_path: D:\Repositories\CloudOTP\certificate\cloudotp.pfx
-  certificate_password: CLOUDCHEWIEcloudotp@123
+  # Supply signing credentials at packaging time with --certificate-path and
+  # --certificate-password. Keep certificates and passwords out of Git.
 
 flutter_launcher_icons:
   android: false
