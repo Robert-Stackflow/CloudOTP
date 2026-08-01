@@ -46,6 +46,40 @@ import 'Backup/backup_encrypt_interface.dart';
 import 'Cloud/cloud_service.dart';
 
 class ExportTokenUtil {
+  static Future<File> writeBackupAtomically(
+    File destination,
+    Uint8List data,
+  ) async {
+    final directory = destination.parent;
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    if (await destination.exists()) {
+      throw FileSystemException(
+        'Refusing to overwrite an existing backup',
+        destination.path,
+      );
+    }
+    final suffix =
+        '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
+    final temporary = File('${destination.path}.part-$suffix');
+    try {
+      await temporary.writeAsBytes(data, flush: true);
+      final persisted = await temporary.readAsBytes();
+      if (!listEquals(persisted, data)) {
+        throw FileSystemException(
+          'Backup verification failed after writing',
+          temporary.path,
+        );
+      }
+      return await temporary.rename(destination.path);
+    } finally {
+      if (await temporary.exists()) {
+        await temporary.delete();
+      }
+    }
+  }
+
   static bool isBackup(String filePath) {
     String fileName = basename(filePath);
     String fileExtension = extension(filePath);
@@ -353,7 +387,7 @@ class ExportTokenUtil {
             }
             File file = File("${directory.path}/${getExportFileName("bin")}");
             log.backupPath = file.path;
-            await file.writeAsBytes(encryptedData);
+            await writeBackupAtomically(file, encryptedData);
             await ExportTokenUtil.deleteOldBackup();
             log.addStatus(AutoBackupStatus.saveSuccess);
           } catch (e, t) {
@@ -472,10 +506,8 @@ class ExportTokenUtil {
         if (!directory.existsSync()) {
           directory.createSync(recursive: true);
         }
-        await compute((_) async {
-          File file = File("${directory.path}/${getExportFileName("bin")}");
-          file.writeAsBytesSync(encryptedData!);
-        }, null);
+        File file = File("${directory.path}/${getExportFileName("bin")}");
+        await writeBackupAtomically(file, encryptedData);
         await ExportTokenUtil.deleteOldBackup();
         if (showToast) IToast.showTop(appLocalizations.backupSuccess);
       }
