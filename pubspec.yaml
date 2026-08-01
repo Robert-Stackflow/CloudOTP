@@ -22,6 +22,8 @@ dependencies:
   palette_generator: ^0.3.3+3 # 获取主色调
   vector_math: ^2.1.4 # 矢量数学
   path_drawing: ^1.0.1 # 路径绘制
+  convert: ^3.1.1
+  fixnum: ^1.1.0
   auto_size_text: ^3.0.0 # 自适应文本
   flex_color_picker: ^3.6.0 # 颜色选择器
   flutter_inappwebview: ^6.0.0 # Webview
@@ -71,6 +73,7 @@ dependencies:
   sodium_libs: ^2.2.0+5
   # 系统
   provider: ^6.0.5 # 状态管理
+  device_info_plus: ^11.3.0
   local_auth: ^2.2.0 # 指纹验证
   local_auth_android: ^1.0.42 # 指纹验证
   share_plus: ^10.1.4 # 分享
@@ -97,6 +100,7 @@ dependencies:
   local_notifier: ^0.1.6 # 本地通知
   shell_executor: ^0.1.6 # 执行命令
   window_manager: ^0.4.3
+  screen_retriever: ^0.2.0
 
 dependency_overrides:
   webview_flutter_android: 4.3.0
