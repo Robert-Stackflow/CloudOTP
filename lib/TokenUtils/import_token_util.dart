@@ -119,6 +119,8 @@ class ImportTokenUtil {
       tokens = await ImportTokenUtil.importText(
         validTokenUris.join("\n"),
         // noTokenToast: appLocalizations.imageDoesNotContainToken,
+        showLoading: false,
+        showPreview: false,
       );
       if (autoPopup && context != null && context.mounted) {
         Navigator.pop(context);
@@ -167,14 +169,11 @@ class ImportTokenUtil {
         CustomLoadingDialog.dismissLoading();
       }
     }
-    if (res[0].length == 1) {
-      BottomSheetBuilder.showBottomSheet(
+    if (res.length >= 2 && context.mounted) {
+      _showAnalyzedTokens(
         context,
-        responsive: true,
-        (context) => TokenOptionBottomSheet(
-          token: res[0].first,
-          isNewToken: true,
-        ),
+        List<OtpToken>.from(res[0] as List),
+        List<TokenCategory>.from(res[1] as List),
       );
     }
     return res;
@@ -233,7 +232,21 @@ class ImportTokenUtil {
         CustomLoadingDialog.dismissLoading();
       }
     }
-    if (tokens.length == 1 && showSingleTokenDialog) {
+    if (!context.mounted) return [tokens, categories];
+    if (showSingleTokenDialog) {
+      _showAnalyzedTokens(context, tokens, categories);
+    } else if (tokens.length > 1) {
+      ImportPreviewScreen.show(tokens: tokens, categories: categories);
+    }
+    return [tokens, categories];
+  }
+
+  static void _showAnalyzedTokens(
+    BuildContext context,
+    List<OtpToken> tokens,
+    List<TokenCategory> categories,
+  ) {
+    if (tokens.length == 1 && categories.isEmpty) {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,
@@ -242,8 +255,9 @@ class ImportTokenUtil {
           isNewToken: true,
         ),
       );
+    } else if (tokens.isNotEmpty || categories.isNotEmpty) {
+      ImportPreviewScreen.show(tokens: tokens, categories: categories);
     }
-    return [tokens, categories];
   }
 
   static importUriFile(
@@ -474,6 +488,7 @@ class ImportTokenUtil {
     String noTokenToast = "",
     bool showLoading = true,
     bool showToast = true,
+    bool showPreview = true,
   }) async {
     if (content.isEmpty && emptyTip.notNullOrEmpty) {
       if (showToast) IToast.showTop(emptyTip);
@@ -498,10 +513,12 @@ class ImportTokenUtil {
       if (showToast && noTokenToast.isNotEmpty) IToast.showTop(noTokenToast);
       return [];
     }
-    ImportPreviewScreen.show(
-      tokens: tokens,
-      categories: [],
-    );
+    if (showPreview) {
+      ImportPreviewScreen.show(
+        tokens: tokens,
+        categories: [],
+      );
+    }
     return tokens;
   }
 

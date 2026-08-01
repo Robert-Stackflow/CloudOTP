@@ -27,6 +27,7 @@ import 'package:native_device_orientation/native_device_orientation.dart';
 import '../../Models/opt_token.dart';
 import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';
+import '../../Screens/Token/import_preview_screen.dart';
 import '../../TokenUtils/import_token_util.dart';
 import '../../l10n/l10n.dart';
 import 'import_from_third_party_bottom_sheet.dart';
@@ -107,6 +108,8 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
             isNewToken: true,
           ),
         );
+      } else if (tokens.length > 1) {
+        ImportPreviewScreen.show(tokens: tokens, categories: const []);
       }
     }
     _subscription?.resume();
