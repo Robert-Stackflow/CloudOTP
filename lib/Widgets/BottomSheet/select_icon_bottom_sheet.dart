@@ -61,8 +61,8 @@ class SelectIconBottomSheetState
         });
       });
     });
-    Future.delayed(const Duration(milliseconds: 200), () {
-      FocusScope.of(context).requestFocus(_focusNode);
+    Future.delayed(ChewieTheme.animationDuration, () {
+      if (mounted) _focusNode.requestFocus();
     });
   }
 
@@ -114,9 +114,8 @@ class SelectIconBottomSheetState
         ),
       ),
     );
-    return AnimatedPadding(
-      padding: MediaQuery.of(context).viewInsets,
-      duration: const Duration(milliseconds: 100),
+    return Padding(
+      padding: MediaQuery.viewInsetsOf(context),
       child: ResponsiveUtil.isWideDevice() ? Center(child: mainBody) : mainBody,
     );
   }

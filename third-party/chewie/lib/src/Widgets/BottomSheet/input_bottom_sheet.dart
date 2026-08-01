@@ -79,8 +79,8 @@ class InputBottomSheetState extends State<InputBottomSheet> {
     widget.validateAsyncController?.doPop = () {
       Navigator.of(context).pop();
     };
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) FocusScope.of(context).requestFocus(_focusNode);
+    Future.delayed(ChewieTheme.animationDuration, () {
+      if (mounted) _focusNode.requestFocus();
     });
   }
 
@@ -88,9 +88,8 @@ class InputBottomSheetState extends State<InputBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedPadding(
-      padding: MediaQuery.of(context).viewInsets,
-      duration: const Duration(milliseconds: 100),
+    return Padding(
+      padding: MediaQuery.viewInsetsOf(context),
       child: Wrap(
         runAlignment: WrapAlignment.center,
         children: [
