@@ -1046,5 +1046,11 @@
   "cloudCategoryOAuthBridge": "OAuth-Bridge",
   "cloudCategoryWebDav": "WebDAV",
   "cloudCategoryS3": "S3",
-  "cloudDefaultConfigTitle": "新しい設定"
+  "cloudDefaultConfigTitle": "新しい設定",
+  "cloudServiceOverview": "クラウドサービス",
+  "cloudOverviewDescription": "サービスを接続すると、暗号化されたバックアップを複数のデバイスで利用できます。",
+  "cloudConfiguredServices": "サービス",
+  "cloudStatusReady": "バックアップ可能",
+  "cloudStatusNeedsSetup": "設定が必要",
+  "cloudStatusDisabled": "バックアップ無効"
 }

@@ -51,11 +51,8 @@ class CloudServiceScreen extends BaseSettingScreen {
 
 class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
     with TickerProviderStateMixin {
-  final GroupButtonController _categoryController = GroupButtonController();
-  final GroupButtonController _configController = GroupButtonController();
-  CloudServiceCategory _currentCategory = CloudServiceCategory.oauth;
   List<CloudServiceConfig> _configs = [];
-  int _selectedConfigIndex = 0;
+  int? _selectedConfigId;
   String _autoBackupPassword = "";
   bool _loading = true;
 
@@ -64,7 +61,6 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
   @override
   void initState() {
     super.initState();
-    _categoryController.selectIndex(_currentCategory.index);
     ConfigDao.getConfig().then((config) {
       _autoBackupPassword = config.backupPassword;
       _loadConfigs();
@@ -73,47 +69,19 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
 
   Future<void> _loadConfigs() async {
     final configs = await CloudServiceConfigDao.getConfigs();
-    final existingTypes = configs.map((c) => c.type).toSet();
-    for (final type in CloudServiceType.values) {
-      if (!type.allowMultiple && !existingTypes.contains(type)) {
-        final config = CloudServiceConfig.init(type: type);
-        await CloudServiceConfigDao.insertConfig(config);
-        configs.add(config);
-      }
-    }
-    for (final config in configs) {
-      if (config.type.allowMultiple && config.title.isEmpty) {
-        config.title = appLocalizations.cloudDefaultConfigTitle;
-        await CloudServiceConfigDao.updateConfig(config);
-      }
-    }
     if (mounted) {
       setState(() {
         _configs = configs;
         _loading = false;
-        _clampSelectedIndex();
       });
     }
   }
 
-  List<CloudServiceConfig> get _filteredConfigs {
-    return _configs
-        .where((c) => c.type.category == _currentCategory)
-        .toList();
-  }
-
   CloudServiceConfig? get _selectedConfig {
-    final filtered = _filteredConfigs;
-    if (filtered.isEmpty || _selectedConfigIndex >= filtered.length) return null;
-    return filtered[_selectedConfigIndex];
-  }
-
-  void _clampSelectedIndex() {
-    final filtered = _filteredConfigs;
-    if (_selectedConfigIndex >= filtered.length) {
-      _selectedConfigIndex = filtered.isEmpty ? 0 : filtered.length - 1;
+    for (final config in _configs) {
+      if (config.id == _selectedConfigId) return config;
     }
-    _configController.selectIndex(_selectedConfigIndex);
+    return null;
   }
 
   Widget _buildServiceScreen(CloudServiceConfig config) {
@@ -156,15 +124,10 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
   }
 
   Future<void> _addCloudService() async {
-    final types = _currentCategory.types;
-    if (types.length == 1) {
-      await _createConfig(types.first);
-      return;
-    }
-    final existingTypes = _configs.map((c) => c.type).toSet();
-    final items = types.map((type) {
-      final alreadyExists = existingTypes.contains(type);
-      final disabled = !type.allowMultiple && alreadyExists;
+    final items = CloudServiceType.values.map((type) {
+      final disabled = !type.allowMultiple &&
+          _configs
+              .any((config) => config.type == type && config.hasConfiguration);
       return _AddServiceItem(type: type, disabled: disabled);
     }).toList();
 
@@ -175,25 +138,26 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
         items: items,
         onSelected: (type) async {
           Navigator.of(dialogContext).pop();
-          await _createConfig(type);
+          await _createOrOpenConfig(type);
         },
       ),
     );
   }
 
-  Future<void> _createConfig(CloudServiceType type) async {
+  Future<void> _createOrOpenConfig(CloudServiceType type) async {
+    if (!type.allowMultiple) {
+      for (final existing in _configs) {
+        if (existing.type == type) {
+          setState(() => _selectedConfigId = existing.id);
+          return;
+        }
+      }
+    }
     final config = CloudServiceConfig.init(type: type);
     config.title = appLocalizations.cloudDefaultConfigTitle;
     await CloudServiceConfigDao.insertConfig(config);
     await _loadConfigs();
-    final filtered = _filteredConfigs;
-    final newIndex = filtered.indexWhere((c) => c.id == config.id);
-    if (newIndex >= 0) {
-      setState(() {
-        _selectedConfigIndex = newIndex;
-        _configController.selectIndex(newIndex);
-      });
-    }
+    if (mounted) setState(() => _selectedConfigId = config.id);
   }
 
   @override
@@ -202,11 +166,17 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
       context: context,
       padding: widget.padding,
       showTitleBar: widget.showTitleBar,
-      title: appLocalizations.cloudBackupServiceSetting,
+      title: _selectedConfig?.displayName ??
+          appLocalizations.cloudBackupServiceSetting,
       showBack: widget.showBack,
       titleLeftMargin: widget.showBack ? 5 : 15,
       onTapBack: () {
-        DialogNavigatorHelper.responsivePopPage();
+        if (_selectedConfigId != null) {
+          setState(() => _selectedConfigId = null);
+          _loadConfigs();
+        } else {
+          DialogNavigatorHelper.responsivePopPage();
+        }
       },
       overrideBody: _buildBody(),
       desktopActions: [
@@ -271,14 +241,12 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
                 background: ChewieTheme.primaryColor,
                 onPressed: () {
                   if (ResponsiveUtil.isLandscapeLayout()) {
-                    RouteUtil.pushDialogRoute(
-                        context,
+                    RouteUtil.pushDialogRoute(context,
                         const SettingNavigationScreen(initPageIndex: 3));
                   } else {
                     RouteUtil.pushCupertinoRoute(
                       context,
-                      const BackupSettingScreen(
-                          jumpToAutoBackupPassword: true),
+                      const BackupSettingScreen(jumpToAutoBackupPassword: true),
                       onThen: (_) {
                         ConfigDao.getConfig().then((config) {
                           setState(() {
@@ -304,96 +272,198 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
         topPadding: 100,
       );
     }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    final selectedConfig = _selectedConfig;
+    if (selectedConfig != null) {
+      return _buildConfigDetails(selectedConfig);
+    }
+    return _buildOverview();
+  }
+
+  List<CloudServiceConfig> get _visibleConfigs => _configs
+      .where((config) => config.type.allowMultiple || config.hasConfiguration)
+      .toList();
+
+  Widget _buildOverview() {
+    final configs = _visibleConfigs;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
-        const SizedBox(height: 10),
-        _categorySelector(),
-        const SizedBox(height: 10),
-        _configSelector(),
-        const SizedBox(height: 10),
-        Expanded(child: _configContent()),
+        Text(
+          appLocalizations.cloudOverviewDescription,
+          style: ChewieTheme.bodyMedium.copyWith(
+            color: ChewieTheme.bodyMedium.color?.withAlpha(170),
+          ),
+        ),
+        const SizedBox(height: 22),
+        Text(
+          appLocalizations.cloudConfiguredServices,
+          style: ChewieTheme.titleMedium.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        if (configs.isEmpty) _buildEmptyOverview(),
+        if (configs.isNotEmpty)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 720 ? 2 : 1;
+              final cardWidth =
+                  (constraints.maxWidth - (columns - 1) * 12) / columns;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: configs
+                    .map(
+                      (config) => SizedBox(
+                        width: cardWidth,
+                        child: _buildServiceCard(config),
+                      ),
+                    )
+                    .toList(),
+              );
+            },
+          ),
+        const SizedBox(height: 18),
+        RoundIconTextButton(
+          height: 42,
+          width: double.infinity,
+          icon: const Icon(LucideIcons.plus, size: 17, color: Colors.white),
+          text: appLocalizations.addCloudService,
+          background: ChewieTheme.primaryColor,
+          onPressed: _addCloudService,
+        ),
       ],
     );
   }
 
-  _categorySelector() {
-    return ItemBuilder.buildGroupTile(
-      context: context,
-      controller: _categoryController,
-      constraintWidth: false,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      buttons: CloudServiceCategory.values.map((c) => c.label).toList(),
-      onSelected: (value, index, isSelected) {
-        setState(() {
-          _currentCategory = CloudServiceCategory.values[index];
-          _selectedConfigIndex = 0;
-          _clampSelectedIndex();
-        });
-      },
-      title: '',
+  Widget _buildEmptyOverview() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      decoration: BoxDecoration(
+        color: ChewieTheme.canvasColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: ChewieTheme.borderColor, width: 0.5),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            LucideIcons.cloudOff,
+            size: 30,
+            color: ChewieTheme.primaryColor,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            appLocalizations.noCloudServiceConfigured,
+            style: ChewieTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
-  _configSelector() {
-    final filtered = _filteredConfigs;
-    final labels = filtered.map((c) => c.type.allowMultiple ? c.title : c.type.label).toList();
-    final showAdd = _currentCategory.allowMultiple;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SizedBox(
-        width: MediaQuery.sizeOf(context).width,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+  Widget _buildServiceCard(CloudServiceConfig config) {
+    final needsSetup = !config.hasConfiguration;
+    final statusText = needsSetup
+        ? appLocalizations.cloudStatusNeedsSetup
+        : config.enabled
+            ? appLocalizations.cloudStatusReady
+            : appLocalizations.cloudStatusDisabled;
+    final statusColor = needsSetup
+        ? Colors.orange
+        : config.enabled
+            ? Colors.green
+            : Colors.grey;
+    return Material(
+      color: ChewieTheme.canvasColor,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () => setState(() => _selectedConfigId = config.id),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: ChewieTheme.borderColor, width: 0.5),
+          ),
           child: Row(
             children: [
-              if (labels.isNotEmpty)
-                ItemBuilder.buildGroupButtons(
-                  buttons: labels,
-                  controller: _configController,
-                  constraintWidth: false,
-                  radius: 8,
-                  onSelected: (value, index, isSelected) {
-                    setState(() {
-                      _selectedConfigIndex = index;
-                    });
-                  },
-                  trailingBuilder: _currentCategory.allowMultiple
-                      ? (index, selected) => GestureDetector(
-                            onTap: () => _confirmDeleteConfig(filtered[index]),
-                            child: Icon(
-                              LucideIcons.x,
-                              size: 12,
-                              color: selected ? Colors.white70 : ChewieTheme.iconColor,
-                            ),
-                          )
-                      : null,
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: ChewieTheme.primaryColor.withAlpha(22),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              if (showAdd) ...[
-                if (labels.isNotEmpty) const SizedBox(width: 6),
-                InkWell(
-                  onTap: _addCloudService,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    height: 36,
-                    width: 36,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: ChewieTheme.borderColor,
-                        width: 0.5,
+                child: Icon(
+                  _iconForType(config.type),
+                  size: 21,
+                  color: ChewieTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      config.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: ChewieTheme.titleSmall.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    child: Icon(LucideIcons.plus, size: 16, color: ChewieTheme.iconColor),
-                  ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            statusText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: ChewieTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              Icon(
+                LucideIcons.chevronRight,
+                size: 18,
+                color: ChewieTheme.iconColor,
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  IconData _iconForType(CloudServiceType type) {
+    switch (type) {
+      case CloudServiceType.Webdav:
+        return LucideIcons.server;
+      case CloudServiceType.S3Cloud:
+        return LucideIcons.database;
+      case CloudServiceType.OneDrive:
+      case CloudServiceType.GoogleDrive:
+      case CloudServiceType.Dropbox:
+      case CloudServiceType.HuaweiCloud:
+      case CloudServiceType.Box:
+      case CloudServiceType.AliyunDrive:
+        return LucideIcons.cloud;
+    }
   }
 
   Future<void> _confirmDeleteConfig(CloudServiceConfig config) async {
@@ -403,58 +473,44 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
       message: appLocalizations.deleteCloudServiceMessage(config.displayName),
       onTapConfirm: () async {
         await CloudServiceConfigDao.deleteConfig(config.id);
+        _selectedConfigId = null;
         await _loadConfigs();
       },
     );
   }
 
-  _configContent() {
-    final config = _selectedConfig;
-    if (config == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+  Widget _buildConfigDetails(CloudServiceConfig config) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Row(
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: ChewieTheme.primaryColor.withAlpha(20),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  LucideIcons.cloudOff,
-                  size: 26,
-                  color: ChewieTheme.primaryColor,
-                ),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() => _selectedConfigId = null);
+                  _loadConfigs();
+                },
+                icon: const Icon(LucideIcons.chevronLeft, size: 17),
+                label: Text(appLocalizations.cloudServiceOverview),
               ),
-              const SizedBox(height: 16),
-              Text(
-                appLocalizations.noCloudServiceConfigured,
-                style: ChewieTheme.bodyMedium.copyWith(
-                  color: ChewieTheme.bodyMedium.color?.withAlpha(150),
+              const Spacer(),
+              if (config.type.allowMultiple)
+                IconButton(
+                  onPressed: () => _confirmDeleteConfig(config),
+                  tooltip: appLocalizations.deleteCloudService,
+                  icon: const Icon(LucideIcons.trash2, size: 18),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              if (_currentCategory.allowMultiple) ...[
-                const SizedBox(height: 16),
-                RoundIconTextButton(
-                  height: 38,
-                  text: appLocalizations.addCloudService,
-                  background: ChewieTheme.primaryColor,
-                  onPressed: _addCloudService,
-                ),
-              ],
             ],
           ),
         ),
-      );
-    }
-    return KeyedSubtree(
-      key: ValueKey(config.id),
-      child: _buildServiceScreen(config),
+        Expanded(
+          child: KeyedSubtree(
+            key: ValueKey(config.id),
+            child: _buildServiceScreen(config),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -545,9 +601,8 @@ class _AddServiceBottomSheet extends StatelessWidget {
           Expanded(child: _buildCard(first)),
           const SizedBox(width: 10),
           Expanded(
-            child: second != null
-                ? _buildCard(second)
-                : const SizedBox.shrink(),
+            child:
+                second != null ? _buildCard(second) : const SizedBox.shrink(),
           ),
         ],
       ));
@@ -587,8 +642,7 @@ class _AddServiceBottomSheet extends StatelessWidget {
               ),
             ),
             if (item.disabled)
-              Icon(LucideIcons.check, size: 14,
-                  color: _accent.withAlpha(100)),
+              Icon(LucideIcons.check, size: 14, color: _accent.withAlpha(100)),
           ],
         ),
       ),

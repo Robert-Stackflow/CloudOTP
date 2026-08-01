@@ -1046,5 +1046,11 @@
   "cloudCategoryOAuthBridge": "OAuth-Bridge",
   "cloudCategoryWebDav": "WebDAV",
   "cloudCategoryS3": "S3",
-  "cloudDefaultConfigTitle": "新配置"
+  "cloudDefaultConfigTitle": "新配置",
+  "cloudServiceOverview": "雲端服務",
+  "cloudOverviewDescription": "連接雲端服務，在不同裝置上安全使用加密備份。",
+  "cloudConfiguredServices": "我的服務",
+  "cloudStatusReady": "可用於備份",
+  "cloudStatusNeedsSetup": "需要完成配置",
+  "cloudStatusDisabled": "已暫停備份"
 }

@@ -1051,5 +1051,11 @@
   "cloudCategoryOAuthBridge": "OAuth-Bridge",
   "cloudCategoryWebDav": "WebDAV",
   "cloudCategoryS3": "S3",
-  "cloudDefaultConfigTitle": "New Configuration"
+  "cloudDefaultConfigTitle": "New Configuration",
+  "cloudServiceOverview": "Cloud services",
+  "cloudOverviewDescription": "Connect a service to keep encrypted backups available across your devices.",
+  "cloudConfiguredServices": "Your services",
+  "cloudStatusReady": "Ready for backup",
+  "cloudStatusNeedsSetup": "Setup required",
+  "cloudStatusDisabled": "Backup disabled"
 }

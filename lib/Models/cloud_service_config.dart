@@ -151,6 +151,27 @@ class CloudServiceConfig {
   bool get allowsInsecureWebDavHttp =>
       remark[allowInsecureWebDavHttpKey] == true;
 
+  bool get hasConfiguration {
+    switch (type) {
+      case CloudServiceType.Webdav:
+        return endpoint.notNullOrEmpty &&
+            account.notNullOrEmpty &&
+            secret.notNullOrEmpty;
+      case CloudServiceType.S3Cloud:
+        return endpoint.notNullOrEmpty &&
+            account.notNullOrEmpty &&
+            secret.notNullOrEmpty &&
+            token.notNullOrEmpty;
+      case CloudServiceType.GoogleDrive:
+      case CloudServiceType.OneDrive:
+      case CloudServiceType.Dropbox:
+      case CloudServiceType.HuaweiCloud:
+      case CloudServiceType.Box:
+      case CloudServiceType.AliyunDrive:
+        return configured;
+    }
+  }
+
   set allowsInsecureWebDavHttp(bool value) {
     if (value) {
       remark[allowInsecureWebDavHttpKey] = true;
