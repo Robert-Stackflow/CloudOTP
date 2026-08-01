@@ -42,10 +42,14 @@ class TokenDao {
     return id;
   }
 
-  static Future<int> insertTokens(List<OtpToken> tokens) async {
+  static Future<int> insertTokens(
+    List<OtpToken> tokens, {
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
+  }) async {
     if (tokens.isEmpty) return 0;
-    final db = await DatabaseManager.getDataBase();
-    int maxSeq = await getMaxSeq();
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    int maxSeq = await getMaxSeq(overrideDb: db);
     Batch batch = db.batch();
     // The incoming list is in display order (top first). Assign descending seq
     // so the first item gets the highest seq, preserving the original order
@@ -64,14 +68,16 @@ class TokenDao {
     for (int i = 0; i < results.length; i++) {
       tokens[i].id = results[i] as int;
     }
-    ExportTokenUtil.autoBackup(
-        triggerType: AutoBackupTriggerType.tokensInserted);
-    Utils.initTray();
+    if (notifyChanges) {
+      ExportTokenUtil.autoBackup(
+          triggerType: AutoBackupTriggerType.tokensInserted);
+      Utils.initTray();
+    }
     return results.length;
   }
 
-  static Future<int> getMaxSeq() async {
-    final db = await DatabaseManager.getDataBase();
+  static Future<int> getMaxSeq({DatabaseExecutor? overrideDb}) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     List<Map<String, dynamic>> maps = await db.rawQuery(
       "SELECT MAX(seq) as seq FROM $tableName",
     );
@@ -105,7 +111,8 @@ class TokenDao {
   static Future<int> updateTokens(
     List<OtpToken> tokens, {
     bool autoBackup = true,
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
     if (tokens.isEmpty) return 0;
     final db = overrideDb ?? await DatabaseManager.getDataBase();
@@ -120,11 +127,11 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    if (autoBackup) {
+    if (autoBackup && notifyChanges) {
       ExportTokenUtil.autoBackup(
           triggerType: AutoBackupTriggerType.tokensUpdated);
     }
-    Utils.initTray();
+    if (notifyChanges) Utils.initTray();
     return results.length;
   }
 
@@ -230,8 +237,7 @@ class TokenDao {
     }
 
     if (searchKey.isNotEmpty) {
-      conditions
-          .add('(issuer LIKE ? OR account LIKE ? OR description LIKE ?)');
+      conditions.add('(issuer LIKE ? OR account LIKE ? OR description LIKE ?)');
       args.addAll(["%$searchKey%", "%$searchKey%", "%$searchKey%"]);
     }
 
@@ -257,7 +263,7 @@ class TokenDao {
     List<String> tags = const [],
     String? tokenType,
     String orderBy = "",
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
   }) async {
     final db = overrideDb ?? await DatabaseManager.getDataBase();
     final search = _buildSearchWhere(

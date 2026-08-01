@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
@@ -26,21 +27,25 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
+import 'package:sqflite/sqflite.dart';
 import 'package:zxing2/qrcode.dart';
 
 import '../Database/category_dao.dart';
 import '../Database/config_dao.dart';
 import '../Database/token_category_binding_dao.dart';
+import '../Models/auto_backup_log.dart';
 import '../Models/token_category.dart';
 import '../Screens/Token/import_preview_screen.dart';
 import '../Utils/constant.dart';
 import '../Utils/hive_util.dart';
+import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import '../l10n/l10n.dart';
 import 'Backup/backup.dart';
 import 'Backup/backup_encrypt_interface.dart';
 import 'Backup/backup_encrypt_v1.dart';
 import 'ThirdParty/base_token_importer.dart';
+import 'export_token_util.dart';
 
 extension TrimPadding on String {
   String trimPadding() {
@@ -611,8 +616,9 @@ class ImportTokenUtil {
   static Future<Map<String, List<String>>> _getResolvedUidMap(
     List<OtpToken> tokenList, {
     List<String>? originalUids,
+    DatabaseExecutor? overrideDb,
   }) async {
-    List<OtpToken> already = await TokenDao.listTokens();
+    List<OtpToken> already = await TokenDao.listTokens(overrideDb: overrideDb);
     Map<String, List<String>> uidMap = {};
     for (int i = 0; i < tokenList.length; i++) {
       OtpToken token = tokenList[i];
@@ -663,15 +669,23 @@ class ImportTokenUtil {
     List<OtpToken> tokenList,
     List<TokenCategory> categoryList, {
     bool performInsert = true,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
     ImportAnalysis analysis = ImportAnalysis();
     analysis.parseTokenSuccess = tokenList.length;
     analysis.parseCategorySuccess = categoryList.length;
     final originalUids = tokenList.map((token) => token.uid).toList();
-    analysis.importTokenSuccess = await mergeTokens(tokenList);
+    analysis.importTokenSuccess = await mergeTokens(
+      tokenList,
+      performInsert: performInsert,
+      overrideDb: overrideDb,
+      notifyChanges: notifyChanges,
+    );
     Map<String, List<String>> uidMap = await _getResolvedUidMap(
       tokenList,
       originalUids: originalUids,
+      overrideDb: overrideDb,
     );
     for (TokenCategory category in categoryList) {
       category.bindings = category.bindings
@@ -679,15 +693,22 @@ class ImportTokenUtil {
           .toSet()
           .toList();
     }
-    analysis.importCategorySuccess = await mergeCategories(categoryList);
+    analysis.importCategorySuccess = await mergeCategories(
+      categoryList,
+      performInsert: performInsert,
+      overrideDb: overrideDb,
+      notifyChanges: notifyChanges,
+    );
     return analysis;
   }
 
   static Future<int> mergeTokens(
     List<OtpToken> toMergeTokenList, {
     bool performInsert = true,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
-    List<OtpToken> already = await TokenDao.listTokens();
+    List<OtpToken> already = await TokenDao.listTokens(overrideDb: overrideDb);
     List<OtpToken> finalMergeTokenList = [];
     Set<String> occupiedUids = already.map((token) => token.uid).toSet();
     for (OtpToken toMergeToken in toMergeTokenList) {
@@ -710,8 +731,12 @@ class ImportTokenUtil {
       } else {}
     }
     if (performInsert) {
-      await TokenDao.insertTokens(finalMergeTokenList);
-      homeScreenState?.refresh();
+      await TokenDao.insertTokens(
+        finalMergeTokenList,
+        overrideDb: overrideDb,
+        notifyChanges: notifyChanges,
+      );
+      if (notifyChanges) homeScreenState?.refresh();
     }
     return finalMergeTokenList.length;
   }
@@ -719,6 +744,8 @@ class ImportTokenUtil {
   static Future<int> mergeCategories(
     List<TokenCategory> categoryList, {
     bool performInsert = true,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
     Map<String, int> categoryCount = {};
     for (TokenCategory category in categoryList) {
@@ -730,7 +757,8 @@ class ImportTokenUtil {
         categoryCount[category.title] = 1;
       }
     }
-    List<TokenCategory> already = await CategoryDao.listCategories();
+    List<TokenCategory> already =
+        await CategoryDao.listCategories(overrideDb: overrideDb);
     List<TokenCategory> newCategoryList = [];
     List<TokenCategory> updatedCategoryList = [];
     for (TokenCategory category in categoryList) {
@@ -759,16 +787,29 @@ class ImportTokenUtil {
       }
     }
     if (performInsert) {
-      await CategoryDao.insertCategories(newCategoryList);
+      await CategoryDao.insertCategories(
+        newCategoryList,
+        overrideDb: overrideDb,
+        notifyChanges: notifyChanges,
+      );
       if (updatedCategoryList.isNotEmpty) {
-        await CategoryDao.updateCategories(updatedCategoryList);
+        await CategoryDao.updateCategories(
+          updatedCategoryList,
+          overrideDb: overrideDb,
+          notifyChanges: notifyChanges,
+        );
         for (TokenCategory cat in updatedCategoryList) {
           if (cat.bindings.isNotEmpty) {
-            await BindingDao.bingdingsForCategory(cat.uid, cat.bindings);
+            await BindingDao.bingdingsForCategory(
+              cat.uid,
+              cat.bindings,
+              overrideDb: overrideDb,
+              notifyChanges: notifyChanges,
+            );
           }
         }
       }
-      homeScreenState?.refresh();
+      if (notifyChanges) homeScreenState?.refresh();
     }
     return newCategoryList.length;
   }
@@ -840,6 +881,41 @@ class ImportTokenUtil {
     bool overwriteExisting = false,
     List<ImportTokenItem> tokenItems = const [],
     List<ImportCategoryItem> categoryItems = const [],
+    Database? overrideDb,
+    bool notifyChanges = true,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final analysis = await db.transaction((transaction) {
+      return _confirmImport(
+        selectedTokens,
+        categories,
+        overwriteExisting: overwriteExisting,
+        tokenItems: tokenItems,
+        categoryItems: categoryItems,
+        overrideDb: transaction,
+      );
+    });
+    if (notifyChanges &&
+        (analysis.importTokenSuccess > 0 ||
+            analysis.importCategorySuccess > 0)) {
+      try {
+        ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.other);
+        await Utils.initTray();
+        homeScreenState?.refresh();
+      } catch (e, t) {
+        ILogger.error('Failed to refresh after committed import', e, t);
+      }
+    }
+    return analysis;
+  }
+
+  static Future<ImportAnalysis> _confirmImport(
+    List<OtpToken> selectedTokens,
+    List<TokenCategory> categories, {
+    required DatabaseExecutor overrideDb,
+    bool overwriteExisting = false,
+    List<ImportTokenItem> tokenItems = const [],
+    List<ImportCategoryItem> categoryItems = const [],
   }) async {
     ImportAnalysis analysis = ImportAnalysis();
     analysis.parseTokenSuccess =
@@ -850,18 +926,31 @@ class ImportTokenUtil {
     final previewOriginalUids = tokenItems.map((e) => e.token.uid).toList();
     if (!overwriteExisting) {
       if (tokenItems.isEmpty) {
-        var result = await mergeTokensAndCategories(selectedTokens, categories);
+        var result = await mergeTokensAndCategories(
+          selectedTokens,
+          categories,
+          overrideDb: overrideDb,
+          notifyChanges: false,
+        );
         analysis.importTokenSuccess = result.importTokenSuccess;
         analysis.importCategorySuccess = result.importCategorySuccess;
         return analysis;
       }
-      analysis.importTokenSuccess = await mergeTokens(selectedTokens);
+      analysis.importTokenSuccess = await mergeTokens(
+        selectedTokens,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
       resolvePreviewCategoryBindings(
         categories,
         tokenItems,
         originalTokenUids: previewOriginalUids,
       );
-      analysis.importCategorySuccess = await mergeCategories(categories);
+      analysis.importCategorySuccess = await mergeCategories(
+        categories,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
       return analysis;
     }
     final originalUids = selectedTokens.map((token) => token.uid).toList();
@@ -881,9 +970,18 @@ class ImportTokenUtil {
         newTokens.add(item.token);
       }
     }
-    analysis.importTokenSuccess = await mergeTokens(newTokens);
+    analysis.importTokenSuccess = await mergeTokens(
+      newTokens,
+      overrideDb: overrideDb,
+      notifyChanges: false,
+    );
     if (overwriteTokens.isNotEmpty) {
-      await TokenDao.updateTokens(overwriteTokens);
+      await TokenDao.updateTokens(
+        overwriteTokens,
+        autoBackup: false,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
       analysis.importTokenSuccess += overwriteTokens.length;
     }
     Map<String, List<String>> uidMap = {};
@@ -897,6 +995,7 @@ class ImportTokenUtil {
       uidMap = await _getResolvedUidMap(
         selectedTokens,
         originalUids: originalUids,
+        overrideDb: overrideDb,
       );
     }
     List<TokenCategory> newCategories = [];
@@ -912,17 +1011,29 @@ class ImportTokenUtil {
         existing.pinned = cat.pinned;
         existing.description = cat.description;
         existing.bindings = cat.bindings;
-        await CategoryDao.updateCategories([existing]);
-        await BindingDao.bingdingsForCategory(existing.uid, existing.bindings);
+        await CategoryDao.updateCategories(
+          [existing],
+          overrideDb: overrideDb,
+          notifyChanges: false,
+        );
+        await BindingDao.bingdingsForCategory(
+          existing.uid,
+          existing.bindings,
+          overrideDb: overrideDb,
+          notifyChanges: false,
+        );
         analysis.importCategorySuccess++;
       } else if (catItem.isNew) {
         newCategories.add(cat);
       }
     }
     if (newCategories.isNotEmpty) {
-      analysis.importCategorySuccess += await mergeCategories(newCategories);
+      analysis.importCategorySuccess += await mergeCategories(
+        newCategories,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
     }
-    homeScreenState?.refresh();
     return analysis;
   }
 

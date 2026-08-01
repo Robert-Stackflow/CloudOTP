@@ -72,8 +72,12 @@ class BindingDao {
   }
 
   static Future<int> bingdingsForCategory(
-      String categoryUid, List<String> tokenUids) async {
-    final db = await DatabaseManager.getDataBase();
+    String categoryUid,
+    List<String> tokenUids, {
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (String uid in tokenUids) {
       batch.insert(
@@ -83,7 +87,7 @@ class BindingDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    Utils.initTray();
+    if (notifyChanges) Utils.initTray();
     return results.length;
   }
 
