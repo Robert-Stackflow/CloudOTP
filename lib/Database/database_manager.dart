@@ -23,6 +23,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Database/create_table_sql.dart';
+import 'package:cloudotp/Database/database_migrations.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
@@ -40,7 +41,7 @@ enum EncryptDatabaseStatus { defaultPassword, customPassword }
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
   static const _unencrypedFileHeader = "SQLite format 3";
-  static const _dbVersion = 8;
+  static const _dbVersion = 9;
   static Database? _database;
   static final dbFactory = createDatabaseFactoryFfi();
   static DynamicLibrary? lib = loadSqlcipher();
@@ -483,6 +484,7 @@ class DatabaseManager {
     await db.execute(Sql.createCloudServiceConfigTable.sql);
     await db.execute(Sql.createAutoBackupLogTable.sql);
     await db.execute(Sql.createTokenCategoryBindingTable.sql);
+    await DatabaseMigrations.createIndexes(db);
     await _insertSampleData(db);
   }
 
@@ -659,6 +661,9 @@ class DatabaseManager {
       await db.execute('DROP TABLE token_category_binding');
       await db.execute(
           'ALTER TABLE token_category_binding_new RENAME TO token_category_binding');
+    }
+    if (oldVersion < 9) {
+      await DatabaseMigrations.upgradeToV9(db);
     }
   }
 
