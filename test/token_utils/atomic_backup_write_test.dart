@@ -53,4 +53,15 @@ void main() {
       isEmpty,
     );
   });
+
+  test('backup names remain unique for the same clock instant', () {
+    final instant = DateTime(2026, 8, 2, 12, 30, 15, 123, 456);
+
+    final first = ExportTokenUtil.getExportFileName('bin', now: instant);
+    final second = ExportTokenUtil.getExportFileName('bin', now: instant);
+
+    expect(second, isNot(first));
+    expect(first, startsWith('CloudOTP-Backup-2026-08-02-12-30-15-'));
+    expect(second, endsWith('.bin'));
+  });
 }

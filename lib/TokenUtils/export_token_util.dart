@@ -48,6 +48,8 @@ import 'Backup/backup_encrypt_interface.dart';
 import 'Cloud/cloud_service.dart';
 
 class ExportTokenUtil {
+  static int _lastExportFileTimestampMicros = 0;
+
   static Future<Backup> createBackupSnapshot({Database? overrideDb}) async {
     final db = overrideDb ?? await DatabaseManager.getDataBase();
     return db.transaction((transaction) async {
@@ -144,8 +146,21 @@ class ExportTokenUtil {
     return fileName.startsWith("CloudOTP-Backup-") && fileExtension == ".bin";
   }
 
-  static String getExportFileName(String extension) {
-    return "CloudOTP-Backup-${TimeUtil.getFormattedDate(DateTime.now())}-${ResponsiveUtil.deviceName}.$extension";
+  static String getExportFileName(String extension, {DateTime? now}) {
+    final requested = now ?? DateTime.now();
+    var timestampMicros = requested.microsecondsSinceEpoch;
+    if (timestampMicros <= _lastExportFileTimestampMicros) {
+      timestampMicros = _lastExportFileTimestampMicros + 1;
+    }
+    _lastExportFileTimestampMicros = timestampMicros;
+    final timestamp = DateTime.fromMicrosecondsSinceEpoch(
+      timestampMicros,
+      isUtc: requested.isUtc,
+    );
+    final fraction = (timestamp.millisecond * 1000 + timestamp.microsecond)
+        .toString()
+        .padLeft(6, '0');
+    return "CloudOTP-Backup-${TimeUtil.getFormattedDate(timestamp)}-$fraction-${ResponsiveUtil.deviceName}.$extension";
   }
 
   static exportUriFile(
