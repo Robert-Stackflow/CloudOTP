@@ -117,7 +117,11 @@ class HuaweiCloudService extends CloudService {
     list.sort((a, b) {
       return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
     });
-    while (list.length > maxCount) {
+    final deleteCount = CloudService.getOldBackupDeleteCount(
+      backupCount: list.length,
+      maxCount: maxCount,
+    );
+    for (int i = 0; i < deleteCount; i++) {
       var file = list.removeAt(0);
       await deleteFile(file.id);
     }
@@ -174,8 +178,7 @@ class HuaweiCloudService extends CloudService {
       fileName,
       onProgress: onProgress,
     );
-    deleteOldBackup();
-    return response.isSuccess;
+    return await completeUpload(response.isSuccess);
   }
 
   @override

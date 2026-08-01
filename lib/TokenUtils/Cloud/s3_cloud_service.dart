@@ -154,7 +154,11 @@ class S3CloudService extends CloudService {
       list.sort((a, b) {
         return a.modifyTimestamp.compareTo(b.modifyTimestamp);
       });
-      while (list.length > maxCount) {
+      final deleteCount = CloudService.getOldBackupDeleteCount(
+        backupCount: list.length,
+        maxCount: maxCount,
+      );
+      for (int i = 0; i < deleteCount; i++) {
         var file = list.removeAt(0);
         await deleteFile(file.path);
       }
@@ -237,8 +241,7 @@ class S3CloudService extends CloudService {
               onProgress: (bytes) {
         onProgress?.call(bytes, fileData.length);
       });
-      deleteOldBackup();
-      return response.isNotEmpty;
+      return await completeUpload(response.isNotEmpty);
     } catch (e, t) {
       ILogger.error("Failed to upload file to s3 cloud", e, t);
       return false;

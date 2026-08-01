@@ -144,8 +144,7 @@ class WebDavCloudService extends CloudService {
       },
       cancelToken: c,
     );
-    deleteOldBackup();
-    return progress >= 1;
+    return await completeUpload(progress >= 1);
   }
 
   @override
@@ -192,7 +191,11 @@ class WebDavCloudService extends CloudService {
       if (a.mTime == null || b.mTime == null) return 0;
       return a.mTime!.compareTo(b.mTime!);
     });
-    while (list.length > maxCount) {
+    final deleteCount = CloudService.getOldBackupDeleteCount(
+      backupCount: list.length,
+      maxCount: maxCount,
+    );
+    for (int i = 0; i < deleteCount; i++) {
       var file = list.removeAt(0);
       await deleteFile(file.path!);
     }
