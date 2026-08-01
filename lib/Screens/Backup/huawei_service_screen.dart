@@ -13,8 +13,6 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
@@ -27,7 +25,6 @@ import 'package:window_manager/window_manager.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/huawei_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
-import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/huawei_backups_bottom_sheet.dart';
@@ -275,63 +272,39 @@ class _HuaweiCloudServiceScreenState
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<HuaweiCloudFileInfo>? files =
-                      await _huaweiCloudCloudService!.listBackups();
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  await CloudServiceConfigDao.updateLastPullTime(
-                      _huaweiCloudCloudServiceConfig!);
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) =>
-                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => HuaweiCloudBackupsBottomSheet(
-                        files: files,
-                        cloudService: _huaweiCloudCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _huaweiCloudCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<HuaweiCloudFileInfo>>(
+                  action: _huaweiCloudCloudService!.listBackups,
+                  logName: "Huawei Cloud",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _huaweiCloudCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => HuaweiCloudBackupsBottomSheet(
+                      files: files,
+                      cloudService: _huaweiCloudCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "Huawei Cloud",
+                          action: (onProgress) =>
+                              _huaweiCloudCloudService!.downloadFile(
                             selectedFile.id,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          if (!mounted) {
-                            dialog.dismiss();
-                            return;
-                          }
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from huawei cloud", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -344,7 +317,7 @@ class _HuaweiCloudServiceScreenState
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _huaweiCloudCloudServiceConfig!,
                   cloudService: _huaweiCloudCloudService!,
                 );

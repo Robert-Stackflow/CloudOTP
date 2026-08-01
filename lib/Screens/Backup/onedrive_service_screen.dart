@@ -13,8 +13,6 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
@@ -28,7 +26,6 @@ import 'package:window_manager/window_manager.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
-import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../l10n/l10n.dart';
 
@@ -276,63 +273,39 @@ class _OneDriveServiceScreenState
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<OneDriveFileInfo>? files =
-                      await _oneDriveCloudService!.listBackups();
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  await CloudServiceConfigDao.updateLastPullTime(
-                      _oneDriveCloudServiceConfig!);
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) =>
-                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => OneDriveBackupsBottomSheet(
-                        files: files,
-                        cloudService: _oneDriveCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _oneDriveCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<OneDriveFileInfo>>(
+                  action: _oneDriveCloudService!.listBackups,
+                  logName: "OneDrive",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _oneDriveCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => OneDriveBackupsBottomSheet(
+                      files: files,
+                      cloudService: _oneDriveCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "OneDrive",
+                          action: (onProgress) =>
+                              _oneDriveCloudService!.downloadFile(
                             selectedFile.id,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          if (!mounted) {
-                            dialog.dismiss();
-                            return;
-                          }
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from onedrive", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -345,7 +318,7 @@ class _OneDriveServiceScreenState
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _oneDriveCloudServiceConfig!,
                   cloudService: _oneDriveCloudService!,
                 );

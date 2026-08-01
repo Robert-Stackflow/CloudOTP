@@ -13,15 +13,11 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
-import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/webdav_backups_bottom_sheet.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import 'cloud_service_ui_helper.dart';
@@ -349,70 +345,38 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<WebDavFileInfo>? files =
-                      await _webDavCloudService!.listBackups();
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  await CloudServiceConfigDao.updateLastPullTime(
-                      _webDavCloudServiceConfig!);
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => WebDavBackupsBottomSheet(
-                        files: files,
-                        cloudService: _webDavCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _webDavCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<WebDavFileInfo>>(
+                  action: _webDavCloudService!.listBackups,
+                  logName: "WebDAV",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _webDavCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => WebDavBackupsBottomSheet(
+                      files: files,
+                      cloudService: _webDavCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "WebDAV",
+                          action: (onProgress) =>
+                              _webDavCloudService!.downloadFile(
                             selectedFile.name!,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          if (!mounted) {
-                            dialog.dismiss();
-                            return;
-                          }
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from webdav", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  String detail = e is DioException
-                      ? (e.response?.statusMessage ??
-                          e.message ??
-                          e.error?.toString() ??
-                          '')
-                      : e.toString();
-                  IToast.show(detail.isNotEmpty
-                      ? "${appLocalizations.cloudPullFailed}: $detail"
-                      : appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -425,7 +389,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _webDavCloudServiceConfig!,
                   cloudService: _webDavCloudService!,
                 );

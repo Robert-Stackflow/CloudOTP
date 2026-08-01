@@ -536,7 +536,7 @@ class ImportTokenUtil {
     return categories;
   }
 
-  static importFromCloud(
+  static Future<void> importFromCloud(
     BuildContext context,
     Uint8List? res,
     ProgressDialog dialog,
@@ -848,8 +848,7 @@ class ImportTokenUtil {
         tokenItems.where((e) => e.status == ImportTokenStatus.error).length;
     analysis.parseCategorySuccess = categoryItems.length;
     if (!overwriteExisting) {
-      var result =
-          await mergeTokensAndCategories(selectedTokens, categories);
+      var result = await mergeTokensAndCategories(selectedTokens, categories);
       analysis.importTokenSuccess = result.importTokenSuccess;
       analysis.importCategorySuccess = result.importCategorySuccess;
       return analysis;

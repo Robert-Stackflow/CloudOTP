@@ -13,8 +13,6 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
@@ -28,7 +26,6 @@ import 'package:window_manager/window_manager.dart';
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/aliyundrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
-import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/aliyundrive_backups_bottom_sheet.dart';
 import '../../l10n/l10n.dart';
@@ -266,63 +263,39 @@ class _AliyunDriveServiceScreenState
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<AliyunDriveFileInfo>? files =
-                      await _aliyunDriveCloudService!.listBackups();
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  await CloudServiceConfigDao.updateLastPullTime(
-                      _aliyunDriveCloudServiceConfig!);
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) =>
-                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => AliyunDriveBackupsBottomSheet(
-                        files: files,
-                        cloudService: _aliyunDriveCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _aliyunDriveCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<AliyunDriveFileInfo>>(
+                  action: _aliyunDriveCloudService!.listBackups,
+                  logName: "Aliyun Drive",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _aliyunDriveCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => AliyunDriveBackupsBottomSheet(
+                      files: files,
+                      cloudService: _aliyunDriveCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "Aliyun Drive",
+                          action: (onProgress) =>
+                              _aliyunDriveCloudService!.downloadFile(
                             selectedFile.id,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          if (!mounted) {
-                            dialog.dismiss();
-                            return;
-                          }
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull file from aliyunDrive", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -335,7 +308,7 @@ class _AliyunDriveServiceScreenState
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _aliyunDriveCloudServiceConfig!,
                   cloudService: _aliyunDriveCloudService!,
                 );

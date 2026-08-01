@@ -528,7 +528,7 @@ class ExportTokenUtil {
           ExportTokenUtil.getExportFileName("bin"),
           encryptedData,
           onProgress: (c, t) {
-            if (showLoading && dialog != null) {
+            if (showLoading && dialog != null && t > 0) {
               dialog.updateProgress(progress: c / t);
             }
           },
@@ -545,13 +545,11 @@ class ExportTokenUtil {
         }
       }
     } catch (e, t) {
-      ILogger.error("Failed to backup encrypt file to cloud $config", e, t);
+      ILogger.error("Failed to backup encrypt file to ${config.type}", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
-        if (showToast) {
-          IToast.showTop("${appLocalizations.backupFailed}: $e");
-        }
+        if (showToast) IToast.showTop(appLocalizations.backupFailed);
       }
     } finally {
       if (showLoading && dialog != null) dialog.dismiss();

@@ -13,13 +13,10 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
-import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:flutter/material.dart';
 
 import 'cloud_service_ui_helper.dart';
@@ -356,62 +353,38 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<S3CloudFileInfo>? files =
-                      await _s3CloudService!.listBackups();
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  await CloudServiceConfigDao.updateLastPullTime(
-                      _s3CloudServiceConfig!);
-                  if (!mounted) {
-                    CustomLoadingDialog.dismissLoading();
-                    return;
-                  }
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort(
-                      (a, b) => b.modifyTimestamp.compareTo(a.modifyTimestamp));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => S3CloudBackupsBottomSheet(
-                        files: files,
-                        cloudService: _s3CloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res = await _s3CloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<S3CloudFileInfo>>(
+                  action: _s3CloudService!.listBackups,
+                  logName: "S3",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _s3CloudServiceConfig!);
+                if (!mounted) return;
+                files.sort(
+                    (a, b) => b.modifyTimestamp.compareTo(a.modifyTimestamp));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => S3CloudBackupsBottomSheet(
+                      files: files,
+                      cloudService: _s3CloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "S3",
+                          action: (onProgress) => _s3CloudService!.downloadFile(
                             selectedFile.path,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          if (!mounted) {
-                            dialog.dismiss();
-                            return;
-                          }
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from S3 cloud", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -424,7 +397,7 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _s3CloudServiceConfig!,
                   cloudService: _s3CloudService!,
                 );
