@@ -649,6 +649,29 @@ class ImportTokenUtil {
     return null;
   }
 
+  static void applyBackupTokenFields(OtpToken existing, OtpToken backup) {
+    final localId = existing.id;
+    final localUid = existing.uid;
+    final localSeq = existing.seq;
+    existing.copyFrom(backup);
+    existing.id = localId;
+    existing.uid = localUid;
+    existing.seq = localSeq;
+  }
+
+  static void applyBackupCategoryFields(
+    TokenCategory existing,
+    TokenCategory backup,
+  ) {
+    final localId = existing.id;
+    final localUid = existing.uid;
+    final localSeq = existing.seq;
+    existing.copyFrom(backup);
+    existing.id = localId;
+    existing.uid = localUid;
+    existing.seq = localSeq;
+  }
+
   static TokenCategory? findExistingCategory(
     TokenCategory category,
     List<TokenCategory> categoryList,
@@ -962,9 +985,7 @@ class ImportTokenUtil {
       if (item.status == ImportTokenStatus.duplicate &&
           item.existingToken != null) {
         OtpToken existing = item.existingToken!;
-        existing.pinned = item.token.pinned;
-        existing.imagePath = item.token.imagePath;
-        existing.description = item.token.description;
+        applyBackupTokenFields(existing, item.token);
         overwriteTokens.add(existing);
       } else if (item.status == ImportTokenStatus.ready) {
         newTokens.add(item.token);
@@ -1008,15 +1029,13 @@ class ImportTokenUtil {
       }
       if (!catItem.isNew && catItem.existingCategory != null) {
         TokenCategory existing = catItem.existingCategory!;
-        existing.pinned = cat.pinned;
-        existing.description = cat.description;
-        existing.bindings = cat.bindings;
+        applyBackupCategoryFields(existing, cat);
         await CategoryDao.updateCategories(
           [existing],
           overrideDb: overrideDb,
           notifyChanges: false,
         );
-        await BindingDao.bingdingsForCategory(
+        await BindingDao.replaceBindingsForCategory(
           existing.uid,
           existing.bindings,
           overrideDb: overrideDb,

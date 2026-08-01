@@ -91,6 +91,35 @@ class BindingDao {
     return results.length;
   }
 
+  static Future<int> replaceBindingsForCategory(
+    String categoryUid,
+    List<String> tokenUids, {
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final uniqueTokenUids = tokenUids.toSet();
+    final batch = db.batch();
+    batch.delete(
+      tableName,
+      where: 'category_uid = ?',
+      whereArgs: [categoryUid],
+    );
+    for (final tokenUid in uniqueTokenUids) {
+      batch.insert(
+        tableName,
+        TokenCategoryBinding(
+          tokenUid: tokenUid,
+          categoryUid: categoryUid,
+        ).toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit();
+    if (notifyChanges) Utils.initTray();
+    return uniqueTokenUids.length;
+  }
+
   static Future<int> unBinding(String tokenUid, String categoryUid) async {
     final db = await DatabaseManager.getDataBase();
     int id = await db.delete(
