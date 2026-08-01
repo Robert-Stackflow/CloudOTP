@@ -41,7 +41,7 @@ enum EncryptDatabaseStatus { defaultPassword, customPassword }
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
   static const _unencrypedFileHeader = "SQLite format 3";
-  static const _dbVersion = 9;
+  static const _dbVersion = 10;
   static Database? _database;
   static final dbFactory = createDatabaseFactoryFfi();
   static DynamicLibrary? lib = loadSqlcipher();
@@ -485,6 +485,7 @@ class DatabaseManager {
     await db.execute(Sql.createAutoBackupLogTable.sql);
     await db.execute(Sql.createTokenCategoryBindingTable.sql);
     await DatabaseMigrations.createIndexes(db);
+    await DatabaseMigrations.upgradeToV10(db);
     await _insertSampleData(db);
   }
 
@@ -664,6 +665,9 @@ class DatabaseManager {
     }
     if (oldVersion < 9) {
       await DatabaseMigrations.upgradeToV9(db);
+    }
+    if (oldVersion < 10) {
+      await DatabaseMigrations.upgradeToV10(db);
     }
   }
 

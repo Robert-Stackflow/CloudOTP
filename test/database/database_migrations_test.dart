@@ -9,7 +9,10 @@ void main() {
     sqfliteFfiInit();
     database = await databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
     await database.execute('''
-      CREATE TABLE otp_token (uid TEXT NOT NULL)
+      CREATE TABLE otp_token (
+        id INTEGER PRIMARY KEY,
+        uid TEXT NOT NULL
+      )
     ''');
     await database.execute('''
       CREATE TABLE token_category (uid TEXT NOT NULL)
@@ -71,5 +74,64 @@ void main() {
     final indexNames = indexes.map((row) => row['name']).toSet();
     expect(indexNames, contains('idx_binding_token_uid'));
     expect(indexNames, contains('idx_binding_category_uid'));
+  });
+
+  test('v10 migration repairs duplicate UIDs without losing category bindings',
+      () async {
+    await database.insert('otp_token', {'id': 1, 'uid': 'shared'});
+    await database.insert('otp_token', {'id': 2, 'uid': 'shared'});
+    await database.insert('otp_token', {'id': 3, 'uid': 'shared'});
+    await database.insert('otp_token', {'id': 4, 'uid': 'unique'});
+    await database.insert('otp_token', {'id': 5, 'uid': ''});
+    await database.insert('token_category_binding', {
+      'token_uid': 'shared',
+      'category_uid': 'category-a',
+    });
+    await database.insert('token_category_binding', {
+      'token_uid': 'shared',
+      'category_uid': 'category-b',
+    });
+    await database.insert('token_category_binding', {
+      'token_uid': '',
+      'category_uid': 'category-c',
+    });
+
+    await database.transaction(DatabaseMigrations.upgradeToV10);
+
+    final tokens = await database.query('otp_token', orderBy: 'id');
+    final tokenUids = tokens.map((token) => token['uid'] as String).toList();
+    expect(tokens, hasLength(5));
+    expect(tokenUids.toSet(), hasLength(5));
+    expect(tokenUids, isNot(contains('')));
+    expect(tokenUids.first, 'shared');
+
+    for (final tokenId in [1, 2, 3]) {
+      final tokenUid = tokens[tokenId - 1]['uid'] as String;
+      final bindings = await database.query(
+        'token_category_binding',
+        columns: ['category_uid'],
+        where: 'token_uid = ?',
+        whereArgs: [tokenUid],
+        orderBy: 'category_uid',
+      );
+      expect(
+        bindings.map((binding) => binding['category_uid']),
+        ['category-a', 'category-b'],
+      );
+    }
+
+    final repairedEmptyUid = tokens[4]['uid'] as String;
+    expect(
+      await database.query(
+        'token_category_binding',
+        where: 'token_uid = ? AND category_uid = ?',
+        whereArgs: [repairedEmptyUid, 'category-c'],
+      ),
+      hasLength(1),
+    );
+    await expectLater(
+      database.insert('otp_token', {'uid': 'shared'}),
+      throwsA(isA<DatabaseException>()),
+    );
   });
 }

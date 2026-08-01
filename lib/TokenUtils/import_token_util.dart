@@ -608,14 +608,21 @@ class ImportTokenUtil {
     }
   }
 
-  static Future<Map<String, String>> getAlreadyExistUid(
-      List<OtpToken> tokenList) async {
+  static Future<Map<String, List<String>>> _getResolvedUidMap(
+    List<OtpToken> tokenList, {
+    List<String>? originalUids,
+  }) async {
     List<OtpToken> already = await TokenDao.listTokens();
-    Map<String, String> uidMap = {};
-    for (OtpToken token in tokenList) {
+    Map<String, List<String>> uidMap = {};
+    for (int i = 0; i < tokenList.length; i++) {
+      OtpToken token = tokenList[i];
       OtpToken? alreadyToken = checkTokenExist(token, already);
       if (alreadyToken != null) {
-        uidMap[token.uid] = alreadyToken.uid;
+        final originalUid = originalUids?[i] ?? token.uid;
+        final resolvedUids = uidMap.putIfAbsent(originalUid, () => []);
+        if (!resolvedUids.contains(alreadyToken.uid)) {
+          resolvedUids.add(alreadyToken.uid);
+        }
         token.uid = alreadyToken.uid;
       }
     }
@@ -660,10 +667,17 @@ class ImportTokenUtil {
     ImportAnalysis analysis = ImportAnalysis();
     analysis.parseTokenSuccess = tokenList.length;
     analysis.parseCategorySuccess = categoryList.length;
+    final originalUids = tokenList.map((token) => token.uid).toList();
     analysis.importTokenSuccess = await mergeTokens(tokenList);
-    Map<String, String> uidMap = await getAlreadyExistUid(tokenList);
+    Map<String, List<String>> uidMap = await _getResolvedUidMap(
+      tokenList,
+      originalUids: originalUids,
+    );
     for (TokenCategory category in categoryList) {
-      category.bindings = category.bindings.map((e) => uidMap[e] ?? e).toList();
+      category.bindings = category.bindings
+          .expand((uid) => uidMap[uid] ?? [uid])
+          .toSet()
+          .toList();
     }
     analysis.importCategorySuccess = await mergeCategories(categoryList);
     return analysis;
@@ -675,6 +689,7 @@ class ImportTokenUtil {
   }) async {
     List<OtpToken> already = await TokenDao.listTokens();
     List<OtpToken> finalMergeTokenList = [];
+    Set<String> occupiedUids = already.map((token) => token.uid).toSet();
     for (OtpToken toMergeToken in toMergeTokenList) {
       if (toMergeToken.issuer.isEmpty) {
         toMergeToken.issuer = toMergeToken.account;
@@ -686,11 +701,13 @@ class ImportTokenUtil {
       OtpToken? alreadyToken = checkTokenExist(toMergeToken, already);
       if (alreadyToken == null &&
           checkTokenExist(toMergeToken, finalMergeTokenList) == null) {
+        while (toMergeToken.uid.isEmpty ||
+            occupiedUids.contains(toMergeToken.uid)) {
+          toMergeToken.uid = StringUtil.generateUid();
+        }
+        occupiedUids.add(toMergeToken.uid);
         finalMergeTokenList.add(toMergeToken);
       } else {}
-    }
-    for (var token in finalMergeTokenList) {
-      if (token.uid.isEmpty) token.uid = StringUtil.generateUid();
     }
     if (performInsert) {
       await TokenDao.insertTokens(finalMergeTokenList);
@@ -837,7 +854,8 @@ class ImportTokenUtil {
       analysis.importCategorySuccess = result.importCategorySuccess;
       return analysis;
     }
-    Set<String> selectedUids = selectedTokens.map((t) => t.uid).toSet();
+    final originalUids = selectedTokens.map((token) => token.uid).toList();
+    Set<String> selectedUids = originalUids.toSet();
     List<OtpToken> newTokens = [];
     List<OtpToken> overwriteTokens = [];
     for (var item in tokenItems) {
@@ -858,13 +876,16 @@ class ImportTokenUtil {
       await TokenDao.updateTokens(overwriteTokens);
       analysis.importTokenSuccess += overwriteTokens.length;
     }
-    Map<String, String> uidMap =
-        await getAlreadyExistUid([...newTokens, ...selectedTokens]);
+    Map<String, List<String>> uidMap = await _getResolvedUidMap(
+      selectedTokens,
+      originalUids: originalUids,
+    );
     List<TokenCategory> newCategories = [];
     for (var catItem in categoryItems) {
       if (!catItem.selected) continue;
       var cat = catItem.category;
-      cat.bindings = cat.bindings.map((e) => uidMap[e] ?? e).toList();
+      cat.bindings =
+          cat.bindings.expand((uid) => uidMap[uid] ?? [uid]).toSet().toList();
       if (!catItem.isNew && catItem.existingCategory != null) {
         TokenCategory existing = catItem.existingCategory!;
         existing.pinned = cat.pinned;
