@@ -213,10 +213,12 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
           ),
         ],
       ),
-      body: SafeArea(
-        top: false,
-        child: EasyRefresh(
-          child: _buildBody(),
+      body: _KeyboardAvoidingBody(
+        child: SafeArea(
+          top: false,
+          child: EasyRefresh(
+            child: _buildBody(),
+          ),
         ),
       ),
     );
@@ -288,7 +290,6 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
               if (_isEditing) _copyTimesInfo(),
               if (_isEditing) ..._deleteButton(),
               SizedBox(height: _isEditing ? 0 : 30),
-              const _KeyboardInsetSpacer(),
             ],
           ),
         ),
@@ -740,11 +741,22 @@ class _AddTokenScreenState extends BaseDynamicState<AddTokenScreen>
   }
 }
 
-class _KeyboardInsetSpacer extends StatelessWidget {
-  const _KeyboardInsetSpacer();
+class _KeyboardAvoidingBody extends StatelessWidget {
+  const _KeyboardAvoidingBody({required this.child});
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(height: MediaQuery.viewInsetsOf(context).bottom);
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: child,
+      ),
+    );
   }
 }
