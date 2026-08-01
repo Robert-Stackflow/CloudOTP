@@ -18,7 +18,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:pointycastle/export.dart';
 
 import './backup_encrypt_interface.dart';
@@ -100,11 +99,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
 
     try {
       unencryptedData = cipher.process(encryptedData);
-    } catch (e, t) {
-      ILogger.error(
-          "Failed to decrypt data (InvalidPasswordOrDataCorruptedException)",
-          e,
-          t);
+    } catch (_) {
       throw InvalidPasswordOrDataCorruptedException();
     }
 
@@ -124,8 +119,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
         }
       }
       return true;
-    } catch (e, t) {
-      ILogger.error("Failed to decrypt (FileNotBackupException)", e, t);
+    } catch (_) {
       throw FileNotBackupException();
     }
   }
