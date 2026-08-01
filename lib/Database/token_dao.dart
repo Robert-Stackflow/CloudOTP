@@ -273,6 +273,36 @@ class TokenDao {
     });
   }
 
+  static Future<List<OtpToken>> listTokensByCategoryUid(
+    String categoryUid, {
+    String searchKey = "",
+    List<String> tags = const [],
+    String? tokenType,
+    DatabaseExecutor? overrideDb,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final search = _buildSearchWhere(
+      searchKey: searchKey,
+      tags: tags,
+      tokenType: tokenType,
+    );
+    final conditions = <String>['binding.category_uid = ?'];
+    final args = <Object>[categoryUid];
+    if (search.where != null) {
+      conditions.add(search.where!);
+      args.addAll(search.whereArgs!);
+    }
+    final maps = await db.rawQuery('''
+      SELECT DISTINCT token.*
+      FROM $tableName AS token
+      INNER JOIN ${BindingDao.tableName} AS binding
+        ON binding.token_uid = token.uid
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY token.pinned DESC, token.seq DESC
+    ''', args);
+    return maps.map(OtpToken.fromMap).toList();
+  }
+
   static Future<OtpToken?> getTokenById(
     int id, {
     String searchKey = "",

@@ -203,11 +203,12 @@ class CategoryDao {
       return await TokenDao.listTokens(
           searchKey: searchKey, tags: tags, tokenType: tokenType);
     }
-    TokenCategory category = await getCategoryByUid(uid);
-    List<OtpToken> tokens = await BindingDao.getTokens(category.uid,
-        searchKey: searchKey, tags: tags, tokenType: tokenType);
-    tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-    return tokens;
+    return TokenDao.listTokensByCategoryUid(
+      uid,
+      searchKey: searchKey,
+      tags: tags,
+      tokenType: tokenType,
+    );
   }
 
   static Future<List<String>> getCategoryUidsByName(String name) async {
