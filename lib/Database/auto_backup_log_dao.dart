@@ -23,22 +23,15 @@ class AutoBackupLogDao {
 
   static Future<int> insertLog(AutoBackupLog log) async {
     final db = await DatabaseManager.getDataBase();
-    log.id = await getMaxId() + 1;
     log.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-    int id = await db.insert(
+    final values = log.toMap()..remove('id');
+    final id = await db.insert(
       tableName,
-      log.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
     );
+    log.id = id;
     return id;
-  }
-
-  static Future<int> getMaxId() async {
-    final db = await DatabaseManager.getDataBase();
-    List<Map<String, dynamic>> maps = await db.rawQuery(
-      "SELECT MAX(id) as id FROM $tableName",
-    );
-    return maps[0]["id"] ?? 0;
   }
 
   static Future<List<AutoBackupLog>> getLogs({

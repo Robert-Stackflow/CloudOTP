@@ -251,11 +251,13 @@ class AutoBackupLog {
   addStatus(
     AutoBackupStatus status, {
     CloudServiceType? type,
+    String? cloudServiceName,
   }) {
     this.status.add(AutoBackupLogStatusItem(
           status: status,
           timestamp: DateTime.now().millisecondsSinceEpoch,
           cloudServiceType: type,
+          cloudServiceName: cloudServiceName,
           remark: '',
         ));
     switch (status) {
@@ -316,13 +318,18 @@ class AutoBackupLogStatusItem {
   final int timestamp;
   final String remark;
   final CloudServiceType? cloudServiceType;
+  final String? cloudServiceName;
 
   AutoBackupLogStatusItem({
     required this.status,
     required this.timestamp,
     required this.remark,
     this.cloudServiceType,
+    this.cloudServiceName,
   });
+
+  String get serviceDisplayName =>
+      cloudServiceName ?? cloudServiceType?.label ?? "";
 
   factory AutoBackupLogStatusItem.fromMap(Map<String, dynamic> map) {
     return AutoBackupLogStatusItem(
@@ -332,6 +339,7 @@ class AutoBackupLogStatusItem {
       cloudServiceType: map['cloud_service_type'] == null
           ? null
           : CloudServiceType.values[map['cloud_service_type']],
+      cloudServiceName: map['cloud_service_name'],
     );
   }
 
@@ -341,6 +349,7 @@ class AutoBackupLogStatusItem {
       'timestamp': timestamp,
       'remark': remark,
       'cloud_service_type': cloudServiceType?.index,
+      'cloud_service_name': cloudServiceName,
     };
   }
 
@@ -396,7 +405,7 @@ class AutoBackupLogStatusItem {
           return appLocalizations.uploadBackupFileFailed;
         } else {
           return appLocalizations
-              .uploadingBackupFileTo(cloudServiceType!.label);
+              .uploadingBackupFileTo(serviceDisplayName);
         }
       case AutoBackupStatus.uploadFailed:
         return appLocalizations.uploadBackupFileFailed;
@@ -405,7 +414,7 @@ class AutoBackupLogStatusItem {
           return appLocalizations.uploadBackupFileFailed;
         } else {
           return appLocalizations
-              .uploadBackupFileSuccess(cloudServiceType!.label);
+              .uploadBackupFileSuccess(serviceDisplayName);
         }
       case AutoBackupStatus.complete:
         return appLocalizations.autoBackupComplete;

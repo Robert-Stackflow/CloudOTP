@@ -76,7 +76,7 @@ class Client {
   Future<WebDavFileInfo> readProps(String path,
       [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
-    var resp = await wdDio.wdPropfind(this, path, true, fileXmlStr,
+    var resp = await wdDio.wdPropfind(this, path, false, fileXmlStr,
         cancelToken: cancelToken);
 
     String str = resp.data;
@@ -110,7 +110,7 @@ class Client {
         sub += '$e/';
         resp = await wdDio.wdMkcol(this, sub, cancelToken: cancelToken);
         status = resp.statusCode;
-        if (status != 201 && status != 405) {
+        if (status != 201 && status != 405 && status != 409) {
           throw newResponseError(resp);
         }
       }
@@ -188,7 +188,7 @@ class Client {
     Uint8List data, {
     void Function(int count, int total)? onProgress,
     CancelToken? cancelToken,
-    void Function()? onSucess,
+    void Function()? onSuccess,
   }) {
     return wdDio.wdWriteWithBytes(
       this,
@@ -196,7 +196,7 @@ class Client {
       data,
       onProgress: onProgress,
       cancelToken: cancelToken,
-      onSucess: onSucess,
+      onSuccess: onSuccess,
     );
   }
 

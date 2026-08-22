@@ -13,6 +13,8 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'dart:async';
+
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/Models/token_category.dart';
@@ -168,15 +170,11 @@ class _ImportPreviewScreenState extends BaseDynamicState<ImportPreviewScreen> {
 
   Future<void> _confirmImport() async {
     if (_totalSelectedCount == 0) return;
+    if (_overwriteExisting && !await _confirmOverwriteImport()) return;
+    if (!mounted) return;
     CustomLoadingDialog.showLoading(title: appLocalizations.importing);
     try {
       final selectedCategories = _selectedCategories;
-      final selectedTokenUids = _selectedTokens.map((t) => t.uid).toSet();
-      for (var cat in selectedCategories) {
-        cat.bindings = cat.bindings
-            .where((uid) => selectedTokenUids.contains(uid))
-            .toList();
-      }
       ImportAnalysis analysis = await ImportTokenUtil.confirmImport(
         _selectedTokens,
         selectedCategories,
@@ -192,6 +190,22 @@ class _ImportPreviewScreenState extends BaseDynamicState<ImportPreviewScreen> {
       ILogger.error("Failed to confirm import", e, t);
       IToast.showTop(appLocalizations.importFailed);
     }
+  }
+
+  Future<bool> _confirmOverwriteImport() {
+    final completer = Completer<bool>();
+    DialogBuilder.showConfirmDialog(
+      context,
+      title: appLocalizations.importOverwriteLocal,
+      message: appLocalizations.importOverwriteWarning,
+      barrierDismissible: false,
+      customDialogType: CustomDialogType.warning,
+      confirmButtonText: appLocalizations.confirm,
+      cancelButtonText: appLocalizations.cancel,
+      onTapConfirm: () => completer.complete(true),
+      onTapCancel: () => completer.complete(false),
+    );
+    return completer.future;
   }
 
   String _buildCategoryBindingText(ImportCategoryItem item) {
@@ -252,6 +266,35 @@ class _ImportPreviewScreenState extends BaseDynamicState<ImportPreviewScreen> {
                     padding:
                         const EdgeInsets.only(left: 10, right: 10, bottom: 10),
                     children: [
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: ChewieTheme.primaryColor.withAlpha(16),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: ChewieTheme.primaryColor.withAlpha(55),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              LucideIcons.shieldCheck,
+                              size: 19,
+                              color: ChewieTheme.primaryColor,
+                            ),
+                            const SizedBox(width: 9),
+                            Expanded(
+                              child: Text(
+                                appLocalizations.importPreviewSafetyTip,
+                                style: ChewieTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       InlineSelectionItem<SelectionItemModel<bool>>(
                         title: appLocalizations.importMergeStrategy,

@@ -482,16 +482,17 @@ class MainScreenState extends BaseWindowState<MainScreen>
                   ),
                   PlatformMenuItem(
                     label: appLocalizations.scanFromClipboard,
-                    onSelected: () {
-                      ScreenCapturerPlatform.instance
-                          .readImageFromClipboard()
-                          .then((value) {
-                        if (value != null) {
-                          ImportTokenUtil.analyzeImage(value, context: context);
-                        } else {
-                          IToast.showTop(appLocalizations.clipboardNoImage);
-                        }
-                      });
+                    onSelected: () async {
+                      final value = await ScreenCapturerPlatform.instance
+                          .readImageFromClipboard();
+                      if (value != null && mounted) {
+                        await ImportTokenUtil.analyzeImage(
+                          value,
+                          context: context,
+                        );
+                      } else if (value == null) {
+                        IToast.showTop(appLocalizations.clipboardNoImage);
+                      }
                     },
                   ),
                 ]),
@@ -971,16 +972,14 @@ class MainScreenState extends BaseWindowState<MainScreen>
         FlutterContextMenuItem(
           appLocalizations.scanFromClipboard,
           iconData: LucideIcons.clipboardList,
-          onPressed: () {
-            ScreenCapturerPlatform.instance
-                .readImageFromClipboard()
-                .then((value) {
-              if (value != null) {
-                ImportTokenUtil.analyzeImage(value, context: context);
-              } else {
-                IToast.showTop(appLocalizations.clipboardNoImage);
-              }
-            });
+          onPressed: () async {
+            final value =
+                await ScreenCapturerPlatform.instance.readImageFromClipboard();
+            if (value != null && mounted) {
+              await ImportTokenUtil.analyzeImage(value, context: context);
+            } else if (value == null) {
+              IToast.showTop(appLocalizations.clipboardNoImage);
+            }
           },
         ),
         FlutterContextMenuItem.divider(),
@@ -1489,7 +1488,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
 
   @override
   Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
-    Utils.processTrayMenuItemClick(context, menuItem, false);
+    await Utils.processTrayMenuItemClick(context, menuItem, false);
   }
 
   @override

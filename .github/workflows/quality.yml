@@ -1,0 +1,45 @@
+name: Code Quality
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      FLUTTER_VERSION: 3.41.9
+      PUB_HOSTED_URL: https://pub.flutter-io.cn
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Generate app localizations
+        run: flutter gen-l10n
+
+      - name: Generate component localizations
+        working-directory: third-party/chewie
+        run: flutter gen-l10n
+
+      - name: Analyze for errors
+        run: dart analyze lib --no-fatal-warnings
+
+      - name: Run tests
+        run: flutter test --no-pub

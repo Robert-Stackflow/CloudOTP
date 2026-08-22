@@ -133,8 +133,9 @@ class Dropbox extends BaseCloudService {
     }
   }
 
-  String removeLeadingSlash(String str) {
-    return str.replaceFirst(RegExp(r'^/+'), '');
+  String ensureDropboxPath(String str) {
+    if (str.isEmpty || str == '/') return '';
+    return str.startsWith('/') ? str : '/$str';
   }
 
   @override
@@ -152,7 +153,7 @@ class Dropbox extends BaseCloudService {
           "include_media_info": false,
           "include_mounted_folders": true,
           "include_non_downloadable_files": true,
-          "path": removeLeadingSlash(remotePath),
+          "path": ensureDropboxPath(remotePath),
           "recursive": false
         }),
       );

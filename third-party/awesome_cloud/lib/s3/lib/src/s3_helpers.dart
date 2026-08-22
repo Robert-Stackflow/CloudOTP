@@ -82,10 +82,9 @@ bool isValidDomain(String? host) {
     return false;
   }
 
-  // final alphaNumerics = '`~!@#\$%^&*()+={}[]|\\"\';:><?/'.split('');
-  // for (var char in alphaNumerics) {
-  //   if (host.contains(char)) return false;
-  // }
+  if (!RegExp(r'^[a-zA-Z0-9.\-_]+$').hasMatch(host)) {
+    return false;
+  }
 
   return true;
 }

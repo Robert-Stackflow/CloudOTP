@@ -38,6 +38,8 @@ import 'constant.dart';
 import 'hive_util.dart';
 
 class Utils {
+  static bool _isExitingDesktopApp = false;
+
   static showQAuthDialog(BuildContext context, [bool force = false]) {
     bool haveShowQAuthDialog = ChewieHiveUtil.getBool(
         CloudOTPHiveUtil.haveShowQAuthDialogKey,
@@ -294,7 +296,7 @@ class Utils {
     }
   }
 
-  static processTrayMenuItemClick(
+  static Future<void> processTrayMenuItemClick(
     BuildContext context,
     MenuItem menuItem, [
     bool isSimple = false,
@@ -372,7 +374,48 @@ class Utils {
         Utils.initTray();
       }
     } else if (menuItem.key == TrayKey.exitApp.key) {
-      windowManager.destroy();
+      await _exitDesktopApp(isSimple: isSimple);
+    }
+  }
+
+  static Future<void> _exitDesktopApp({required bool isSimple}) async {
+    if (_isExitingDesktopApp) return;
+    _isExitingDesktopApp = true;
+
+    final windowListeners = windowManager.listeners;
+    try {
+      // Remove the tray first so it cannot dispatch another callback while the
+      // Flutter engine is shutting down.
+      await trayManager.destroy();
+      for (final listener in windowListeners) {
+        windowManager.removeListener(listener);
+      }
+
+      // windowManager.destroy() posts WM_QUIT directly on Windows. That skips
+      // the normal WM_CLOSE/WM_DESTROY sequence and can tear down the Flutter
+      // engine while native callbacks are still active. Let the runner destroy
+      // the window normally instead.
+      await windowManager.setPreventClose(false);
+      await windowManager.close();
+    } catch (error, stackTrace) {
+      ILogger.error('Failed to exit desktop app cleanly', error, stackTrace);
+      for (final listener in windowListeners) {
+        if (!windowManager.listeners.contains(listener)) {
+          windowManager.addListener(listener);
+        }
+      }
+      try {
+        await windowManager.setPreventClose(true);
+        if (isSimple) {
+          await initSimpleTray();
+        } else {
+          await initTray();
+        }
+      } catch (restoreError, restoreStackTrace) {
+        ILogger.error('Failed to restore desktop app after exit error',
+            restoreError, restoreStackTrace);
+      }
+      _isExitingDesktopApp = false;
     }
   }
 }

@@ -13,27 +13,29 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/onedrive_backups_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+
+import 'cloud_service_ui_helper.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/onedrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
-import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../l10n/l10n.dart';
 
 class OneDriveServiceScreen extends StatefulWidget {
   const OneDriveServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/onedrive";
 
@@ -43,9 +45,7 @@ class OneDriveServiceScreen extends StatefulWidget {
 
 class _OneDriveServiceScreenState
     extends BaseDynamicState<OneDriveServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -75,19 +75,11 @@ class _OneDriveServiceScreenState
 
   loadConfig() async {
     _oneDriveCloudServiceConfig =
-        await CloudServiceConfigDao.getOneDriveConfig();
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_oneDriveCloudServiceConfig != null) {
       _sizeController.text = _oneDriveCloudServiceConfig!.size;
       _accountController.text = _oneDriveCloudServiceConfig!.account ?? "";
       _emailController.text = _oneDriveCloudServiceConfig!.email ?? "";
-      _oneDriveCloudService = OneDriveCloudService(
-        _oneDriveCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _oneDriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.OneDrive);
-      await CloudServiceConfigDao.insertConfig(_oneDriveCloudServiceConfig!);
       _oneDriveCloudService = OneDriveCloudService(
         _oneDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -122,7 +114,6 @@ class _OneDriveServiceScreenState
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited
@@ -154,32 +145,34 @@ class _OneDriveServiceScreenState
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.authenticate().then((value) async {
-      setState(() {
-        currentConfig.connected = value == CloudServiceStatus.success;
-      });
-      if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(appLocalizations.cloudConnectionError);
-            break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(appLocalizations.cloudOauthFailed);
-            break;
-          default:
-            IToast.show(appLocalizations.cloudUnknownError);
-            break;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.authenticate().then((value) async {
+        setState(() {
+          currentConfig.connected = value.isSuccess;
+        });
+        if (!currentConfig.connected) {
+          String toast;
+          switch (value.type) {
+            case CloudServiceStatusType.connectionError:
+              toast = appLocalizations.cloudConnectionError;
+              break;
+            case CloudServiceStatusType.unauthorized:
+              toast = appLocalizations.cloudOauthFailed;
+              break;
+            default:
+              toast = appLocalizations.cloudUnknownError;
+              break;
+          }
+          IToast.show(
+              value.message != null ? "$toast: ${value.message}" : toast);
+        } else {
+          _oneDriveCloudServiceConfig!.configured = true;
+          updateConfig(_oneDriveCloudServiceConfig!);
+          if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
         }
-      } else {
-        _oneDriveCloudServiceConfig!.configured = true;
-        updateConfig(_oneDriveCloudServiceConfig!);
-        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+      }),
+    );
   }
 
   _buildBody() {
@@ -280,51 +273,39 @@ class _OneDriveServiceScreenState
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<OneDriveFileInfo>? files =
-                      await _oneDriveCloudService!.listBackups();
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  CloudServiceConfigDao.updateLastPullTime(
-                      _oneDriveCloudServiceConfig!);
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) =>
-                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => OneDriveBackupsBottomSheet(
-                        files: files,
-                        cloudService: _oneDriveCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _oneDriveCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<OneDriveFileInfo>>(
+                  action: _oneDriveCloudService!.listBackups,
+                  logName: "OneDrive",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _oneDriveCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => OneDriveBackupsBottomSheet(
+                      files: files,
+                      cloudService: _oneDriveCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "OneDrive",
+                          action: (onProgress) =>
+                              _oneDriveCloudService!.downloadFile(
                             selectedFile.id,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from onedrive", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -337,7 +318,7 @@ class _OneDriveServiceScreenState
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _oneDriveCloudServiceConfig!,
                   cloudService: _oneDriveCloudService!,
                 );
@@ -359,6 +340,7 @@ class _OneDriveServiceScreenState
                   CustomLoadingDialog.showLoading(
                       title: appLocalizations.cloudLoggingOut);
                   await _oneDriveCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _oneDriveCloudServiceConfig!.connected = false;
                     _oneDriveCloudServiceConfig!.account = "";

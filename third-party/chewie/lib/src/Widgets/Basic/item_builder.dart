@@ -245,6 +245,7 @@ class ItemBuilder {
     Function(dynamic value, int index, bool isSelected)? onSelected,
     bool disabled = false,
     MainGroupAlignment mainGroupAlignment = MainGroupAlignment.start,
+    Widget Function(int index, bool selected)? trailingBuilder,
   }) {
     return GroupButton(
       disabled: disabled,
@@ -258,17 +259,21 @@ class ItemBuilder {
       controller: controller,
       buttons: buttons,
       buttonBuilder: (selected, label, context, onTap, __) {
+        final index = buttons.indexOf(label);
+        final trailing = trailingBuilder?.call(index, selected);
         return SizedBox(
           width: constraintWidth ? 80 : null,
           child: RoundIconTextButton(
             height: 36,
-            text: label,
+            text: label as String?,
             radius: radius,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            padding:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
             background: selected ? ChewieTheme.primaryColor : null,
             textStyle: ChewieTheme.titleSmall.apply(
                 fontWeightDelta: 1, color: selected ? Colors.white : null),
             onPressed: onTap,
+            trailing: trailing,
           ),
         );
       },

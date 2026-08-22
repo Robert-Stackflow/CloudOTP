@@ -13,15 +13,14 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
-import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/Backups/webdav_backups_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+
+import 'cloud_service_ui_helper.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
@@ -33,7 +32,12 @@ import '../../l10n/l10n.dart';
 class WebDavServiceScreen extends StatefulWidget {
   const WebDavServiceScreen({
     super.key,
+    required this.configId,
+    this.onTitleChanged,
   });
+
+  final int configId;
+  final VoidCallback? onTitleChanged;
 
   static const String routeName = "/service/webdav";
 
@@ -42,9 +46,9 @@ class WebDavServiceScreen extends StatefulWidget {
 }
 
 class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
+  final TextEditingController _titleController = TextEditingController();
+  final FocusNode _titleFocusNode = FocusNode();
   final TextEditingController _endpointController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _secretController = TextEditingController();
@@ -70,18 +74,16 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
   }
 
   loadConfig() async {
-    _webDavCloudServiceConfig = await CloudServiceConfigDao.getWebdavConfig();
+    _webDavCloudServiceConfig =
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_webDavCloudServiceConfig != null) {
+      _titleController.text = _webDavCloudServiceConfig!.title;
       _endpointController.text = _webDavCloudServiceConfig!.endpoint ?? "";
       _accountController.text = _webDavCloudServiceConfig!.account ?? "";
       _secretController.text = _webDavCloudServiceConfig!.secret ?? "";
       if (await _webDavCloudServiceConfig!.isValid()) {
         _webDavCloudService = WebDavCloudService(_webDavCloudServiceConfig!);
       }
-    } else {
-      _webDavCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.Webdav);
-      await CloudServiceConfigDao.insertConfig(_webDavCloudServiceConfig!);
     }
     if (_webDavCloudService != null) {
       _webDavCloudServiceConfig!.connected =
@@ -95,6 +97,10 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
   }
 
   initFields() {
+    _titleController.addListener(() {
+      _webDavCloudServiceConfig!.title = _titleController.text;
+    });
+    _titleFocusNode.addListener(_onTitleFocusChanged);
     _endpointController.addListener(() {
       _webDavCloudServiceConfig!.endpoint = _endpointController.text;
     });
@@ -106,13 +112,52 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
     });
   }
 
+  void _onTitleFocusChanged() {
+    if (!_titleFocusNode.hasFocus && _configInitialized) {
+      CloudServiceConfigDao.updateConfigTitle(_webDavCloudServiceConfig!);
+      widget.onTitleChanged?.call();
+    }
+  }
+
+  Future<bool> _confirmInsecureHttp() async {
+    if (!currentConfig.usesInsecureWebDavHttp ||
+        currentConfig.allowsInsecureWebDavHttp) {
+      return true;
+    }
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(appLocalizations.webDavServer),
+            content: Text(appLocalizations.webDavHttpWarning),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(chewieLocalizations.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(chewieLocalizations.confirm),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  @override
+  void dispose() {
+    _titleFocusNode.removeListener(_onTitleFocusChanged);
+    _titleFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<bool> isValid() async {
     return formKey.currentState?.validate() ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
@@ -128,30 +173,32 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.authenticate().then((value) {
-      setState(() {
-        currentConfig.connected = value == CloudServiceStatus.success;
-      });
-      if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(appLocalizations.cloudConnectionError);
-            break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(appLocalizations.cloudUnauthorized);
-            break;
-          default:
-            IToast.show(appLocalizations.cloudUnknownError);
-            break;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.authenticate().then((value) {
+        setState(() {
+          currentConfig.connected = value.isSuccess;
+        });
+        if (!currentConfig.connected) {
+          String toast;
+          switch (value.type) {
+            case CloudServiceStatusType.connectionError:
+              toast = appLocalizations.cloudConnectionError;
+              break;
+            case CloudServiceStatusType.unauthorized:
+              toast = appLocalizations.cloudUnauthorized;
+              break;
+            default:
+              toast = appLocalizations.cloudUnknownError;
+              break;
+          }
+          IToast.show(
+              value.message != null ? "$toast: ${value.message}" : toast);
+        } else {
+          if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
         }
-      } else {
-        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+      }),
+    );
   }
 
   _buildBody() {
@@ -171,7 +218,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
         ink: false,
-        title: appLocalizations.enable + appLocalizations.cloudTypeWebDav,
+        title: appLocalizations.enable + currentConfig.displayName,
         value: _webDavCloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -193,6 +240,13 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
         child: Column(
           children: [
             InputItem(
+              controller: _titleController,
+              focusNode: _titleFocusNode,
+              textInputAction: TextInputAction.next,
+              title: appLocalizations.cloudConfigTitle,
+              hint: appLocalizations.cloudConfigTitleHint,
+            ),
+            InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,
               title: appLocalizations.webDavServer,
@@ -203,9 +257,6 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                 }
                 if (!RegexUtil.isUrlOrIp(text)) {
                   return appLocalizations.webDavServerInvalid;
-                }
-                if (text.startsWith('http://')) {
-                  return appLocalizations.webDavHttpWarning;
                 }
                 return null;
               },
@@ -262,19 +313,20 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
         background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
-          if (await isValid()) {
-            await CloudServiceConfigDao.updateConfig(currentConfig);
-            _webDavCloudService =
-                WebDavCloudService(_webDavCloudServiceConfig!);
-            try {
-              appProvider.preventLock = true;
-              await ping();
-            } catch (e, t) {
-              ILogger.error("Failed to connect to webdav", e, t);
-              IToast.show(appLocalizations.cloudConnectionError);
-            } finally {
-              appProvider.preventLock = false;
-            }
+          if (!await isValid() || !mounted) return;
+          if (!await _confirmInsecureHttp() || !mounted) return;
+          currentConfig.allowsInsecureWebDavHttp =
+              currentConfig.usesInsecureWebDavHttp;
+          await CloudServiceConfigDao.updateConfig(currentConfig);
+          _webDavCloudService = WebDavCloudService(_webDavCloudServiceConfig!);
+          try {
+            appProvider.preventLock = true;
+            await ping();
+          } catch (e, t) {
+            ILogger.error("Failed to connect to webdav", e, t);
+            IToast.show(appLocalizations.cloudConnectionError);
+          } finally {
+            appProvider.preventLock = false;
           }
         },
       ),
@@ -293,50 +345,38 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<WebDavFileInfo>? files =
-                      await _webDavCloudService!.listBackups();
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  CloudServiceConfigDao.updateLastPullTime(
-                      _webDavCloudServiceConfig!);
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => WebDavBackupsBottomSheet(
-                        files: files,
-                        cloudService: _webDavCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _webDavCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<WebDavFileInfo>>(
+                  action: _webDavCloudService!.listBackups,
+                  logName: "WebDAV",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _webDavCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => WebDavBackupsBottomSheet(
+                      files: files,
+                      cloudService: _webDavCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "WebDAV",
+                          action: (onProgress) =>
+                              _webDavCloudService!.downloadFile(
                             selectedFile.name!,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from webdav", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -349,7 +389,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _webDavCloudServiceConfig!,
                   cloudService: _webDavCloudService!,
                 );

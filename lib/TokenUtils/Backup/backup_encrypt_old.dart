@@ -20,7 +20,6 @@ import 'dart:typed_data';
 import 'package:pointycastle/export.dart' as pointycastle;
 
 import '../../Models/opt_token.dart';
-import 'package:awesome_chewie/awesome_chewie.dart';
 import 'backup.dart';
 import 'backup_encrypt_interface.dart';
 
@@ -50,7 +49,13 @@ class BackupEncryptionOld implements BackupEncryptInterface {
   Future<dynamic> decrypt(Uint8List encryptedData, String password) async {
     final key =
         await AESStringCipher.generateKeyFromPassword(password, password);
-    final decryptedJson = AESStringCipher.decrypt(encryptedData, key);
+    Uint8List decodedData;
+    try {
+      decodedData = base64.decode(utf8.decode(encryptedData));
+    } on FormatException {
+      throw FileNotBackupException();
+    }
+    final decryptedJson = AESStringCipher.decrypt(decodedData, key);
     if (decryptedJson.isEmpty) return null;
     final List<dynamic> jsonList = jsonDecode(decryptedJson);
     return jsonList.map((json) => OtpToken.fromJson(json)).toList();
@@ -61,28 +66,27 @@ class BackupEncryptionOld implements BackupEncryptInterface {
     try {
       base64.decode(utf8.decode(data));
       return true;
-    } catch (e, t) {
-      ILogger.error("Failed to decrypt from wrong format data", e, t);
+    } catch (_) {
       return false;
     }
   }
 }
 
 class AESStringCipher {
-  static const int IV_LENGTH_BYTES = 16;
-  static const int AES_KEY_LENGTH_BITS = 128;
-  static const int HMAC_KEY_LENGTH_BITS = 128;
+  static const int ivLengthBytes = 16;
+  static const int aesKeyLengthBits = 128;
+  static const int hmacKeyLengthBits = 128;
 
   static Future<Uint8List> generateKeyFromPassword(
     String password,
     String salt,
   ) async {
     final pbkdf2 = pointycastle.PBKDF2KeyDerivator(
-        pointycastle.HMac(pointycastle.SHA256Digest(), HMAC_KEY_LENGTH_BITS))
+        pointycastle.HMac(pointycastle.SHA256Digest(), hmacKeyLengthBits))
       ..init(pointycastle.Pbkdf2Parameters(
         utf8.encode(salt),
         1000,
-        AES_KEY_LENGTH_BITS ~/ 8,
+        aesKeyLengthBits ~/ 8,
       ));
     return pbkdf2.process(utf8.encode(password));
   }
@@ -94,7 +98,7 @@ class AESStringCipher {
   }
 
   static String encrypt(String plaintext, Uint8List key) {
-    final iv = _generateIv(IV_LENGTH_BYTES);
+    final iv = _generateIv(ivLengthBytes);
     final cipher = pointycastle.GCMBlockCipher(pointycastle.AESEngine())
       ..init(
           true,
@@ -112,20 +116,18 @@ class AESStringCipher {
   }
 
   static String decrypt(Uint8List data, Uint8List key) {
-    final iv = data.sublist(0, IV_LENGTH_BYTES);
-    final encryptedData = data.sublist(IV_LENGTH_BYTES);
+    final iv = data.sublist(0, ivLengthBytes);
+    final encryptedData = data.sublist(ivLengthBytes);
     final cipher = pointycastle.GCMBlockCipher(pointycastle.AESEngine())
       ..init(
           false,
           pointycastle.AEADParameters(pointycastle.KeyParameter(key),
-              AES_KEY_LENGTH_BITS, iv, Uint8List(0)));
+              aesKeyLengthBits, iv, Uint8List(0)));
 
     try {
       final decryptedData = cipher.process(encryptedData);
       return utf8.decode(decryptedData);
-    } catch (e, t) {
-      ILogger.error("Failed to decrypt data", e, t);
-    }
+    } catch (_) {}
     return "";
   }
 }

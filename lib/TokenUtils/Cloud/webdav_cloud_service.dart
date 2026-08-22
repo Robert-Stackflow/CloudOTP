@@ -56,56 +56,60 @@ class WebDavCloudService extends CloudService {
     client.setConnectTimeout(8000);
     client.setSendTimeout(8000);
     client.setReceiveTimeout(8000);
-    CloudServiceStatus status = await authenticate();
-    if (status == CloudServiceStatus.success) {
-      await client.mkdir(_webdavPath);
-    }
+  }
+
+  Future<void> _ensureDir() async {
+    try {
+      await client.mkdirAll(_webdavPath);
+    } catch (_) {}
   }
 
   @override
   Future<bool> isConnected() async {
     CloudServiceStatus status = await authenticate();
-    return status == CloudServiceStatus.success;
+    return status.isSuccess;
   }
 
   @override
   Future<CloudServiceStatus> authenticate() async {
     try {
       await client.ping();
+      await _ensureDir();
       return CloudServiceStatus.success;
     } catch (e, t) {
       ILogger.error("Failed to authenticate webdav", e, t);
       if (e is DioException) {
+        final msg = e.message ?? e.error?.toString();
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
           case DioExceptionType.receiveTimeout:
           case DioExceptionType.sendTimeout:
           case DioExceptionType.badCertificate:
           case DioExceptionType.connectionError:
-            return CloudServiceStatus.connectionError;
+            return CloudServiceStatus(CloudServiceStatusType.connectionError,
+                message: msg);
           case DioExceptionType.badResponse:
             if (e.response!.statusCode == 401) {
-              return CloudServiceStatus.unauthorized;
+              return CloudServiceStatus(CloudServiceStatusType.unauthorized,
+                  message: msg);
             } else {
-              return CloudServiceStatus.connectionError;
+              return CloudServiceStatus(CloudServiceStatusType.connectionError,
+                  message:
+                      "HTTP ${e.response?.statusCode} ${e.response?.statusMessage ?? msg}");
             }
           default:
             break;
         }
       }
-      return CloudServiceStatus.unknownError;
+      return CloudServiceStatus(CloudServiceStatusType.unknownError,
+          message: e.toString());
     }
   }
 
   @override
   Future<List<WebDavFileInfo>?> listFiles() async {
-    try {
-      var list = await client.readDir(_webdavPath);
-      return list;
-    } catch (e, t) {
-      ILogger.error("Failed to list file from webdav", e, t);
-      return null;
-    }
+    var list = await client.readDir(_webdavPath);
+    return list;
   }
 
   @override
@@ -129,28 +133,18 @@ class WebDavCloudService extends CloudService {
     Uint8List fileData, {
     Function(int, int)? onProgress,
   }) async {
-    try {
-      CancelToken c = CancelToken();
-      double progress = 0;
-      await client.write(
-        join(_webdavPath, fileName),
-        fileData,
-        onProgress: (c, t) {
-          onProgress?.call(c, t);
-          progress = c / t;
-        },
-        cancelToken: c,
-      );
-      deleteOldBackup();
-      if (progress >= 1) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e, t) {
-      ILogger.error("Failed to upload file to webdav", e, t);
-      return false;
-    }
+    CancelToken c = CancelToken();
+    double progress = 0;
+    await client.write(
+      join(_webdavPath, fileName),
+      fileData,
+      onProgress: (c, t) {
+        onProgress?.call(c, t);
+        progress = c / t;
+      },
+      cancelToken: c,
+    );
+    return await completeUpload(progress >= 1);
   }
 
   @override
@@ -197,7 +191,11 @@ class WebDavCloudService extends CloudService {
       if (a.mTime == null || b.mTime == null) return 0;
       return a.mTime!.compareTo(b.mTime!);
     });
-    while (list.length > maxCount) {
+    final deleteCount = CloudService.getOldBackupDeleteCount(
+      backupCount: list.length,
+      maxCount: maxCount,
+    );
+    for (int i = 0; i < deleteCount; i++) {
       var file = list.removeAt(0);
       await deleteFile(file.path!);
     }

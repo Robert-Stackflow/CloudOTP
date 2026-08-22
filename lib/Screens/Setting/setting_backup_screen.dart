@@ -154,7 +154,7 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
     List<CloudServiceConfig> configs =
         await CloudServiceConfigDao.getValidConfigs();
     setState(() {
-      validConfigs = configs.map((e) => e.type.label).join(", ");
+      validConfigs = configs.map((e) => e.displayName).join(", ");
     });
   }
 

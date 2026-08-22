@@ -14,7 +14,6 @@
  */
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
@@ -101,7 +100,8 @@ class CloudOTPHiveUtil {
   static const String oldVersionKey = "oldVersion";
   static const String haveShowQAuthDialogKey = "haveShowQAuthDialog";
   static const String haveShownCoachMarkKey = "haveShownCoachMark";
-  static const String haveShownDesktopCoachMarkKey = "haveShownDesktopCoachMark";
+  static const String haveShownDesktopCoachMarkKey =
+      "haveShownDesktopCoachMark";
   static const String haveShownWelcome4Key = "haveShownWelcome4";
 
   static initConfig() async {
@@ -206,55 +206,118 @@ class CloudOTPHiveUtil {
 
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   static const String _secureDbPasswordKey = 'cloudotp_db_password';
+  static const String _pendingSecureDbPasswordKey =
+      'cloudotp_db_password_pending';
+
+  static String generateDatabasePassword() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(32, (_) => random.nextInt(256));
+    return base64UrlEncode(bytes).replaceAll('=', '');
+  }
+
+  static Future<void> _writeAndVerifySecurePassword(String password) async {
+    await _secureStorage.write(key: _secureDbPasswordKey, value: password);
+    final persisted = await _secureStorage.read(key: _secureDbPasswordKey);
+    if (persisted != password) {
+      throw const DatabasePasswordStorageException(
+        'Database password could not be verified in secure storage.',
+      );
+    }
+  }
+
+  static Future<void> saveDatabasePassword(String password) async {
+    await _writeAndVerifySecurePassword(password);
+    try {
+      await ChewieHiveUtil.delete(defaultDatabasePasswordKey);
+    } catch (e, t) {
+      ILogger.warning(
+        'Secure database password was saved, but legacy cleanup was deferred',
+        e,
+        t,
+      );
+    }
+  }
+
+  static Future<void> stageDatabasePassword(String password) async {
+    await _secureStorage.write(
+      key: _pendingSecureDbPasswordKey,
+      value: password,
+    );
+    final persisted =
+        await _secureStorage.read(key: _pendingSecureDbPasswordKey);
+    if (persisted != password) {
+      throw const DatabasePasswordStorageException(
+        'Pending database password could not be verified in secure storage.',
+      );
+    }
+  }
+
+  static Future<String?> getPendingDatabasePassword() async {
+    return _secureStorage.read(key: _pendingSecureDbPasswordKey);
+  }
+
+  static Future<void> promotePendingDatabasePassword() async {
+    final pending = await getPendingDatabasePassword();
+    if (pending == null || pending.isEmpty) {
+      throw const DatabasePasswordStorageException(
+        'Pending database password is missing.',
+      );
+    }
+    await saveDatabasePassword(pending);
+    try {
+      await clearPendingDatabasePassword();
+    } catch (e, t) {
+      ILogger.warning(
+        'Database password was promoted, but pending-key cleanup was deferred',
+        e,
+        t,
+      );
+    }
+  }
+
+  static Future<void> clearPendingDatabasePassword() async {
+    await _secureStorage.delete(key: _pendingSecureDbPasswordKey);
+  }
+
+  static Future<void> clearDefaultDatabasePassword() async {
+    await _secureStorage.delete(key: _secureDbPasswordKey);
+    await ChewieHiveUtil.delete(defaultDatabasePasswordKey);
+  }
 
   static Future<String> regeneratePassword() async {
-    String password = MockUtil.getRandomString(length: 16);
-    await ChewieHiveUtil.put(
-        CloudOTPHiveUtil.defaultDatabasePasswordKey, password);
-    try {
-      await _secureStorage.write(key: _secureDbPasswordKey, value: password);
-    } catch (e, t) {
-      ILogger.error("Secure storage unavailable", e, t);
-    }
+    final password = generateDatabasePassword();
+    await saveDatabasePassword(password);
     return password;
   }
 
   static Future<String> getDatabasePassword() async {
     String? securePassword;
     try {
-      securePassword =
-          await _secureStorage.read(key: _secureDbPasswordKey);
+      securePassword = await _secureStorage.read(key: _secureDbPasswordKey);
     } catch (e, t) {
-      ILogger.error(
-          "Secure storage unavailable, falling back to Hive", e, t);
+      ILogger.error("Secure storage unavailable, falling back to Hive", e, t);
     }
     String? hivePassword =
         ChewieHiveUtil.getString(CloudOTPHiveUtil.defaultDatabasePasswordKey);
     if (securePassword != null && securePassword.isNotEmpty) {
-      if (hivePassword != securePassword) {
-        await ChewieHiveUtil.put(
-            CloudOTPHiveUtil.defaultDatabasePasswordKey, securePassword);
+      if (hivePassword != null && hivePassword.isNotEmpty) {
+        await ChewieHiveUtil.delete(defaultDatabasePasswordKey);
       }
       return securePassword;
     }
     if (hivePassword != null && hivePassword.isNotEmpty) {
       try {
-        await _secureStorage.write(
-            key: _secureDbPasswordKey, value: hivePassword);
-      } catch (_) {}
+        await _writeAndVerifySecurePassword(hivePassword);
+        await ChewieHiveUtil.delete(defaultDatabasePasswordKey);
+        ILogger.info('Migrated database password to secure storage');
+      } catch (e, t) {
+        ILogger.error(
+          'Database password migration deferred; the legacy copy was kept',
+          e,
+          t,
+        );
+      }
       return hivePassword;
-    }
-    if (securePassword == null && Platform.isWindows) {
-      try {
-        await _secureStorage.delete(key: _secureDbPasswordKey);
-        securePassword =
-            await _secureStorage.read(key: _secureDbPasswordKey);
-        if (securePassword != null && securePassword.isNotEmpty) {
-          await ChewieHiveUtil.put(
-              CloudOTPHiveUtil.defaultDatabasePasswordKey, securePassword);
-          return securePassword;
-        }
-      } catch (_) {}
     }
     return '';
   }
@@ -325,4 +388,13 @@ class CloudOTPHiveUtil {
         ChewieHiveUtil.getInt(CloudOTPHiveUtil.orderTypeKey),
         OrderType.values.length)];
   }
+}
+
+class DatabasePasswordStorageException implements Exception {
+  final String message;
+
+  const DatabasePasswordStorageException(this.message);
+
+  @override
+  String toString() => 'DatabasePasswordStorageException: $message';
 }

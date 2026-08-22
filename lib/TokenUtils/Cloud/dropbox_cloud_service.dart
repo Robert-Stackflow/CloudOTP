@@ -105,7 +105,12 @@ class DropboxCloudService extends CloudService {
       return a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime);
     });
     List<String> toDeleteFileNames = [];
-    while (list.length > maxCount) {
+    final deleteCount = CloudService.getOldBackupDeleteCount(
+      backupCount: list.length,
+      maxCount: maxCount,
+    );
+    if (deleteCount == 0) return true;
+    for (int i = 0; i < deleteCount; i++) {
       var file = list.removeAt(0);
       toDeleteFileNames.add(file.name);
     }
@@ -164,8 +169,7 @@ class DropboxCloudService extends CloudService {
       fileName,
       onProgress: onProgress,
     );
-    deleteOldBackup();
-    return response.isSuccess;
+    return await completeUpload(response.isSuccess);
   }
 
   @override

@@ -15,14 +15,33 @@
 
 import 'dart:typed_data';
 
+import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 
-enum CloudServiceStatus {
+enum CloudServiceStatusType {
   success,
   connectionError,
   unauthorized,
   unknownError,
   expired,
+}
+
+class CloudServiceStatus {
+  final CloudServiceStatusType type;
+  final String? message;
+
+  const CloudServiceStatus(this.type, {this.message});
+
+  bool get isSuccess => type == CloudServiceStatusType.success;
+
+  static const success = CloudServiceStatus(CloudServiceStatusType.success);
+  static const connectionError =
+      CloudServiceStatus(CloudServiceStatusType.connectionError);
+  static const unauthorized =
+      CloudServiceStatus(CloudServiceStatusType.unauthorized);
+  static const unknownError =
+      CloudServiceStatus(CloudServiceStatusType.unknownError);
+  static const expired = CloudServiceStatus(CloudServiceStatusType.expired);
 }
 
 abstract class CloudService {
@@ -43,6 +62,25 @@ abstract class CloudService {
   Future<int> getBackupsCount();
 
   Future<bool> deleteOldBackup([int? maxCount]);
+
+  static int getOldBackupDeleteCount({
+    required int backupCount,
+    required int maxCount,
+  }) {
+    if (maxCount <= 0) return 0;
+    final overflow = backupCount - maxCount;
+    return overflow > 0 ? overflow : 0;
+  }
+
+  Future<bool> completeUpload(bool uploadSucceeded) async {
+    if (!uploadSucceeded) return false;
+    try {
+      await deleteOldBackup();
+    } catch (e, t) {
+      ILogger.error('Failed to clean up old cloud backups', e, t);
+    }
+    return true;
+  }
 
   Future<bool> uploadFile(
     String fileName,

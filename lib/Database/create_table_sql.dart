@@ -96,8 +96,8 @@ enum Sql {
     '''),
   createTokenCategoryBindingTable('''
       CREATE TABLE token_category_binding (
-        token_uid INTEGER NOT NULL,
-        category_uid INTEGER NOT NULL,
+        token_uid TEXT NOT NULL,
+        category_uid TEXT NOT NULL,
         UNIQUE(token_uid, category_uid)
       );
     ''');

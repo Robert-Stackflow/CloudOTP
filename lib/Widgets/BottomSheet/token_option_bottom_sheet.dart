@@ -137,11 +137,35 @@ class TokenOptionBottomSheetState
             shrinkWrap: true,
             children: [
               _buildHeader(),
+              if (widget.token.description.trim().isNotEmpty) _buildRemark(),
               _buildPrimaryButtons(),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildRemark() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(10, 14, 10, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: ChewieTheme.canvasColor,
+        borderRadius: ChewieDimens.defaultBorderRadius,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(appLocalizations.tokenRemark, style: ChewieTheme.bodySmall),
+          const SizedBox(height: 4),
+          SelectableText(
+            widget.token.description.trim(),
+            style: ChewieTheme.bodyMedium,
+          ),
+        ],
+      ),
     );
   }
 

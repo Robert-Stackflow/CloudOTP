@@ -104,13 +104,11 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
 
-  late final AnimationController _entranceController;
-  late final Animation<double> _entranceAnimation;
-
   AnimationController? _wobbleController;
   late Animation<double> _wobbleAnimation;
 
   int _lastTimeStep = -1;
+  int _lastProgressPaintTimestamp = 0;
 
   SlidableController? _slidableController;
 
@@ -120,11 +118,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   Future<void> closeSlidable() async {
     await _slidableController?.close();
-  }
-
-  void replayEntrance() {
-    _entranceController.reset();
-    _entranceController.forward();
   }
 
   void _startWobble() {
@@ -172,12 +165,12 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   @override
   void dispose() {
-    _entranceController.dispose();
     _tickerSubscription?.cancel();
     _stopWobble();
     _slidableController?.dispose();
     _slidableController = null;
     tokenLayoutNotifier.dispose();
+    progressNotifier.dispose();
     super.dispose();
   }
 
@@ -207,15 +200,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   @override
   void initState() {
     super.initState();
-    _entranceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _entranceAnimation = CurvedAnimation(
-      parent: _entranceController,
-      curve: Curves.easeOutBack,
-    );
-    _entranceController.forward();
     updateCode();
     progressNotifier.value = currentProgress;
     resetTimer();
@@ -224,15 +208,21 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   resetTimer() {
     tokenLayoutNotifier.haveToResetHOTP = false;
     _tickerSubscription?.cancel();
-    globalTokenTicker.start();
     _tickerSubscription = globalTokenTicker.stream.listen((_) {
       if (mounted) {
-        progressNotifier.value = currentProgress;
-        if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final remaining = remainingMilliseconds;
+        if (!ResponsiveUtil.isAndroid() ||
+            now - _lastProgressPaintTimestamp >= 200 ||
+            remaining <= 200) {
+          _lastProgressPaintTimestamp = now;
+          progressNotifier.value = currentProgress;
+        }
+        if (remaining <= 180 && appProvider.autoHideCode) {
           tokenLayoutNotifier.codeVisiable = false;
         }
         updateCode();
-        if (remainingMilliseconds <= 100) {
+        if (remaining <= 100) {
           tokenLayoutNotifier.haveToResetHOTP = true;
           tokenLayoutNotifier.code = getNextCode();
         }
@@ -242,23 +232,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _entranceAnimation,
-      builder: (context, child) {
-        final value = _entranceAnimation.value;
-        return Transform.translate(
-          offset: Offset(0, 40 * (1 - value)),
-          child: Transform.scale(
-            scale: 0.75 + 0.25 * value,
-            child: Opacity(
-              opacity: value.clamp(0.0, 1.0),
-              child: child,
-            ),
-          ),
-        );
-      },
-      child: RepaintBoundary(child: _buildContextMenuRegion()),
-    );
+    return RepaintBoundary(child: _buildContextMenuRegion());
   }
 
   String getCurrentCode() {
@@ -914,41 +888,33 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
               width: 24,
               height: 24,
               margin: const EdgeInsets.only(left: 8, right: 4),
-              child: Stack(
-                children: [
-                  ValueListenableBuilder(
-                    valueListenable: progressNotifier,
-                    builder: (context, value, child) {
-                      return CircularProgressIndicator(
-                        value: progressNotifier.value,
+              child: ValueListenableBuilder<double>(
+                valueListenable: progressNotifier,
+                builder: (context, progress, child) {
+                  final color = progress > autoCopyNextCodeProgressThrehold
+                      ? ChewieTheme.primaryColor
+                      : Colors.red;
+                  return Stack(
+                    children: [
+                      CircularProgressIndicator(
+                        value: progress,
                         semanticsLabel: appLocalizations.tokenProgressLabel,
-                        color: progressNotifier.value >
-                                autoCopyNextCodeProgressThrehold
-                            ? ChewieTheme.primaryColor
-                            : Colors.red,
+                        color: color,
                         backgroundColor: Colors.grey.withOpacity(0.3),
                         strokeCap: StrokeCap.round,
-                      );
-                    },
-                  ),
-                  Center(
-                    child: ValueListenableBuilder(
-                      valueListenable: progressNotifier,
-                      builder: (context, value, child) {
-                        return Text(
-                          (remainingMilliseconds / 1000).toStringAsFixed(0),
+                      ),
+                      Center(
+                        child: Text(
+                          (progress * widget.token.period).toStringAsFixed(0),
                           style: ChewieTheme.bodyMedium.apply(
-                            color: currentProgress >
-                                    autoCopyNextCodeProgressThrehold
-                                ? ChewieTheme.primaryColor
-                                : Colors.red,
+                            color: color,
                             fontSizeDelta: -3,
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
     );

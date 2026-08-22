@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
 import 'package:cloudotp/TokenUtils/Backup/backup_encrypt_old.dart';
@@ -26,26 +27,54 @@ import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
+import 'package:sqflite/sqflite.dart';
 import 'package:zxing2/qrcode.dart';
 
 import '../Database/category_dao.dart';
 import '../Database/config_dao.dart';
 import '../Database/token_category_binding_dao.dart';
+import '../Models/auto_backup_log.dart';
 import '../Models/token_category.dart';
 import '../Screens/Token/import_preview_screen.dart';
 import '../Utils/constant.dart';
 import '../Utils/hive_util.dart';
+import '../Utils/utils.dart';
 import '../Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import '../l10n/l10n.dart';
 import 'Backup/backup.dart';
 import 'Backup/backup_encrypt_interface.dart';
 import 'Backup/backup_encrypt_v1.dart';
 import 'ThirdParty/base_token_importer.dart';
+import 'export_token_util.dart';
 
 extension TrimPadding on String {
   String trimPadding() {
     return replaceAll(RegExp(r'=+$'), '').toUpperCase();
   }
+}
+
+enum BackupImportStatus {
+  success,
+  invalidPasswordOrCorrupted,
+  unsupportedVersion,
+  invalidFormat,
+  fileNotFound,
+  fileTooLarge,
+  contentTooLarge,
+  failed,
+}
+
+class BackupImportResult {
+  final BackupImportStatus status;
+  final Backup? backup;
+  final Object? error;
+
+  const BackupImportResult(this.status, {this.backup, this.error});
+
+  bool get isSuccess => status == BackupImportStatus.success;
+
+  bool get shouldRequestPassword =>
+      status == BackupImportStatus.invalidPasswordOrCorrupted;
 }
 
 class ImportAnalysis {
@@ -93,6 +122,7 @@ class ImportAnalysis {
 }
 
 class ImportTokenUtil {
+  static const int maxBackupFileBytes = 16 * 1024 * 1024;
   static Future<List<dynamic>> parseRawUri(
     List<String> rawUris, {
     bool autoPopup = true,
@@ -119,6 +149,8 @@ class ImportTokenUtil {
       tokens = await ImportTokenUtil.importText(
         validTokenUris.join("\n"),
         // noTokenToast: appLocalizations.imageDoesNotContainToken,
+        showLoading: false,
+        showPreview: false,
       );
       if (autoPopup && context != null && context.mounted) {
         Navigator.pop(context);
@@ -167,14 +199,11 @@ class ImportTokenUtil {
         CustomLoadingDialog.dismissLoading();
       }
     }
-    if (res[0].length == 1) {
-      BottomSheetBuilder.showBottomSheet(
+    if (res.length >= 2 && context.mounted) {
+      _showAnalyzedTokens(
         context,
-        responsive: true,
-        (context) => TokenOptionBottomSheet(
-          token: res[0].first,
-          isNewToken: true,
-        ),
+        List<OtpToken>.from(res[0] as List),
+        List<TokenCategory>.from(res[1] as List),
       );
     }
     return res;
@@ -233,7 +262,21 @@ class ImportTokenUtil {
         CustomLoadingDialog.dismissLoading();
       }
     }
-    if (tokens.length == 1 && showSingleTokenDialog) {
+    if (!context.mounted) return [tokens, categories];
+    if (showSingleTokenDialog) {
+      _showAnalyzedTokens(context, tokens, categories);
+    } else if (tokens.length > 1) {
+      ImportPreviewScreen.show(tokens: tokens, categories: categories);
+    }
+    return [tokens, categories];
+  }
+
+  static void _showAnalyzedTokens(
+    BuildContext context,
+    List<OtpToken> tokens,
+    List<TokenCategory> categories,
+  ) {
+    if (tokens.length == 1 && categories.isEmpty) {
       BottomSheetBuilder.showBottomSheet(
         context,
         responsive: true,
@@ -242,8 +285,9 @@ class ImportTokenUtil {
           isNewToken: true,
         ),
       );
+    } else if (tokens.isNotEmpty || categories.isNotEmpty) {
+      ImportPreviewScreen.show(tokens: tokens, categories: categories);
     }
-    return [tokens, categories];
   }
 
   static importUriFile(
@@ -330,12 +374,13 @@ class ImportTokenUtil {
         if (text.isEmpty) {
           return appLocalizations.autoBackupPasswordCannotBeEmpty;
         }
-        bool success = await ImportTokenUtil.importEncryptFile(path, text);
-        if (success) {
+        final result = await ImportTokenUtil.importEncryptFile(path, text);
+        if (result.isSuccess) {
           return null;
-        } else {
+        } else if (result.shouldRequestPassword) {
           return appLocalizations.invalidPasswordOrDataCorrupted;
         }
+        return appLocalizations.importFailed;
       },
     );
     BottomSheetBuilder.showBottomSheet(
@@ -374,15 +419,15 @@ class ImportTokenUtil {
     }
 
     if (await CloudOTPHiveUtil.canImportOrExportUseBackupPassword()) {
-      bool success = await ImportTokenUtil.importEncryptFile(
+      final result = await ImportTokenUtil.importEncryptFile(
           filePath, await ConfigDao.getBackupPassword());
-      if (!success) operation();
+      if (result.shouldRequestPassword) operation();
     } else {
       operation();
     }
   }
 
-  static Future<bool> importEncryptFile(
+  static Future<BackupImportResult> importEncryptFile(
     String filePath,
     String password, {
     bool showLoading = true,
@@ -390,38 +435,35 @@ class ImportTokenUtil {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: appLocalizations.importing);
     }
+    BackupImportResult result;
     try {
       File file = File(filePath);
       if (!file.existsSync()) {
-        IToast.showTop(appLocalizations.fileNotExist);
-        return true;
+        result = const BackupImportResult(BackupImportStatus.fileNotFound);
+      } else if (await file.length() > maxBackupFileBytes) {
+        result = const BackupImportResult(BackupImportStatus.fileTooLarge);
       } else {
         Uint8List content = await compute((_) async {
           return file.readAsBytesSync();
         }, null);
-        await importUint8List(content, password: password);
-        return true;
+        result = await importUint8List(content, password: password);
       }
     } catch (e, t) {
       ILogger.error("Failed to import encrypt file from $filePath", e, t);
-      if (e is BackupBaseException) {
-        IToast.showTop(e.intlMessage);
-        if (e is InvalidPasswordOrDataCorruptedException) {
-          return false;
-        }
-        return true;
-      } else {
-        IToast.showTop(appLocalizations.importFailed);
-        return true;
-      }
+      result = BackupImportResult(
+        BackupImportStatus.failed,
+        error: e,
+      );
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
       }
     }
+    if (!result.isSuccess) _showBackupImportError(result);
+    return result;
   }
 
-  static Future<bool> importBackupFile(
+  static Future<BackupImportResult> importBackupFile(
     Uint8List content, {
     String? password,
     bool showLoading = true,
@@ -431,41 +473,89 @@ class ImportTokenUtil {
       CustomLoadingDialog.showLoading(
           title: loadingText ?? appLocalizations.importing);
     }
+    BackupImportResult result;
     try {
-      await importUint8List(content, password: password);
-      return true;
+      result = await importUint8List(content, password: password);
     } catch (e, t) {
       ILogger.error("Failed to import backup file", e, t);
-      if (e is BackupBaseException) {
-        IToast.showTop(e.intlMessage);
-        if (e is InvalidPasswordOrDataCorruptedException) {
-          return false;
-        }
-        return true;
-      } else {
-        IToast.showTop(appLocalizations.importFailed);
-        return true;
-      }
+      result = BackupImportResult(
+        BackupImportStatus.failed,
+        error: e,
+      );
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
       }
     }
+    if (!result.isSuccess) _showBackupImportError(result);
+    return result;
   }
 
-  static Future<bool> importUint8List(
+  static Future<BackupImportResult> importUint8List(
     Uint8List content, {
     String? password,
   }) async {
-    String tmpPassword = password ?? await ConfigDao.getBackupPassword();
-    Backup backup = await compute((_) async {
-      return await BackupEncryptionV1().decrypt(content, tmpPassword);
-    }, null);
-    ImportPreviewScreen.show(
-      tokens: backup.tokens,
-      categories: backup.categories,
-    );
-    return true;
+    if (content.length > maxBackupFileBytes) {
+      return const BackupImportResult(BackupImportStatus.fileTooLarge);
+    }
+    try {
+      String tmpPassword = password ?? await ConfigDao.getBackupPassword();
+      Backup backup = await compute((_) async {
+        return await BackupEncryptionV1().decrypt(content, tmpPassword);
+      }, null);
+      ImportPreviewScreen.show(
+        tokens: backup.tokens,
+        categories: backup.categories,
+      );
+      return BackupImportResult(
+        BackupImportStatus.success,
+        backup: backup,
+      );
+    } on InvalidPasswordOrDataCorruptedException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.invalidPasswordOrCorrupted,
+        error: e,
+      );
+    } on BackupVersionUnsupportException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.unsupportedVersion,
+        error: e,
+      );
+    } on FileNotBackupException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.invalidFormat,
+        error: e,
+      );
+    } on BackupLimitExceededException catch (e) {
+      return BackupImportResult(
+        BackupImportStatus.contentTooLarge,
+        error: e,
+      );
+    } catch (e, t) {
+      ILogger.error('Failed to decode backup data', e, t);
+      return BackupImportResult(BackupImportStatus.failed, error: e);
+    }
+  }
+
+  static void _showBackupImportError(BackupImportResult result) {
+    switch (result.status) {
+      case BackupImportStatus.success:
+        return;
+      case BackupImportStatus.invalidPasswordOrCorrupted:
+        IToast.showTop(appLocalizations.invalidPasswordOrDataCorrupted);
+      case BackupImportStatus.unsupportedVersion:
+        IToast.showTop(appLocalizations.backupVersionUnsupport);
+      case BackupImportStatus.invalidFormat:
+        IToast.showTop(appLocalizations.fileNotBackup);
+      case BackupImportStatus.fileNotFound:
+        IToast.showTop(appLocalizations.fileNotExist);
+      case BackupImportStatus.fileTooLarge:
+        IToast.showTop(appLocalizations.backupFileTooLarge);
+      case BackupImportStatus.contentTooLarge:
+        IToast.showTop(appLocalizations.backupContentTooLarge);
+      case BackupImportStatus.failed:
+        IToast.showTop(appLocalizations.importFailed);
+    }
   }
 
   static Future<List<OtpToken>> importText(
@@ -474,6 +564,7 @@ class ImportTokenUtil {
     String noTokenToast = "",
     bool showLoading = true,
     bool showToast = true,
+    bool showPreview = true,
   }) async {
     if (content.isEmpty && emptyTip.notNullOrEmpty) {
       if (showToast) IToast.showTop(emptyTip);
@@ -498,10 +589,12 @@ class ImportTokenUtil {
       if (showToast && noTokenToast.isNotEmpty) IToast.showTop(noTokenToast);
       return [];
     }
-    ImportPreviewScreen.show(
-      tokens: tokens,
-      categories: [],
-    );
+    if (showPreview) {
+      ImportPreviewScreen.show(
+        tokens: tokens,
+        categories: [],
+      );
+    }
     return tokens;
   }
 
@@ -519,7 +612,7 @@ class ImportTokenUtil {
     return categories;
   }
 
-  static importFromCloud(
+  static Future<void> importFromCloud(
     BuildContext context,
     Uint8List? res,
     ProgressDialog dialog,
@@ -533,12 +626,12 @@ class ImportTokenUtil {
       IToast.showTop(appLocalizations.cloudPullFailed);
       return;
     }
-    bool success = await ImportTokenUtil.importBackupFile(
+    final result = await ImportTokenUtil.importBackupFile(
       res,
       showLoading: false,
     );
     dialog.dismiss();
-    if (!success) {
+    if (result.shouldRequestPassword) {
       InputValidateAsyncController validateAsyncController =
           InputValidateAsyncController(
         listen: false,
@@ -550,17 +643,18 @@ class ImportTokenUtil {
             msg: appLocalizations.importing,
             showProgress: false,
           );
-          bool success = await ImportTokenUtil.importBackupFile(
+          final result = await ImportTokenUtil.importBackupFile(
             password: text,
             res,
             showLoading: false,
           );
           dialog.dismiss();
-          if (success) {
+          if (result.isSuccess) {
             return null;
-          } else {
+          } else if (result.shouldRequestPassword) {
             return appLocalizations.invalidPasswordOrDataCorrupted;
           }
+          return appLocalizations.importFailed;
         },
         controller: TextEditingController(),
       );
@@ -591,14 +685,22 @@ class ImportTokenUtil {
     }
   }
 
-  static Future<Map<String, String>> getAlreadyExistUid(
-      List<OtpToken> tokenList) async {
-    List<OtpToken> already = await TokenDao.listTokens();
-    Map<String, String> uidMap = {};
-    for (OtpToken token in tokenList) {
+  static Future<Map<String, List<String>>> _getResolvedUidMap(
+    List<OtpToken> tokenList, {
+    List<String>? originalUids,
+    DatabaseExecutor? overrideDb,
+  }) async {
+    List<OtpToken> already = await TokenDao.listTokens(overrideDb: overrideDb);
+    Map<String, List<String>> uidMap = {};
+    for (int i = 0; i < tokenList.length; i++) {
+      OtpToken token = tokenList[i];
       OtpToken? alreadyToken = checkTokenExist(token, already);
       if (alreadyToken != null) {
-        uidMap[token.uid] = alreadyToken.uid;
+        final originalUid = originalUids?[i] ?? token.uid;
+        final resolvedUids = uidMap.putIfAbsent(originalUid, () => []);
+        if (!resolvedUids.contains(alreadyToken.uid)) {
+          resolvedUids.add(alreadyToken.uid);
+        }
         token.uid = alreadyToken.uid;
       }
     }
@@ -617,6 +719,29 @@ class ImportTokenUtil {
       }
     }
     return null;
+  }
+
+  static void applyBackupTokenFields(OtpToken existing, OtpToken backup) {
+    final localId = existing.id;
+    final localUid = existing.uid;
+    final localSeq = existing.seq;
+    existing.copyFrom(backup);
+    existing.id = localId;
+    existing.uid = localUid;
+    existing.seq = localSeq;
+  }
+
+  static void applyBackupCategoryFields(
+    TokenCategory existing,
+    TokenCategory backup,
+  ) {
+    final localId = existing.id;
+    final localUid = existing.uid;
+    final localSeq = existing.seq;
+    existing.copyFrom(backup);
+    existing.id = localId;
+    existing.uid = localUid;
+    existing.seq = localSeq;
   }
 
   static TokenCategory? findExistingCategory(
@@ -639,25 +764,48 @@ class ImportTokenUtil {
     List<OtpToken> tokenList,
     List<TokenCategory> categoryList, {
     bool performInsert = true,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
     ImportAnalysis analysis = ImportAnalysis();
     analysis.parseTokenSuccess = tokenList.length;
     analysis.parseCategorySuccess = categoryList.length;
-    analysis.importTokenSuccess = await mergeTokens(tokenList);
-    Map<String, String> uidMap = await getAlreadyExistUid(tokenList);
+    final originalUids = tokenList.map((token) => token.uid).toList();
+    analysis.importTokenSuccess = await mergeTokens(
+      tokenList,
+      performInsert: performInsert,
+      overrideDb: overrideDb,
+      notifyChanges: notifyChanges,
+    );
+    Map<String, List<String>> uidMap = await _getResolvedUidMap(
+      tokenList,
+      originalUids: originalUids,
+      overrideDb: overrideDb,
+    );
     for (TokenCategory category in categoryList) {
-      category.bindings = category.bindings.map((e) => uidMap[e] ?? e).toList();
+      category.bindings = category.bindings
+          .expand((uid) => uidMap[uid] ?? [uid])
+          .toSet()
+          .toList();
     }
-    analysis.importCategorySuccess = await mergeCategories(categoryList);
+    analysis.importCategorySuccess = await mergeCategories(
+      categoryList,
+      performInsert: performInsert,
+      overrideDb: overrideDb,
+      notifyChanges: notifyChanges,
+    );
     return analysis;
   }
 
   static Future<int> mergeTokens(
     List<OtpToken> toMergeTokenList, {
     bool performInsert = true,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
-    List<OtpToken> already = await TokenDao.listTokens();
+    List<OtpToken> already = await TokenDao.listTokens(overrideDb: overrideDb);
     List<OtpToken> finalMergeTokenList = [];
+    Set<String> occupiedUids = already.map((token) => token.uid).toSet();
     for (OtpToken toMergeToken in toMergeTokenList) {
       if (toMergeToken.issuer.isEmpty) {
         toMergeToken.issuer = toMergeToken.account;
@@ -669,15 +817,21 @@ class ImportTokenUtil {
       OtpToken? alreadyToken = checkTokenExist(toMergeToken, already);
       if (alreadyToken == null &&
           checkTokenExist(toMergeToken, finalMergeTokenList) == null) {
+        while (toMergeToken.uid.isEmpty ||
+            occupiedUids.contains(toMergeToken.uid)) {
+          toMergeToken.uid = StringUtil.generateUid();
+        }
+        occupiedUids.add(toMergeToken.uid);
         finalMergeTokenList.add(toMergeToken);
       } else {}
     }
-    for (var token in finalMergeTokenList) {
-      if (token.uid.isEmpty) token.uid = StringUtil.generateUid();
-    }
     if (performInsert) {
-      await TokenDao.insertTokens(finalMergeTokenList);
-      homeScreenState?.refresh();
+      await TokenDao.insertTokens(
+        finalMergeTokenList,
+        overrideDb: overrideDb,
+        notifyChanges: notifyChanges,
+      );
+      if (notifyChanges) homeScreenState?.refresh();
     }
     return finalMergeTokenList.length;
   }
@@ -685,6 +839,8 @@ class ImportTokenUtil {
   static Future<int> mergeCategories(
     List<TokenCategory> categoryList, {
     bool performInsert = true,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
     Map<String, int> categoryCount = {};
     for (TokenCategory category in categoryList) {
@@ -696,7 +852,8 @@ class ImportTokenUtil {
         categoryCount[category.title] = 1;
       }
     }
-    List<TokenCategory> already = await CategoryDao.listCategories();
+    List<TokenCategory> already =
+        await CategoryDao.listCategories(overrideDb: overrideDb);
     List<TokenCategory> newCategoryList = [];
     List<TokenCategory> updatedCategoryList = [];
     for (TokenCategory category in categoryList) {
@@ -725,16 +882,29 @@ class ImportTokenUtil {
       }
     }
     if (performInsert) {
-      await CategoryDao.insertCategories(newCategoryList);
+      await CategoryDao.insertCategories(
+        newCategoryList,
+        overrideDb: overrideDb,
+        notifyChanges: notifyChanges,
+      );
       if (updatedCategoryList.isNotEmpty) {
-        await CategoryDao.updateCategories(updatedCategoryList);
+        await CategoryDao.updateCategories(
+          updatedCategoryList,
+          overrideDb: overrideDb,
+          notifyChanges: notifyChanges,
+        );
         for (TokenCategory cat in updatedCategoryList) {
           if (cat.bindings.isNotEmpty) {
-            await BindingDao.bingdingsForCategory(cat.uid, cat.bindings);
+            await BindingDao.bingdingsForCategory(
+              cat.uid,
+              cat.bindings,
+              overrideDb: overrideDb,
+              notifyChanges: notifyChanges,
+            );
           }
         }
       }
-      homeScreenState?.refresh();
+      if (notifyChanges) homeScreenState?.refresh();
     }
     return newCategoryList.length;
   }
@@ -806,6 +976,41 @@ class ImportTokenUtil {
     bool overwriteExisting = false,
     List<ImportTokenItem> tokenItems = const [],
     List<ImportCategoryItem> categoryItems = const [],
+    Database? overrideDb,
+    bool notifyChanges = true,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final analysis = await db.transaction((transaction) {
+      return _confirmImport(
+        selectedTokens,
+        categories,
+        overwriteExisting: overwriteExisting,
+        tokenItems: tokenItems,
+        categoryItems: categoryItems,
+        overrideDb: transaction,
+      );
+    });
+    if (notifyChanges &&
+        (analysis.importTokenSuccess > 0 ||
+            analysis.importCategorySuccess > 0)) {
+      try {
+        ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.other);
+        await Utils.initTray();
+        homeScreenState?.refresh();
+      } catch (e, t) {
+        ILogger.error('Failed to refresh after committed import', e, t);
+      }
+    }
+    return analysis;
+  }
+
+  static Future<ImportAnalysis> _confirmImport(
+    List<OtpToken> selectedTokens,
+    List<TokenCategory> categories, {
+    required DatabaseExecutor overrideDb,
+    bool overwriteExisting = false,
+    List<ImportTokenItem> tokenItems = const [],
+    List<ImportCategoryItem> categoryItems = const [],
   }) async {
     ImportAnalysis analysis = ImportAnalysis();
     analysis.parseTokenSuccess =
@@ -813,14 +1018,38 @@ class ImportTokenUtil {
     analysis.parseTokenFailed =
         tokenItems.where((e) => e.status == ImportTokenStatus.error).length;
     analysis.parseCategorySuccess = categoryItems.length;
+    final previewOriginalUids = tokenItems.map((e) => e.token.uid).toList();
     if (!overwriteExisting) {
-      var result =
-          await mergeTokensAndCategories(selectedTokens, categories);
-      analysis.importTokenSuccess = result.importTokenSuccess;
-      analysis.importCategorySuccess = result.importCategorySuccess;
+      if (tokenItems.isEmpty) {
+        var result = await mergeTokensAndCategories(
+          selectedTokens,
+          categories,
+          overrideDb: overrideDb,
+          notifyChanges: false,
+        );
+        analysis.importTokenSuccess = result.importTokenSuccess;
+        analysis.importCategorySuccess = result.importCategorySuccess;
+        return analysis;
+      }
+      analysis.importTokenSuccess = await mergeTokens(
+        selectedTokens,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
+      resolvePreviewCategoryBindings(
+        categories,
+        tokenItems,
+        originalTokenUids: previewOriginalUids,
+      );
+      analysis.importCategorySuccess = await mergeCategories(
+        categories,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
       return analysis;
     }
-    Set<String> selectedUids = selectedTokens.map((t) => t.uid).toSet();
+    final originalUids = selectedTokens.map((token) => token.uid).toList();
+    Set<String> selectedUids = originalUids.toSet();
     List<OtpToken> newTokens = [];
     List<OtpToken> overwriteTokens = [];
     for (var item in tokenItems) {
@@ -828,43 +1057,107 @@ class ImportTokenUtil {
       if (item.status == ImportTokenStatus.duplicate &&
           item.existingToken != null) {
         OtpToken existing = item.existingToken!;
-        existing.pinned = item.token.pinned;
-        existing.imagePath = item.token.imagePath;
-        existing.description = item.token.description;
+        applyBackupTokenFields(existing, item.token);
         overwriteTokens.add(existing);
       } else if (item.status == ImportTokenStatus.ready) {
         newTokens.add(item.token);
       }
     }
-    analysis.importTokenSuccess = await mergeTokens(newTokens);
+    analysis.importTokenSuccess = await mergeTokens(
+      newTokens,
+      overrideDb: overrideDb,
+      notifyChanges: false,
+    );
     if (overwriteTokens.isNotEmpty) {
-      await TokenDao.updateTokens(overwriteTokens);
+      await TokenDao.updateTokens(
+        overwriteTokens,
+        autoBackup: false,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
       analysis.importTokenSuccess += overwriteTokens.length;
     }
-    Map<String, String> uidMap =
-        await getAlreadyExistUid([...newTokens, ...selectedTokens]);
+    Map<String, List<String>> uidMap = {};
+    if (tokenItems.isNotEmpty) {
+      resolvePreviewCategoryBindings(
+        categories,
+        tokenItems,
+        originalTokenUids: previewOriginalUids,
+      );
+    } else {
+      uidMap = await _getResolvedUidMap(
+        selectedTokens,
+        originalUids: originalUids,
+        overrideDb: overrideDb,
+      );
+    }
     List<TokenCategory> newCategories = [];
     for (var catItem in categoryItems) {
       if (!catItem.selected) continue;
       var cat = catItem.category;
-      cat.bindings = cat.bindings.map((e) => uidMap[e] ?? e).toList();
+      if (tokenItems.isEmpty) {
+        cat.bindings =
+            cat.bindings.expand((uid) => uidMap[uid] ?? [uid]).toSet().toList();
+      }
       if (!catItem.isNew && catItem.existingCategory != null) {
         TokenCategory existing = catItem.existingCategory!;
-        existing.pinned = cat.pinned;
-        existing.description = cat.description;
-        existing.bindings = cat.bindings;
-        await CategoryDao.updateCategories([existing]);
-        await BindingDao.bingdingsForCategory(existing.uid, existing.bindings);
+        applyBackupCategoryFields(existing, cat);
+        await CategoryDao.updateCategories(
+          [existing],
+          overrideDb: overrideDb,
+          notifyChanges: false,
+        );
+        await BindingDao.replaceBindingsForCategory(
+          existing.uid,
+          existing.bindings,
+          overrideDb: overrideDb,
+          notifyChanges: false,
+        );
         analysis.importCategorySuccess++;
       } else if (catItem.isNew) {
         newCategories.add(cat);
       }
     }
     if (newCategories.isNotEmpty) {
-      analysis.importCategorySuccess += await mergeCategories(newCategories);
+      analysis.importCategorySuccess += await mergeCategories(
+        newCategories,
+        overrideDb: overrideDb,
+        notifyChanges: false,
+      );
     }
-    homeScreenState?.refresh();
     return analysis;
+  }
+
+  static void resolvePreviewCategoryBindings(
+    List<TokenCategory> categories,
+    List<ImportTokenItem> tokenItems, {
+    List<String>? originalTokenUids,
+  }) {
+    if (tokenItems.isEmpty) return;
+    final resolvedUids = <String, Set<String>>{};
+    for (int index = 0; index < tokenItems.length; index++) {
+      final item = tokenItems[index];
+      final originalUid =
+          originalTokenUids != null && index < originalTokenUids.length
+              ? originalTokenUids[index]
+              : item.token.uid;
+      String? resolvedUid;
+      if (item.status == ImportTokenStatus.duplicate &&
+          item.existingToken != null) {
+        resolvedUid = item.existingToken!.uid;
+      } else if (item.status == ImportTokenStatus.ready && item.selected) {
+        resolvedUid = item.token.uid;
+      }
+      if (resolvedUid != null && resolvedUid.isNotEmpty) {
+        resolvedUids.putIfAbsent(originalUid, () => {}).add(resolvedUid);
+      }
+    }
+    for (final category in categories) {
+      category.bindings = category.bindings
+          .expand((uid) => resolvedUids[uid] ?? const <String>{})
+          .toSet()
+          .toList();
+    }
   }
 }
 

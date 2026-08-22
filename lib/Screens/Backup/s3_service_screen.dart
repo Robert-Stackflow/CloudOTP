@@ -13,14 +13,13 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
-import 'package:cloudotp/TokenUtils/import_token_util.dart';
 import 'package:flutter/material.dart';
+
+import 'cloud_service_ui_helper.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../Models/s3_cloud_file_info.dart';
@@ -33,18 +32,23 @@ import '../../l10n/l10n.dart';
 class S3CloudServiceScreen extends StatefulWidget {
   const S3CloudServiceScreen({
     super.key,
+    required this.configId,
+    this.onTitleChanged,
   });
 
-  static const String routeName = "/service/webdav";
+  final int configId;
+  final VoidCallback? onTitleChanged;
+
+  static const String routeName = "/service/s3";
 
   @override
   State<S3CloudServiceScreen> createState() => _S3CloudServiceScreenState();
 }
 
 class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
+  final TextEditingController _titleController = TextEditingController();
+  final FocusNode _titleFocusNode = FocusNode();
   final TextEditingController _endpointController = TextEditingController();
   final TextEditingController _bucketController = TextEditingController();
   final TextEditingController _secretKeyController = TextEditingController();
@@ -73,8 +77,10 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
   }
 
   loadConfig() async {
-    _s3CloudServiceConfig = await CloudServiceConfigDao.getS3CloudConfig();
+    _s3CloudServiceConfig =
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_s3CloudServiceConfig != null) {
+      _titleController.text = _s3CloudServiceConfig!.title;
       _endpointController.text = _s3CloudServiceConfig!.endpoint ?? "";
       _bucketController.text = _s3CloudServiceConfig!.account ?? "";
       _secretKeyController.text = _s3CloudServiceConfig!.secret ?? "";
@@ -83,10 +89,6 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
       if (await _s3CloudServiceConfig!.isValid()) {
         _s3CloudService = S3CloudService(_s3CloudServiceConfig!);
       }
-    } else {
-      _s3CloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.S3Cloud);
-      await CloudServiceConfigDao.insertConfig(_s3CloudServiceConfig!);
     }
     if (_s3CloudService != null) {
       _s3CloudServiceConfig!.connected = await _s3CloudService!.isConnected();
@@ -96,6 +98,10 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
   }
 
   initFields() {
+    _titleController.addListener(() {
+      _s3CloudServiceConfig!.title = _titleController.text;
+    });
+    _titleFocusNode.addListener(_onTitleFocusChanged);
     _endpointController.addListener(() {
       _s3CloudServiceConfig!.endpoint = _endpointController.text;
     });
@@ -113,13 +119,26 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
     });
   }
 
+  void _onTitleFocusChanged() {
+    if (!_titleFocusNode.hasFocus && _configInitialized) {
+      CloudServiceConfigDao.updateConfig(_s3CloudServiceConfig!);
+      widget.onTitleChanged?.call();
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleFocusNode.removeListener(_onTitleFocusChanged);
+    _titleFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<bool> isValid() async {
     return formKey.currentState?.validate() ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
@@ -135,30 +154,32 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.authenticate().then((value) {
-      setState(() {
-        currentConfig.connected = value == CloudServiceStatus.success;
-      });
-      if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(appLocalizations.cloudConnectionError);
-            break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(appLocalizations.cloudUnauthorized);
-            break;
-          default:
-            IToast.show(appLocalizations.cloudUnknownError);
-            break;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.authenticate().then((value) {
+        setState(() {
+          currentConfig.connected = value.isSuccess;
+        });
+        if (!currentConfig.connected) {
+          String toast;
+          switch (value.type) {
+            case CloudServiceStatusType.connectionError:
+              toast = appLocalizations.cloudConnectionError;
+              break;
+            case CloudServiceStatusType.unauthorized:
+              toast = appLocalizations.cloudUnauthorized;
+              break;
+            default:
+              toast = appLocalizations.cloudUnknownError;
+              break;
+          }
+          IToast.show(
+              value.message != null ? "$toast: ${value.message}" : toast);
+        } else {
+          if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
         }
-      } else {
-        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+      }),
+    );
   }
 
   _buildBody() {
@@ -179,7 +200,7 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: CheckboxItem(
         ink: false,
-        title: appLocalizations.enable + appLocalizations.cloudTypeS3Cloud,
+        title: appLocalizations.enable + currentConfig.displayName,
         value: _s3CloudServiceConfig?.enabled ?? false,
         onTap: () {
           setState(() {
@@ -199,6 +220,13 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
         key: formKey,
         child: Column(
           children: [
+            InputItem(
+              controller: _titleController,
+              focusNode: _titleFocusNode,
+              textInputAction: TextInputAction.next,
+              title: appLocalizations.cloudConfigTitle,
+              hint: appLocalizations.cloudConfigTitleHint,
+            ),
             InputItem(
               controller: _endpointController,
               textInputAction: TextInputAction.next,
@@ -325,50 +353,38 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<S3CloudFileInfo>? files =
-                      await _s3CloudService!.listBackups();
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  CloudServiceConfigDao.updateLastPullTime(
-                      _s3CloudServiceConfig!);
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort(
-                      (a, b) => b.modifyTimestamp.compareTo(a.modifyTimestamp));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => S3CloudBackupsBottomSheet(
-                        files: files,
-                        cloudService: _s3CloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res = await _s3CloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<S3CloudFileInfo>>(
+                  action: _s3CloudService!.listBackups,
+                  logName: "S3",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _s3CloudServiceConfig!);
+                if (!mounted) return;
+                files.sort(
+                    (a, b) => b.modifyTimestamp.compareTo(a.modifyTimestamp));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => S3CloudBackupsBottomSheet(
+                      files: files,
+                      cloudService: _s3CloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "S3",
+                          action: (onProgress) => _s3CloudService!.downloadFile(
                             selectedFile.path,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from S3 cloud", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -381,7 +397,7 @@ class _S3CloudServiceScreenState extends BaseDynamicState<S3CloudServiceScreen>
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _s3CloudServiceConfig!,
                   cloudService: _s3CloudService!,
                 );

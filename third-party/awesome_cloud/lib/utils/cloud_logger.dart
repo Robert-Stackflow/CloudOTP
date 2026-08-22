@@ -17,6 +17,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 
 class CloudLogger {
+  static const int _maxLogValueLength = 4096;
+
   static Function(String tag, String message, [dynamic e, dynamic t])? logTrace;
   static Function(String tag, String message, [dynamic e, dynamic t])? logDebug;
   static Function(String tag, String message, [dynamic e, dynamic t])? logInfo;
@@ -25,27 +27,80 @@ class CloudLogger {
   static Function(String tag, String message, [dynamic e, dynamic t])? logError;
   static Function(String tag, String message, [dynamic e, dynamic t])? logFatal;
 
+  static String redactForLogging(String value) {
+    var redacted = value;
+    final jsonSecret = RegExp(
+      r'''("(?:access[_-]?token|refresh[_-]?token|id[_-]?token|authorization|password|secret|client[_-]?secret|code)"\s*:\s*")[^"]*(")''',
+      caseSensitive: false,
+    );
+    final parameterSecret = RegExp(
+      r'((?:access[_-]?token|refresh[_-]?token|id[_-]?token|authorization|password|secret|client[_-]?secret|code)\s*[=:]\s*)[^&\s,}\]]+',
+      caseSensitive: false,
+    );
+    final bearerToken = RegExp(
+      r'(Bearer\s+)[A-Za-z0-9._~+\-/=]+',
+      caseSensitive: false,
+    );
+    final basicCredentials = RegExp(
+      r'(Basic\s+)[A-Za-z0-9+/=]+',
+      caseSensitive: false,
+    );
+
+    redacted = redacted.replaceAllMapped(
+      jsonSecret,
+      (match) => '${match.group(1)}[REDACTED]${match.group(2)}',
+    );
+    redacted = redacted.replaceAllMapped(
+      bearerToken,
+      (match) => '${match.group(1)}[REDACTED]',
+    );
+    redacted = redacted.replaceAllMapped(
+      basicCredentials,
+      (match) => '${match.group(1)}[REDACTED]',
+    );
+    redacted = redacted.replaceAllMapped(
+      parameterSecret,
+      (match) => '${match.group(1)}[REDACTED]',
+    );
+
+    if (redacted.length > _maxLogValueLength) {
+      redacted = '${redacted.substring(0, _maxLogValueLength)}...[TRUNCATED]';
+    }
+    return redacted;
+  }
+
+  static String _safeMessage(String message) => redactForLogging(message);
+
+  static Object? _safeError(dynamic error) =>
+      error == null ? null : redactForLogging(error.toString());
+
   static void trace(String tag, String message, [dynamic e, dynamic t]) {
+    final safeMessage = _safeMessage(message);
+    final safeError = _safeError(e);
     if (logTrace != null) {
-      logTrace!(tag, message, e, t);
+      logTrace!(tag, safeMessage, safeError, t);
     } else {
-      debugPrint('[$tag] [TRACE] : $message $e $t');
+      debugPrint('[$tag] [TRACE] : $safeMessage $safeError $t');
     }
   }
 
   static void debug(String tag, String message, [dynamic e, dynamic t]) {
+    final safeMessage = _safeMessage(message);
+    final safeError = _safeError(e);
     if (logDebug != null) {
-      logDebug!(tag, message, e, t);
+      logDebug!(tag, safeMessage, safeError, t);
     } else {
-      debugPrint('[$tag] [DEBUG] : $message $e $t');
+      debugPrint('[$tag] [DEBUG] : $safeMessage $safeError $t');
     }
   }
 
   static void info(String tag, String message, [dynamic e, dynamic t]) {
+    final safeMessage = _safeMessage(message);
+    final safeError = _safeError(e);
     if (logInfo != null) {
-      logInfo!(tag, message, e, t);
+      logInfo!(tag, safeMessage, safeError, t);
     } else {
-      debugPrint('[$tag] [INFO] : $message $e $t');
+      debugPrint('[$tag] [INFO] : $safeMessage $safeError $t');
     }
   }
 
@@ -53,41 +108,48 @@ class CloudLogger {
     if (logInfo != null) {
       logInfo!(tag, "$message [${response.statusCode}]");
     } else {
-      debugPrint(
-          '[$tag] [INFO RESPONSE] : $message [${response.statusCode}]');
+      debugPrint('[$tag] [INFO RESPONSE] : $message [${response.statusCode}]');
     }
   }
 
   static void errorResponse(String tag, String message, Response response) {
+    final safeMessage = _safeMessage(message);
+    final summary =
+        '$safeMessage [${response.statusCode}] [body omitted: ${response.bodyBytes.length} bytes]';
     if (logError != null) {
-      logError!(tag, "$message [${response.statusCode}] [${response.body}]");
+      logError!(tag, summary);
     } else {
-      debugPrint(
-          '[$tag] [ERROR RESPONSE] : $message [${response.statusCode}] [${response.body}]');
+      debugPrint('[$tag] [ERROR RESPONSE] : $summary');
     }
   }
 
   static void warning(String tag, String message, [dynamic e, dynamic t]) {
+    final safeMessage = _safeMessage(message);
+    final safeError = _safeError(e);
     if (logWarning != null) {
-      logWarning!(tag, message, e, t);
+      logWarning!(tag, safeMessage, safeError, t);
     } else {
-      debugPrint('[$tag] [WARNING] : $message $e $t');
+      debugPrint('[$tag] [WARNING] : $safeMessage $safeError $t');
     }
   }
 
   static void error(String tag, String message, [dynamic e, dynamic t]) {
+    final safeMessage = _safeMessage(message);
+    final safeError = _safeError(e);
     if (logError != null) {
-      logError!(tag, message, e, t);
+      logError!(tag, safeMessage, safeError, t);
     } else {
-      debugPrint('[$tag] [ERROR] : $message $e $t');
+      debugPrint('[$tag] [ERROR] : $safeMessage $safeError $t');
     }
   }
 
   static void fatal(String tag, String message, [dynamic e, dynamic t]) {
+    final safeMessage = _safeMessage(message);
+    final safeError = _safeError(e);
     if (logFatal != null) {
-      logFatal!(tag, message, e, t);
+      logFatal!(tag, safeMessage, safeError, t);
     } else {
-      debugPrint('[$tag] [FATAL] : $message $e $t');
+      debugPrint('[$tag] [FATAL] : $safeMessage $safeError $t');
     }
   }
 }

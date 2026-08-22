@@ -28,6 +28,33 @@ import '../TokenUtils/Cloud/s3_cloud_service.dart';
 import '../TokenUtils/Cloud/webdav_cloud_service.dart';
 import '../l10n/l10n.dart';
 
+enum CloudServiceCategory {
+  oauth,
+  webdav,
+  s3,
+  oauthBridge;
+
+  String get label {
+    switch (this) {
+      case CloudServiceCategory.oauth:
+        return "OAuth";
+      case CloudServiceCategory.oauthBridge:
+        return "OAuth-Bridge";
+      case CloudServiceCategory.webdav:
+        return "WebDAV";
+      case CloudServiceCategory.s3:
+        return "S3Cloud";
+    }
+  }
+
+  List<CloudServiceType> get types {
+    return CloudServiceType.values.where((t) => t.category == this).toList();
+  }
+
+  bool get allowMultiple =>
+      this == CloudServiceCategory.webdav || this == CloudServiceCategory.s3;
+}
+
 enum CloudServiceType {
   Webdav,
   OneDrive,
@@ -59,50 +86,35 @@ enum CloudServiceType {
     }
   }
 
+  CloudServiceCategory get category {
+    switch (this) {
+      case CloudServiceType.Webdav:
+        return CloudServiceCategory.webdav;
+      case CloudServiceType.S3Cloud:
+        return CloudServiceCategory.s3;
+      case CloudServiceType.OneDrive:
+      case CloudServiceType.Dropbox:
+        return CloudServiceCategory.oauth;
+      case CloudServiceType.GoogleDrive:
+      case CloudServiceType.Box:
+      case CloudServiceType.AliyunDrive:
+      case CloudServiceType.HuaweiCloud:
+        return CloudServiceCategory.oauthBridge;
+    }
+  }
+
+  bool get allowMultiple =>
+      category == CloudServiceCategory.webdav ||
+      category == CloudServiceCategory.s3;
+
   static List<String> toStrings() {
     return CloudServiceType.values.map((e) => e.label).toList();
-  }
-
-  static List<String> toEnableStrings() {
-    return [
-      CloudServiceType.OneDrive.label,
-      CloudServiceType.Dropbox.label,
-      CloudServiceType.Webdav.label,
-      CloudServiceType.S3Cloud.label,
-      CloudServiceType.GoogleDrive.label,
-      CloudServiceType.Box.label,
-      CloudServiceType.AliyunDrive.label,
-      CloudServiceType.HuaweiCloud.label,
-    ];
-  }
-}
-
-extension CloudServiceTypeExtensionOnint on int {
-  CloudServiceType get toCloudServiceType {
-    switch (this) {
-      case 0:
-        return CloudServiceType.Webdav;
-      case 1:
-        return CloudServiceType.GoogleDrive;
-      case 2:
-        return CloudServiceType.OneDrive;
-      case 3:
-        return CloudServiceType.Dropbox;
-      case 4:
-        return CloudServiceType.S3Cloud;
-      case 5:
-        return CloudServiceType.HuaweiCloud;
-      case 6:
-        return CloudServiceType.Box;
-      case 7:
-        return CloudServiceType.AliyunDrive;
-      default:
-        throw Exception('Invalid CloudServiceType');
-    }
   }
 }
 
 class CloudServiceConfig {
+  static const String allowInsecureWebDavHttpKey = "allow_insecure_webdav_http";
+
   int id;
   CloudServiceType type;
   String? endpoint;
@@ -122,12 +134,59 @@ class CloudServiceConfig {
   bool configured;
   bool connected = false;
 
-  Future<bool> isValid() async {
+  String get title => remark["title"] as String? ?? "";
+  set title(String value) {
+    remark["title"] = value;
+  }
+
+  String get displayName {
+    if (title.isEmpty) return type.label;
+    return type.allowMultiple ? "$title (${type.label})" : type.label;
+  }
+
+  bool get usesInsecureWebDavHttp =>
+      type == CloudServiceType.Webdav &&
+      (endpoint?.trim().toLowerCase().startsWith("http://") ?? false);
+
+  bool get allowsInsecureWebDavHttp =>
+      remark[allowInsecureWebDavHttpKey] == true;
+
+  bool get hasConfiguration {
     switch (type) {
       case CloudServiceType.Webdav:
         return endpoint.notNullOrEmpty &&
             account.notNullOrEmpty &&
             secret.notNullOrEmpty;
+      case CloudServiceType.S3Cloud:
+        return endpoint.notNullOrEmpty &&
+            account.notNullOrEmpty &&
+            secret.notNullOrEmpty &&
+            token.notNullOrEmpty;
+      case CloudServiceType.GoogleDrive:
+      case CloudServiceType.OneDrive:
+      case CloudServiceType.Dropbox:
+      case CloudServiceType.HuaweiCloud:
+      case CloudServiceType.Box:
+      case CloudServiceType.AliyunDrive:
+        return configured;
+    }
+  }
+
+  set allowsInsecureWebDavHttp(bool value) {
+    if (value) {
+      remark[allowInsecureWebDavHttpKey] = true;
+    } else {
+      remark.remove(allowInsecureWebDavHttpKey);
+    }
+  }
+
+  Future<bool> isValid() async {
+    switch (type) {
+      case CloudServiceType.Webdav:
+        return endpoint.notNullOrEmpty &&
+            account.notNullOrEmpty &&
+            secret.notNullOrEmpty &&
+            (!usesInsecureWebDavHttp || allowsInsecureWebDavHttp);
       case CloudServiceType.GoogleDrive:
       case CloudServiceType.OneDrive:
       case CloudServiceType.Dropbox:

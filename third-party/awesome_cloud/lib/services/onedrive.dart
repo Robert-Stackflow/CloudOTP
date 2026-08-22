@@ -266,6 +266,11 @@ class OneDrive extends BaseCloudService {
             );
           }
         }
+
+        CloudLogger.info(serviceName, "Upload finished (all chunks accepted)");
+        return OneDriveResponse.success(
+          message: "Upload finished successfully.",
+        );
       } else {
         CloudLogger.errorResponse(
             serviceName, "Create upload session failed", resp);
@@ -278,8 +283,6 @@ class OneDrive extends BaseCloudService {
       CloudLogger.error(serviceName, "Upload error", err, trace);
       return OneDriveResponse.error(message: "Unexpected exception: $err");
     }
-
-    return OneDriveResponse.error(message: "Unexpected error.");
   }
 
   @override

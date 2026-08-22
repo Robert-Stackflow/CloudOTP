@@ -31,25 +31,24 @@ String md5Hash(String data) {
 }
 
 DateTime? str2LocalTime(String? str) {
-  if (str == null) {
+  if (str == null || str.isEmpty) {
     return null;
   }
-  var s = str.toLowerCase();
-  if (!s.endsWith('gmt')) {
+  try {
+    var s = str.trim().toLowerCase();
+    if (s.endsWith('gmt')) {
+      var list = s.split(' ');
+      if (list.length != 6) return null;
+      var month = months[list[2]];
+      if (month == null) return null;
+      return DateTime.parse(
+              '${list[3]}-$month-${list[1].padLeft(2, '0')}T${list[4]}Z')
+          .toLocal();
+    }
+    return DateTime.parse(str.trim()).toLocal();
+  } catch (_) {
     return null;
   }
-  var list = s.split(' ');
-  if (list.length != 6) {
-    return null;
-  }
-  var month = months[list[2]];
-  if (month == null) {
-    return null;
-  }
-
-  return DateTime.parse(
-          '${list[3]}-$month-${list[1].padLeft(2, '0')}T${list[4]}Z')
-      .toLocal();
 }
 
 DioException newResponseError(Response resp) {

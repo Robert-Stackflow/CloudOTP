@@ -16,7 +16,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:awesome_chewie/awesome_chewie.dart';
@@ -29,7 +28,6 @@ import 'package:cloudotp/Screens/layout_select_screen.dart';
 import 'package:cloudotp/Screens/sort_select_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/Screens/Token/category_screen.dart';
-import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/search_query_parser.dart';
 import 'package:cloudotp/Widgets/BottomSheet/add_bottom_sheet.dart';
@@ -82,6 +80,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   String _searchKey = "";
   Map<String, GlobalKey<TokenLayoutState>> tokenKeyMap = {};
   late TabController _tabController;
+  bool _tabControllerInitialized = false;
   ScrollController _scrollController = ScrollController();
   final ScrollController _nestScrollController = ScrollController();
   final ScrollToHideController _fabScrollToHideController =
@@ -90,6 +89,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       ScrollToHideController();
   final TextEditingController _searchController = TextEditingController();
   final PageController _marqueeController = PageController();
+  Timer? _searchDebounce;
+  int _tokenLoadGeneration = 0;
   late AnimationController _animationController;
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
@@ -841,7 +842,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       DatabaseManager.updateSampleCategoryTitle(
           appLocalizations.sampleCategoryName);
     }
-    initTab(true);
+    initTab(true, false);
     refresh(true).then((_) {
       if (ResponsiveUtil.isMobile() &&
           !ResponsiveUtil.isLandscapeTablet() &&
@@ -852,9 +853,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         });
       }
     });
-    _searchController.addListener(() {
-      performSearch(_searchController.text);
-    });
+    _searchController.addListener(_scheduleSearch);
     _animationController = AnimationController(
       vsync: this,
       value: 1,
@@ -875,6 +874,14 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   @override
   void dispose() {
+    _tokenLoadGeneration++;
+    _searchDebounce?.cancel();
+    _searchController.removeListener(_scheduleSearch);
+    _searchController.dispose();
+    _marqueeController.dispose();
+    _nestScrollController.dispose();
+    _shownSearchbarNotifier.dispose();
+    if (_tabControllerInitialized) _tabController.dispose();
     _animationController.dispose();
     _pulseController.dispose();
     for (final entry in _flyOverlays) {
@@ -990,12 +997,15 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   refresh([bool isInit = false]) async {
     if (!mounted) return;
-    await getCategories(isInit);
+    await getCategories(isInit, false);
     await getTokens();
   }
 
-  getTokens() async {
-    final query = SearchQueryParser.parse(_searchKey);
+  Future<void> getTokens() async {
+    final generation = ++_tokenLoadGeneration;
+    final requestedCategoryUid = currentCategoryUid;
+    final requestedSearchKey = _searchKey;
+    final query = SearchQueryParser.parse(requestedSearchKey);
 
     Set<String>? categoryTokenUids;
     if (query.categoryName != null) {
@@ -1004,30 +1014,36 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       categoryTokenUids = await BindingDao.getTokenUidsByCategoryUids(catUids);
     }
 
-    await CategoryDao.getTokensByCategoryUid(
-      currentCategoryUid,
+    final tokenFuture = CategoryDao.getTokensByCategoryUid(
+      requestedCategoryUid,
       searchKey: query.text,
       tags: query.tags,
       tokenType: query.tokenType,
-    ).then((value) {
-      final seen = <String>{};
-      tokens = value.where((t) {
-        if (!seen.add(t.uid)) return false;
-        if (categoryTokenUids != null && !categoryTokenUids.contains(t.uid))
-          return false;
-        return true;
-      }).toList();
-      final currentUids = seen;
-      tokenKeyMap.removeWhere((uid, _) => !currentUids.contains(uid));
-      performSort();
-    });
+    );
+    final countFuture = TokenDao.getTokenCount();
+    final value = await tokenFuture;
+    final totalCount = await countFuture;
 
-    if (currentCategoryUid.isEmpty && _searchKey.isEmpty) {
-      _allTokenCount = tokens.length;
-    } else {
-      final allTokens = await TokenDao.listTokens();
-      _allTokenCount = allTokens.length;
+    if (!mounted ||
+        generation != _tokenLoadGeneration ||
+        requestedCategoryUid != currentCategoryUid ||
+        requestedSearchKey != _searchKey) {
+      return;
     }
+
+    final seen = <String>{};
+    final nextTokens = value.where((token) {
+      if (!seen.add(token.uid)) return false;
+      return categoryTokenUids == null || categoryTokenUids.contains(token.uid);
+    }).toList();
+    _sortTokenList(nextTokens);
+    final currentUids = nextTokens.map((token) => token.uid).toSet();
+
+    setState(() {
+      tokens = nextTokens;
+      _allTokenCount = totalCount;
+      tokenKeyMap.removeWhere((uid, _) => !currentUids.contains(uid));
+    });
   }
 
   void showCoachMark() {
@@ -1054,23 +1070,29 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     ).show(force: force);
   }
 
-  getCategories([bool isInit = false]) async {
+  getCategories([
+    bool isInit = false,
+    bool refreshTokensWhenSelectionChanges = true,
+  ]) async {
     String oldUid = currentCategoryUid;
-    await CategoryDao.listCategories().then((value) async {
-      categories = value;
-      List<String> uids = categories.map((e) => e.uid).toList();
-      if (!uids.contains(oldUid)) {
-        _currentTabIndex = 0;
-        await getTokens();
-      } else {
-        _currentTabIndex = uids.indexOf(oldUid) + 1;
-      }
-      initTab(isInit);
-      setState(() {});
-    });
+    final value = await CategoryDao.listCategories();
+    if (!mounted) return;
+    categories = value;
+    List<String> uids = categories.map((e) => e.uid).toList();
+    final selectionChanged = !uids.contains(oldUid);
+    if (selectionChanged) {
+      _currentTabIndex = 0;
+    } else {
+      _currentTabIndex = uids.indexOf(oldUid) + 1;
+    }
+    initTab(isInit, false);
+    setState(() {});
+    if (selectionChanged && refreshTokensWhenSelectionChanges) {
+      await getTokens();
+    }
   }
 
-  initTab([bool isInit = false]) {
+  initTab([bool isInit = false, bool notify = true]) {
     tabList.clear();
     tabList.add(_buildTab(null));
     String categoryUid = CloudOTPHiveUtil.getSelectedCategoryId();
@@ -1080,9 +1102,20 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         _currentTabIndex = categories.indexOf(category) + 1;
       }
     }
-    setState(() {});
-    _tabController = TabController(length: tabList.length, vsync: this);
-    _tabController.index = _currentTabIndex;
+    final previousController =
+        _tabControllerInitialized ? _tabController : null;
+    _tabController = TabController(
+      length: tabList.length,
+      vsync: this,
+      initialIndex: _currentTabIndex,
+    );
+    _tabControllerInitialized = true;
+    if (previousController != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        previousController.dispose();
+      });
+    }
+    if (notify && mounted) setState(() {});
   }
 
   @override
@@ -1167,6 +1200,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   _buildMobileBody() {
     return NestedScrollView(
       controller: _nestScrollController,
+      floatHeaderSlivers: true,
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [_buildMobileAppbar()];
       },
@@ -1181,7 +1215,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   changeSearchBar(bool shown) {
     Future.delayed(const Duration(milliseconds: 200), () {
-      _shownSearchbarNotifier.value = shown;
+      if (mounted) _shownSearchbarNotifier.value = shown;
     });
     _marqueeController.animateToPage(shown ? 1 : 0,
         duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -1494,7 +1528,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       builder: (context, settings, child) {
         double bottomPadding = MediaQuery.of(context).padding.bottom;
         return ReorderableGridView.builder(
-          cacheExtent: 1000,
+          cacheExtent: ResponsiveUtil.isAndroid() ? 300 : 999,
           // controller: _scrollController,
           gridItemsNotifier: gridItemsNotifier,
           autoScroll: true,
@@ -1533,10 +1567,39 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             }
             final item = tokens.removeAt(oldIndex);
             tokens.insert(newIndex, item);
-            for (int i = 0; i < tokens.length; i++) {
-              tokens[i].seq = tokens.length - i;
+            // `tokens` may be a filtered subset (a category tab or active
+            // search), but `seq` is a single global field. Rebuild the full
+            // global order so it stays consistent with this reorder: move the
+            // dragged token next to its new visible neighbour in the complete
+            // list, then renumber every token's seq. Non-visible tokens keep
+            // their relative order, and the global "all" view matches what the
+            // user sees here. Renumbering also heals any legacy seq collisions.
+            final all = await TokenDao.listTokens();
+            all.removeWhere((t) => t.uid == item.uid);
+            int anchorPos;
+            if (newIndex > 0) {
+              // place right below the visible token now above the dragged one
+              final prevUid = tokens[newIndex - 1].uid;
+              anchorPos = all.indexWhere((t) => t.uid == prevUid) + 1;
+            } else if (tokens.length > 1) {
+              // dropped at the very top: place right above the token now below
+              final nextUid = tokens[newIndex + 1].uid;
+              anchorPos = all.indexWhere((t) => t.uid == nextUid);
+            } else {
+              anchorPos = 0;
             }
-            await TokenDao.updateTokens(tokens, autoBackup: false);
+            if (anchorPos < 0) anchorPos = 0;
+            all.insert(anchorPos, item);
+            for (int i = 0; i < all.length; i++) {
+              all[i].seq = all.length - i;
+            }
+            // Keep the in-memory visible tokens' seq in sync with the DB so a
+            // later performSort (e.g. on pin toggle) stays correct.
+            final seqByUid = {for (final t in all) t.uid: t.seq};
+            for (final t in tokens) {
+              t.seq = seqByUid[t.uid] ?? t.seq;
+            }
+            await TokenDao.updateTokens(all, autoBackup: false);
             changeOrderType(type: OrderType.Default, doPerformSort: false);
           },
           proxyDecorator:
@@ -1689,21 +1752,38 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       indicator: UnderlinedTabIndicator(borderColor: ChewieTheme.primaryColor),
       onTap: (index) {
         if (_multiSelectMode) exitMultiSelectMode();
-        if (_nestScrollController.hasClients) {
-          _nestScrollController.animateTo(0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut);
-        }
         _currentTabIndex = index;
-        getTokens();
         CloudOTPHiveUtil.setSelectedCategoryUid(currentCategoryUid);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          for (final key in tokenKeyMap.values) {
-            key.currentState?.replayEntrance();
-          }
-        });
+        unawaited(_loadSelectedCategory(index));
       },
     );
+  }
+
+  Future<void> _loadSelectedCategory(int index) async {
+    final generation = _tokenLoadGeneration + 1;
+    await getTokens();
+    if (!mounted ||
+        index != _currentTabIndex ||
+        generation != _tokenLoadGeneration) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          index != _currentTabIndex ||
+          generation != _tokenLoadGeneration) {
+        return;
+      }
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+      }
+      if (_nestScrollController.hasClients) {
+        _nestScrollController
+            .jumpTo(_nestScrollController.position.minScrollExtent);
+      }
+      _fabScrollToHideController.show();
+      _bottombarScrollToHideController.show();
+    });
   }
 
   _buildTab(TokenCategory? category) {
@@ -1889,10 +1969,18 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     appProvider.shortcutFocusNode.unfocus();
   }
 
+  void _scheduleSearch() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 180), () {
+      performSearch(_searchController.text);
+    });
+  }
+
   performSearch(String searchKey) {
+    _searchDebounce?.cancel();
     if (_multiSelectMode) exitMultiSelectMode();
     _searchKey = searchKey;
-    getTokens();
+    unawaited(getTokens());
   }
 
   changeLayoutType([LayoutType? type]) {
@@ -1947,40 +2035,44 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     }
   }
 
-  performSort() {
+  void _sortTokenList(List<OtpToken> target) {
     switch (orderType) {
       case OrderType.Default:
-        tokens.sort((a, b) => -a.seq.compareTo(b.seq));
+        target.sort((a, b) => -a.seq.compareTo(b.seq));
         break;
       case OrderType.AlphabeticalASC:
-        tokens.sort((a, b) => a.issuer.compareTo(b.issuer));
+        target.sort((a, b) => a.issuer.compareTo(b.issuer));
         break;
       case OrderType.AlphabeticalDESC:
-        tokens.sort((a, b) => -a.issuer.compareTo(b.issuer));
+        target.sort((a, b) => -a.issuer.compareTo(b.issuer));
         break;
       case OrderType.CopyTimesDESC:
-        tokens.sort((a, b) => -a.copyTimes.compareTo(b.copyTimes));
+        target.sort((a, b) => -a.copyTimes.compareTo(b.copyTimes));
         break;
       case OrderType.CopyTimesASC:
-        tokens.sort((a, b) => a.copyTimes.compareTo(b.copyTimes));
+        target.sort((a, b) => a.copyTimes.compareTo(b.copyTimes));
         break;
       case OrderType.LastCopyTimeDESC:
-        tokens.sort(
+        target.sort(
             (a, b) => -a.lastCopyTimeStamp.compareTo(b.lastCopyTimeStamp));
         break;
       case OrderType.LastCopyTimeASC:
-        tokens
+        target
             .sort((a, b) => a.lastCopyTimeStamp.compareTo(b.lastCopyTimeStamp));
         break;
       case OrderType.CreateTimeDESC:
-        tokens.sort((a, b) => -a.createTimeStamp.compareTo(b.createTimeStamp));
+        target.sort((a, b) => -a.createTimeStamp.compareTo(b.createTimeStamp));
         break;
       case OrderType.CreateTimeASC:
-        tokens.sort((a, b) => a.createTimeStamp.compareTo(b.createTimeStamp));
+        target.sort((a, b) => a.createTimeStamp.compareTo(b.createTimeStamp));
         break;
     }
-    tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-    setState(() {});
+    target.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
+  }
+
+  performSort() {
+    _sortTokenList(tokens);
+    if (mounted) setState(() {});
   }
 
   @override

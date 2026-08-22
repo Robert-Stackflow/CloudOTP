@@ -624,6 +624,8 @@
     }
   },
   "importFailed": "Import failed",
+  "backupFileTooLarge": "The backup file is too large to import safely.",
+  "backupContentTooLarge": "The backup contains too many items to import safely.",
   "searchIconName": "Search icon name",
   "setIconForToken": "Choose token icon",
   "setIconForTokenDetail": "Choose icon for token \"{issuer}\"",
@@ -659,6 +661,8 @@
   "tokenIssuerHint": "Issuer name",
   "tokenAccount": "Account",
   "tokenAccountHint": "Account name or email",
+  "tokenRemark": "Note",
+  "tokenRemarkHint": "Optional note, also available in search",
   "tokenSecret": "Secret key",
   "tokenSecretHint": "Base32 encoded secret key",
   "tokenPin": "PIN",
@@ -817,6 +821,8 @@
   "importMergeStrategy": "Merge Strategy",
   "importKeepLocal": "Keep Local",
   "importOverwriteLocal": "Overwrite Local",
+  "importPreviewSafetyTip": "Review and select the items first. Nothing changes until you confirm, and local data is kept by default.",
+  "importOverwriteWarning": "Selected existing items will be updated with data from this backup. Unselected items will remain unchanged. Continue?",
   "tokenCount": "Tokens",
   "categoryCount": "Categories",
   "themeEditor": "Theme Editor",
@@ -1032,5 +1038,28 @@
   "enableModalSheet": "Extend Page to Status Bar",
   "enableModalSheetTip": "When disabled, pages extend behind the status bar instead of stopping below it",
   "clearBackupLogs": "Clear Backup Logs",
-  "clearBackupLogsConfirm": "Are you sure you want to clear all backup logs?"
+  "clearBackupLogsConfirm": "Are you sure you want to clear all backup logs?",
+  "cloudConfigTitle": "Title",
+  "cloudConfigTitleHint": "Custom name for this configuration",
+  "addCloudService": "Add Cloud Service",
+  "cloudServiceAlreadyConfigured": "{service} has already been configured",
+  "deleteCloudService": "Delete Configuration",
+  "deleteCloudServiceMessage": "Are you sure you want to delete the configuration \"{configName}\"? This will only remove the local configuration and will not delete any remote backups.",
+  "@deleteCloudServiceMessage": {
+    "placeholders": {
+      "configName": {"type": "String"}
+    }
+  },
+  "noCloudServiceConfigured": "No cloud service configured",
+  "cloudCategoryOAuth": "OAuth",
+  "cloudCategoryOAuthBridge": "OAuth-Bridge",
+  "cloudCategoryWebDav": "WebDAV",
+  "cloudCategoryS3": "S3",
+  "cloudDefaultConfigTitle": "New Configuration",
+  "cloudServiceOverview": "Cloud services",
+  "cloudOverviewDescription": "Connect a service to keep encrypted backups available across your devices.",
+  "cloudConfiguredServices": "Your services",
+  "cloudStatusReady": "Ready for backup",
+  "cloudStatusNeedsSetup": "Setup required",
+  "cloudStatusDisabled": "Backup disabled"
 }
