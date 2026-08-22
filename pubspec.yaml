@@ -33,7 +33,8 @@ dependencies:
   # 二维码
   image: ^4.2.0 # 图片
   zxing2: ^0.2.3 # 二维码
-  mobile_scanner: ^7.2.0 # 扫码
+  # Keep CI on the CameraX version supported by the current Android toolchain.
+  mobile_scanner: 7.2.0 # 扫码
   pretty_qr_code: ^3.3.0 # 二维码
   screen_capturer:
     path: third-party/tool/screen_capturer_lib/screen_capturer
