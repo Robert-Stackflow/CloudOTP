@@ -39,6 +39,36 @@ void main() {
     expect(await _rowCount(database, 'token_category_binding'), 1);
   });
 
+  test('backup import preserves distinct tokens that share a UID', () async {
+    final first = _token('shared-token', 'first@example.com');
+    final second = _token('shared-token', 'second@example.com');
+    final category = TokenCategory.title(title: 'Shared UID')
+      ..uid = 'shared-category'
+      ..bindings = ['shared-token'];
+
+    final analysis = await ImportTokenUtil.confirmImport(
+      [first, second],
+      [category],
+      overrideDb: database,
+      notifyChanges: false,
+    );
+
+    final importedTokens = await TokenDao.listTokens(overrideDb: database);
+    final importedUids = importedTokens.map((token) => token.uid).toSet();
+    final bindings = await database.query(
+      'token_category_binding',
+      columns: ['token_uid'],
+      where: 'category_uid = ?',
+      whereArgs: ['shared-category'],
+    );
+
+    expect(analysis.importTokenSuccess, 2);
+    expect(importedTokens, hasLength(2));
+    expect(importedUids, hasLength(2));
+    expect(
+        bindings.map((binding) => binding['token_uid']).toSet(), importedUids);
+  });
+
   test('late binding failure rolls back the entire backup import', () async {
     await database.execute('''
       CREATE TRIGGER reject_imported_binding

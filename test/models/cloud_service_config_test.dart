@@ -50,6 +50,17 @@ void main() {
     expect(await restored.isValid(), isTrue);
   });
 
+  test('WebDAV HTTP cannot bypass consent through UI state flags', () async {
+    final config = _webDavConfig('http://192.168.1.2/dav')
+      ..enabled = true
+      ..configured = true
+      ..connected = true;
+
+    expect(config.hasConfiguration, isTrue);
+    expect(config.allowsInsecureWebDavHttp, isFalse);
+    expect(await config.isValid(), isFalse);
+  });
+
   test('removing the HTTP opt-in preserves the rest of the remark data', () {
     final config = _webDavConfig('http://192.168.1.2/dav');
     config.remark['title'] = 'Home NAS';
