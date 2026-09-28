@@ -66,6 +66,7 @@ dependencies:
   hashlib: 1.19.2 # Hash
   pointycastle: ^3.9.1 # 加密
   protobuf: ^3.1.0 # Protobuf
+  pinyin: ^3.3.0 # 中文搜索
   protoc_plugin: ^21.1.2 # Protobuf
   flutter_native_splash: ^2.4.1 # Splash屏
   queue: ^3.1.0+2 # 队列

@@ -184,13 +184,12 @@ class MainScreenState extends BaseWindowState<MainScreen>
                 delegates:
                     LottieFiles.loadingDelegates(ChewieTheme.primaryColor)),
           );
-      chewieProvider.loadingWidgetBuilder =
-          (size, forceDark) => LottieFiles.load(
-                LottieFiles.getLoadingPath(chewieProvider.rootContext),
-                scale: 1.5,
-                delegates:
-                    LottieFiles.loadingDelegates(ChewieTheme.primaryColor),
-              );
+      chewieProvider.loadingWidgetBuilder = (size, forceDark) =>
+          LottieFiles.load(
+            LottieFiles.getLoadingPath(chewieProvider.rootContext),
+            scale: 1.5,
+            delegates: LottieFiles.loadingDelegates(ChewieTheme.primaryColor),
+          );
     });
     initGlobalConfig();
     searchController.addListener(() {
@@ -227,8 +226,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
       importThirdPartyKey: _sidebarImportThirdKey,
       cloudBackupKey:
           provider.showCloudBackupButton ? _sidebarCloudBackupKey : null,
-      backupLogKey:
-          provider.showBackupLogButton ? _sidebarBackupLogKey : null,
+      backupLogKey: provider.showBackupLogButton ? _sidebarBackupLogKey : null,
       sortButtonKey: provider.showSortButton ? _sidebarSortKey : null,
       layoutButtonKey: provider.showLayoutButton ? _sidebarLayoutKey : null,
       featureShowcaseKey: _sidebarFeatureShowcaseKey,
@@ -1012,29 +1010,30 @@ class MainScreenState extends BaseWindowState<MainScreen>
     CaptureMode mode, {
     bool reCaptureWhenFailed = true,
   }) async {
+    String? imagePath;
+    final usesClipboard = ResponsiveUtil.isWindows();
+    var clearClipboardOnExit = usesClipboard;
     try {
       appProvider.preventLock = true;
-      windowManager.minimize();
+      await windowManager.minimize();
       Directory directory = Directory(await FileUtil.getScreenshotDir());
       String imageName =
           'Screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-      String imagePath = path.join(directory.path, imageName);
+      imagePath = path.join(directory.path, imageName);
       CapturedData? capturedData = await screenCapturer.capture(
         mode: mode,
-        copyToClipboard: true,
+        copyToClipboard: usesClipboard,
         imagePath: imagePath,
         silent: true,
       );
-      windowManager.restore();
-      CustomLoadingDialog.showLoading(title: appLocalizations.analyzing);
+      await windowManager.restore();
       Uint8List? imageBytes = capturedData?.imageBytes;
       File file = File(imagePath);
       if (imageBytes == null) {
         await Future.delayed(const Duration(milliseconds: 400));
         if (file.existsSync()) {
-          imageBytes = file.readAsBytesSync();
-          file.delete();
-        } else {
+          imageBytes = await file.readAsBytes();
+        } else if (usesClipboard) {
           imageBytes =
               await ScreenCapturerPlatform.instance.readImageFromClipboard();
           if (imageBytes == null) {
@@ -1043,36 +1042,66 @@ class MainScreenState extends BaseWindowState<MainScreen>
                 await ScreenCapturerPlatform.instance.readImageFromClipboard();
           }
         }
-      } else {
-        if (file.existsSync()) {
-          file.delete();
-        }
+      }
+      if (usesClipboard) {
+        await _clearCapturedImageFromClipboard();
+        clearClipboardOnExit = false;
       }
       if (imageBytes == null) {
         IToast.showTop(appLocalizations.captureFailed);
-        CustomLoadingDialog.dismissLoading();
         return;
       }
       await ImportTokenUtil.analyzeImage(
         context: context,
         imageBytes,
-        showLoading: false,
-        doDismissLoading: true,
       );
     } catch (e, t) {
       ILogger.error("Failed to capture and analyze image", e, t);
       if (e is PlatformException) {
-        if (reCaptureWhenFailed) capture(mode, reCaptureWhenFailed: false);
+        if (reCaptureWhenFailed) {
+          await capture(mode, reCaptureWhenFailed: false);
+        } else {
+          IToast.showTop(appLocalizations.captureFailed);
+        }
       } else if (e is ProcessException) {
-        windowManager.restore();
         if (ResponsiveUtil.isLinux()) {
           LinuxOSType osType = ResponsiveUtil.getLinuxOSType();
           IToast.showTop(appLocalizations
               .captureFailedNoProcess(osType.captureProcessName));
+        } else {
+          IToast.showTop(appLocalizations.captureFailed);
         }
+      } else {
+        IToast.showTop(appLocalizations.captureFailed);
       }
     } finally {
-      appProvider.preventLock = false;
+      try {
+        if (imagePath != null) {
+          final file = File(imagePath);
+          if (await file.exists()) await file.delete();
+        }
+      } catch (e, t) {
+        ILogger.error('Failed to remove temporary screenshot', e, t);
+      } finally {
+        try {
+          if (clearClipboardOnExit) await _clearCapturedImageFromClipboard();
+          await windowManager.restore();
+        } finally {
+          appProvider.preventLock = false;
+        }
+      }
+    }
+  }
+
+  Future<void> _clearCapturedImageFromClipboard() async {
+    try {
+      final image =
+          await ScreenCapturerPlatform.instance.readImageFromClipboard();
+      if (image != null) {
+        await Clipboard.setData(const ClipboardData(text: ''));
+      }
+    } catch (e, t) {
+      ILogger.error('Failed to clear captured image from clipboard', e, t);
     }
   }
 
@@ -1288,8 +1317,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
                   onChangemode: (context, themeMode, child) {},
                   iconSize: 22,
                 ),
-                if (kDebugMode)
-                  const SizedBox(height: 4),
+                if (kDebugMode) const SizedBox(height: 4),
                 if (kDebugMode)
                   ToolButton(
                     context: context,
@@ -1436,8 +1464,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
 
   void _startAutoBackupOnLaunch() {
     if (ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableBackupOnLaunchKey)) {
-      ExportTokenUtil.autoBackup(
-          triggerType: AutoBackupTriggerType.appStartup);
+      ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.appStartup);
     }
   }
 

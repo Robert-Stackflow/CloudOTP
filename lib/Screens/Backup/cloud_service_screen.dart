@@ -238,13 +238,6 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
         Text(
-          appLocalizations.cloudOverviewDescription,
-          style: ChewieTheme.bodyMedium.copyWith(
-            color: ChewieTheme.bodyMedium.color?.withAlpha(170),
-          ),
-        ),
-        const SizedBox(height: 22),
-        Text(
           appLocalizations.cloudConfiguredServices,
           style: ChewieTheme.titleMedium.copyWith(fontWeight: FontWeight.bold),
         ),
@@ -311,29 +304,85 @@ class _CloudServiceScreenState extends BaseDynamicState<CloudServiceScreen>
   }
 
   Widget _buildBackupPasswordPlaceholder() {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+    final accent = ChewieTheme.primaryColor;
+    return LayoutBuilder(
+      builder: (context, viewport) => SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: TipBanner(
-            message: appLocalizations.notSetBackupPasswordTip,
-            customIcon: LucideIcons.keyRound,
-            padding: const EdgeInsets.all(16),
-            actionSpacing: 14,
-            action: RoundIconTextButton(
-              height: 36,
-              minHeight: 36,
-              radius: 8,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              background: ChewieTheme.primaryColor,
-              icon: const Icon(
-                LucideIcons.keyRound,
-                size: 16,
-                color: Colors.white,
+          constraints: BoxConstraints(minHeight: viewport.maxHeight),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 48, 28, 64),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 112,
+                      height: 112,
+                      decoration: BoxDecoration(
+                        color: accent.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(LucideIcons.cloud, size: 54, color: accent),
+                          Positioned(
+                            right: 16,
+                            bottom: 15,
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: ChewieTheme.scaffoldBackgroundColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                LucideIcons.keyRound,
+                                size: 21,
+                                color: accent,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      appLocalizations.notSetBackupPasswordTip,
+                      style: ChewieTheme.titleLarge.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      appLocalizations.setAutoBackupPasswordTip,
+                      style: ChewieTheme.bodyMedium.copyWith(
+                        color: ChewieTheme.bodyMedium.color?.withOpacity(0.7),
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 28),
+                    RoundIconTextButton(
+                      width: double.infinity,
+                      height: 48,
+                      minHeight: 48,
+                      radius: 12,
+                      background: accent,
+                      icon: const Icon(
+                        LucideIcons.keyRound,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      text: appLocalizations.setAutoBackupPassword,
+                      onPressed: _openBackupPasswordSettings,
+                    ),
+                  ],
+                ),
               ),
-              text: appLocalizations.setAutoBackupPassword,
-              onPressed: _openBackupPasswordSettings,
             ),
           ),
         ),

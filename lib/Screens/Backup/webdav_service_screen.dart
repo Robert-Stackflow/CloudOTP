@@ -255,7 +255,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                 if (text.isEmpty) {
                   return appLocalizations.webDavServerCannotBeEmpty;
                 }
-                if (!RegexUtil.isUrlOrIp(text)) {
+                if (!RegexUtil.isUrlOrIp(text, requireScheme: true)) {
                   return appLocalizations.webDavServerInvalid;
                 }
                 return null;
@@ -313,6 +313,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
         background: ChewieTheme.primaryColor,
         fontSizeDelta: 2,
         onPressed: () async {
+          _endpointController.text = _endpointController.text.trim();
           if (!await isValid() || !mounted) return;
           if (!await _confirmInsecureHttp() || !mounted) return;
           currentConfig.allowsInsecureWebDavHttp =
@@ -354,7 +355,7 @@ class _WebDavServiceScreenState extends BaseDynamicState<WebDavServiceScreen>
                 await CloudServiceConfigDao.updateLastPullTime(
                     _webDavCloudServiceConfig!);
                 if (!mounted) return;
-                files.sort((a, b) => b.mTime!.compareTo(a.mTime!));
+                WebDavCloudService.sortBackupsNewestFirst(files);
                 if (files.isNotEmpty) {
                   BottomSheetBuilder.showBottomSheet(
                     context,

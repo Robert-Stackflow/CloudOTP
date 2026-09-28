@@ -32,7 +32,7 @@ void main() {
         imageBytes,
         context: context,
         showLoading: false,
-        showSingleTokenDialog: false,
+        showPreview: false,
       ).timeout(const Duration(seconds: 10));
     });
 

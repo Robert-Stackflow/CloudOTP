@@ -16,7 +16,6 @@
 import 'dart:async';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +24,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
 import '../../Models/opt_token.dart';
+import '../../Models/token_category.dart';
 import '../../Screens/Token/add_token_screen.dart';
 import '../../Screens/Token/import_export_token_screen.dart';
 import '../../Screens/Token/import_preview_screen.dart';
@@ -46,13 +46,14 @@ class AddBottomSheet extends StatefulWidget {
 
 class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
     with WidgetsBindingObserver {
-  final MobileScannerController scannerController =
-      MobileScannerController();
+  final MobileScannerController scannerController = MobileScannerController();
   StreamSubscription<BarcodeCapture>? _subscription;
   static const double _defaultZoomFactor = 0.43;
   double _zoomFactor = _defaultZoomFactor;
   final double _scaleSensitivity = 0.005;
-  List<String> alreadyScanned = [];
+  final Set<String> alreadyScanned = {};
+  bool _previewOpen = false;
+  Timer? _scanRetryTimer;
   int quatertTurns = 0;
   GlobalKey scannerKey = GlobalKey();
 
@@ -65,7 +66,9 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
       case AppLifecycleState.paused:
         return;
       case AppLifecycleState.resumed:
-        _subscription = scannerController.barcodes.listen(_handleBarcode);
+        if (_subscription == null && !_previewOpen) {
+          _subscription = scannerController.barcodes.listen(_handleBarcode);
+        }
       case AppLifecycleState.inactive:
         unawaited(_subscription?.cancel());
         _subscription = null;
@@ -84,40 +87,61 @@ class AddBottomSheetState extends BaseDynamicState<AddBottomSheet>
     bool autoPopup = false,
     bool addToAlready = true,
   }) async {
+    if (_previewOpen) return;
     _subscription?.pause();
-    List<Barcode> barcodes = barcodeCapture.barcodes;
-    List<String> rawValues = [];
-    for (Barcode barcode in barcodes) {
-      if (barcode.rawValue.notNullOrEmpty &&
-          ((addToAlready && !alreadyScanned.contains(barcode.rawValue!)) ||
-              !addToAlready)) {
-        HapticFeedback.lightImpact();
-        rawValues.add(barcode.rawValue!);
-        if (addToAlready) alreadyScanned.add(barcode.rawValue!);
+    try {
+      List<Barcode> barcodes = barcodeCapture.barcodes;
+      List<String> rawValues = [];
+      for (Barcode barcode in barcodes) {
+        if (barcode.rawValue.notNullOrEmpty &&
+            ((addToAlready && !alreadyScanned.contains(barcode.rawValue!)) ||
+                !addToAlready)) {
+          HapticFeedback.lightImpact();
+          rawValues.add(barcode.rawValue!);
+          if (addToAlready) alreadyScanned.add(barcode.rawValue!);
+        }
+      }
+      if (rawValues.isNotEmpty) {
+        final result = await ImportTokenUtil.parseRawUri(rawValues,
+            autoPopup: autoPopup, context: context);
+        if (context.mounted) {
+          final tokens = List<OtpToken>.from(result[0] as List);
+          final categories = List<TokenCategory>.from(result[1] as List);
+          if (tokens.isNotEmpty || categories.isNotEmpty) {
+            _previewOpen = true;
+            ImportPreviewScreen.show(
+              tokens: tokens,
+              categories: categories,
+              onClosed: () {
+                _scanRetryTimer?.cancel();
+                alreadyScanned.clear();
+                _previewOpen = false;
+                if (!mounted) return;
+                _subscription ??=
+                    scannerController.barcodes.listen(_handleBarcode);
+                _subscription?.resume();
+              },
+            );
+          }
+        }
+      }
+    } catch (e, t) {
+      ILogger.error('Failed to analyze scanned QR code', e, t);
+      IToast.showTop(appLocalizations.parseQrCodeWrong);
+    } finally {
+      if (!_previewOpen) {
+        _scanRetryTimer?.cancel();
+        _scanRetryTimer =
+            Timer(const Duration(seconds: 2), alreadyScanned.clear);
+        _subscription?.resume();
       }
     }
-    if (rawValues.isNotEmpty) {
-      List<OtpToken> tokens = (await ImportTokenUtil.parseRawUri(rawValues,
-          autoPopup: autoPopup, context: context))[0];
-      if (tokens.length == 1) {
-        BottomSheetBuilder.showBottomSheet(
-          context,
-          responsive: true,
-          (context) => TokenOptionBottomSheet(
-            token: tokens.first,
-            isNewToken: true,
-          ),
-        );
-      } else if (tokens.length > 1) {
-        ImportPreviewScreen.show(tokens: tokens, categories: const []);
-      }
-    }
-    _subscription?.resume();
   }
 
   @override
   Future<void> dispose() async {
     WidgetsBinding.instance.removeObserver(this);
+    _scanRetryTimer?.cancel();
     unawaited(_subscription?.cancel());
     _subscription = null;
     super.dispose();

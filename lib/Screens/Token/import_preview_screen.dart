@@ -30,18 +30,21 @@ class ImportPreviewScreen extends StatefulWidget {
   final List<OtpToken> tokens;
   final List<TokenCategory> categories;
   final List<ImportTokenError> errors;
+  final VoidCallback? onClosed;
 
   const ImportPreviewScreen({
     super.key,
     required this.tokens,
     required this.categories,
     this.errors = const [],
+    this.onClosed,
   });
 
   static void show({
     required List<OtpToken> tokens,
     required List<TokenCategory> categories,
     List<ImportTokenError> errors = const [],
+    VoidCallback? onClosed,
   }) {
     if (tokens.isEmpty && errors.isEmpty && categories.isEmpty) {
       IToast.showTop(appLocalizations.importNoTokens);
@@ -53,6 +56,7 @@ class ImportPreviewScreen extends StatefulWidget {
         tokens: tokens,
         categories: categories,
         errors: errors,
+        onClosed: onClosed,
       ),
     );
   }
@@ -69,6 +73,12 @@ class _ImportPreviewScreenState extends BaseDynamicState<ImportPreviewScreen> {
   late SelectionItemModel<bool> _keepLocalOption;
   late SelectionItemModel<bool> _overwriteLocalOption;
   SelectionItemModel<bool>? _currentMergeOption;
+
+  @override
+  void dispose() {
+    widget.onClosed?.call();
+    super.dispose();
+  }
 
   bool get _hasCategories => widget.categories.isNotEmpty;
 
@@ -382,6 +392,12 @@ class _ImportPreviewScreenState extends BaseDynamicState<ImportPreviewScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                  Text(
+                    item.token.tokenType.label,
+                    style: ChewieTheme.bodySmall.copyWith(
+                      color: ChewieTheme.primaryColor,
+                    ),
+                  ),
                   if (isError && item.errorReason != null)
                     Text(
                       item.errorReason!,

@@ -39,7 +39,6 @@ import '../Screens/Token/import_preview_screen.dart';
 import '../Utils/constant.dart';
 import '../Utils/hive_util.dart';
 import '../Utils/utils.dart';
-import '../Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import '../l10n/l10n.dart';
 import 'Backup/backup.dart';
 import 'Backup/backup_encrypt_interface.dart';
@@ -51,6 +50,10 @@ extension TrimPadding on String {
   String trimPadding() {
     return replaceAll(RegExp(r'=+$'), '').toUpperCase();
   }
+}
+
+class QrImageTooLargeException implements Exception {
+  const QrImageTooLargeException();
 }
 
 enum BackupImportStatus {
@@ -123,6 +126,8 @@ class ImportAnalysis {
 
 class ImportTokenUtil {
   static const int maxBackupFileBytes = 16 * 1024 * 1024;
+  static const int maxQrImageBytes = 20 * 1024 * 1024;
+  static const int maxQrImagePixels = 20 * 1000 * 1000;
   static Future<List<dynamic>> parseRawUri(
     List<String> rawUris, {
     bool autoPopup = true,
@@ -148,19 +153,18 @@ class ImportTokenUtil {
     if (validTokenUris.isNotEmpty) {
       tokens = await ImportTokenUtil.importText(
         validTokenUris.join("\n"),
-        // noTokenToast: appLocalizations.imageDoesNotContainToken,
         showLoading: false,
         showPreview: false,
       );
-      if (autoPopup && context != null && context.mounted) {
-        Navigator.pop(context);
-      }
     }
     if (validCategoryUris.isNotEmpty) {
       categories = await ImportTokenUtil.parseCategories(validCategoryUris);
-      if (autoPopup && context != null && context.mounted) {
-        Navigator.pop(context);
-      }
+    }
+    if ((tokens.isNotEmpty || categories.isNotEmpty) &&
+        autoPopup &&
+        context != null &&
+        context.mounted) {
+      Navigator.pop(context);
     }
     if (tokens.isEmpty && categories.isEmpty) {
       IToast.showTop(appLocalizations.noQrCodeToken);
@@ -178,22 +182,23 @@ class ImportTokenUtil {
       CustomLoadingDialog.showLoading(title: appLocalizations.analyzing);
     }
     try {
-      File file = File(filepath);
+      if (await File(filepath).length() > maxQrImageBytes) {
+        IToast.showTop(appLocalizations.qrImageTooLarge);
+        return [];
+      }
       Uint8List? imageBytes = await compute<String, Uint8List?>((path) {
         return File(path).readAsBytesSync();
       }, filepath);
-      String fileName = FileUtil.getFileNameWithExtension(file.path);
-      if (ResponsiveUtil.isAndroid()) {
-        await File("/storage/emulated/0/Pictures/$fileName")
-            .delete(recursive: true);
-        await file.delete(recursive: true);
-      }
       res = await ImportTokenUtil.analyzeImage(
         imageBytes,
         context: context,
         showLoading: false,
-        showSingleTokenDialog: false,
+        showPreview: false,
       );
+    } catch (e, t) {
+      ILogger.error('Failed to read QR image file', e, t);
+      IToast.showTop(appLocalizations.importFailed);
+      return [];
     } finally {
       if (showLoading) {
         CustomLoadingDialog.dismissLoading();
@@ -214,7 +219,7 @@ class ImportTokenUtil {
     required BuildContext context,
     bool showLoading = true,
     bool doDismissLoading = false,
-    bool showSingleTokenDialog = true,
+    bool showPreview = true,
   }) async {
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: appLocalizations.analyzing);
@@ -228,9 +233,25 @@ class ImportTokenUtil {
       IToast.showTop(appLocalizations.noQrCode);
       return [];
     }
+    if (imageBytes.lengthInBytes > maxQrImageBytes) {
+      if (showLoading || doDismissLoading) {
+        CustomLoadingDialog.dismissLoading();
+      }
+      IToast.showTop(appLocalizations.qrImageTooLarge);
+      return [];
+    }
     try {
-      var result = await compute((bytes) {
-        img.Image image = img.decodeImage(bytes)!;
+      final result = await compute((bytes) {
+        final decoder = img.findDecoderForData(bytes);
+        final info = decoder?.startDecode(bytes);
+        if (info == null) throw const FormatException('Invalid image');
+        if (info.width <= 0 ||
+            info.height <= 0 ||
+            info.width > maxQrImagePixels ~/ info.height) {
+          throw const QrImageTooLargeException();
+        }
+        final image = decoder!.decode(bytes, frame: 0);
+        if (image == null) throw const FormatException('Invalid image');
         LuminanceSource source = RGBLuminanceSource(
             image.width,
             image.height,
@@ -239,10 +260,18 @@ class ImportTokenUtil {
                 .getBytes(order: img.ChannelOrder.abgr)
                 .buffer
                 .asInt32List());
-        var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
-        var reader = QRCodeReader();
-        return reader.decode(bitmap);
-      }, imageBytes);
+        final hints = DecodeHints()..put(DecodeHintType.tryHarder);
+        // This reader returns one QR code; separate images are needed for multiple codes.
+        final reader = QRCodeReader();
+        try {
+          return reader.decode(BinaryBitmap(HybridBinarizer(source)),
+              hints: hints);
+        } on ReaderException {
+          return reader.decode(BinaryBitmap(GlobalHistogramBinarizer(source)),
+              hints: hints);
+        }
+      }, imageBytes)
+          .timeout(const Duration(seconds: 15));
       if (result.text.notNullOrEmpty) {
         List<dynamic> res = await ImportTokenUtil.parseRawUri([result.text]);
         tokens = res[0];
@@ -252,7 +281,9 @@ class ImportTokenUtil {
       }
     } catch (e, t) {
       ILogger.error("Failed to analyze image", e, t);
-      if (e.runtimeType == NotFoundException) {
+      if (e is QrImageTooLargeException) {
+        IToast.showTop(appLocalizations.qrImageTooLarge);
+      } else if (e.runtimeType == NotFoundException) {
         IToast.showTop(appLocalizations.noQrCode);
       } else {
         IToast.showTop(appLocalizations.parseQrCodeWrong);
@@ -263,11 +294,7 @@ class ImportTokenUtil {
       }
     }
     if (!context.mounted) return [tokens, categories];
-    if (showSingleTokenDialog) {
-      _showAnalyzedTokens(context, tokens, categories);
-    } else if (tokens.length > 1) {
-      ImportPreviewScreen.show(tokens: tokens, categories: categories);
-    }
+    if (showPreview) _showAnalyzedTokens(context, tokens, categories);
     return [tokens, categories];
   }
 
@@ -276,16 +303,7 @@ class ImportTokenUtil {
     List<OtpToken> tokens,
     List<TokenCategory> categories,
   ) {
-    if (tokens.length == 1 && categories.isEmpty) {
-      BottomSheetBuilder.showBottomSheet(
-        context,
-        responsive: true,
-        (context) => TokenOptionBottomSheet(
-          token: tokens.first,
-          isNewToken: true,
-        ),
-      );
-    } else if (tokens.isNotEmpty || categories.isNotEmpty) {
+    if (tokens.isNotEmpty || categories.isNotEmpty) {
       ImportPreviewScreen.show(tokens: tokens, categories: categories);
     }
   }
@@ -600,15 +618,11 @@ class ImportTokenUtil {
 
   static Future<List<TokenCategory>> parseCategories(List<String> lines) async {
     List<TokenCategory> categories = [];
-    ImportAnalysis analysis = ImportAnalysis();
     for (var line in lines) {
       List<TokenCategory> tmp =
           await OtpTokenParser.parseCloudOtpauthCategoryMigration(line);
       categories.addAll(tmp);
     }
-    analysis.parseCategorySuccess = categories.length;
-    analysis.importCategorySuccess = await mergeCategories(categories);
-    analysis.showToast();
     return categories;
   }
 

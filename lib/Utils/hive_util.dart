@@ -43,6 +43,7 @@ class CloudOTPHiveUtil {
   static const String autoCompleteParameterKey = "autoCompleteParameter";
   static const String clickToCopyKey = "clickToCopy";
   static const String autoFocusSearchBarKey = "autoFocusSearchBar";
+  static const String pullToSearchKey = "pullToSearch";
   static const String autoCopyNextCodeKey = "autoCopyNextCode";
   static const String autoDisplayNextCodeKey = "autoDisplayNextCode";
   static const String autoMinimizeAfterClickToCopyKey =

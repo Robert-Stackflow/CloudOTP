@@ -26,6 +26,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/cloudotp/cloudotp_item_builder.dart';
+import 'package:cloudotp/Widgets/cloudotp/smooth_token_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -380,12 +381,9 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
             autoTriggerIconAndTextColor: Colors.white,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             foregroundColor: ChewieTheme.primaryColor,
-            icon: widget.token.pinned
-                ? LucideIcons.pin
-                : LucideIcons.pinOff,
-            autoTriggerIcon: widget.token.pinned
-                ? LucideIcons.pinOff
-                : LucideIcons.pin,
+            icon: widget.token.pinned ? LucideIcons.pin : LucideIcons.pinOff,
+            autoTriggerIcon:
+                widget.token.pinned ? LucideIcons.pinOff : LucideIcons.pin,
             label: widget.token.pinned
                 ? appLocalizations.unPinTokenShort
                 : appLocalizations.pinTokenShort,
@@ -862,17 +860,20 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
         : ValueListenableBuilder(
             valueListenable: progressNotifier,
             builder: (context, progress, child) {
-              return Container(
-                constraints: const BoxConstraints(minHeight: 2, maxHeight: 2),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  semanticsLabel: appLocalizations.tokenProgressLabel,
-                  minHeight: 2,
-                  color: progress > autoCopyNextCodeProgressThrehold
-                      ? ChewieTheme.primaryColor
-                      : Colors.red,
-                  borderRadius: BorderRadius.circular(5),
-                  backgroundColor: Colors.grey.withOpacity(0.3),
+              return SmoothTokenProgress(
+                value: progress,
+                period: widget.token.period,
+                builder: (context, animatedProgress) => Container(
+                  constraints: const BoxConstraints(minHeight: 2, maxHeight: 2),
+                  child: LinearProgressIndicator(
+                    value: animatedProgress,
+                    semanticsLabel: appLocalizations.tokenProgressLabel,
+                    minHeight: 2,
+                    color: SmoothTokenProgress.color(
+                        animatedProgress, ChewieTheme.primaryColor),
+                    borderRadius: BorderRadius.circular(5),
+                    backgroundColor: Colors.grey.withOpacity(0.3),
+                  ),
                 ),
               );
             },
@@ -891,28 +892,34 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
               child: ValueListenableBuilder<double>(
                 valueListenable: progressNotifier,
                 builder: (context, progress, child) {
-                  final color = progress > autoCopyNextCodeProgressThrehold
-                      ? ChewieTheme.primaryColor
-                      : Colors.red;
-                  return Stack(
-                    children: [
-                      CircularProgressIndicator(
-                        value: progress,
-                        semanticsLabel: appLocalizations.tokenProgressLabel,
-                        color: color,
-                        backgroundColor: Colors.grey.withOpacity(0.3),
-                        strokeCap: StrokeCap.round,
-                      ),
-                      Center(
-                        child: Text(
-                          (progress * widget.token.period).toStringAsFixed(0),
-                          style: ChewieTheme.bodyMedium.apply(
+                  return SmoothTokenProgress(
+                    value: progress,
+                    period: widget.token.period,
+                    builder: (context, animatedProgress) {
+                      final color = SmoothTokenProgress.color(
+                          animatedProgress, ChewieTheme.primaryColor);
+                      return Stack(
+                        children: [
+                          CircularProgressIndicator(
+                            value: animatedProgress,
+                            semanticsLabel: appLocalizations.tokenProgressLabel,
                             color: color,
-                            fontSizeDelta: -3,
+                            backgroundColor: Colors.grey.withOpacity(0.3),
+                            strokeCap: StrokeCap.round,
                           ),
-                        ),
-                      ),
-                    ],
+                          Center(
+                            child: Text(
+                              (progress * widget.token.period)
+                                  .toStringAsFixed(0),
+                              style: ChewieTheme.bodyMedium.apply(
+                                color: color,
+                                fontSizeDelta: -3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),

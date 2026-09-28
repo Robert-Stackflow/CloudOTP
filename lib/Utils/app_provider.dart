@@ -397,6 +397,17 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _pullToSearch = ChewieHiveUtil.getBool(CloudOTPHiveUtil.pullToSearchKey,
+      defaultValue: true);
+
+  bool get pullToSearch => _pullToSearch;
+
+  set pullToSearch(bool value) {
+    _pullToSearch = value;
+    ChewieHiveUtil.put(CloudOTPHiveUtil.pullToSearchKey, value);
+    notifyListeners();
+  }
+
   bool _enableFrostedGlassEffect = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.enableFrostedGlassEffectKey,
       defaultValue: false);
@@ -431,8 +442,9 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _enableModalSheet =
-      ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableModalSheetKey, defaultValue: false);
+  bool _enableModalSheet = ChewieHiveUtil.getBool(
+      CloudOTPHiveUtil.enableModalSheetKey,
+      defaultValue: false);
 
   bool get enableModalSheet => _enableModalSheet;
 
