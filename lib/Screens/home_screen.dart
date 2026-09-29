@@ -58,6 +58,30 @@ import 'Token/add_token_screen.dart';
 import '../l10n/l10n.dart';
 import 'Token/token_layout.dart';
 
+class _PullSearchScrollPhysics extends AlwaysScrollableScrollPhysics {
+  const _PullSearchScrollPhysics({required this.isPulling, super.parent});
+
+  final bool Function() isPulling;
+
+  @override
+  _PullSearchScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      _PullSearchScrollPhysics(
+        isPulling: isPulling,
+        parent: buildParent(ancestor),
+      );
+
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    // Consume the reverse drag in the pull hint before either scrolls.
+    if (isPulling() &&
+        position.pixels >= position.minScrollExtent &&
+        value > position.pixels) {
+      return value - position.pixels;
+    }
+    return super.applyBoundaryConditions(position, value);
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -103,6 +127,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
   final ValueNotifier<double> _pullSearchDistance = ValueNotifier(0);
+  final ValueNotifier<bool> _pullSearchHeaderHeld = ValueNotifier(false);
   bool _pullSearchDragging = false;
 
   bool _multiSelectMode = false;
@@ -892,6 +917,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     _nestScrollController.dispose();
     _shownSearchbarNotifier.dispose();
     _pullSearchDistance.dispose();
+    _pullSearchHeaderHeld.dispose();
     if (_tabControllerInitialized) _tabController.dispose();
     _animationController.dispose();
     _pulseController.dispose();
@@ -1263,6 +1289,11 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   _buildMobileBody() {
     return NestedScrollView(
       controller: _nestScrollController,
+      physics: appProvider.pullToSearch
+          ? _PullSearchScrollPhysics(
+              isPulling: () => _pullSearchHeaderHeld.value,
+            )
+          : null,
       floatHeaderSlivers: true,
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [_buildMobileAppbar()];
@@ -1279,6 +1310,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   void changeSearchBar(bool shown) {
     _pullSearchDragging = false;
     _pullSearchDistance.value = 0;
+    _pullSearchHeaderHeld.value = false;
     if (_shownSearchbarNotifier.value == shown) return;
     final generation = ++_searchTransitionGeneration;
     _shownSearchbarNotifier.value = shown;
@@ -1638,7 +1670,9 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           // controller: _scrollController,
           gridItemsNotifier: gridItemsNotifier,
           autoScroll: true,
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: _PullSearchScrollPhysics(
+            isPulling: () => _pullSearchDistance.value > 0,
+          ),
           padding: EdgeInsets.only(
               left: 10,
               right: 10,
@@ -1877,11 +1911,15 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     }
     if (notification is OverscrollNotification &&
         notification.dragDetails != null &&
-        notification.overscroll < 0 &&
         notification.metrics.extentBefore == 0) {
-      _pullSearchDragging = true;
-      _setPullSearchDistance(
-          _pullSearchDistance.value - notification.overscroll * 0.48);
+      if (notification.overscroll < 0) {
+        _pullSearchDragging = true;
+        _setPullSearchDistance(
+            _pullSearchDistance.value - notification.overscroll * 0.48);
+      } else if (notification.overscroll > 0 && _pullSearchDistance.value > 0) {
+        _setPullSearchDistance(
+            _pullSearchDistance.value - notification.overscroll * 0.48);
+      }
     } else if (notification is ScrollUpdateNotification &&
         notification.dragDetails != null &&
         notification.metrics.pixels < notification.metrics.minScrollExtent) {
@@ -1897,10 +1935,11 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       _setPullSearchDistance(
           _pullSearchDistance.value - notification.scrollDelta!);
     } else if (notification is ScrollEndNotification &&
-        _pullSearchDistance.value > 0) {
+        _pullSearchHeaderHeld.value) {
       final shouldOpen = _pullSearchDistance.value >= 52;
       _pullSearchDragging = false;
       _pullSearchDistance.value = 0;
+      _pullSearchHeaderHeld.value = false;
       if (shouldOpen) changeSearchBar(true);
     }
     return false;
@@ -1908,6 +1947,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   void _setPullSearchDistance(double distance) {
     final next = distance.clamp(0.0, 64.0);
+    if (next > 0) _pullSearchHeaderHeld.value = true;
     if (_pullSearchDistance.value < 52 && next >= 52) {
       HapticFeedback.mediumImpact();
     }
