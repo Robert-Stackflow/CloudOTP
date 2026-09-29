@@ -914,7 +914,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       final results = await BackupHealthService.checkIfDue();
       if (mounted &&
           results != null &&
-          results.any((result) => !result.isHealthy)) {
+          results.any((result) => result.shouldWarn)) {
         IToast.showTop(appLocalizations.backupHealthWarning);
       }
     } catch (error, stackTrace) {

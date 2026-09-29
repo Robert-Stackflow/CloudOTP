@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
-import 'package:awesome_cloud/awesome_cloud.dart';
+// awesome_cloud also exports an S3 Object model. Metadata uses dart:core.Object.
+import 'package:awesome_cloud/awesome_cloud.dart' hide Object;
 import 'package:flutter/foundation.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
@@ -9,6 +10,7 @@ import '../../Database/config_dao.dart';
 import '../../Models/cloud_service_config.dart';
 import '../../Models/s3_cloud_file_info.dart';
 import '../../Utils/hive_util.dart';
+import '../Cloud/cloud_service.dart';
 import '../export_token_util.dart';
 import 'backup.dart';
 import 'backup_encrypt_interface.dart';
@@ -18,7 +20,9 @@ enum BackupHealthStatus {
   healthy,
   noBackup,
   noPassword,
+  needsSetup,
   unavailable,
+  listFailed,
   downloadFailed,
   fileTooLarge,
   invalidPasswordOrCorrupted,
@@ -49,6 +53,7 @@ class BackupHealthResult {
   final int? bindingCount;
 
   bool get isHealthy => status == BackupHealthStatus.healthy;
+  bool get shouldWarn => !isHealthy && status != BackupHealthStatus.needsSetup;
 }
 
 class _CloudBackupFile {
@@ -199,82 +204,118 @@ class BackupHealthService {
 
   static Future<BackupHealthResult> checkLatestCloud(
     CloudServiceConfig config,
-    String password,
-  ) async {
+    String password, {
+    CloudService? cloudService,
+  }) async {
     final sourceName = config.displayName;
-    try {
-      if (!await config.isValid()) {
-        return BackupHealthResult(
-          sourceName: sourceName,
-          status: BackupHealthStatus.unavailable,
-        );
-      }
-      final service = config.toCloudService();
-      await service.init();
-      final rawFiles = await service.listBackups();
-      if (rawFiles is! List) {
-        return BackupHealthResult(
-          sourceName: sourceName,
-          status: BackupHealthStatus.unavailable,
-        );
-      }
-      final files = rawFiles
-          .map((file) => _cloudFile(config.type, file))
-          .whereType<_CloudBackupFile>()
-          .toList();
-      if (files.isEmpty) {
-        return BackupHealthResult(
-          sourceName: sourceName,
-          status: BackupHealthStatus.noBackup,
-        );
-      }
-      files.sort((a, b) {
-        final byTime = b.modifiedAt.compareTo(a.modifiedAt);
-        return byTime != 0 ? byTime : b.name.compareTo(a.name);
-      });
-      final newest = files.first;
-      final time = newest.modifiedAt > 0
-          ? DateTime.fromMillisecondsSinceEpoch(newest.modifiedAt)
-          : null;
-      if (newest.size > maxBackupFileBytes) {
-        return BackupHealthResult(
-          sourceName: sourceName,
-          status: BackupHealthStatus.fileTooLarge,
-          fileName: newest.name,
-          backupTime: time,
-        );
-      }
-      if (password.isEmpty) {
-        return BackupHealthResult(
-          sourceName: sourceName,
-          status: BackupHealthStatus.noPassword,
-          fileName: newest.name,
-          backupTime: time,
-        );
-      }
-      final data = await service.downloadFile(newest.downloadId);
-      if (data == null) {
-        return BackupHealthResult(
-          sourceName: sourceName,
-          status: BackupHealthStatus.downloadFailed,
-          fileName: newest.name,
-          backupTime: time,
-        );
-      }
-      return verifyBytes(
-        data,
-        password,
+    if ((config.type == CloudServiceType.Webdav ||
+            config.type == CloudServiceType.S3Cloud) &&
+        !config.hasConfiguration) {
+      return BackupHealthResult(
         sourceName: sourceName,
-        fileName: newest.name,
-        backupTime: time,
+        status: BackupHealthStatus.needsSetup,
       );
+    }
+    if (config.usesInsecureWebDavHttp && !config.allowsInsecureWebDavHttp) {
+      return BackupHealthResult(
+        sourceName: sourceName,
+        status: BackupHealthStatus.needsSetup,
+      );
+    }
+    late final CloudService service;
+    try {
+      service = cloudService ?? config.toCloudService();
     } catch (error, stackTrace) {
-      ILogger.error('Failed to check cloud backup health', error, stackTrace);
+      ILogger.error(
+          'Failed to initialize cloud backup health check', error, stackTrace);
       return BackupHealthResult(
         sourceName: sourceName,
         status: BackupHealthStatus.unavailable,
       );
     }
+
+    List<dynamic>? rawFiles;
+    try {
+      final listed = await service.listBackups();
+      if (listed is List) rawFiles = listed;
+    } catch (error, stackTrace) {
+      ILogger.error('Failed to list cloud backups during health check', error,
+          stackTrace);
+    }
+    if (rawFiles == null) {
+      return BackupHealthResult(
+        sourceName: sourceName,
+        status: config.hasConfiguration
+            ? BackupHealthStatus.listFailed
+            : BackupHealthStatus.needsSetup,
+      );
+    }
+
+    late final List<_CloudBackupFile> files;
+    try {
+      files = rawFiles
+          .map((file) => _cloudFile(config.type, file))
+          .whereType<_CloudBackupFile>()
+          .toList();
+    } catch (error, stackTrace) {
+      ILogger.error('Failed to read cloud backup metadata', error, stackTrace);
+      return BackupHealthResult(
+        sourceName: sourceName,
+        status: BackupHealthStatus.listFailed,
+      );
+    }
+    if (files.isEmpty) {
+      return BackupHealthResult(
+        sourceName: sourceName,
+        status: BackupHealthStatus.noBackup,
+      );
+    }
+    files.sort((a, b) {
+      final byTime = b.modifiedAt.compareTo(a.modifiedAt);
+      return byTime != 0 ? byTime : b.name.compareTo(a.name);
+    });
+    final newest = files.first;
+    final time = newest.modifiedAt > 0
+        ? DateTime.fromMillisecondsSinceEpoch(newest.modifiedAt)
+        : null;
+    if (newest.size > maxBackupFileBytes) {
+      return BackupHealthResult(
+        sourceName: sourceName,
+        status: BackupHealthStatus.fileTooLarge,
+        fileName: newest.name,
+        backupTime: time,
+      );
+    }
+    if (password.isEmpty) {
+      return BackupHealthResult(
+        sourceName: sourceName,
+        status: BackupHealthStatus.noPassword,
+        fileName: newest.name,
+        backupTime: time,
+      );
+    }
+    Uint8List? data;
+    try {
+      data = await service.downloadFile(newest.downloadId);
+    } catch (error, stackTrace) {
+      ILogger.error('Failed to download cloud backup during health check',
+          error, stackTrace);
+    }
+    if (data == null) {
+      return BackupHealthResult(
+        sourceName: sourceName,
+        status: BackupHealthStatus.downloadFailed,
+        fileName: newest.name,
+        backupTime: time,
+      );
+    }
+    return verifyBytes(
+      data,
+      password,
+      sourceName: sourceName,
+      fileName: newest.name,
+      backupTime: time,
+    );
   }
 
   static Future<BackupHealthResult> verifyBytes(

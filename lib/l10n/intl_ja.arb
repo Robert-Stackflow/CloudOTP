@@ -175,6 +175,7 @@
   "backupHealthNoBackup": "バックアップファイルがありません",
   "backupHealthNoPassword": "バックアップパスワードを設定してください",
   "backupHealthUnavailable": "バックアップ先にアクセスできません",
+  "backupHealthListFailed": "バックアップファイルを一覧表示できません",
   "backupHealthDownloadFailed": "バックアップをダウンロードできません",
   "backupHealthCheckFailed": "バックアップの確認を完了できませんでした",
   "backupHealthCounts": "トークン {tokens} 件 · カテゴリ {categories} 件 · 関連付け {bindings} 件",

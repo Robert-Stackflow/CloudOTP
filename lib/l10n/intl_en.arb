@@ -175,6 +175,7 @@
   "backupHealthNoBackup": "No backup file found",
   "backupHealthNoPassword": "Set a backup password to check this file",
   "backupHealthUnavailable": "Could not access this backup location",
+  "backupHealthListFailed": "Could not list backup files",
   "backupHealthDownloadFailed": "Could not download the backup file",
   "backupHealthCheckFailed": "The backup check could not be completed",
   "backupHealthCounts": "{tokens} tokens · {categories} categories · {bindings} category links",

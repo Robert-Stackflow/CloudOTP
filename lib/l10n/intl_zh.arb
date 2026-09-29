@@ -175,6 +175,7 @@
   "backupHealthNoBackup": "未找到备份文件",
   "backupHealthNoPassword": "请先设置备份密码",
   "backupHealthUnavailable": "无法访问此备份位置",
+  "backupHealthListFailed": "无法列出备份文件",
   "backupHealthDownloadFailed": "无法下载备份文件",
   "backupHealthCheckFailed": "备份检查未能完成",
   "backupHealthCounts": "{tokens} 个令牌 · {categories} 个分类 · {bindings} 个分类关联",
