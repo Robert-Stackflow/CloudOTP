@@ -95,7 +95,9 @@ class ScrollToHideState extends State<ScrollToHide> {
 
   @override
   void dispose() {
-    widget.scrollController.removeListener(() {});
+    widget.scrollController.removeListener(listen);
+    widget.controller?.doShow = null;
+    widget.controller?.doHide = null;
     super.dispose();
   }
 
@@ -103,7 +105,17 @@ class ScrollToHideState extends State<ScrollToHide> {
   void didUpdateWidget(ScrollToHide oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.scrollController != widget.scrollController) {
+      oldWidget.scrollController.removeListener(listen);
       widget.scrollController.addListener(listen);
+    }
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.doShow = null;
+      oldWidget.controller?.doHide = null;
+      widget.controller?.doShow = show;
+      widget.controller?.doHide = hide;
+    }
+    if (oldWidget.enabled && !widget.enabled) {
+      show();
     }
   }
 
@@ -149,7 +161,12 @@ class ScrollToHideState extends State<ScrollToHide> {
 
   void listen() {
     if (widget.enabled) {
-      final direction = widget.scrollController.position.userScrollDirection;
+      final position = widget.scrollController.position;
+      if (position.pixels <= position.minScrollExtent) {
+        show();
+        return;
+      }
+      final direction = position.userScrollDirection;
       if (direction == ScrollDirection.forward) {
         show();
       } else if (direction == ScrollDirection.reverse) {

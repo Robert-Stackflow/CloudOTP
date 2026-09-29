@@ -139,12 +139,13 @@ class WdDio with DioMixin implements Dio {
         retryCount: retryCount + 1,
       );
     } else if (resp.statusCode == 302) {
-      // 文件位置被重定向到新路径
+      if (retryCount >= 5) {
+        throw newResponseError(resp);
+      }
       if (resp.headers.map.containsKey('location')) {
         List<String>? list = resp.headers.map['location'];
         if (list != null && list.isNotEmpty) {
           String redirectPath = list[0];
-          // retry
           return req<T>(
             self,
             method,
@@ -154,6 +155,7 @@ class WdDio with DioMixin implements Dio {
             onSendProgress: onSendProgress,
             onReceiveProgress: onReceiveProgress,
             cancelToken: cancelToken,
+            retryCount: retryCount + 1,
           );
         }
       }
@@ -215,7 +217,7 @@ class WdDio with DioMixin implements Dio {
   /// COPY OR MOVE
   Future<void> wdCopyMove(
       Client self, String oldPath, String newPath, bool isCopy, bool overwrite,
-      {CancelToken? cancelToken}) async {
+      {CancelToken? cancelToken, int depth = 0}) async {
     var method = isCopy == true ? 'COPY' : 'MOVE';
     var resp = await req(self, method, oldPath, optionsHandler: (options) {
       options.headers?['destination'] = Uri.encodeFull(join(self.uri, newPath));
@@ -226,10 +228,10 @@ class WdDio with DioMixin implements Dio {
     // TODO 207
     if (status == 201 || status == 204 || status == 207) {
       return;
-    } else if (status == 409) {
+    } else if (status == 409 && depth < 5) {
       await _createParent(self, newPath, cancelToken: cancelToken);
       return wdCopyMove(self, oldPath, newPath, isCopy, overwrite,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken, depth: depth + 1);
     } else {
       throw newResponseError(resp);
     }
@@ -459,7 +461,7 @@ class WdDio with DioMixin implements Dio {
     String path,
     Uint8List data, {
     void Function(int count, int total)? onProgress,
-    void Function()? onSucess,
+    void Function()? onSuccess,
     CancelToken? cancelToken,
   }) async {
     // fix auth error
@@ -475,7 +477,7 @@ class WdDio with DioMixin implements Dio {
       self,
       'PUT',
       path,
-      data: Stream.fromIterable(data.map((e) => [e])),
+      data: Stream.value(data.toList()),
       optionsHandler: (options) =>
           options.headers?['content-length'] = data.length,
       onSendProgress: onProgress,
@@ -483,7 +485,7 @@ class WdDio with DioMixin implements Dio {
     );
     var status = resp.statusCode;
     if (status == 200 || status == 201 || status == 204) {
-      onSucess?.call();
+      onSuccess?.call();
       return;
     }
     throw newResponseError(resp);

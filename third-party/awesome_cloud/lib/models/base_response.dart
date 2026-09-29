@@ -82,14 +82,14 @@ class BaseCloudResponse<U extends BaseCloudUserInfo,
             response.statusCode == 204,
         status = ResponseStatus.values.firstWhere(
             (element) => element.code == response.statusCode,
-            orElse: () => ResponseStatus.success);
+            orElse: () => ResponseStatus.connectionError);
 
   @override
   String toString() {
     return "BaseResponse("
         "statusCode: $statusCode, "
-        "body: $body, "
-        "bodyBytes: $bodyBytes, "
+        "bodyLength: ${body?.length ?? 0}, "
+        "bodyBytesLength: ${bodyBytes?.length ?? 0}, "
         "message: $message, "
         "isSuccess: $isSuccess"
         ")";

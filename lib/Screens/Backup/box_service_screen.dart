@@ -13,20 +13,19 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:awesome_cloud/models/box_response.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
+
+import 'cloud_service_ui_helper.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/box_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
-import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/box_backups_bottom_sheet.dart';
@@ -35,7 +34,10 @@ import '../../l10n/l10n.dart';
 class BoxServiceScreen extends StatefulWidget {
   const BoxServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/box";
 
@@ -44,9 +46,7 @@ class BoxServiceScreen extends StatefulWidget {
 }
 
 class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -71,19 +71,12 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
   }
 
   loadConfig() async {
-    _boxCloudServiceConfig = await CloudServiceConfigDao.getBoxConfig();
+    _boxCloudServiceConfig =
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_boxCloudServiceConfig != null) {
       _sizeController.text = _boxCloudServiceConfig!.size;
       _accountController.text = _boxCloudServiceConfig!.account ?? "";
       _emailController.text = _boxCloudServiceConfig!.email ?? "";
-      _boxCloudService = BoxCloudService(
-        _boxCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _boxCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.Box);
-      await CloudServiceConfigDao.insertConfig(_boxCloudServiceConfig!);
       _boxCloudService = BoxCloudService(
         _boxCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -117,7 +110,6 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited
@@ -149,40 +141,43 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.checkServer().then((value) async {
-      if (!value) {
-        IToast.show(appLocalizations
-            .cloudOAuthUnavailable(CloudService.serverEndpoint));
-      } else {
-        await currentService.authenticate().then((value) async {
-          setState(() {
-            currentConfig.connected = (value == CloudServiceStatus.success);
-          });
-          if (!currentConfig.connected) {
-            switch (value) {
-              case CloudServiceStatus.connectionError:
-                IToast.show(appLocalizations.cloudConnectionError);
-                break;
-              case CloudServiceStatus.unauthorized:
-                IToast.show(appLocalizations.cloudOauthFailed);
-                break;
-              default:
-                IToast.show(appLocalizations.cloudUnknownError);
-                break;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.checkServer().then((value) async {
+        if (!value) {
+          IToast.show(appLocalizations
+              .cloudOAuthUnavailable(CloudService.serverEndpoint));
+        } else {
+          await currentService.authenticate().then((value) async {
+            setState(() {
+              currentConfig.connected = value.isSuccess;
+            });
+            if (!currentConfig.connected) {
+              String toast;
+              switch (value.type) {
+                case CloudServiceStatusType.connectionError:
+                  toast = appLocalizations.cloudConnectionError;
+                  break;
+                case CloudServiceStatusType.unauthorized:
+                  toast = appLocalizations.cloudOauthFailed;
+                  break;
+                default:
+                  toast = appLocalizations.cloudUnknownError;
+                  break;
+              }
+              IToast.show(
+                  value.message != null ? "$toast: ${value.message}" : toast);
+            } else {
+              _boxCloudServiceConfig!.configured = true;
+              updateConfig(_boxCloudServiceConfig!);
+              if (showSuccessToast) {
+                IToast.show(appLocalizations.cloudAuthSuccess);
+              }
             }
-          } else {
-            _boxCloudServiceConfig!.configured = true;
-            updateConfig(_boxCloudServiceConfig!);
-            if (showSuccessToast)
-              IToast.show(appLocalizations.cloudAuthSuccess);
-          }
-        });
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+          });
+        }
+      }),
+    );
   }
 
   _buildBody() {
@@ -282,50 +277,39 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<BoxFileInfo>? files =
-                      await _boxCloudService!.listBackups();
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  CloudServiceConfigDao.updateLastPullTime(
-                      _boxCloudServiceConfig!);
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) =>
-                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => BoxBackupsBottomSheet(
-                        files: files,
-                        cloudService: _boxCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res = await _boxCloudService!.downloadFile(
+                final files =
+                    await CloudServiceUiHelper.loadBackups<List<BoxFileInfo>>(
+                  action: _boxCloudService!.listBackups,
+                  logName: "Box",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _boxCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => BoxBackupsBottomSheet(
+                      files: files,
+                      cloudService: _boxCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "Box",
+                          action: (onProgress) =>
+                              _boxCloudService!.downloadFile(
                             selectedFile.id,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull file from box", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -338,7 +322,7 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _boxCloudServiceConfig!,
                   cloudService: _boxCloudService!,
                 );
@@ -360,6 +344,7 @@ class _BoxServiceScreenState extends BaseDynamicState<BoxServiceScreen>
                   CustomLoadingDialog.showLoading(
                       title: appLocalizations.cloudLoggingOut);
                   await _boxCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _boxCloudServiceConfig!.connected = false;
                     _boxCloudServiceConfig!.account = "";

@@ -38,7 +38,7 @@ class BindingDao {
 
   static Future<int> bingdings(
     List<TokenCategoryBinding> bindings, {
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
   }) async {
     if (bindings.isEmpty) return 0;
     final db = overrideDb ?? await DatabaseManager.getDataBase();
@@ -72,8 +72,12 @@ class BindingDao {
   }
 
   static Future<int> bingdingsForCategory(
-      String categoryUid, List<String> tokenUids) async {
-    final db = await DatabaseManager.getDataBase();
+    String categoryUid,
+    List<String> tokenUids, {
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     Batch batch = db.batch();
     for (String uid in tokenUids) {
       batch.insert(
@@ -83,8 +87,37 @@ class BindingDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    Utils.initTray();
+    if (notifyChanges) Utils.initTray();
     return results.length;
+  }
+
+  static Future<int> replaceBindingsForCategory(
+    String categoryUid,
+    List<String> tokenUids, {
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final uniqueTokenUids = tokenUids.toSet();
+    final batch = db.batch();
+    batch.delete(
+      tableName,
+      where: 'category_uid = ?',
+      whereArgs: [categoryUid],
+    );
+    for (final tokenUid in uniqueTokenUids) {
+      batch.insert(
+        tableName,
+        TokenCategoryBinding(
+          tokenUid: tokenUid,
+          categoryUid: categoryUid,
+        ).toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit();
+    if (notifyChanges) Utils.initTray();
+    return uniqueTokenUids.length;
   }
 
   static Future<int> unBinding(String tokenUid, String categoryUid) async {
@@ -145,25 +178,12 @@ class BindingDao {
     List<String> tags = const [],
     String? tokenType,
   }) async {
-    final db = await DatabaseManager.getDataBase();
-    List<Map<String, dynamic>> maps = await db.query(
-      tableName,
-      columns: ["token_uid"],
-      where: "category_uid = ?",
-      whereArgs: [categoryUid],
+    return TokenDao.listTokensByCategoryUid(
+      categoryUid,
+      searchKey: searchKey,
+      tags: tags,
+      tokenType: tokenType,
     );
-    List<String> uids = List.generate(maps.length, (i) => maps[i]["token_uid"]);
-    uids = uids.toSet().toList();
-    uids.removeWhere((e) => !StringUtil.isUid(e));
-    List<OtpToken> tokens = [];
-    for (String uid in uids) {
-      OtpToken? token = await TokenDao.getTokenByUid(uid,
-          searchKey: searchKey, tags: tags, tokenType: tokenType);
-      if (token != null) {
-        tokens.add(token);
-      }
-    }
-    return tokens;
   }
 
   static Future<Set<String>> getTokenUidsByCategoryUids(
@@ -207,8 +227,10 @@ class BindingDao {
     return uids.toSet().toList();
   }
 
-  static Future<List<TokenCategoryBinding>> listBindings() async {
-    final db = await DatabaseManager.getDataBase();
+  static Future<List<TokenCategoryBinding>> listBindings({
+    DatabaseExecutor? overrideDb,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     List<Map<String, dynamic>> maps = await db.query(tableName);
     return List.generate(maps.length, (i) {
       return TokenCategoryBinding.fromMap(maps[i]);

@@ -22,6 +22,8 @@ class TokenImageUtil {
   static List<String> brandLogos = [];
   static List<String> darkBrandLogos = [];
   static final Map<String, List<String>> _matchCache = {};
+  static List<String>? _indexedSource;
+  static List<({String filename, String brand})> _indexedLogos = [];
 
   static loadBrandLogos() async {
     final assetManifest = await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -31,12 +33,23 @@ class TokenImageUtil {
             key.startsWith('assets/brand/') && key.endsWith('.png'))
         .toList();
     brandLogos = brandFiles.map((file) => file.split('/').last).toList();
+    darkBrandLogos.clear();
     for (var logo in brandLogos) {
       if (logo.endsWith("_dark.png")) {
         darkBrandLogos.add(logo);
       }
     }
     brandLogos.removeWhere((logo) => logo.endsWith("_dark.png"));
+    _rebuildIndex();
+  }
+
+  static void _rebuildIndex() {
+    _indexedSource = brandLogos;
+    _indexedLogos = [
+      for (final logo in brandLogos)
+        (filename: logo, brand: cleanBrand(logo.substring(0, logo.length - 4))),
+    ];
+    _matchCache.clear();
   }
 
   Future<bool> isAssetExist(String path) async {
@@ -58,15 +71,17 @@ class TokenImageUtil {
     final n = b.length;
     int maxLen = 0;
 
-    final dp = List.generate(m + 1, (_) => List.filled(n + 1, 0));
+    var previous = List<int>.filled(n + 1, 0);
 
     for (int i = 1; i <= m; i++) {
+      final current = List<int>.filled(n + 1, 0);
       for (int j = 1; j <= n; j++) {
         if (a[i - 1] == b[j - 1]) {
-          dp[i][j] = dp[i - 1][j - 1] + 1;
-          maxLen = maxLen < dp[i][j] ? dp[i][j] : maxLen;
+          current[j] = previous[j - 1] + 1;
+          maxLen = maxLen < current[j] ? current[j] : maxLen;
         }
       }
+      previous = current;
     }
 
     return maxLen;
@@ -93,6 +108,7 @@ class TokenImageUtil {
     if (issuer.nullOrEmpty) return TokenImageUtil.brandLogos;
 
     issuer = cleanBrand(issuer);
+    if (!identical(_indexedSource, brandLogos)) _rebuildIndex();
 
     if (_matchCache.containsKey(issuer)) {
       return _matchCache[issuer]!;
@@ -101,18 +117,21 @@ class TokenImageUtil {
     const int substringMatchThreshold = 5;
     final matches = <MapEntry<String, int>>[];
 
-    for (final logo in brandLogos) {
-      final brand = cleanBrand(logo).split(".")[0];
-
-      final int lcs = longestCommonSubstring(issuer, brand);
-
+    for (final candidate in _indexedLogos) {
+      final logo = candidate.filename;
+      final brand = candidate.brand;
       final bool containsEither =
           issuer.contains(brand) || brand.contains(issuer);
       final bool equal = issuer == brand;
       if (equal) {
         matches.add(MapEntry(logo, 10000));
-      } else if (containsEither || lcs >= substringMatchThreshold) {
-        matches.add(MapEntry(logo, lcs));
+      } else if (containsEither) {
+        matches.add(MapEntry(
+            logo, issuer.length < brand.length ? issuer.length : brand.length));
+      } else if (issuer.length >= substringMatchThreshold &&
+          brand.length >= substringMatchThreshold) {
+        final lcs = longestCommonSubstring(issuer, brand);
+        if (lcs >= substringMatchThreshold) matches.add(MapEntry(logo, lcs));
       }
     }
 
@@ -124,6 +143,7 @@ class TokenImageUtil {
         if (seen.add(entry.key)) entry.key
     ];
 
+    if (_matchCache.length >= 512) _matchCache.clear();
     _matchCache[issuer] = result;
 
     return result;

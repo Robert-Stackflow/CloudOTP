@@ -14,10 +14,41 @@
  */
 
 class RegexUtil {
-  static RegExp urlRegex = RegExp(
-      r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\://)?(((www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6})|((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-@]+))*");
+  static final RegExp _dnsLabel =
+      RegExp(r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$');
 
-  static isUrlOrIp(String text) {
-    return urlRegex.hasMatch(text);
+  static bool isUrlOrIp(String text, {bool requireScheme = false}) {
+    final value = text.trim();
+    if (value.isEmpty || value.contains(RegExp(r'\s'))) return false;
+    if (requireScheme && !value.contains('://')) return false;
+
+    final uri = Uri.tryParse(value.contains('://') ? value : 'https://$value');
+    if (uri == null ||
+        (uri.scheme != 'http' && uri.scheme != 'https') ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.hasFragment) {
+      return false;
+    }
+
+    try {
+      if (uri.hasPort && (uri.port < 1 || uri.port > 65535)) return false;
+    } on FormatException {
+      return false;
+    }
+
+    final host = uri.host;
+    if (host.contains(':')) return true; // URI parsing validates IPv6 literals.
+    if (host.length > 253) return false;
+    final labels = host.split('.');
+    if (labels.every((label) => int.tryParse(label) != null)) {
+      return labels.length == 4 &&
+          labels.every((label) {
+            final octet = int.tryParse(label);
+            return octet != null && octet >= 0 && octet <= 255;
+          });
+    }
+    return labels.every(_dnsLabel.hasMatch);
   }
 }

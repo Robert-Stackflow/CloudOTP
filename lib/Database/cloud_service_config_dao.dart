@@ -23,27 +23,20 @@ class CloudServiceConfigDao {
 
   static Future<int> insertConfig(CloudServiceConfig config) async {
     final db = await DatabaseManager.getDataBase();
-    if (await getSpecifyConfig(config.type) != null) {
+    if (!config.type.allowMultiple && await getSpecifyConfig(config.type) != null) {
       return -1;
     }
-    config.id = await getMaxId() + 1;
     config.createTimestamp = DateTime.now().millisecondsSinceEpoch;
     config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
-    int id = await db.insert(
+    final values = config.toMap()..remove('id');
+    final id = await db.insert(
       tableName,
-      config.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
     );
+    config.id = id;
     // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigInserted);
     return id;
-  }
-
-  static Future<int> getMaxId() async {
-    final db = await DatabaseManager.getDataBase();
-    List<Map<String, dynamic>> maps = await db.rawQuery(
-      "SELECT MAX(id) as id FROM $tableName",
-    );
-    return maps[0]["id"] ?? -1;
   }
 
   static Future<List<CloudServiceConfig>> getConfigs() async {
@@ -111,12 +104,29 @@ class CloudServiceConfigDao {
     config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
     int id = await db.update(
       tableName,
-      config.toMap(),
+      {
+        'enabled': enabled ? 1 : 0,
+        'edit_timestamp': config.editTimestamp,
+      },
       where: 'id = ?',
       whereArgs: [config.id],
     );
     // ExportTokenUtil.autoBackup(triggerType: AutoBackupTriggerType.cloudServiceConfigUpdated);
     return id;
+  }
+
+  static Future<int> updateConfigTitle(CloudServiceConfig config) async {
+    final db = await DatabaseManager.getDataBase();
+    config.editTimestamp = DateTime.now().millisecondsSinceEpoch;
+    return db.update(
+      tableName,
+      {
+        'remark': config.toMap()['remark'],
+        'edit_timestamp': config.editTimestamp,
+      },
+      where: 'id = ?',
+      whereArgs: [config.id],
+    );
   }
 
   static Future<int> deleteConfig(int id) async {
@@ -143,6 +153,37 @@ class CloudServiceConfigDao {
     } else {
       return null;
     }
+  }
+
+  static Future<CloudServiceConfig?> getConfigById(int id) async {
+    final db = await DatabaseManager.getDataBase();
+    List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return CloudServiceConfig.fromMap(maps.first);
+    } else {
+      return null;
+    }
+  }
+
+  static Future<List<CloudServiceConfig>> getConfigsByType(
+      CloudServiceType type) async {
+    final db = await DatabaseManager.getDataBase();
+    List<Map<String, dynamic>> maps = await db.query(
+      tableName,
+      where: 'type = ?',
+      whereArgs: [type.index],
+    );
+    return maps.map((m) => CloudServiceConfig.fromMap(m)).toList();
+  }
+
+  static Future<List<CloudServiceConfig>> getConfigsByCategory(
+      CloudServiceCategory category) async {
+    List<CloudServiceConfig> all = await getConfigs();
+    return all.where((c) => c.type.category == category).toList();
   }
 
   static Future<CloudServiceConfig?> getWebdavConfig() async {

@@ -49,8 +49,8 @@ class InputPasswordBottomSheetState
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 200), () {
-      FocusScope.of(context).requestFocus(_focusNode);
+    Future.delayed(ChewieTheme.animationDuration, () {
+      if (mounted) _focusNode.requestFocus();
     });
   }
 
@@ -58,9 +58,8 @@ class InputPasswordBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedPadding(
-      padding: MediaQuery.of(context).viewInsets,
-      duration: const Duration(milliseconds: 100),
+    return Padding(
+      padding: MediaQuery.viewInsetsOf(context),
       child: Wrap(
         runAlignment: WrapAlignment.center,
         children: [

@@ -13,19 +13,18 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:flutter/material.dart';
+
+import 'cloud_service_ui_helper.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/googledrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
-import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/app_provider.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/googledrive_backups_bottom_sheet.dart';
@@ -34,7 +33,10 @@ import '../../l10n/l10n.dart';
 class GoogleDriveServiceScreen extends StatefulWidget {
   const GoogleDriveServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/googledrive";
 
@@ -45,9 +47,7 @@ class GoogleDriveServiceScreen extends StatefulWidget {
 
 class _GoogleDriveServiceScreenState
     extends BaseDynamicState<GoogleDriveServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -73,19 +73,11 @@ class _GoogleDriveServiceScreenState
 
   loadConfig() async {
     _googledriveCloudServiceConfig =
-        await CloudServiceConfigDao.getGoogleDriveConfig();
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_googledriveCloudServiceConfig != null) {
       _sizeController.text = _googledriveCloudServiceConfig!.size;
       _accountController.text = _googledriveCloudServiceConfig!.account ?? "";
       _emailController.text = _googledriveCloudServiceConfig!.email ?? "";
-      _googledriveCloudService = GoogleDriveCloudService(
-        _googledriveCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _googledriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.GoogleDrive);
-      await CloudServiceConfigDao.insertConfig(_googledriveCloudServiceConfig!);
       _googledriveCloudService = GoogleDriveCloudService(
         _googledriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -118,7 +110,6 @@ class _GoogleDriveServiceScreenState
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return inited
         ? _buildBody()
         : ItemBuilder.buildLoadingDialog(
@@ -134,40 +125,43 @@ class _GoogleDriveServiceScreenState
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.checkServer().then((value) async {
-      if (!value) {
-        IToast.show(appLocalizations
-            .cloudOAuthUnavailable(CloudService.serverEndpoint));
-      } else {
-        await currentService.authenticate().then((value) async {
-          setState(() {
-            currentConfig.connected = value == CloudServiceStatus.success;
-          });
-          if (!currentConfig.connected) {
-            switch (value) {
-              case CloudServiceStatus.connectionError:
-                IToast.show(appLocalizations.cloudConnectionError);
-                break;
-              case CloudServiceStatus.unauthorized:
-                IToast.show(appLocalizations.cloudOauthFailed);
-                break;
-              default:
-                IToast.show(appLocalizations.cloudUnknownError);
-                break;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.checkServer().then((value) async {
+        if (!value) {
+          IToast.show(appLocalizations
+              .cloudOAuthUnavailable(CloudService.serverEndpoint));
+        } else {
+          await currentService.authenticate().then((value) async {
+            setState(() {
+              currentConfig.connected = value.isSuccess;
+            });
+            if (!currentConfig.connected) {
+              String toast;
+              switch (value.type) {
+                case CloudServiceStatusType.connectionError:
+                  toast = appLocalizations.cloudConnectionError;
+                  break;
+                case CloudServiceStatusType.unauthorized:
+                  toast = appLocalizations.cloudOauthFailed;
+                  break;
+                default:
+                  toast = appLocalizations.cloudUnknownError;
+                  break;
+              }
+              IToast.show(
+                  value.message != null ? "$toast: ${value.message}" : toast);
+            } else {
+              _googledriveCloudServiceConfig!.configured = true;
+              updateConfig(_googledriveCloudServiceConfig!);
+              if (showSuccessToast) {
+                IToast.show(appLocalizations.cloudAuthSuccess);
+              }
             }
-          } else {
-            _googledriveCloudServiceConfig!.configured = true;
-            updateConfig(_googledriveCloudServiceConfig!);
-            if (showSuccessToast)
-              IToast.show(appLocalizations.cloudAuthSuccess);
-          }
-        });
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+          });
+        }
+      }),
+    );
   }
 
   _buildBody() {
@@ -269,51 +263,39 @@ class _GoogleDriveServiceScreenState
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<GoogleDriveFileInfo>? files =
-                      await _googledriveCloudService!.listBackups();
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  CloudServiceConfigDao.updateLastPullTime(
-                      _googledriveCloudServiceConfig!);
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) =>
-                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => GoogleDriveBackupsBottomSheet(
-                        files: files,
-                        cloudService: _googledriveCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _googledriveCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<GoogleDriveFileInfo>>(
+                  action: _googledriveCloudService!.listBackups,
+                  logName: "Google Drive",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _googledriveCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => GoogleDriveBackupsBottomSheet(
+                      files: files,
+                      cloudService: _googledriveCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "Google Drive",
+                          action: (onProgress) =>
+                              _googledriveCloudService!.downloadFile(
                             selectedFile.id,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull from google drive", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -326,7 +308,7 @@ class _GoogleDriveServiceScreenState
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _googledriveCloudServiceConfig!,
                   cloudService: _googledriveCloudService!,
                 );
@@ -346,6 +328,7 @@ class _GoogleDriveServiceScreenState
                     message: appLocalizations.cloudLogoutMessage,
                     onTapConfirm: () async {
                   await _googledriveCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _googledriveCloudServiceConfig!.connected = false;
                     _googledriveCloudServiceConfig!.account = "";

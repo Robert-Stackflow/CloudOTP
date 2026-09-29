@@ -365,6 +365,6 @@ class DatabaseDecryptScreenState extends BaseWindowState<DatabaseDecryptScreen>
 
   @override
   Future<void> onTrayMenuItemClick(MenuItem menuItem) async {
-    Utils.processTrayMenuItemClick(context, menuItem, true);
+    await Utils.processTrayMenuItemClick(context, menuItem, true);
   }
 }

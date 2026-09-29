@@ -61,13 +61,15 @@ class HuaweiCloudFileInfo extends BaseCloudFileInfo {
 
   factory HuaweiCloudFileInfo.fromJson(Map<String, dynamic> json) {
     return HuaweiCloudFileInfo(
-      id: json['id'],
-      name: json['fileName'],
+      id: json['id'] ?? '',
+      name: json['fileName'] ?? '',
       size: json['size'] ?? 0,
-      createdDateTime:
-          DateTime.parse(json['createdTime']).millisecondsSinceEpoch,
-      lastModifiedDateTime:
-          DateTime.parse(json['editedTime']).millisecondsSinceEpoch,
+      createdDateTime: json['createdTime'] != null
+          ? DateTime.parse(json['createdTime']).millisecondsSinceEpoch
+          : 0,
+      lastModifiedDateTime: json['editedTime'] != null
+          ? DateTime.parse(json['editedTime']).millisecondsSinceEpoch
+          : 0,
       description: json['description'] ?? "",
       fileMimeType: json['mimeType'] ?? "",
     );

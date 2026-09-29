@@ -13,6 +13,8 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'dart:async';
+
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Widgets/cloudotp/cloudotp_item_builder.dart';
 import 'package:flutter/material.dart';
@@ -46,24 +48,42 @@ class SelectIconBottomSheetState
   TextEditingController searchController = TextEditingController();
   List<String> icons = [];
   final FocusNode _focusNode = FocusNode();
+  Timer? _searchDebounce;
+
+  void _updateIcons() {
+    if (!mounted) return;
+    setState(() {
+      icons = TokenImageUtil.matchBrandLogos(searchController.text);
+    });
+  }
+
+  void _scheduleIconSearch() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 120), _updateIcons);
+  }
 
   @override
   void initState() {
     super.initState();
+    searchController.addListener(_scheduleIconSearch);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        searchController.text = widget.token.issuer;
-        icons = TokenImageUtil.matchBrandLogos(searchController.text);
-      });
-      searchController.addListener(() {
-        setState(() {
-          icons = TokenImageUtil.matchBrandLogos(searchController.text);
-        });
-      });
+      if (!mounted) return;
+      searchController.text = widget.token.issuer;
+      _searchDebounce?.cancel();
+      _updateIcons();
     });
-    Future.delayed(const Duration(milliseconds: 200), () {
-      FocusScope.of(context).requestFocus(_focusNode);
+    Future.delayed(ChewieTheme.animationDuration, () {
+      if (mounted) _focusNode.requestFocus();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    searchController.removeListener(_scheduleIconSearch);
+    searchController.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   Radius radius = ChewieDimens.defaultRadius;
@@ -100,9 +120,8 @@ class SelectIconBottomSheetState
               background: Colors.grey.withAlpha(40),
               hintText: appLocalizations.searchIconName,
               onSubmitted: (str) {
-                setState(() {
-                  icons = TokenImageUtil.matchBrandLogos(str);
-                });
+                _searchDebounce?.cancel();
+                _updateIcons();
               },
             ),
             const SizedBox(height: 10),
@@ -114,9 +133,8 @@ class SelectIconBottomSheetState
         ),
       ),
     );
-    return AnimatedPadding(
-      padding: MediaQuery.of(context).viewInsets,
-      duration: const Duration(milliseconds: 100),
+    return Padding(
+      padding: MediaQuery.viewInsetsOf(context),
       child: ResponsiveUtil.isWideDevice() ? Center(child: mainBody) : mainBody,
     );
   }
@@ -149,7 +167,7 @@ class SelectIconBottomSheetState
           Navigator.of(context).pop();
         },
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        textStyle: ChewieTheme.titleSmall?.apply(fontSizeDelta: 1),
+        textStyle: ChewieTheme.titleSmall.apply(fontSizeDelta: 1),
       ),
       itemCount: icons.length,
     );

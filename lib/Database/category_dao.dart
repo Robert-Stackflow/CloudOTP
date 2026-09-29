@@ -22,6 +22,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../Models/opt_token.dart';
 import '../Models/token_category.dart';
+import '../Models/token_category_binding.dart';
 import '../Utils/utils.dart';
 import 'database_manager.dart';
 
@@ -31,58 +32,74 @@ class CategoryDao {
   static Future<int> insertCategory(TokenCategory category) async {
     final db = await DatabaseManager.getDataBase();
     category.seq = await getMaxSeq() + 1;
-    category.id = await getMaxId() + 1;
     if (category.uid.isEmpty) category.uid = StringUtil.generateUid();
-    int id = await db.insert(
+    final values = category.toMap()..remove('id');
+    final id = await db.insert(
       tableName,
-      category.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
     );
+    category.id = id;
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.categoriesInserted);
     Utils.initTray();
     return id;
   }
 
-  static Future<int> insertCategories(List<TokenCategory> categories) async {
+  static Future<int> insertCategories(
+    List<TokenCategory> categories, {
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
+  }) async {
     if (categories.isEmpty) return 0;
-    final db = await DatabaseManager.getDataBase();
-    int maxSeq = await getMaxSeq();
-    int maxId = await getMaxId();
-    Batch batch = db.batch();
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    int maxSeq = await getMaxSeq(overrideDb: db);
     for (int i = 0; i < categories.length; i++) {
       TokenCategory category = categories[i];
       if (category.seq <= 0) {
         category.seq = maxSeq + 1 + i;
       }
-      category.id = maxId + 1 + i;
       if (category.uid.isEmpty) category.uid = StringUtil.generateUid();
-      batch.insert(
-        tableName,
-        category.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-      if (category.bindings.isNotEmpty) {
-        BindingDao.bingdingsForCategory(category.uid, category.bindings);
-      }
     }
-    List<dynamic> results = await batch.commit();
-    ExportTokenUtil.autoBackup(
-        triggerType: AutoBackupTriggerType.categoriesInserted);
-    Utils.initTray();
+    Future<List<dynamic>> insertWithExecutor(DatabaseExecutor executor) async {
+      final batch = executor.batch();
+      for (final category in categories) {
+        final values = category.toMap()..remove('id');
+        batch.insert(
+          tableName,
+          values,
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+      }
+      final insertedIds = await batch.commit(noResult: false);
+      final bindings = categories
+          .expand((category) => category.bindings.map(
+                (tokenUid) => TokenCategoryBinding(
+                  tokenUid: tokenUid,
+                  categoryUid: category.uid,
+                ),
+              ))
+          .toList();
+      await BindingDao.bingdings(bindings, overrideDb: executor);
+      return insertedIds;
+    }
+
+    final results = overrideDb != null
+        ? await insertWithExecutor(overrideDb)
+        : await (db as Database).transaction(insertWithExecutor);
+    for (int i = 0; i < results.length; i++) {
+      categories[i].id = results[i] as int;
+    }
+    if (notifyChanges) {
+      ExportTokenUtil.autoBackup(
+          triggerType: AutoBackupTriggerType.categoriesInserted);
+      Utils.initTray();
+    }
     return results.length;
   }
 
-  static Future<int> getMaxId() async {
-    final db = await DatabaseManager.getDataBase();
-    List<Map<String, dynamic>> maps = await db.rawQuery(
-      "SELECT MAX(id) as id FROM $tableName",
-    );
-    return maps[0]["id"] ?? -1;
-  }
-
-  static Future<int> getMaxSeq() async {
-    final db = await DatabaseManager.getDataBase();
+  static Future<int> getMaxSeq({DatabaseExecutor? overrideDb}) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     List<Map<String, dynamic>> maps = await db.rawQuery(
       "SELECT MAX(seq) as seq FROM $tableName",
     );
@@ -107,7 +124,8 @@ class CategoryDao {
   static Future<int> updateCategories(
     List<TokenCategory> categories, {
     bool backup = false,
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
     if (categories.isEmpty) return 0;
     final db = overrideDb ?? await DatabaseManager.getDataBase();
@@ -122,11 +140,11 @@ class CategoryDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    if (backup) {
+    if (backup && notifyChanges) {
       ExportTokenUtil.autoBackup(
           triggerType: AutoBackupTriggerType.categoriesUpdated);
     }
-    Utils.initTray();
+    if (notifyChanges) Utils.initTray();
     return results.length;
   }
 
@@ -146,7 +164,7 @@ class CategoryDao {
 
   static Future<List<TokenCategory>> listCategories({
     bool desc = false,
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
   }) async {
     final db = overrideDb ?? await DatabaseManager.getDataBase();
     final List<Map<String, dynamic>> maps =
@@ -196,11 +214,12 @@ class CategoryDao {
       return await TokenDao.listTokens(
           searchKey: searchKey, tags: tags, tokenType: tokenType);
     }
-    TokenCategory category = await getCategoryByUid(uid);
-    List<OtpToken> tokens = await BindingDao.getTokens(category.uid,
-        searchKey: searchKey, tags: tags, tokenType: tokenType);
-    tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-    return tokens;
+    return TokenDao.listTokensByCategoryUid(
+      uid,
+      searchKey: searchKey,
+      tags: tags,
+      tokenType: tokenType,
+    );
   }
 
   static Future<List<String>> getCategoryUidsByName(String name) async {

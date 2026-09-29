@@ -20,6 +20,7 @@ import 'dart:math';
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/auto_backup_log_dao.dart';
 import 'package:cloudotp/Database/category_dao.dart';
+import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/Proto/OtpMigration/otp_migration.pb.dart';
@@ -34,6 +35,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../Database/cloud_service_config_dao.dart';
 import '../Database/config_dao.dart';
@@ -46,14 +48,119 @@ import 'Backup/backup_encrypt_interface.dart';
 import 'Cloud/cloud_service.dart';
 
 class ExportTokenUtil {
+  static int _lastExportFileTimestampMicros = 0;
+
+  static Future<Backup> createBackupSnapshot({Database? overrideDb}) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    return db.transaction((transaction) async {
+      final tokens = await TokenDao.listTokens(overrideDb: transaction);
+      final categories =
+          await CategoryDao.listCategories(overrideDb: transaction);
+      final bindings = await BindingDao.listBindings(overrideDb: transaction);
+      final bindingsByCategory = <String, List<String>>{};
+      for (final binding in bindings) {
+        if (!StringUtil.isUid(binding.tokenUid)) continue;
+        bindingsByCategory
+            .putIfAbsent(binding.categoryUid, () => [])
+            .add(binding.tokenUid);
+      }
+      for (final category in categories) {
+        category.bindings = bindingsByCategory[category.uid] ?? [];
+      }
+      return Backup(
+        tokens: tokens,
+        categories: categories,
+        appVersion: ResponsiveUtil.version,
+        sourceDevice: ResponsiveUtil.deviceName,
+      );
+    });
+  }
+
+  static Future<List<TokenCategory>> createCategorySnapshotForTokens(
+    Set<String> tokenUids, {
+    Database? overrideDb,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    return db.transaction((transaction) async {
+      var categories = await CategoryDao.listCategories(
+        overrideDb: transaction,
+      );
+      final bindings = await BindingDao.listBindings(
+        overrideDb: transaction,
+      );
+      final bindingsByCategory = <String, List<String>>{};
+      for (final binding in bindings) {
+        if (!tokenUids.contains(binding.tokenUid)) continue;
+        bindingsByCategory
+            .putIfAbsent(binding.categoryUid, () => [])
+            .add(binding.tokenUid);
+      }
+      categories = categories
+          .where((category) =>
+              bindingsByCategory[category.uid]?.isNotEmpty ?? false)
+          .toList();
+      for (final category in categories) {
+        category.bindings = bindingsByCategory[category.uid]!;
+      }
+      return categories;
+    });
+  }
+
+  static Future<File> writeBackupAtomically(
+    File destination,
+    Uint8List data,
+  ) async {
+    final directory = destination.parent;
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    if (await destination.exists()) {
+      throw FileSystemException(
+        'Refusing to overwrite an existing backup',
+        destination.path,
+      );
+    }
+    final suffix =
+        '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
+    final temporary = File('${destination.path}.part-$suffix');
+    try {
+      await temporary.writeAsBytes(data, flush: true);
+      final persisted = await temporary.readAsBytes();
+      if (!listEquals(persisted, data)) {
+        throw FileSystemException(
+          'Backup verification failed after writing',
+          temporary.path,
+        );
+      }
+      return await temporary.rename(destination.path);
+    } finally {
+      if (await temporary.exists()) {
+        await temporary.delete();
+      }
+    }
+  }
+
   static bool isBackup(String filePath) {
     String fileName = basename(filePath);
     String fileExtension = extension(filePath);
     return fileName.startsWith("CloudOTP-Backup-") && fileExtension == ".bin";
   }
 
-  static String getExportFileName(String extension) {
-    return "CloudOTP-Backup-${TimeUtil.getFormattedDate(DateTime.now())}-${ResponsiveUtil.deviceName}.$extension";
+  static String getExportFileName(String extension, {DateTime? now}) {
+    final requested = now ?? DateTime.now();
+    var timestampMicros = requested.microsecondsSinceEpoch;
+    if (timestampMicros <= _lastExportFileTimestampMicros) {
+      timestampMicros = _lastExportFileTimestampMicros + 1;
+    }
+    _lastExportFileTimestampMicros = timestampMicros;
+    final timestamp = DateTime.fromMicrosecondsSinceEpoch(
+      timestampMicros,
+      isUtc: requested.isUtc,
+    );
+    final fraction = (timestamp.millisecond * 1000 + timestamp.microsecond)
+        .toString()
+        .padLeft(6, '0');
+    return "CloudOTP-Backup-${TimeUtil.getFormattedDate(timestamp)}-$fraction-${ResponsiveUtil.deviceName}.$extension";
   }
 
   static exportUriFile(
@@ -143,16 +250,8 @@ class ExportTokenUtil {
   }) async {
     try {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
-      List<OtpToken> tokens = await TokenDao.listTokens();
-      List<TokenCategory> categories = await CategoryDao.listCategories();
-      for (TokenCategory category in categories) {
-        category.bindings = await BindingDao.getTokenUids(category.uid);
-      }
+      final backup = await createBackupSnapshot();
       return await compute((_) async {
-        Backup backup = Backup(
-          tokens: tokens,
-          categories: categories,
-        );
         BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
         Uint8List encryptedData =
             await backupEncryption.encrypt(backup, tmpPassword);
@@ -173,22 +272,14 @@ class ExportTokenUtil {
   }) async {
     try {
       String tmpPassword = password ?? await ConfigDao.getBackupPassword();
-      List<TokenCategory> categories = await CategoryDao.listCategories();
-      for (TokenCategory category in categories) {
-        category.bindings = await BindingDao.getTokenUids(category.uid);
-      }
       Set<String> tokenUids = tokens.map((t) => t.uid).toSet();
-      categories = categories.where((c) {
-        return c.bindings.any((uid) => tokenUids.contains(uid));
-      }).toList();
-      for (var c in categories) {
-        c.bindings =
-            c.bindings.where((uid) => tokenUids.contains(uid)).toList();
-      }
+      final categories = await createCategorySnapshotForTokens(tokenUids);
       return await compute((_) async {
         Backup backup = Backup(
           tokens: tokens,
           categories: categories,
+          appVersion: ResponsiveUtil.version,
+          sourceDevice: ResponsiveUtil.deviceName,
         );
         BackupEncryptionV1 backupEncryption = BackupEncryptionV1();
         Uint8List encryptedData =
@@ -308,7 +399,7 @@ class ExportTokenUtil {
     });
   }
 
-  static backupEncryptToLocalAndCloud({
+  static Future<void> backupEncryptToLocalAndCloud({
     Uint8List? encryptedData,
     bool showLoading = true,
     bool showToast = true,
@@ -353,7 +444,7 @@ class ExportTokenUtil {
             }
             File file = File("${directory.path}/${getExportFileName("bin")}");
             log.backupPath = file.path;
-            await file.writeAsBytes(encryptedData);
+            await writeBackupAtomically(file, encryptedData);
             await ExportTokenUtil.deleteOldBackup();
             log.addStatus(AutoBackupStatus.saveSuccess);
           } catch (e, t) {
@@ -370,14 +461,16 @@ class ExportTokenUtil {
             final count = cloudServices.length;
             for (int i = 0; i < count; i++) {
               final cloudService = cloudServices[i];
+              final configName = configs != null && i < configs.length
+                  ? configs[i].displayName
+                  : cloudService.type.label;
               try {
                 log.addStatus(AutoBackupStatus.uploading,
-                    type: cloudService.type);
+                    type: cloudService.type, cloudServiceName: configName);
                 if (showLoading && dialog != null) {
                   final serviceMsg = count > 1
-                      ? "${appLocalizations.cloudPushingTo(cloudService.type.label)} (${i + 1}/$count)"
-                      : appLocalizations
-                          .cloudPushingTo(cloudService.type.label);
+                      ? "${appLocalizations.cloudPushingTo(configName)} (${i + 1}/$count)"
+                      : appLocalizations.cloudPushingTo(configName);
                   dialog.updateMessage(
                     msg: serviceMsg,
                     showProgress: true,
@@ -394,22 +487,22 @@ class ExportTokenUtil {
                   },
                 );
                 if (uploadStatus) {
+                  if (configs != null && i < configs.length) {
+                    await CloudServiceConfigDao.updateLastBackupTime(
+                      configs[i],
+                    );
+                  }
                   log.addStatus(AutoBackupStatus.uploadSuccess,
-                      type: cloudService.type);
+                      type: cloudService.type, cloudServiceName: configName);
                 } else {
                   log.addStatus(AutoBackupStatus.uploadFailed,
-                      type: cloudService.type);
+                      type: cloudService.type, cloudServiceName: configName);
                 }
               } catch (e, t) {
                 ILogger.error("Failed to cloud backup to $cloudService}", e, t);
                 log.addStatus(AutoBackupStatus.uploadFailed,
-                    type: cloudService.type);
+                    type: cloudService.type, cloudServiceName: configName);
               }
-            }
-          }
-          if (configs != null && configs.isNotEmpty) {
-            for (CloudServiceConfig config in configs) {
-              CloudServiceConfigDao.updateLastBackupTime(config);
             }
           }
         }
@@ -435,17 +528,27 @@ class ExportTokenUtil {
         if (showToast) IToast.showTop(appLocalizations.backupFailed);
       }
     } finally {
-      AutoBackupLogDao.insertLog(log);
-      if (showLoading && dialog != null) dialog.dismiss();
+      try {
+        await AutoBackupLogDao.insertLog(log);
+      } catch (e, t) {
+        ILogger.error("Failed to persist auto backup log", e, t);
+      } finally {
+        if (showLoading && dialog != null) dialog.dismiss();
+      }
     }
   }
 
-  static backupEncryptToLocal({
+  static Future<void> backupEncryptToLocal({
     bool showLoading = false,
     bool showToast = false,
     Uint8List? encryptedData,
   }) async {
-    if (!await CloudOTPHiveUtil.canBackup()) return;
+    if (!await CloudOTPHiveUtil.canBackup()) {
+      if (showToast) {
+        IToast.showTop(appLocalizations.haveNotSetBackupPassword);
+      }
+      return;
+    }
     if (showLoading) {
       CustomLoadingDialog.showLoading(title: appLocalizations.backuping);
     }
@@ -460,11 +563,9 @@ class ExportTokenUtil {
         if (!directory.existsSync()) {
           directory.createSync(recursive: true);
         }
-        await compute((_) async {
-          File file = File("${directory.path}/${getExportFileName("bin")}");
-          file.writeAsBytesSync(encryptedData!);
-        }, null);
-        ExportTokenUtil.deleteOldBackup();
+        File file = File("${directory.path}/${getExportFileName("bin")}");
+        await writeBackupAtomically(file, encryptedData);
+        await ExportTokenUtil.deleteOldBackup();
         if (showToast) IToast.showTop(appLocalizations.backupSuccess);
       }
     } catch (e, t) {
@@ -481,14 +582,19 @@ class ExportTokenUtil {
     }
   }
 
-  static backupEncryptToCloud({
+  static Future<void> backupEncryptToCloud({
     Uint8List? encryptedData,
     bool showLoading = true,
     bool showToast = true,
     required CloudServiceConfig config,
     required CloudService cloudService,
   }) async {
-    if (!await CloudOTPHiveUtil.canBackup()) return;
+    if (!await CloudOTPHiveUtil.canBackup()) {
+      if (showToast) {
+        IToast.showTop(appLocalizations.haveNotSetBackupPassword);
+      }
+      return;
+    }
     ProgressDialog? dialog;
     if (showLoading) {
       dialog = showProgressDialog(
@@ -511,12 +617,14 @@ class ExportTokenUtil {
           ExportTokenUtil.getExportFileName("bin"),
           encryptedData,
           onProgress: (c, t) {
-            if (showLoading && dialog != null) {
+            if (showLoading && dialog != null && t > 0) {
               dialog.updateProgress(progress: c / t);
             }
           },
         );
-        CloudServiceConfigDao.updateLastBackupTime(config);
+        if (uploadStatus) {
+          await CloudServiceConfigDao.updateLastBackupTime(config);
+        }
         if (showToast) {
           if (uploadStatus) {
             IToast.showTop(appLocalizations.backupSuccess);
@@ -526,7 +634,7 @@ class ExportTokenUtil {
         }
       }
     } catch (e, t) {
-      ILogger.error("Failed to backup encrypt file to cloud $config", e, t);
+      ILogger.error("Failed to backup encrypt file to ${config.type}", e, t);
       if (e is BackupBaseException) {
         if (showToast) IToast.showTop(e.intlMessage);
       } else {
@@ -588,6 +696,8 @@ class ExportTokenUtil {
     }
   }
 
+  static const int _qrMetadataReserveBytes = 64;
+
   static Future<List<dynamic>?> exportToGoogleAuthentcatorQrcodes({
     bool showLoading = true,
     List<OtpToken>? selectedTokens,
@@ -601,30 +711,39 @@ class ExportTokenUtil {
     try {
       List<OtpToken> tokens = selectedTokens ?? await TokenDao.listTokens();
       OtpMigrationPayload payload = OtpMigrationPayload.create();
-      String preRes = "";
       for (OtpToken token in tokens) {
         if (!token.isGoogleAuthenticatorCompatible) {
           passCount++;
           continue;
         }
-        payload.otpParameters.add(token.toOtpMigrationParameters());
-        String currentRes = base64Encode(payload.writeToBuffer());
-        if (currentRes.bytesLength > maxBytesLength) {
-          preRes = currentRes = "";
+        final parameters = token.toOtpMigrationParameters();
+        final candidate = payload.clone()..otpParameters.add(parameters);
+        final candidateSize =
+            base64Encode(candidate.writeToBuffer()).bytesLength;
+        if (candidateSize > maxBytesLength - _qrMetadataReserveBytes &&
+            payload.otpParameters.isNotEmpty) {
           payloads.add(payload);
-          payload = OtpMigrationPayload.create();
+          payload = OtpMigrationPayload.create()..otpParameters.add(parameters);
         } else {
-          preRes = currentRes;
+          if (candidateSize > maxBytesLength - _qrMetadataReserveBytes) {
+            throw StateError('A token is too large for a single QR code');
+          }
+          payload = candidate;
         }
       }
-      if (preRes.isNotEmpty) payloads.add(payload);
+      if (payload.otpParameters.isNotEmpty) payloads.add(payload);
       int batchId = Random().nextInt(1000000000) * -1;
-      for (OtpMigrationPayload payload in payloads) {
+      for (int index = 0; index < payloads.length; index++) {
+        final payload = payloads[index];
         payload.batchSize = payloads.length;
-        payload.batchIndex = payloads.indexOf(payload);
+        payload.batchIndex = index;
         payload.batchId = batchId;
         payload.version = 1;
-        tokenQrcodes.add(base64Encode(payload.writeToBuffer()));
+        final encoded = base64Encode(payload.writeToBuffer());
+        if (encoded.bytesLength > maxBytesLength) {
+          throw StateError('QR payload exceeds the supported size');
+        }
+        tokenQrcodes.add(encoded);
       }
       tokenQrcodes = tokenQrcodes
           .map((e) =>
@@ -657,55 +776,76 @@ class ExportTokenUtil {
       //Tokens
       List<OtpToken> tokens = selectedTokens ?? await TokenDao.listTokens();
       CloudOtpTokenPayload payload = CloudOtpTokenPayload.create();
-      String preRes = "";
       for (OtpToken token in tokens) {
-        payload.tokenParameters.add(token.toCloudOtpTokenParameters());
-        String currentRes = base64Encode(payload.writeToBuffer());
-        if (currentRes.bytesLength > maxBytesLength) {
+        final parameters = token.toCloudOtpTokenParameters();
+        final candidate = payload.clone()..tokenParameters.add(parameters);
+        final candidateSize =
+            base64Encode(candidate.writeToBuffer()).bytesLength;
+        if (candidateSize > maxBytesLength - _qrMetadataReserveBytes &&
+            payload.tokenParameters.isNotEmpty) {
           payloads.add(payload);
-          preRes = currentRes = "";
-          payload = CloudOtpTokenPayload.create();
+          payload = CloudOtpTokenPayload.create()
+            ..tokenParameters.add(parameters);
         } else {
-          preRes = currentRes;
+          if (candidateSize > maxBytesLength - _qrMetadataReserveBytes) {
+            throw StateError('A token is too large for a single QR code');
+          }
+          payload = candidate;
         }
       }
-      if (preRes.isNotEmpty) payloads.add(payload);
+      if (payload.tokenParameters.isNotEmpty) payloads.add(payload);
       //Categories (skip when exporting selected tokens only)
       if (selectedTokens == null) {
         List<TokenCategory> categories = await CategoryDao.listCategories();
         TokenCategoryPayload categoryPayload = TokenCategoryPayload.create();
-        preRes = "";
         for (TokenCategory category in categories) {
           TokenCategoryParameters parameters =
               await category.toCategoryParameters();
-          categoryPayload.categoryParameters.add(parameters);
-          String currentRes = base64Encode(categoryPayload.writeToBuffer());
-          if (currentRes.bytesLength > maxBytesLength) {
+          final candidate = categoryPayload.clone()
+            ..categoryParameters.add(parameters);
+          final candidateSize =
+              base64Encode(candidate.writeToBuffer()).bytesLength;
+          if (candidateSize > maxBytesLength - _qrMetadataReserveBytes &&
+              categoryPayload.categoryParameters.isNotEmpty) {
             categoryPayloads.add(categoryPayload);
-            preRes = currentRes = "";
-            categoryPayload = TokenCategoryPayload.create();
+            categoryPayload = TokenCategoryPayload.create()
+              ..categoryParameters.add(parameters);
           } else {
-            preRes = currentRes;
+            if (candidateSize > maxBytesLength - _qrMetadataReserveBytes) {
+              throw StateError('A category is too large for a single QR code');
+            }
+            categoryPayload = candidate;
           }
         }
-        if (preRes.isNotEmpty) categoryPayloads.add(categoryPayload);
+        if (categoryPayload.categoryParameters.isNotEmpty) {
+          categoryPayloads.add(categoryPayload);
+        }
       }
-      for (CloudOtpTokenPayload payload in payloads) {
+      for (int index = 0; index < payloads.length; index++) {
+        final payload = payloads[index];
         payload.version = 1;
         payload.batchSize = payloads.length + categoryPayloads.length;
-        payload.batchIndex = payloads.indexOf(payload);
+        payload.batchIndex = index;
         payload.batchId = batchId;
+        final encoded = base64Encode(payload.writeToBuffer());
+        if (encoded.bytesLength > maxBytesLength) {
+          throw StateError('QR payload exceeds the supported size');
+        }
         qrcodes.add(
-            "cloudotpauth-migration://offline?tokens=${Uri.encodeComponent(base64Encode(payload.writeToBuffer()))}");
+            "cloudotpauth-migration://offline?tokens=${Uri.encodeComponent(encoded)}");
       }
-      for (TokenCategoryPayload payload in categoryPayloads) {
+      for (int index = 0; index < categoryPayloads.length; index++) {
+        final payload = categoryPayloads[index];
         payload.version = 1;
         payload.batchSize = payloads.length + categoryPayloads.length;
-        payload.batchIndex =
-            payloads.length + categoryPayloads.indexOf(payload);
+        payload.batchIndex = payloads.length + index;
         payload.batchId = batchId;
+        final encoded = base64Encode(payload.writeToBuffer());
+        if (encoded.bytesLength > maxBytesLength) {
+          throw StateError('QR payload exceeds the supported size');
+        }
         qrcodes.add(
-            "cloudotpauth-migration://offline?categories=${Uri.encodeComponent(base64Encode(payload.writeToBuffer()))}");
+            "cloudotpauth-migration://offline?categories=${Uri.encodeComponent(encoded)}");
       }
       return qrcodes;
     } catch (e, t) {

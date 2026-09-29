@@ -35,6 +35,7 @@ import '../../Utils/app_provider.dart';
 import '../../Utils/constant.dart';
 import '../../l10n/l10n.dart';
 import '../cloudotp/cloudotp_item_builder.dart';
+import '../cloudotp/smooth_token_progress.dart';
 
 class TokenOptionBottomSheet extends StatefulWidget {
   const TokenOptionBottomSheet({
@@ -137,11 +138,35 @@ class TokenOptionBottomSheetState
             shrinkWrap: true,
             children: [
               _buildHeader(),
+              if (widget.token.description.trim().isNotEmpty) _buildRemark(),
               _buildPrimaryButtons(),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildRemark() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(10, 14, 10, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: ChewieTheme.canvasColor,
+        borderRadius: ChewieDimens.defaultBorderRadius,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(appLocalizations.tokenRemark, style: ChewieTheme.bodySmall),
+          const SizedBox(height: 4),
+          SelectableText(
+            widget.token.description.trim(),
+            style: ChewieTheme.bodyMedium,
+          ),
+        ],
+      ),
     );
   }
 
@@ -223,14 +248,17 @@ class TokenOptionBottomSheetState
                   ValueListenableBuilder(
                     valueListenable: progressNotifier,
                     builder: (context, value, child) {
-                      return CircularProgressIndicator(
-                        value: value,
-                        color: value > autoCopyNextCodeProgressThrehold
-                            ? ChewieTheme.primaryColor
-                            : Colors.red,
-                        backgroundColor: Colors.grey.withOpacity(0.3),
-                        strokeCap: StrokeCap.round,
-                      );
+                      return SmoothTokenProgress(
+                          value: value,
+                          period: widget.token.period,
+                          builder: (context, progress) =>
+                              CircularProgressIndicator(
+                                value: progress,
+                                color: SmoothTokenProgress.color(
+                                    progress, ChewieTheme.primaryColor),
+                                backgroundColor: Colors.grey.withOpacity(0.3),
+                                strokeCap: StrokeCap.round,
+                              ));
                     },
                   ),
                   Center(
@@ -240,9 +268,8 @@ class TokenOptionBottomSheetState
                         return Text(
                           (remainingMilliseconds / 1000).toStringAsFixed(0),
                           style: ChewieTheme.bodyMedium.apply(
-                            color: value > autoCopyNextCodeProgressThrehold
-                                ? ChewieTheme.primaryColor
-                                : Colors.red,
+                            color: SmoothTokenProgress.color(
+                                value, ChewieTheme.primaryColor),
                             fontWeightDelta: 2,
                           ),
                         );

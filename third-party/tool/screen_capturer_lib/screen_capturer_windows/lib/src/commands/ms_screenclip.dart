@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -16,12 +17,14 @@ bool _isScreenClipping() {
   final lpdwProcessId = calloc<Uint32>();
 
   GetWindowThreadProcessId(hWnd, lpdwProcessId);
+  final processId = lpdwProcessId.value;
+  free(lpdwProcessId);
   // Get a handle to the process.
   final hProcess = OpenProcess(
     PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION |
         PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ,
     FALSE,
-    lpdwProcessId.value,
+    processId,
   );
 
   if (hProcess == 0) {
@@ -80,7 +83,7 @@ class _MsScreenclip with SystemScreenCapturer {
       url += 'clippingMode=${_knownCaptureModeArgs[mode]}';
     }
     await Clipboard.setData(const ClipboardData(text: ''));
-    ShellExecute(
+    final launchResult = ShellExecute(
       0,
       'open'.toNativeUtf16(),
       url.toNativeUtf16(),
@@ -88,9 +91,16 @@ class _MsScreenclip with SystemScreenCapturer {
       nullptr,
       SHOW_WINDOW_CMD.SW_SHOWNORMAL,
     );
+    if (launchResult <= 32) {
+      throw StateError('Could not launch the Windows screen clipping tool');
+    }
     await Future.delayed(const Duration(seconds: 1));
 
+    final deadline = DateTime.now().add(const Duration(seconds: 60));
     while (_isScreenClipping()) {
+      if (DateTime.now().isAfter(deadline)) {
+        throw TimeoutException('Screen clipping timed out');
+      }
       await Future.delayed(const Duration(milliseconds: 800));
     }
 

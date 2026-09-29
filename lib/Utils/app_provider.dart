@@ -44,19 +44,24 @@ Queue autoBackupQueue = Queue();
 class GlobalTokenTicker {
   static final GlobalTokenTicker _instance = GlobalTokenTicker._();
   factory GlobalTokenTicker() => _instance;
-  GlobalTokenTicker._();
+  GlobalTokenTicker._() {
+    _controller = StreamController<void>.broadcast(
+      onListen: _start,
+      onCancel: _stop,
+    );
+  }
 
   Timer? _timer;
-  final StreamController<void> _controller = StreamController.broadcast();
+  late final StreamController<void> _controller;
 
   Stream<void> get stream => _controller.stream;
 
-  void start() {
+  void _start() {
     _timer ??= Timer.periodic(
         const Duration(milliseconds: 100), (_) => _controller.add(null));
   }
 
-  void stop() {
+  void _stop() {
     _timer?.cancel();
     _timer = null;
   }
@@ -392,6 +397,17 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _pullToSearch = ChewieHiveUtil.getBool(CloudOTPHiveUtil.pullToSearchKey,
+      defaultValue: true);
+
+  bool get pullToSearch => _pullToSearch;
+
+  set pullToSearch(bool value) {
+    _pullToSearch = value;
+    ChewieHiveUtil.put(CloudOTPHiveUtil.pullToSearchKey, value);
+    notifyListeners();
+  }
+
   bool _enableFrostedGlassEffect = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.enableFrostedGlassEffectKey,
       defaultValue: false);
@@ -426,8 +442,9 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _enableModalSheet =
-      ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableModalSheetKey, defaultValue: false);
+  bool _enableModalSheet = ChewieHiveUtil.getBool(
+      CloudOTPHiveUtil.enableModalSheetKey,
+      defaultValue: false);
 
   bool get enableModalSheet => _enableModalSheet;
 

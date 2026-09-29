@@ -153,38 +153,15 @@ class BoxCloud extends BaseCloudService {
     try {
       final url = Uri.parse("https://api.box.com/2.0/files/$id/content");
       CloudLogger.info(serviceName, "Pulling file by ID: $id");
-      final resp = await get(url);
 
-      if (resp.statusCode == 302 && resp.headers['location'] != null) {
-        final downloadUrl = Uri.parse(resp.headers['location']!);
-        CloudLogger.info(
-          serviceName,
-          "Redirected to download URL: $downloadUrl",
-        );
-        final bodyBytes = await BaseCloudService.downloadFromUrl(
-          downloadUrl,
-          onProgress: onProgress,
-        );
-        CloudLogger.info(
-          serviceName,
-          "File downloaded successfully: ${bodyBytes.length} bytes.",
-        );
-        return BoxResponse.success(
-          message: "Download success.",
-          bodyBytes: bodyBytes,
-        );
-      } else if (isSuccess(resp)) {
-        CloudLogger.info(serviceName, "Downloaded file");
-        return BoxResponse.fromResponse(
-          response: resp,
-          message: "Downloaded file.",
-        );
-      }
-      CloudLogger.errorResponse(
-          serviceName, "Failed to get file download URL", resp);
-      return BoxResponse.fromResponse(
-        response: resp,
-        message: "Failed to get file download URL.",
+      final bodyBytes = await getStreamed(url, onProgress: onProgress);
+      CloudLogger.info(
+        serviceName,
+        "File downloaded successfully: ${bodyBytes.length} bytes.",
+      );
+      return BoxResponse.success(
+        message: "Download success.",
+        bodyBytes: bodyBytes,
       );
     } catch (e) {
       CloudLogger.error(serviceName, "Exception: $e");

@@ -33,6 +33,12 @@ class GoogleAuthClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     return _client.send(request..headers.addAll(_headers));
   }
+
+  @override
+  void close() {
+    _client.close();
+    super.close();
+  }
 }
 
 class GoogleDrive extends BaseCloudService {
@@ -283,7 +289,7 @@ class GoogleDrive extends BaseCloudService {
       );
 
       if (res.id == null) {
-        CloudLogger.error(serviceName, "Upload failed: ${res.toJson()}");
+        CloudLogger.error(serviceName, "Upload failed: response id is missing");
         return GoogleDriveResponse.error(message: "Upload failed.");
       }
       CloudLogger.info(

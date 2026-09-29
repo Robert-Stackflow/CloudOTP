@@ -52,6 +52,7 @@ class BasicAuth extends Auth {
 // DigestAuth ----------------------------------
 class DigestAuth extends Auth {
   DigestParts dParts;
+  int _nonceCount = 0;
 
   DigestAuth({
     required String user,
@@ -86,13 +87,14 @@ class DigestAuth extends Auth {
   }
 
   String _getDigestAuthorization() {
-    int nonceCount = 1;
+    _nonceCount++;
+    String nc = _nonceCount.toRadixString(16).padLeft(8, '0');
     String cnonce = computeNonce();
-    String ha1 = _computeHA1(nonceCount, cnonce);
+    String ha1 = _computeHA1(_nonceCount, cnonce);
     String ha2 = _computeHA2();
-    String response = _computeResponse(ha1, ha2, nonceCount, cnonce);
+    String response = _computeResponse(ha1, ha2, _nonceCount, cnonce);
     String authorization =
-        'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
+        'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nc, cnonce="$cnonce", response="$response"';
 
     if (this.qop?.isNotEmpty == true) {
       authorization += ', qop=${this.qop}';

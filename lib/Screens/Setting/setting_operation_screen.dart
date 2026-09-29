@@ -48,6 +48,8 @@ class _OperationSettingScreenState
   bool autoFocusSearchBar = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.autoFocusSearchBarKey,
       defaultValue: false);
+  bool pullToSearch = ChewieHiveUtil.getBool(CloudOTPHiveUtil.pullToSearchKey,
+      defaultValue: true);
   bool autoMinimizeAfterClickToCopy = ChewieHiveUtil.getBool(
       CloudOTPHiveUtil.autoMinimizeAfterClickToCopyKey,
       defaultValue: false);
@@ -247,6 +249,18 @@ class _OperationSettingScreenState
             });
           },
         ),
+        if (ResponsiveUtil.isMobile())
+          CheckboxItem(
+            value: pullToSearch,
+            title: appLocalizations.pullToSearch,
+            description: appLocalizations.pullToSearchTip,
+            onTap: () {
+              setState(() {
+                pullToSearch = !pullToSearch;
+                appProvider.pullToSearch = pullToSearch;
+              });
+            },
+          ),
       ],
     );
   }

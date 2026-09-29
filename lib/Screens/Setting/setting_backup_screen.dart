@@ -18,6 +18,7 @@ import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
+import 'package:cloudotp/Screens/Setting/backup_health_screen.dart';
 import 'package:cloudotp/TokenUtils/Cloud/webdav_cloud_service.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
@@ -74,9 +75,9 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
       ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableCloudBackupKey);
   CloudServiceConfig? _cloudServiceConfig;
   int _maxBackupsCount = CloudOTPHiveUtil.getMaxBackupsCount();
-  bool _enableBackupOnLaunch =
-      ChewieHiveUtil.getBool(CloudOTPHiveUtil.enableBackupOnLaunchKey,
-          defaultValue: false);
+  bool _enableBackupOnLaunch = ChewieHiveUtil.getBool(
+      CloudOTPHiveUtil.enableBackupOnLaunchKey,
+      defaultValue: false);
   final GlobalKey _setAutoBackupPasswordKey = GlobalKey();
   String validConfigs = "";
 
@@ -119,8 +120,7 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
     if (!_enableLocalBackup && !_enableCloudBackup) {
       setState(() {
         _enableLocalBackup = true;
-        ChewieHiveUtil.put(
-            CloudOTPHiveUtil.enableLocalBackupKey, true);
+        ChewieHiveUtil.put(CloudOTPHiveUtil.enableLocalBackupKey, true);
       });
       DialogBuilder.showInfoDialog(
         context,
@@ -154,7 +154,7 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
     List<CloudServiceConfig> configs =
         await CloudServiceConfigDao.getValidConfigs();
     setState(() {
-      validConfigs = configs.map((e) => e.type.label).join(", ");
+      validConfigs = configs.map((e) => e.displayName).join(", ");
     });
   }
 
@@ -361,6 +361,15 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
                 );
               },
             ),
+          EntryItem(
+            title: appLocalizations.backupHealthTitle,
+            description: appLocalizations.backupHealthEntryTip,
+            trailing: LucideIcons.shieldCheck,
+            onTap: () => RouteUtil.pushCupertinoRoute(
+              context,
+              const BackupHealthScreen(),
+            ),
+          ),
           if (canBackup)
             EntryItem(
               title: appLocalizations.backupLogs,
@@ -419,8 +428,7 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
               onTap: () {
                 setState(() {
                   _autoBackupPath = _defaultBackupPath;
-                  ChewieHiveUtil.put(
-                      CloudOTPHiveUtil.backupPathKey, "");
+                  ChewieHiveUtil.put(CloudOTPHiveUtil.backupPathKey, "");
                 });
               },
             ),
@@ -450,8 +458,7 @@ class _BackupSettingScreenState extends BaseDynamicState<BackupSettingScreen>
             value: canBackup ? _enableCloudBackup : false,
             title: appLocalizations.enableCloudBackup,
             description: appLocalizations.enableCloudBackupTip,
-            disabled: !canBackup ||
-                (_enableCloudBackup && !_enableLocalBackup),
+            disabled: !canBackup || (_enableCloudBackup && !_enableLocalBackup),
             onTap: () {
               setState(() {
                 _enableCloudBackup = !_enableCloudBackup;

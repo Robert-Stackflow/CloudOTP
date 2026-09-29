@@ -19,6 +19,7 @@ class RoundIconTextButton extends StatelessWidget {
   final double spacing;
   final Border? border;
   final bool disabled;
+  final Widget? trailing;
 
   const RoundIconTextButton({
     super.key,
@@ -38,6 +39,7 @@ class RoundIconTextButton extends StatelessWidget {
     this.minHeight = 32,
     this.border,
     this.disabled = false,
+    this.trailing,
   });
 
   @override
@@ -96,6 +98,10 @@ class RoundIconTextButton extends StatelessWidget {
                               ),
                         ),
                       ),
+                      if (trailing != null) ...[
+                        SizedBox(width: spacing),
+                        trailing!,
+                      ],
                     ],
                   ),
                 ),

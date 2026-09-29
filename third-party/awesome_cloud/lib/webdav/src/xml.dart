@@ -87,7 +87,7 @@ class WebdavXml {
             // create time
             final cTimeElements = findElements(prop, 'creationdate');
             DateTime? cTime = cTimeElements.isNotEmpty
-                ? DateTime.parse(cTimeElements.single.innerText).toLocal()
+                ? str2LocalTime(cTimeElements.single.innerText)
                 : null;
 
             // modified time

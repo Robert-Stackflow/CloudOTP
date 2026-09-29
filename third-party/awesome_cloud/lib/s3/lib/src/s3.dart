@@ -566,7 +566,7 @@ class S3Storage {
 
     if (maxKeys != null) {
       maxKeys = maxKeys >= 1000 ? 1000 : maxKeys;
-      queries['maxKeys'] = maxKeys.toString();
+      queries['max-keys'] = maxKeys.toString();
     }
 
     final resp = await _client.request(
@@ -636,7 +636,7 @@ class S3Storage {
     String prefix = '',
     bool recursive = false,
   }) async {
-    final chunks = listObjects(bucket, prefix: prefix, recursive: recursive);
+    final chunks = listObjectsV2(bucket, prefix: prefix, recursive: recursive);
     final objects = <Object>[];
     final prefixes = <String>[];
     await for (final chunk in chunks) {
@@ -676,7 +676,7 @@ class S3Storage {
 
     if (maxKeys != null) {
       maxKeys = maxKeys >= 1000 ? 1000 : maxKeys;
-      queries['maxKeys'] = maxKeys.toString();
+      queries['max-keys'] = maxKeys.toString();
     }
 
     final resp = await _client.request(
@@ -817,26 +817,25 @@ class S3Storage {
     if (postPolicy.policy['expiration'] == null) {
       // 'expiration' is mandatory field for S3.
       // Set default expiration date of 7 days.
-      var expires = DateTime.now().toUtc();
-      expires.add(Duration(days: 7));
+      var expires = DateTime.now().toUtc().add(Duration(days: 7));
       postPolicy.setExpires(expires);
     }
 
-    postPolicy.policy['conditions'].push(['eq', r'$x-amz-date', dateStr]);
+    postPolicy.policy['conditions'].add(['eq', r'$x-amz-date', dateStr]);
     postPolicy.formData['x-amz-date'] = dateStr;
 
     postPolicy.policy['conditions']
-        .push(['eq', r'$x-amz-algorithm', 'AWS4-HMAC-SHA256']);
+        .add(['eq', r'$x-amz-algorithm', 'AWS4-HMAC-SHA256']);
     postPolicy.formData['x-amz-algorithm'] = 'AWS4-HMAC-SHA256';
 
-    postPolicy.policy['conditions'].push(
+    postPolicy.policy['conditions'].add(
         ['eq', r'$x-amz-credential', accessKey + '/' + getScope(region, date)]);
     postPolicy.formData['x-amz-credential'] =
         accessKey + '/' + getScope(region, date);
 
     if (sessionToken != null) {
       postPolicy.policy['conditions']
-          .push(['eq', r'$x-amz-security-token', sessionToken]);
+          .add(['eq', r'$x-amz-security-token', sessionToken]);
     }
 
     final policyBase64 = jsonBase64(postPolicy.policy);
@@ -1073,12 +1072,15 @@ class S3Storage {
     StorageInvalidBucketNameError.check(bucket);
     StorageInvalidObjectNameError.check(object);
 
-    await _client.request(
+    final resp = await _client.request(
       method: 'PUT',
       bucket: bucket,
       object: object,
-      queries: {'acl': policy},
+      queries: {'acl': ''},
+      headers: {'x-amz-acl': policy},
     );
+
+    validate(resp, expect: 200);
   }
 
   Future<AccessControlPolicy> getObjectACL(String bucket, String object) async {

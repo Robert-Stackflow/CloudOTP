@@ -1152,9 +1152,9 @@ class _MyAppBarState extends State<MyAppBar> {
           children: [
             if (widget.backgroundWidget != null) widget.backgroundWidget!,
             widget.useBackdropFilter
-                ? ClipRRect(
+                ? ClipRect(
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                       child: wrapper,
                     ),
                   )

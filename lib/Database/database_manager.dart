@@ -23,6 +23,7 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/config_dao.dart';
 import 'package:cloudotp/Database/create_table_sql.dart';
+import 'package:cloudotp/Database/database_migrations.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Database/token_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
@@ -40,16 +41,24 @@ enum EncryptDatabaseStatus { defaultPassword, customPassword }
 class DatabaseManager {
   static const _dbName = "cloudotp.db";
   static const _unencrypedFileHeader = "SQLite format 3";
-  static const _dbVersion = 8;
+  static const _dbVersion = 10;
   static Database? _database;
   static final dbFactory = createDatabaseFactoryFfi();
   static DynamicLibrary? lib = loadSqlcipher();
   static final cipherDbFactory = createDatabaseFactoryFfi(ffiInit: () {
     if (lib != null) open.overrideForAll(() => lib!);
   });
-  static DatabaseFactory _currentDbFactory = cipherDbFactory;
   static bool isDatabaseEncrypted = false;
   static bool isNewDatabase = false;
+
+  static const List<String> _dataTables = [
+    'otp_token',
+    'token_category',
+    'cloudotp_config',
+    'cloud_service_config',
+    'auto_update_log',
+    'token_category_binding',
+  ];
 
   static bool get initialized => _database != null;
 
@@ -66,55 +75,121 @@ class DatabaseManager {
   }
 
   static Future<void> initDataBase(String password) async {
-    if (_database == null) {
-      appProvider.currentDatabasePassword = password;
-      String path = join(await FileUtil.getDatabaseDir(), _dbName);
-      File file = File(path);
-      if (file.existsSync()) {
-        final stream = file.openRead(0, _unencrypedFileHeader.length);
-        String content = String.fromCharCodes(await stream.fold<List<int>>(
-            [], (previous, element) => previous..addAll(element)));
-        if (content == _unencrypedFileHeader) {
-          isDatabaseEncrypted = false;
-          _currentDbFactory = dbFactory;
-          ILogger.info(
-              "Database is an unencrypted SQLite database. File header is $content");
-        } else {
-          isDatabaseEncrypted = true;
-          _currentDbFactory = cipherDbFactory;
-          ILogger.info("Database is an encrypted SQLite database.");
+    if (_database != null) {
+      await ConfigDao.initConfig();
+      return;
+    }
+
+    final path = await _getDatabasePath();
+    final file = File(path);
+    isNewDatabase = !file.existsSync();
+
+    if (isNewDatabase) {
+      password = await CloudOTPHiveUtil.regeneratePassword();
+      isDatabaseEncrypted = true;
+      _database = await _openDatabase(path, password, encrypted: true);
+      await CloudOTPHiveUtil.setEncryptDatabaseStatus(
+          EncryptDatabaseStatus.defaultPassword);
+      ILogger.info('Created a new encrypted database');
+    } else if (await _hasPlaintextHeader(file)) {
+      isDatabaseEncrypted = false;
+      _database = await _openDatabase(path, '', encrypted: false);
+      ILogger.warning('Opened a legacy unencrypted SQLite database');
+    } else {
+      isDatabaseEncrypted = true;
+      try {
+        _database = await _openDatabase(path, password, encrypted: true);
+        await _clearUnusedPendingPassword();
+      } catch (activePasswordError) {
+        final pending = await CloudOTPHiveUtil.getPendingDatabasePassword();
+        if (pending == null || pending.isEmpty || pending == password) {
+          rethrow;
         }
-      } else {
-        isDatabaseEncrypted = true;
-        isNewDatabase = true;
-        _currentDbFactory = cipherDbFactory;
-        password = await CloudOTPHiveUtil.regeneratePassword();
-        appProvider.currentDatabasePassword = password;
-        ILogger.info("Database not exist and new password is generated");
-        await CloudOTPHiveUtil.setEncryptDatabaseStatus(
-            EncryptDatabaseStatus.defaultPassword);
+        ILogger.warning(
+            'Active database password failed; trying recoverable pending key');
+        _database = await _openDatabase(path, pending, encrypted: true);
+        await CloudOTPHiveUtil.promotePendingDatabasePassword();
+        password = pending;
+        ILogger.info('Recovered database password after interrupted rekey');
       }
-      _database = await _currentDbFactory.openDatabase(
+    }
+
+    appProvider.currentDatabasePassword = password;
+    await ConfigDao.initConfig();
+  }
+
+  static Future<String> _getDatabasePath() async =>
+      join(await FileUtil.getDatabaseDir(), _dbName);
+
+  static Future<bool> _hasPlaintextHeader(File file) async {
+    if (await file.length() < _unencrypedFileHeader.length) return false;
+    final bytes = await file
+        .openRead(0, _unencrypedFileHeader.length)
+        .fold<List<int>>([], (previous, element) => previous..addAll(element));
+    return String.fromCharCodes(bytes) == _unencrypedFileHeader;
+  }
+
+  static Future<Database> _openDatabase(
+    String path,
+    String password, {
+    required bool encrypted,
+    bool singleInstance = true,
+  }) async {
+    if (encrypted && lib == null) throw const SqlCipherUnavailableException();
+    Database? candidate;
+    try {
+      candidate = await (encrypted ? cipherDbFactory : dbFactory).openDatabase(
         path,
         options: OpenDatabaseOptions(
           version: _dbVersion,
-          singleInstance: true,
+          singleInstance: singleInstance,
           onConfigure: (db) async {
-            _onConfigure(db, password);
+            if (encrypted) await _configureEncryptedDatabase(db, password);
           },
           onUpgrade: _onUpgrade,
           onCreate: _onCreate,
         ),
       );
+      await candidate.rawQuery('SELECT count(*) FROM sqlite_master');
+      if (encrypted) await _verifyIntegrity(candidate);
+      return candidate;
+    } catch (_) {
+      await candidate?.close();
+      rethrow;
     }
-    await ConfigDao.initConfig();
+  }
+
+  static Future<void> _assertSqlCipher(Database db) async {
+    final result = await db.rawQuery('PRAGMA cipher_version');
+    if (result.isEmpty || result.first.values.every((value) => value == null)) {
+      throw const SqlCipherUnavailableException();
+    }
+  }
+
+  static Future<void> _verifyIntegrity(Database db) async {
+    final result = await db.rawQuery('PRAGMA integrity_check');
+    if (result.isEmpty || result.first.values.first.toString() != 'ok') {
+      throw DatabaseIntegrityException(result.toString());
+    }
+  }
+
+  static Future<void> _clearUnusedPendingPassword() async {
+    try {
+      final pending = await CloudOTPHiveUtil.getPendingDatabasePassword();
+      if (pending != null && pending.isNotEmpty) {
+        await CloudOTPHiveUtil.clearPendingDatabasePassword();
+        ILogger.info('Cleared an unused pending database password');
+      }
+    } catch (e, t) {
+      ILogger.warning('Failed to clear pending database password', e, t);
+    }
   }
 
   static Future<void> clearSampleDataFlag() async {
     if (_database == null) return;
     final db = _database!;
-    final tokens = await db.query('otp_token',
-        where: "remark LIKE '%is_example%'");
+    final tokens =
+        await db.query('otp_token', where: "remark LIKE '%is_example%'");
     for (final row in tokens) {
       final remark = Map<String, dynamic>.from(
           jsonDecode(row['remark'] as String? ?? '{}'));
@@ -126,8 +201,8 @@ class DatabaseManager {
         whereArgs: [row['uid']],
       );
     }
-    final categories = await db.query('token_category',
-        where: "remark LIKE '%is_example%'");
+    final categories =
+        await db.query('token_category', where: "remark LIKE '%is_example%'");
     for (final row in categories) {
       final remark = Map<String, dynamic>.from(
           jsonDecode(row['remark'] as String? ?? '{}'));
@@ -144,16 +219,16 @@ class DatabaseManager {
   static Future<bool> hasSampleData() async {
     if (_database == null) return false;
     final db = _database!;
-    final tokens = await db.query('otp_token',
-        where: "remark LIKE '%is_example%'");
+    final tokens =
+        await db.query('otp_token', where: "remark LIKE '%is_example%'");
     return tokens.isNotEmpty;
   }
 
   static Future<void> deleteSampleData() async {
     if (_database == null) return;
     final db = _database!;
-    final tokens = await db.query('otp_token',
-        where: "remark LIKE '%is_example%'");
+    final tokens =
+        await db.query('otp_token', where: "remark LIKE '%is_example%'");
     for (final row in tokens) {
       final uid = row['uid'] as String;
       await db.delete('token_category_binding',
@@ -175,47 +250,231 @@ class DatabaseManager {
 
   static String _escapeSql(String value) => value.replaceAll("'", "''");
 
-  static Future<bool> changePassword(String password) async {
-    if (_database != null) {
-      final escaped = _escapeSql(password);
-      if (isDatabaseEncrypted) {
-        List<Map<String, Object?>> res =
-            await _database!.rawQuery("PRAGMA rekey='$escaped'");
-        ILogger.info("Change database password result is $res");
-        if (res.isNotEmpty) {
-          appProvider.currentDatabasePassword = password;
-          return true;
-        }
-      } else {
+  static Future<bool> changePassword(
+    String password, {
+    bool clearStoredDefault = false,
+  }) async {
+    if (_database == null || password.isEmpty) return false;
+    if (!isDatabaseEncrypted) {
+      final migrated = await _migratePlaintextDatabase(password);
+      if (migrated && clearStoredDefault) {
         try {
-          await _database!.rawQuery(
-              "ATTACH DATABASE 'encrypted.db' AS tmp KEY '$escaped'");
-          await _database!.rawQuery("SELECT sqlcipher_export('tmp')");
-          await _database!.rawQuery("DETACH DATABASE tmp");
-          return true;
+          await CloudOTPHiveUtil.clearDefaultDatabasePassword();
         } catch (e, t) {
-          ILogger.error("Failed to change database password", e, t);
-          return false;
+          ILogger.warning('Failed to clear obsolete default password', e, t);
+        }
+      }
+      return migrated;
+    }
+
+    final oldPassword = appProvider.currentDatabasePassword;
+    final escaped = _escapeSql(password);
+    try {
+      await _assertSqlCipher(_database!);
+      await _database!.execute("PRAGMA rekey='$escaped'");
+      await _verifyEncryptedFile(password);
+      appProvider.currentDatabasePassword = password;
+      if (clearStoredDefault) {
+        try {
+          await CloudOTPHiveUtil.clearDefaultDatabasePassword();
+        } catch (e, t) {
+          ILogger.warning('Failed to clear obsolete default password', e, t);
+        }
+      }
+      return true;
+    } catch (e, t) {
+      ILogger.error('Failed to rekey encrypted database', e, t);
+      if (oldPassword.isNotEmpty && oldPassword != password) {
+        try {
+          final oldEscaped = _escapeSql(oldPassword);
+          await _database!.execute("PRAGMA rekey='$oldEscaped'");
+          await _verifyEncryptedFile(oldPassword);
+          appProvider.currentDatabasePassword = oldPassword;
+          ILogger.info('Restored previous database password after failure');
+        } catch (rollbackError, rollbackTrace) {
+          ILogger.fatal(
+            'Failed to restore previous database password',
+            rollbackError,
+            rollbackTrace,
+          );
         }
       }
       return false;
     }
-    return false;
   }
 
-  static Future<void> _onConfigure(Database db, String password) async {
-    if (isDatabaseEncrypted) {
-      final escaped = _escapeSql(password);
-      List<Map<String, Object?>> res =
-          await db.rawQuery("PRAGMA KEY='$escaped'");
-      if (res.isNotEmpty) {
-        ILogger.info(
-            "Configure database with cipher successfully. Result is $res");
-      } else {
-        ILogger.error(
-            "Failed to configure database with cipher, perhaps the sqlcipher dynamic library was not loaded. Result is $res");
+  static Future<bool> resetToDefaultPassword() async {
+    if (_database == null) return false;
+    final oldPassword = appProvider.currentDatabasePassword;
+    final password = CloudOTPHiveUtil.generateDatabasePassword();
+    try {
+      await CloudOTPHiveUtil.stageDatabasePassword(password);
+      final changed = await changePassword(password);
+      if (!changed) {
+        await CloudOTPHiveUtil.clearPendingDatabasePassword();
+        return false;
+      }
+      try {
+        await CloudOTPHiveUtil.promotePendingDatabasePassword();
+        return true;
+      } catch (e, t) {
+        ILogger.error('Failed to promote new default database password', e, t);
+        final rolledBack = await changePassword(oldPassword);
+        if (rolledBack) {
+          await CloudOTPHiveUtil.clearPendingDatabasePassword();
+        }
+        return false;
+      }
+    } catch (e, t) {
+      ILogger.error('Failed to prepare a new default database password', e, t);
+      return false;
+    }
+  }
+
+  static Future<void> _configureEncryptedDatabase(
+      Database db, String password) async {
+    if (password.isEmpty) throw const InvalidDatabasePasswordException();
+    await _assertSqlCipher(db);
+    final escaped = _escapeSql(password);
+    await db.execute("PRAGMA key='$escaped'");
+    await db.rawQuery('SELECT count(*) FROM sqlite_master');
+  }
+
+  static Future<void> _verifyEncryptedFile(String password) async {
+    final path = await _getDatabasePath();
+    final verifier = await _openDatabase(path, password,
+        encrypted: true, singleInstance: false);
+    await verifier.close();
+  }
+
+  static Future<Map<String, int>> _getTableCounts(Database db) async {
+    final counts = <String, int>{};
+    for (final table in _dataTables) {
+      final exists = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+        [table],
+      );
+      if (exists.isEmpty) continue;
+      final result =
+          await db.rawQuery('SELECT COUNT(*) AS count FROM "$table"');
+      counts[table] = (result.first['count'] as num).toInt();
+    }
+    return counts;
+  }
+
+  static Future<bool> _migratePlaintextDatabase(String password) async {
+    if (_database == null || lib == null) return false;
+    final path = await _getDatabasePath();
+    final sourceFile = File(path);
+    final tempFile = File('$path.encrypted.tmp');
+    final backupFile =
+        File('$path.unencrypted.${DateTime.now().millisecondsSinceEpoch}.bak');
+    final sourceCounts = await _getTableCounts(_database!);
+    final versionResult = await _database!.rawQuery('PRAGMA user_version');
+    final userVersion =
+        (versionResult.first.values.first as num?)?.toInt() ?? _dbVersion;
+
+    Database? sourceWithCipher;
+    var originalMoved = false;
+    try {
+      if (await tempFile.exists()) await tempFile.delete();
+      await _database!.rawQuery('PRAGMA wal_checkpoint(FULL)');
+      await _database!.close();
+      _database = null;
+
+      sourceWithCipher = await cipherDbFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          singleInstance: false,
+          onConfigure: _assertSqlCipher,
+        ),
+      );
+      final tempPath = _escapeSql(tempFile.absolute.path);
+      final escapedPassword = _escapeSql(password);
+      await sourceWithCipher.execute(
+          "ATTACH DATABASE '$tempPath' AS encrypted KEY '$escapedPassword'");
+      try {
+        await sourceWithCipher.rawQuery("SELECT sqlcipher_export('encrypted')");
+        await sourceWithCipher
+            .execute('PRAGMA encrypted.user_version=$userVersion');
+      } finally {
+        await sourceWithCipher.execute('DETACH DATABASE encrypted');
+      }
+      await sourceWithCipher.close();
+      sourceWithCipher = null;
+
+      final verifier = await _openDatabase(
+        tempFile.path,
+        password,
+        encrypted: true,
+        singleInstance: false,
+      );
+      final migratedCounts = await _getTableCounts(verifier);
+      await verifier.close();
+      if (!_mapEquals(sourceCounts, migratedCounts)) {
+        throw DatabaseMigrationException(
+          'Row counts differ: source=$sourceCounts, migrated=$migratedCounts',
+        );
+      }
+
+      await sourceFile.rename(backupFile.path);
+      originalMoved = true;
+      try {
+        await tempFile.rename(path);
+      } catch (_) {
+        await backupFile.rename(path);
+        originalMoved = false;
+        rethrow;
+      }
+
+      _database = await _openDatabase(path, password, encrypted: true);
+      final finalCounts = await _getTableCounts(_database!);
+      if (!_mapEquals(sourceCounts, finalCounts)) {
+        throw DatabaseMigrationException(
+          'Final row counts differ: source=$sourceCounts, final=$finalCounts',
+        );
+      }
+      isDatabaseEncrypted = true;
+      appProvider.currentDatabasePassword = password;
+      try {
+        if (await backupFile.exists()) await backupFile.delete();
+      } catch (e, t) {
+        ILogger.warning(
+            'Encrypted database is valid, but plaintext backup cleanup failed',
+            e,
+            t);
+      }
+      return true;
+    } catch (e, t) {
+      ILogger.error('Failed to migrate plaintext database', e, t);
+      await sourceWithCipher?.close();
+      await _database?.close();
+      _database = null;
+      if (originalMoved && await backupFile.exists()) {
+        if (await sourceFile.exists()) await sourceFile.delete();
+        await backupFile.rename(path);
+      }
+      if (await sourceFile.exists()) {
+        _database = await _openDatabase(path, '', encrypted: false);
+        isDatabaseEncrypted = false;
+        appProvider.currentDatabasePassword = '';
+      }
+      return false;
+    } finally {
+      try {
+        if (await tempFile.exists()) await tempFile.delete();
+      } catch (e, t) {
+        ILogger.warning('Failed to clean database migration temp file', e, t);
       }
     }
+  }
+
+  static bool _mapEquals(Map<String, int> a, Map<String, int> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) return false;
+    }
+    return true;
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -225,6 +484,8 @@ class DatabaseManager {
     await db.execute(Sql.createCloudServiceConfigTable.sql);
     await db.execute(Sql.createAutoBackupLogTable.sql);
     await db.execute(Sql.createTokenCategoryBindingTable.sql);
+    await DatabaseMigrations.createIndexes(db);
+    await DatabaseMigrations.upgradeToV10(db);
     await _insertSampleData(db);
   }
 
@@ -402,6 +663,12 @@ class DatabaseManager {
       await db.execute(
           'ALTER TABLE token_category_binding_new RENAME TO token_category_binding');
     }
+    if (oldVersion < 9) {
+      await DatabaseMigrations.upgradeToV9(db);
+    }
+    if (oldVersion < 10) {
+      await DatabaseMigrations.upgradeToV10(db);
+    }
   }
 
   static updateToV6(Database db) async {
@@ -482,8 +749,40 @@ class DatabaseManager {
         lib = DynamicLibrary.open('sqlite_sqlcipher.dll');
       }
       return lib;
-    } catch (e, t) {
+    } catch (e) {
       return null;
     }
   }
+}
+
+class SqlCipherUnavailableException implements Exception {
+  const SqlCipherUnavailableException();
+
+  @override
+  String toString() => 'SQLCipher is unavailable or failed validation.';
+}
+
+class InvalidDatabasePasswordException implements Exception {
+  const InvalidDatabasePasswordException();
+
+  @override
+  String toString() => 'The database password is empty or invalid.';
+}
+
+class DatabaseIntegrityException implements Exception {
+  final String details;
+
+  const DatabaseIntegrityException(this.details);
+
+  @override
+  String toString() => 'Database integrity check failed: $details';
+}
+
+class DatabaseMigrationException implements Exception {
+  final String details;
+
+  const DatabaseMigrationException(this.details);
+
+  @override
+  String toString() => 'Database migration failed: $details';
 }

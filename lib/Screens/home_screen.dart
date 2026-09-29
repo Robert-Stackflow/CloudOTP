@@ -16,7 +16,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:awesome_chewie/awesome_chewie.dart';
@@ -24,14 +23,15 @@ import 'package:cloudotp/Database/database_manager.dart';
 import 'package:cloudotp/Database/category_dao.dart';
 import 'package:cloudotp/Database/token_category_binding_dao.dart';
 import 'package:cloudotp/Models/opt_token.dart';
+import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Screens/Backup/cloud_service_screen.dart';
 import 'package:cloudotp/Screens/layout_select_screen.dart';
 import 'package:cloudotp/Screens/sort_select_screen.dart';
 import 'package:cloudotp/Screens/Setting/backup_log_screen.dart';
 import 'package:cloudotp/Screens/Token/category_screen.dart';
-import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Utils/search_query_parser.dart';
+import 'package:cloudotp/Utils/token_search_ranker.dart';
 import 'package:cloudotp/Widgets/BottomSheet/add_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/more_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/cloudotp/cloudotp_item_builder.dart';
@@ -58,6 +58,30 @@ import 'Token/add_token_screen.dart';
 import '../l10n/l10n.dart';
 import 'Token/token_layout.dart';
 
+class _PullSearchScrollPhysics extends AlwaysScrollableScrollPhysics {
+  const _PullSearchScrollPhysics({required this.isPulling, super.parent});
+
+  final bool Function() isPulling;
+
+  @override
+  _PullSearchScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      _PullSearchScrollPhysics(
+        isPulling: isPulling,
+        parent: buildParent(ancestor),
+      );
+
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    // Consume the reverse drag in the pull hint before either scrolls.
+    if (isPulling() &&
+        position.pixels >= position.minScrollExtent &&
+        value > position.pixels) {
+      return value - position.pixels;
+    }
+    return super.applyBoundaryConditions(position, value);
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -82,6 +106,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   String _searchKey = "";
   Map<String, GlobalKey<TokenLayoutState>> tokenKeyMap = {};
   late TabController _tabController;
+  bool _tabControllerInitialized = false;
   ScrollController _scrollController = ScrollController();
   final ScrollController _nestScrollController = ScrollController();
   final ScrollToHideController _fabScrollToHideController =
@@ -89,10 +114,21 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   final ScrollToHideController _bottombarScrollToHideController =
       ScrollToHideController();
   final TextEditingController _searchController = TextEditingController();
-  final PageController _marqueeController = PageController();
+  Timer? _searchDebounce;
+  int _searchTransitionGeneration = 0;
+  int _tokenLoadGeneration = 0;
+  ({
+    String filterKey,
+    List<OtpToken> tokens,
+    Set<String>? categoryTokenUids,
+    int totalCount,
+  })? _searchCandidates;
   late AnimationController _animationController;
   GridItemsNotifier gridItemsNotifier = GridItemsNotifier();
   final ValueNotifier<bool> _shownSearchbarNotifier = ValueNotifier(false);
+  final ValueNotifier<double> _pullSearchDistance = ValueNotifier(0);
+  final ValueNotifier<bool> _pullSearchHeaderHeld = ValueNotifier(false);
+  bool _pullSearchDragging = false;
 
   bool _multiSelectMode = false;
   final Set<String> _selectedTokenUids = {};
@@ -841,7 +877,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       DatabaseManager.updateSampleCategoryTitle(
           appLocalizations.sampleCategoryName);
     }
-    initTab(true);
+    initTab(true, false);
     refresh(true).then((_) {
       if (ResponsiveUtil.isMobile() &&
           !ResponsiveUtil.isLandscapeTablet() &&
@@ -852,13 +888,11 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         });
       }
     });
-    _searchController.addListener(() {
-      performSearch(_searchController.text);
-    });
+    _searchController.addListener(_scheduleSearch);
     _animationController = AnimationController(
       vsync: this,
       value: 1,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 240),
     );
     _pulseController = AnimationController(
       vsync: this,
@@ -875,6 +909,16 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   @override
   void dispose() {
+    _tokenLoadGeneration++;
+    _searchDebounce?.cancel();
+    _searchController.removeListener(_scheduleSearch);
+    _searchController.dispose();
+    _searchTransitionGeneration++;
+    _nestScrollController.dispose();
+    _shownSearchbarNotifier.dispose();
+    _pullSearchDistance.dispose();
+    _pullSearchHeaderHeld.dispose();
+    if (_tabControllerInitialized) _tabController.dispose();
     _animationController.dispose();
     _pulseController.dispose();
     for (final entry in _flyOverlays) {
@@ -888,6 +932,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     OtpToken token, {
     bool forceAll = false,
   }) async {
+    _searchCandidates = null;
     if (tokens.any((element) => element.uid == token.uid)) return;
     if (currentCategoryUid.isEmpty) {
       if (!forceAll) {
@@ -951,6 +996,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     bool pinnedStateChanged = false,
     bool counterChanged = false,
   }) {
+    _searchCandidates = null;
     int updateIndex = tokens.indexWhere((element) => element.uid == token.uid);
     tokens[updateIndex] = token;
     tokenKeyMap
@@ -961,6 +1007,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   removeToken(OtpToken token) {
+    _searchCandidates = null;
     int removeIndex = tokens.indexWhere((element) => element.uid == token.uid);
     if (removeIndex != -1) tokens.removeAt(removeIndex);
     gridItemsNotifier.notifyItemRemoved?.call(removeIndex, () {
@@ -970,6 +1017,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   changeCategoriesForToken(OtpToken token, List<String> unselectedCategoryUids,
       List<String> selectedCategorUids) {
+    _searchCandidates = null;
     if (unselectedCategoryUids.contains(currentCategoryUid)) {
       removeToken(token);
     }
@@ -979,6 +1027,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   changeTokensForCategory(TokenCategory category) {
+    _searchCandidates = null;
     if (category.uid == currentCategoryUid && currentCategoryUid.isNotEmpty) {
       getTokens();
     }
@@ -990,44 +1039,99 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
 
   refresh([bool isInit = false]) async {
     if (!mounted) return;
-    await getCategories(isInit);
+    await getCategories(isInit, false);
     await getTokens();
   }
 
-  getTokens() async {
-    final query = SearchQueryParser.parse(_searchKey);
+  Future<void> getTokens({bool reuseSearchCandidates = false}) async {
+    final generation = ++_tokenLoadGeneration;
+    final requestedCategoryUid = currentCategoryUid;
+    final requestedSearchKey = _searchKey;
+    final query = SearchQueryParser.parse(requestedSearchKey);
+    final filterKey = [
+      requestedCategoryUid,
+      query.categoryName ?? '',
+      query.tokenType ?? '',
+      ...query.tags,
+    ].join('\u0000');
 
     Set<String>? categoryTokenUids;
-    if (query.categoryName != null) {
-      final catUids =
-          await CategoryDao.getCategoryUidsByName(query.categoryName!);
-      categoryTokenUids = await BindingDao.getTokenUidsByCategoryUids(catUids);
-    }
-
-    await CategoryDao.getTokensByCategoryUid(
-      currentCategoryUid,
-      searchKey: query.text,
-      tags: query.tags,
-      tokenType: query.tokenType,
-    ).then((value) {
-      final seen = <String>{};
-      tokens = value.where((t) {
-        if (!seen.add(t.uid)) return false;
-        if (categoryTokenUids != null && !categoryTokenUids.contains(t.uid))
-          return false;
-        return true;
-      }).toList();
-      final currentUids = seen;
-      tokenKeyMap.removeWhere((uid, _) => !currentUids.contains(uid));
-      performSort();
-    });
-
-    if (currentCategoryUid.isEmpty && _searchKey.isEmpty) {
-      _allTokenCount = tokens.length;
+    late List<OtpToken> value;
+    late int totalCount;
+    final cached =
+        reuseSearchCandidates && _searchCandidates?.filterKey == filterKey
+            ? _searchCandidates
+            : null;
+    if (cached != null) {
+      value = cached.tokens;
+      categoryTokenUids = cached.categoryTokenUids;
+      totalCount = cached.totalCount;
     } else {
-      final allTokens = await TokenDao.listTokens();
-      _allTokenCount = allTokens.length;
+      if (query.categoryName != null) {
+        final catUids =
+            await CategoryDao.getCategoryUidsByName(query.categoryName!);
+        categoryTokenUids =
+            await BindingDao.getTokenUidsByCategoryUids(catUids);
+      }
+      final tokenFuture = CategoryDao.getTokensByCategoryUid(
+        requestedCategoryUid,
+        searchKey: '',
+        tags: query.tags,
+        tokenType: query.tokenType,
+      );
+      final countFuture = TokenDao.getTokenCount();
+      value = await tokenFuture;
+      totalCount = await countFuture;
     }
+
+    if (!mounted ||
+        generation != _tokenLoadGeneration ||
+        requestedCategoryUid != currentCategoryUid ||
+        requestedSearchKey != _searchKey) {
+      return;
+    }
+    if (cached == null) {
+      _searchCandidates = (
+        filterKey: filterKey,
+        tokens: value,
+        categoryTokenUids: categoryTokenUids,
+        totalCount: totalCount,
+      );
+    }
+
+    final seen = <String>{};
+    final nextTokens = value.where((token) {
+      if (!seen.add(token.uid)) return false;
+      return categoryTokenUids == null || categoryTokenUids.contains(token.uid);
+    }).toList();
+    if (query.text.isNotEmpty) {
+      final scores = <String, int>{};
+      nextTokens.removeWhere((token) {
+        final score = TokenSearchRanker.score(token, query.text);
+        if (score == null) return true;
+        scores[token.uid] = score;
+        return false;
+      });
+      _sortTokenList(nextTokens);
+      final originalOrder = <String, int>{
+        for (var i = 0; i < nextTokens.length; i++) nextTokens[i].uid: i,
+      };
+      nextTokens.sort((a, b) {
+        final relevance = scores[b.uid]!.compareTo(scores[a.uid]!);
+        return relevance != 0
+            ? relevance
+            : originalOrder[a.uid]!.compareTo(originalOrder[b.uid]!);
+      });
+    } else {
+      _sortTokenList(nextTokens);
+    }
+    final currentUids = nextTokens.map((token) => token.uid).toSet();
+
+    setState(() {
+      tokens = nextTokens;
+      _allTokenCount = totalCount;
+      tokenKeyMap.removeWhere((uid, _) => !currentUids.contains(uid));
+    });
   }
 
   void showCoachMark() {
@@ -1054,23 +1158,30 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     ).show(force: force);
   }
 
-  getCategories([bool isInit = false]) async {
+  getCategories([
+    bool isInit = false,
+    bool refreshTokensWhenSelectionChanges = true,
+  ]) async {
     String oldUid = currentCategoryUid;
-    await CategoryDao.listCategories().then((value) async {
-      categories = value;
-      List<String> uids = categories.map((e) => e.uid).toList();
-      if (!uids.contains(oldUid)) {
-        _currentTabIndex = 0;
-        await getTokens();
-      } else {
-        _currentTabIndex = uids.indexOf(oldUid) + 1;
-      }
-      initTab(isInit);
-      setState(() {});
-    });
+    final value = await CategoryDao.listCategories();
+    if (!mounted) return;
+    categories = value;
+    _searchCandidates = null;
+    List<String> uids = categories.map((e) => e.uid).toList();
+    final selectionChanged = !uids.contains(oldUid);
+    if (selectionChanged) {
+      _currentTabIndex = 0;
+    } else {
+      _currentTabIndex = uids.indexOf(oldUid) + 1;
+    }
+    initTab(isInit, false);
+    setState(() {});
+    if (selectionChanged && refreshTokensWhenSelectionChanges) {
+      await getTokens();
+    }
   }
 
-  initTab([bool isInit = false]) {
+  initTab([bool isInit = false, bool notify = true]) {
     tabList.clear();
     tabList.add(_buildTab(null));
     String categoryUid = CloudOTPHiveUtil.getSelectedCategoryId();
@@ -1080,9 +1191,20 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         _currentTabIndex = categories.indexOf(category) + 1;
       }
     }
-    setState(() {});
-    _tabController = TabController(length: tabList.length, vsync: this);
-    _tabController.index = _currentTabIndex;
+    final previousController =
+        _tabControllerInitialized ? _tabController : null;
+    _tabController = TabController(
+      length: tabList.length,
+      vsync: this,
+      initialIndex: _currentTabIndex,
+    );
+    _tabControllerInitialized = true;
+    if (previousController != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        previousController.dispose();
+      });
+    }
+    if (notify && mounted) setState(() {});
   }
 
   @override
@@ -1145,7 +1267,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           },
           child: Stack(
             children: [
-              _buildMobileBody(),
+              _buildPullToSearchBody(),
               _buildAnimatedDock(),
             ],
           ),
@@ -1167,32 +1289,46 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   _buildMobileBody() {
     return NestedScrollView(
       controller: _nestScrollController,
+      physics: appProvider.pullToSearch
+          ? _PullSearchScrollPhysics(
+              isPulling: () => _pullSearchHeaderHeld.value,
+            )
+          : null,
+      floatHeaderSlivers: true,
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [_buildMobileAppbar()];
       },
       body: Builder(
         builder: (context) {
           _scrollController = PrimaryScrollController.of(context);
-          return _buildMainContent();
+          return _buildPullSearchList(_buildMainContent());
         },
       ),
     );
   }
 
-  changeSearchBar(bool shown) {
-    Future.delayed(const Duration(milliseconds: 200), () {
-      _shownSearchbarNotifier.value = shown;
+  void changeSearchBar(bool shown) {
+    _pullSearchDragging = false;
+    _pullSearchDistance.value = 0;
+    _pullSearchHeaderHeld.value = false;
+    if (_shownSearchbarNotifier.value == shown) return;
+    final generation = ++_searchTransitionGeneration;
+    _shownSearchbarNotifier.value = shown;
+    final animation =
+        shown ? _animationController.reverse() : _animationController.forward();
+    animation.whenComplete(() {
+      if (!mounted ||
+          generation != _searchTransitionGeneration ||
+          _shownSearchbarNotifier.value != shown) {
+        return;
+      }
+      if (shown) {
+        appProvider.searchFocusNode.requestFocus();
+      } else {
+        appProvider.searchFocusNode.unfocus();
+        _searchController.clear();
+      }
     });
-    _marqueeController.animateToPage(shown ? 1 : 0,
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-    if (shown) {
-      appProvider.searchFocusNode.requestFocus();
-      _animationController.reverse();
-    } else {
-      _searchController.clear();
-      appProvider.searchFocusNode.unfocus();
-      _animationController.forward();
-    }
   }
 
   _buildFloatingActionButton() {
@@ -1343,79 +1479,97 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           useBackdropFilter: provider.enableFrostedGlassEffect,
           floating: provider.hideAppbarWhenScrolling,
           pinned: !provider.hideAppbarWhenScrolling,
-          backgroundColor: ChewieTheme.scaffoldBackgroundColor
-              .withOpacity(provider.enableFrostedGlassEffect ? 0.2 : 1),
+          backgroundColor: ChewieTheme.scaffoldBackgroundColor.withOpacity(
+              provider.enableFrostedGlassEffect
+                  ? (Theme.of(context).brightness == Brightness.dark
+                      ? 0.72
+                      : 0.62)
+                  : 1),
           title: SizedBox(
             height: kToolbarHeight,
-            child: MarqueeWidget(
-              count: 2,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: GestureDetector(
-                      key: _appBarTitleKey,
-                      onTap: () {
-                        if (!_shownSearchbarNotifier.value) {
-                          changeSearchBar(true);
-                        }
-                      },
-                      child: Text(
-                        ResponsiveUtil.appName,
-                        style:
-                            ChewieTheme.titleMedium.apply(fontWeightDelta: 2),
-                      ),
-                    ),
-                  );
-                } else {
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 24),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                FadeTransition(
+                  opacity: _animationController,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, -0.12),
+                      end: Offset.zero,
+                    ).animate(_animationController),
+                    child: IgnorePointer(
+                      ignoring: shownSearchbar,
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          CircleIconButton(
-                            tooltip: appLocalizations.cancel,
-                            icon: Icon(
-                              LucideIcons.arrowLeft,
-                              color: ChewieTheme.iconColor,
-                            ),
-                            onTap: () {
-                              changeSearchBar(false);
-                            },
-                          ),
-                          const SizedBox(width: 4),
                           Expanded(
-                            child: InputItem(
-                              hint: appLocalizations.searchToken,
-                              onSubmit: (text) {
-                                performSearch(text);
-                              },
-                              style: InputItemStyle(
-                                backgroundColor: Colors.transparent,
-                                bottomMargin: 0,
-                                topMargin: 0,
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: GestureDetector(
+                                key: _appBarTitleKey,
+                                onTap: () => changeSearchBar(true),
+                                child: Text(
+                                  ResponsiveUtil.appName,
+                                  style: ChewieTheme.titleMedium
+                                      .apply(fontWeightDelta: 2),
+                                ),
                               ),
-                              focusNode: appProvider.searchFocusNode,
-                              controller: _searchController,
                             ),
                           ),
+                          ...getActions(provider),
                         ],
                       ),
                     ),
-                  );
-                }
-              },
-              autoPlay: false,
-              controller: _marqueeController,
+                  ),
+                ),
+                FadeTransition(
+                  opacity: ReverseAnimation(_animationController),
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: Offset.zero,
+                      end: const Offset(0, 0.12),
+                    ).animate(_animationController),
+                    child: IgnorePointer(
+                      ignoring: !shownSearchbar,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            CircleIconButton(
+                              tooltip: appLocalizations.cancel,
+                              icon: Icon(
+                                LucideIcons.arrowLeft,
+                                color: ChewieTheme.iconColor,
+                              ),
+                              onTap: () => changeSearchBar(false),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: InputItem(
+                                hint: appLocalizations.searchToken,
+                                onSubmit: performSearch,
+                                style: InputItemStyle(
+                                  backgroundColor: Colors.transparent,
+                                  bottomMargin: 0,
+                                  topMargin: 0,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                ),
+                                focusNode: appProvider.searchFocusNode,
+                                controller: _searchController,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           expandedHeight: kToolbarHeight,
           collapsedHeight: kToolbarHeight,
-          actions: _shownSearchbarNotifier.value ? [] : getActions(provider),
         ),
       ),
     );
@@ -1440,16 +1594,12 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             alignment: Alignment.centerLeft,
             height: height,
             decoration: BoxDecoration(
-              color: ChewieTheme.scaffoldBackgroundColor
-                  .withOpacity(enableFrostedGlassEffect ? 0.2 : 1),
-              boxShadow: [
-                BoxShadow(
-                  color: ChewieTheme.shadowColor,
-                  blurRadius: 30,
-                  spreadRadius: 1,
-                ),
-              ],
-              // border: ChewieTheme.topDivider,
+              color: ChewieTheme.scaffoldBackgroundColor.withOpacity(
+                  enableFrostedGlassEffect
+                      ? (Theme.of(context).brightness == Brightness.dark
+                          ? 0.38
+                          : 0.24)
+                      : 1),
             ),
             padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding)
                 .copyWith(right: 70, bottom: 5 + verticalPadding + bottomInset),
@@ -1469,14 +1619,36 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                       decoration: const BoxDecoration(color: Color(0x00ffffff)),
                     ),
                   )
-                : enableFrostedGlassEffect
-                    ? ClipRRect(
-                        child: BackdropFilter(
-                          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: container,
+                : DecoratedBox(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: enableFrostedGlassEffect
+                              ? ChewieTheme.shadowColor.withValues(
+                                  alpha: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? 0.08
+                                      : 0.10,
+                                )
+                              : ChewieTheme.shadowColor,
+                          blurRadius: enableFrostedGlassEffect ? 14 : 30,
+                          spreadRadius: enableFrostedGlassEffect ? -3 : 1,
+                          offset: enableFrostedGlassEffect
+                              ? const Offset(0, -3)
+                              : Offset.zero,
                         ),
-                      )
-                    : container,
+                      ],
+                    ),
+                    child: enableFrostedGlassEffect
+                        ? ClipRect(
+                            child: BackdropFilter(
+                              filter:
+                                  ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                              child: container,
+                            ),
+                          )
+                        : container,
+                  ),
           );
         },
       ),
@@ -1494,11 +1666,13 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       builder: (context, settings, child) {
         double bottomPadding = MediaQuery.of(context).padding.bottom;
         return ReorderableGridView.builder(
-          cacheExtent: 1000,
+          cacheExtent: ResponsiveUtil.isAndroid() ? 300 : 999,
           // controller: _scrollController,
           gridItemsNotifier: gridItemsNotifier,
           autoScroll: true,
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: _PullSearchScrollPhysics(
+            isPulling: () => _pullSearchDistance.value > 0,
+          ),
           padding: EdgeInsets.only(
               left: 10,
               right: 10,
@@ -1533,10 +1707,43 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
             }
             final item = tokens.removeAt(oldIndex);
             tokens.insert(newIndex, item);
-            for (int i = 0; i < tokens.length; i++) {
-              tokens[i].seq = tokens.length - i;
+            // `tokens` may be a filtered subset (a category tab or active
+            // search), but `seq` is a single global field. Rebuild the full
+            // global order so it stays consistent with this reorder: move the
+            // dragged token next to its new visible neighbour in the complete
+            // list, then renumber every token's seq. Non-visible tokens keep
+            // their relative order, and the global "all" view matches what the
+            // user sees here. Renumbering also heals any legacy seq collisions.
+            final all = await TokenDao.listTokens();
+            all.removeWhere((t) => t.uid == item.uid);
+            int anchorPos;
+            if (newIndex > 0) {
+              // place right below the visible token now above the dragged one
+              final prevUid = tokens[newIndex - 1].uid;
+              anchorPos = all.indexWhere((t) => t.uid == prevUid) + 1;
+            } else if (tokens.length > 1) {
+              // dropped at the very top: place right above the token now below
+              final nextUid = tokens[newIndex + 1].uid;
+              anchorPos = all.indexWhere((t) => t.uid == nextUid);
+            } else {
+              anchorPos = 0;
             }
-            await TokenDao.updateTokens(tokens, autoBackup: false);
+            if (anchorPos < 0) anchorPos = 0;
+            all.insert(anchorPos, item);
+            for (int i = 0; i < all.length; i++) {
+              all[i].seq = all.length - i;
+            }
+            // Keep the in-memory visible tokens' seq in sync with the DB so a
+            // later performSort (e.g. on pin toggle) stays correct.
+            final seqByUid = {for (final t in all) t.uid: t.seq};
+            for (final t in tokens) {
+              t.seq = seqByUid[t.uid] ?? t.seq;
+            }
+            await TokenDao.updateTokens(all, autoBackup: false);
+            _searchCandidates = null;
+            ExportTokenUtil.autoBackup(
+              triggerType: AutoBackupTriggerType.tokensUpdated,
+            );
             changeOrderType(type: OrderType.Default, doPerformSort: false);
           },
           proxyDecorator:
@@ -1689,21 +1896,193 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       indicator: UnderlinedTabIndicator(borderColor: ChewieTheme.primaryColor),
       onTap: (index) {
         if (_multiSelectMode) exitMultiSelectMode();
-        if (_nestScrollController.hasClients) {
-          _nestScrollController.animateTo(0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut);
-        }
         _currentTabIndex = index;
-        getTokens();
         CloudOTPHiveUtil.setSelectedCategoryUid(currentCategoryUid);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          for (final key in tokenKeyMap.values) {
-            key.currentState?.replayEntrance();
-          }
-        });
+        unawaited(_loadSelectedCategory(index));
       },
     );
+  }
+
+  bool _onPullSearchScroll(ScrollNotification notification) {
+    if (_multiSelectMode ||
+        _shownSearchbarNotifier.value ||
+        notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    if (notification is OverscrollNotification &&
+        notification.dragDetails != null &&
+        notification.metrics.extentBefore == 0) {
+      if (notification.overscroll < 0) {
+        _pullSearchDragging = true;
+        _setPullSearchDistance(
+            _pullSearchDistance.value - notification.overscroll * 0.48);
+      } else if (notification.overscroll > 0 && _pullSearchDistance.value > 0) {
+        _setPullSearchDistance(
+            _pullSearchDistance.value - notification.overscroll * 0.48);
+      }
+    } else if (notification is ScrollUpdateNotification &&
+        notification.dragDetails != null &&
+        notification.metrics.pixels < notification.metrics.minScrollExtent) {
+      _pullSearchDragging = true;
+      _setPullSearchDistance(
+          (notification.metrics.minScrollExtent - notification.metrics.pixels) *
+              0.48);
+    } else if (notification is ScrollUpdateNotification &&
+        notification.dragDetails != null &&
+        notification.scrollDelta != null &&
+        notification.scrollDelta! > 0 &&
+        _pullSearchDistance.value > 0) {
+      _setPullSearchDistance(
+          _pullSearchDistance.value - notification.scrollDelta!);
+    } else if (notification is ScrollEndNotification &&
+        _pullSearchHeaderHeld.value) {
+      final shouldOpen = _pullSearchDistance.value >= 52;
+      _pullSearchDragging = false;
+      _pullSearchDistance.value = 0;
+      _pullSearchHeaderHeld.value = false;
+      if (shouldOpen) changeSearchBar(true);
+    }
+    return false;
+  }
+
+  void _setPullSearchDistance(double distance) {
+    final next = distance.clamp(0.0, 64.0);
+    if (next > 0) _pullSearchHeaderHeld.value = true;
+    if (_pullSearchDistance.value < 52 && next >= 52) {
+      HapticFeedback.mediumImpact();
+    }
+    _pullSearchDistance.value = next;
+  }
+
+  Widget _buildPullToSearchBody() {
+    return Selector<AppProvider, bool>(
+      selector: (context, provider) => provider.pullToSearch,
+      builder: (context, enabled, child) => enabled
+          ? NotificationListener<ScrollNotification>(
+              onNotification: _onPullSearchScroll,
+              child: _buildMobileBody(),
+            )
+          : _buildMobileBody(),
+    );
+  }
+
+  Widget _buildPullSearchList(Widget list) {
+    if (!appProvider.pullToSearch) return list;
+    return ValueListenableBuilder<double>(
+      valueListenable: _pullSearchDistance,
+      child: ColoredBox(
+        color: ChewieTheme.scaffoldBackgroundColor,
+        child: list,
+      ),
+      builder: (context, distance, body) => Stack(
+        children: [
+          Positioned(
+            top: 8,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: AnimatedOpacity(
+                duration: _pullSearchDragging
+                    ? Duration.zero
+                    : const Duration(milliseconds: 180),
+                opacity: (distance / 32).clamp(0.0, 1.0),
+                child: AnimatedScale(
+                  duration: _pullSearchDragging
+                      ? Duration.zero
+                      : const Duration(milliseconds: 180),
+                  scale: 0.96 + (distance / 1300).clamp(0.0, 0.04),
+                  child: Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: ChewieTheme.canvasColor,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: ChewieTheme.borderColor.withValues(alpha: 0.55),
+                        width: 0.7,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(LucideIcons.search,
+                            size: 16, color: ChewieTheme.primaryColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          appLocalizations.searchToken,
+                          style: ChewieTheme.bodyMedium.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 150),
+                          child: distance >= 52
+                              ? Icon(LucideIcons.check,
+                                  key: const ValueKey('ready'),
+                                  size: 16,
+                                  color: ChewieTheme.primaryColor)
+                              : SizedBox(
+                                  key: const ValueKey('progress'),
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    value: (distance / 52).clamp(0.0, 1.0),
+                                    strokeWidth: 2,
+                                    color: ChewieTheme.primaryColor,
+                                    backgroundColor: ChewieTheme.primaryColor
+                                        .withValues(alpha: 0.12),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: AnimatedContainer(
+              duration: _pullSearchDragging
+                  ? Duration.zero
+                  : const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              transform: Matrix4.translationValues(0, distance, 0),
+              child: body,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _loadSelectedCategory(int index) async {
+    final generation = _tokenLoadGeneration + 1;
+    await getTokens();
+    if (!mounted ||
+        index != _currentTabIndex ||
+        generation != _tokenLoadGeneration) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          index != _currentTabIndex ||
+          generation != _tokenLoadGeneration) {
+        return;
+      }
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+      }
+      if (_nestScrollController.hasClients) {
+        _nestScrollController
+            .jumpTo(_nestScrollController.position.minScrollExtent);
+      }
+      _fabScrollToHideController.show();
+      _bottombarScrollToHideController.show();
+    });
   }
 
   _buildTab(TokenCategory? category) {
@@ -1889,10 +2268,18 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     appProvider.shortcutFocusNode.unfocus();
   }
 
+  void _scheduleSearch() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 180), () {
+      performSearch(_searchController.text);
+    });
+  }
+
   performSearch(String searchKey) {
+    _searchDebounce?.cancel();
     if (_multiSelectMode) exitMultiSelectMode();
     _searchKey = searchKey;
-    getTokens();
+    unawaited(getTokens(reuseSearchCandidates: true));
   }
 
   changeLayoutType([LayoutType? type]) {
@@ -1928,6 +2315,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   resetCopyTimesSingle(OtpToken token) {
+    _searchCandidates = null;
     int updateIndex = tokens.indexWhere((element) => element.uid == token.uid);
     tokens[updateIndex].copyTimes = 0;
     tokens[updateIndex].lastCopyTimeStamp = 0;
@@ -1938,6 +2326,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
   }
 
   resetCopyTimes() {
+    _searchCandidates = null;
     for (var element in tokens) {
       element.copyTimes = 0;
     }
@@ -1947,40 +2336,34 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     }
   }
 
+  void _sortTokenList(List<OtpToken> target) {
+    target.sort((a, b) {
+      final pinned = b.pinnedInt.compareTo(a.pinnedInt);
+      if (pinned != 0) return pinned;
+      final order = switch (orderType) {
+        OrderType.Default => b.seq.compareTo(a.seq),
+        OrderType.AlphabeticalASC => a.issuer.compareTo(b.issuer),
+        OrderType.AlphabeticalDESC => b.issuer.compareTo(a.issuer),
+        OrderType.CopyTimesDESC => b.copyTimes.compareTo(a.copyTimes),
+        OrderType.CopyTimesASC => a.copyTimes.compareTo(b.copyTimes),
+        OrderType.LastCopyTimeDESC =>
+          b.lastCopyTimeStamp.compareTo(a.lastCopyTimeStamp),
+        OrderType.LastCopyTimeASC =>
+          a.lastCopyTimeStamp.compareTo(b.lastCopyTimeStamp),
+        OrderType.CreateTimeDESC =>
+          b.createTimeStamp.compareTo(a.createTimeStamp),
+        OrderType.CreateTimeASC =>
+          a.createTimeStamp.compareTo(b.createTimeStamp),
+      };
+      if (order != 0) return order;
+      final seq = b.seq.compareTo(a.seq);
+      return seq != 0 ? seq : a.uid.compareTo(b.uid);
+    });
+  }
+
   performSort() {
-    switch (orderType) {
-      case OrderType.Default:
-        tokens.sort((a, b) => -a.seq.compareTo(b.seq));
-        break;
-      case OrderType.AlphabeticalASC:
-        tokens.sort((a, b) => a.issuer.compareTo(b.issuer));
-        break;
-      case OrderType.AlphabeticalDESC:
-        tokens.sort((a, b) => -a.issuer.compareTo(b.issuer));
-        break;
-      case OrderType.CopyTimesDESC:
-        tokens.sort((a, b) => -a.copyTimes.compareTo(b.copyTimes));
-        break;
-      case OrderType.CopyTimesASC:
-        tokens.sort((a, b) => a.copyTimes.compareTo(b.copyTimes));
-        break;
-      case OrderType.LastCopyTimeDESC:
-        tokens.sort(
-            (a, b) => -a.lastCopyTimeStamp.compareTo(b.lastCopyTimeStamp));
-        break;
-      case OrderType.LastCopyTimeASC:
-        tokens
-            .sort((a, b) => a.lastCopyTimeStamp.compareTo(b.lastCopyTimeStamp));
-        break;
-      case OrderType.CreateTimeDESC:
-        tokens.sort((a, b) => -a.createTimeStamp.compareTo(b.createTimeStamp));
-        break;
-      case OrderType.CreateTimeASC:
-        tokens.sort((a, b) => a.createTimeStamp.compareTo(b.createTimeStamp));
-        break;
-    }
-    tokens.sort((a, b) => -a.pinnedInt.compareTo(b.pinnedInt));
-    setState(() {});
+    _sortTokenList(tokens);
+    if (mounted) setState(() {});
   }
 
   @override

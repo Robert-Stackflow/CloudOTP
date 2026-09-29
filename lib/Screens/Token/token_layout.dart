@@ -26,6 +26,7 @@ import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:cloudotp/Widgets/BottomSheet/select_category_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/BottomSheet/token_option_bottom_sheet.dart';
 import 'package:cloudotp/Widgets/cloudotp/cloudotp_item_builder.dart';
+import 'package:cloudotp/Widgets/cloudotp/smooth_token_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -104,13 +105,11 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   TokenLayoutNotifier tokenLayoutNotifier = TokenLayoutNotifier();
 
-  late final AnimationController _entranceController;
-  late final Animation<double> _entranceAnimation;
-
   AnimationController? _wobbleController;
   late Animation<double> _wobbleAnimation;
 
   int _lastTimeStep = -1;
+  int _lastProgressPaintTimestamp = 0;
 
   SlidableController? _slidableController;
 
@@ -120,11 +119,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   Future<void> closeSlidable() async {
     await _slidableController?.close();
-  }
-
-  void replayEntrance() {
-    _entranceController.reset();
-    _entranceController.forward();
   }
 
   void _startWobble() {
@@ -172,12 +166,12 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   @override
   void dispose() {
-    _entranceController.dispose();
     _tickerSubscription?.cancel();
     _stopWobble();
     _slidableController?.dispose();
     _slidableController = null;
     tokenLayoutNotifier.dispose();
+    progressNotifier.dispose();
     super.dispose();
   }
 
@@ -207,15 +201,6 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   @override
   void initState() {
     super.initState();
-    _entranceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _entranceAnimation = CurvedAnimation(
-      parent: _entranceController,
-      curve: Curves.easeOutBack,
-    );
-    _entranceController.forward();
     updateCode();
     progressNotifier.value = currentProgress;
     resetTimer();
@@ -224,15 +209,21 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
   resetTimer() {
     tokenLayoutNotifier.haveToResetHOTP = false;
     _tickerSubscription?.cancel();
-    globalTokenTicker.start();
     _tickerSubscription = globalTokenTicker.stream.listen((_) {
       if (mounted) {
-        progressNotifier.value = currentProgress;
-        if (remainingMilliseconds <= 180 && appProvider.autoHideCode) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final remaining = remainingMilliseconds;
+        if (!ResponsiveUtil.isAndroid() ||
+            now - _lastProgressPaintTimestamp >= 200 ||
+            remaining <= 200) {
+          _lastProgressPaintTimestamp = now;
+          progressNotifier.value = currentProgress;
+        }
+        if (remaining <= 180 && appProvider.autoHideCode) {
           tokenLayoutNotifier.codeVisiable = false;
         }
         updateCode();
-        if (remainingMilliseconds <= 100) {
+        if (remaining <= 100) {
           tokenLayoutNotifier.haveToResetHOTP = true;
           tokenLayoutNotifier.code = getNextCode();
         }
@@ -242,23 +233,7 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _entranceAnimation,
-      builder: (context, child) {
-        final value = _entranceAnimation.value;
-        return Transform.translate(
-          offset: Offset(0, 40 * (1 - value)),
-          child: Transform.scale(
-            scale: 0.75 + 0.25 * value,
-            child: Opacity(
-              opacity: value.clamp(0.0, 1.0),
-              child: child,
-            ),
-          ),
-        );
-      },
-      child: RepaintBoundary(child: _buildContextMenuRegion()),
-    );
+    return RepaintBoundary(child: _buildContextMenuRegion());
   }
 
   String getCurrentCode() {
@@ -406,12 +381,9 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
             autoTriggerIconAndTextColor: Colors.white,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             foregroundColor: ChewieTheme.primaryColor,
-            icon: widget.token.pinned
-                ? LucideIcons.pin
-                : LucideIcons.pinOff,
-            autoTriggerIcon: widget.token.pinned
-                ? LucideIcons.pinOff
-                : LucideIcons.pin,
+            icon: widget.token.pinned ? LucideIcons.pin : LucideIcons.pinOff,
+            autoTriggerIcon:
+                widget.token.pinned ? LucideIcons.pinOff : LucideIcons.pin,
             label: widget.token.pinned
                 ? appLocalizations.unPinTokenShort
                 : appLocalizations.pinTokenShort,
@@ -888,17 +860,20 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
         : ValueListenableBuilder(
             valueListenable: progressNotifier,
             builder: (context, progress, child) {
-              return Container(
-                constraints: const BoxConstraints(minHeight: 2, maxHeight: 2),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  semanticsLabel: appLocalizations.tokenProgressLabel,
-                  minHeight: 2,
-                  color: progress > autoCopyNextCodeProgressThrehold
-                      ? ChewieTheme.primaryColor
-                      : Colors.red,
-                  borderRadius: BorderRadius.circular(5),
-                  backgroundColor: Colors.grey.withOpacity(0.3),
+              return SmoothTokenProgress(
+                value: progress,
+                period: widget.token.period,
+                builder: (context, animatedProgress) => Container(
+                  constraints: const BoxConstraints(minHeight: 2, maxHeight: 2),
+                  child: LinearProgressIndicator(
+                    value: animatedProgress,
+                    semanticsLabel: appLocalizations.tokenProgressLabel,
+                    minHeight: 2,
+                    color: SmoothTokenProgress.color(
+                        animatedProgress, ChewieTheme.primaryColor),
+                    borderRadius: BorderRadius.circular(5),
+                    backgroundColor: Colors.grey.withOpacity(0.3),
+                  ),
                 ),
               );
             },
@@ -914,41 +889,39 @@ class TokenLayoutState extends BaseDynamicState<TokenLayout>
               width: 24,
               height: 24,
               margin: const EdgeInsets.only(left: 8, right: 4),
-              child: Stack(
-                children: [
-                  ValueListenableBuilder(
-                    valueListenable: progressNotifier,
-                    builder: (context, value, child) {
-                      return CircularProgressIndicator(
-                        value: progressNotifier.value,
-                        semanticsLabel: appLocalizations.tokenProgressLabel,
-                        color: progressNotifier.value >
-                                autoCopyNextCodeProgressThrehold
-                            ? ChewieTheme.primaryColor
-                            : Colors.red,
-                        backgroundColor: Colors.grey.withOpacity(0.3),
-                        strokeCap: StrokeCap.round,
+              child: ValueListenableBuilder<double>(
+                valueListenable: progressNotifier,
+                builder: (context, progress, child) {
+                  return SmoothTokenProgress(
+                    value: progress,
+                    period: widget.token.period,
+                    builder: (context, animatedProgress) {
+                      final color = SmoothTokenProgress.color(
+                          animatedProgress, ChewieTheme.primaryColor);
+                      return Stack(
+                        children: [
+                          CircularProgressIndicator(
+                            value: animatedProgress,
+                            semanticsLabel: appLocalizations.tokenProgressLabel,
+                            color: color,
+                            backgroundColor: Colors.grey.withOpacity(0.3),
+                            strokeCap: StrokeCap.round,
+                          ),
+                          Center(
+                            child: Text(
+                              (progress * widget.token.period)
+                                  .toStringAsFixed(0),
+                              style: ChewieTheme.bodyMedium.apply(
+                                color: color,
+                                fontSizeDelta: -3,
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
-                  ),
-                  Center(
-                    child: ValueListenableBuilder(
-                      valueListenable: progressNotifier,
-                      builder: (context, value, child) {
-                        return Text(
-                          (remainingMilliseconds / 1000).toStringAsFixed(0),
-                          style: ChewieTheme.bodyMedium.apply(
-                            color: currentProgress >
-                                    autoCopyNextCodeProgressThrehold
-                                ? ChewieTheme.primaryColor
-                                : Colors.red,
-                            fontSizeDelta: -3,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
     );

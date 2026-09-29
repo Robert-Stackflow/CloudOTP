@@ -17,11 +17,17 @@ class GoogleDriveUserInfo extends BaseCloudUserInfo {
   });
 
   factory GoogleDriveUserInfo.fromJson(Map<String, dynamic> json) {
+    final user = json['user'] as Map<String, dynamic>?;
+    final storageQuota = json['storageQuota'] as Map<String, dynamic>?;
     return GoogleDriveUserInfo(
-      email: json['user']['emailAddress'],
-      displayName: json['user']['displayName'],
-      total: int.tryParse(json['storageQuota']['limit']),
-      used: int.tryParse(json['storageQuota']['usageInDrive']),
+      email: user?['emailAddress'] as String?,
+      displayName: user?['displayName'] as String?,
+      total: storageQuota?['limit'] != null
+          ? int.tryParse(storageQuota!['limit'])
+          : null,
+      used: storageQuota?['usageInDrive'] != null
+          ? int.tryParse(storageQuota!['usageInDrive'])
+          : null,
     );
   }
 
@@ -57,13 +63,15 @@ class GoogleDriveFileInfo extends BaseCloudFileInfo {
 
   factory GoogleDriveFileInfo.fromJson(Map<String, dynamic> json) {
     return GoogleDriveFileInfo(
-      id: json['id'],
-      name: json['name'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
       size: json['size'] ?? 0,
-      createdDateTime:
-          DateTime.parse(json['createdDateTime'] ?? "").millisecondsSinceEpoch,
-      lastModifiedDateTime: DateTime.parse(json['lastModifiedDateTime'] ?? "")
-          .millisecondsSinceEpoch,
+      createdDateTime: json['createdDateTime'] != null
+          ? DateTime.parse(json['createdDateTime']).millisecondsSinceEpoch
+          : 0,
+      lastModifiedDateTime: json['lastModifiedDateTime'] != null
+          ? DateTime.parse(json['lastModifiedDateTime']).millisecondsSinceEpoch
+          : 0,
       description: json['description'] ?? "",
       fileMimeType: json['mimeType'] ?? "",
     );

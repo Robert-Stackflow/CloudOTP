@@ -685,7 +685,8 @@ class OtpToken {
       copyTimes: copyTimes,
       lastCopyTimeStamp: lastCopyTimeStamp,
       pin: pin,
-    );
+      description: description,
+    )..tags = List<String>.from(tags);
   }
 
   copyFrom(OtpToken token) {
@@ -708,5 +709,7 @@ class OtpToken {
     copyTimes = token.copyTimes;
     lastCopyTimeStamp = token.lastCopyTimeStamp;
     pin = token.pin;
+    description = token.description;
+    tags = List<String>.from(token.tags);
   }
 }

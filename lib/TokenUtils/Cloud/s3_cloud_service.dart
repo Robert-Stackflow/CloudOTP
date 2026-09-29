@@ -72,13 +72,38 @@ class S3CloudService extends CloudService {
     try {
       bool isAuthorized = await s3Storage.bucketExists(bucket);
       if (!isAuthorized) {
-        return CloudServiceStatus.connectionError;
+        final msg = "Bucket '$bucket' not found on $endpoint";
+        ILogger.error("S3 authenticate failed: $msg");
+        return CloudServiceStatus(CloudServiceStatusType.connectionError,
+            message: msg);
       } else {
         return CloudServiceStatus.success;
       }
+    } on StorageS3Error catch (e, t) {
+      final statusCode = e.response?.statusCode;
+      final errorCode = e.error?.code;
+      final errorMessage = e.error?.message;
+      final msg = errorMessage ?? errorCode ?? "statusCode=$statusCode";
+      ILogger.error(
+          "S3 authenticate failed: statusCode=$statusCode, errorCode=$errorCode, "
+          "errorMessage=$errorMessage, endpoint=$endpoint, bucket=$bucket, "
+          "region=$region, accessKey=${accessKey.length > 4 ? '${accessKey.substring(0, 4)}***' : '***'}",
+          e,
+          t);
+      if (statusCode == 403) {
+        return CloudServiceStatus(CloudServiceStatusType.unauthorized,
+            message: msg);
+      }
+      return CloudServiceStatus(CloudServiceStatusType.unknownError,
+          message: msg);
     } catch (e, t) {
-      ILogger.error("Failed to authenticate s3", e, t);
-      return CloudServiceStatus.unknownError;
+      ILogger.error(
+          "S3 authenticate failed: endpoint=$endpoint, bucket=$bucket, "
+          "region=$region",
+          e,
+          t);
+      return CloudServiceStatus(CloudServiceStatusType.unknownError,
+          message: e.toString());
     }
   }
 
@@ -87,8 +112,21 @@ class S3CloudService extends CloudService {
     try {
       bool connected = await s3Storage.bucketExists(bucket);
       return connected;
+    } on StorageS3Error catch (e, t) {
+      final statusCode = e.response?.statusCode;
+      final errorCode = e.error?.code;
+      final errorMessage = e.error?.message;
+      ILogger.error(
+          "S3 connection check failed: statusCode=$statusCode, errorCode=$errorCode, "
+          "errorMessage=$errorMessage, endpoint=$endpoint, bucket=$bucket",
+          e,
+          t);
+      return false;
     } catch (e, t) {
-      ILogger.error("Failed to connect to s3 cloud", e, t);
+      ILogger.error(
+          "S3 connection check failed: endpoint=$endpoint, bucket=$bucket",
+          e,
+          t);
       return false;
     }
   }
@@ -116,7 +154,11 @@ class S3CloudService extends CloudService {
       list.sort((a, b) {
         return a.modifyTimestamp.compareTo(b.modifyTimestamp);
       });
-      while (list.length > maxCount) {
+      final deleteCount = CloudService.getOldBackupDeleteCount(
+        backupCount: list.length,
+        maxCount: maxCount,
+      );
+      for (int i = 0; i < deleteCount; i++) {
         var file = list.removeAt(0);
         await deleteFile(file.path);
       }
@@ -199,8 +241,7 @@ class S3CloudService extends CloudService {
               onProgress: (bytes) {
         onProgress?.call(bytes, fileData.length);
       });
-      deleteOldBackup();
-      return response.isNotEmpty;
+      return await completeUpload(response.isNotEmpty);
     } catch (e, t) {
       ILogger.error("Failed to upload file to s3 cloud", e, t);
       return false;

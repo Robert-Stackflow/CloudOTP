@@ -38,14 +38,17 @@ class OneDriveUserInfo extends BaseCloudUserInfo {
   });
 
   factory OneDriveUserInfo.fromJson(Map<String, dynamic> json) {
+    final owner = json['owner'] as Map<String, dynamic>?;
+    final user = owner?['user'] as Map<String, dynamic>?;
+    final quota = json['quota'] as Map<String, dynamic>?;
     return OneDriveUserInfo(
-        email: json['owner']['user']['email'],
-        displayName: json['owner']['user']['displayName'],
-        total: json['quota']['total'],
-        used: json['quota']['used'],
-        deleted: json['quota']['deleted'],
-        remaining: json['quota']['remaining'],
-        state: json['quota']['state']);
+        email: user?['email'] as String?,
+        displayName: user?['displayName'] as String?,
+        total: quota?['total'] as int?,
+        used: quota?['used'] as int?,
+        deleted: quota?['deleted'] as int?,
+        remaining: quota?['remaining'] as int?,
+        state: quota?['state'] as String?);
   }
 
   @override
@@ -83,13 +86,15 @@ class OneDriveFileInfo extends BaseCloudFileInfo {
 
   factory OneDriveFileInfo.fromJson(Map<String, dynamic> json) {
     return OneDriveFileInfo(
-      id: json['id'],
-      name: json['name'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
       size: json['size'] ?? 0,
-      createdDateTime:
-          DateTime.parse(json['createdDateTime']).millisecondsSinceEpoch,
-      lastModifiedDateTime:
-          DateTime.parse(json['lastModifiedDateTime']).millisecondsSinceEpoch,
+      createdDateTime: json['createdDateTime'] != null
+          ? DateTime.parse(json['createdDateTime']).millisecondsSinceEpoch
+          : 0,
+      lastModifiedDateTime: json['lastModifiedDateTime'] != null
+          ? DateTime.parse(json['lastModifiedDateTime']).millisecondsSinceEpoch
+          : 0,
       description: json['description'] ?? "",
       fileMimeType: json['file'] != null ? json['file']['mimeType'] ?? "" : "",
     );

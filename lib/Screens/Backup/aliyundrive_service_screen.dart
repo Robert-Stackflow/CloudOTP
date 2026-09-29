@@ -13,20 +13,19 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:typed_data';
-
 import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 import 'package:cloudotp/Models/cloud_service_config.dart';
 import 'package:cloudotp/TokenUtils/Cloud/cloud_service.dart';
 import 'package:cloudotp/Utils/app_provider.dart';
 import 'package:flutter/material.dart';
+
+import 'cloud_service_ui_helper.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../Database/cloud_service_config_dao.dart';
 import '../../TokenUtils/Cloud/aliyundrive_cloud_service.dart';
 import '../../TokenUtils/export_token_util.dart';
-import '../../TokenUtils/import_token_util.dart';
 import '../../Utils/utils.dart';
 import '../../Widgets/BottomSheet/Backups/aliyundrive_backups_bottom_sheet.dart';
 import '../../l10n/l10n.dart';
@@ -34,7 +33,10 @@ import '../../l10n/l10n.dart';
 class AliyunDriveServiceScreen extends StatefulWidget {
   const AliyunDriveServiceScreen({
     super.key,
+    required this.configId,
   });
+
+  final int configId;
 
   static const String routeName = "/service/aliyunDrive";
 
@@ -45,9 +47,7 @@ class AliyunDriveServiceScreen extends StatefulWidget {
 
 class _AliyunDriveServiceScreenState
     extends BaseDynamicState<AliyunDriveServiceScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    with TickerProviderStateMixin {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   CloudServiceConfig? _aliyunDriveCloudServiceConfig;
@@ -72,18 +72,10 @@ class _AliyunDriveServiceScreenState
 
   loadConfig() async {
     _aliyunDriveCloudServiceConfig =
-        await CloudServiceConfigDao.getAliyunDriveConfig();
+        await CloudServiceConfigDao.getConfigById(widget.configId);
     if (_aliyunDriveCloudServiceConfig != null) {
       _sizeController.text = _aliyunDriveCloudServiceConfig!.size;
       _accountController.text = _aliyunDriveCloudServiceConfig!.account ?? "";
-      _aliyunDriveCloudService = AliyunDriveCloudService(
-        _aliyunDriveCloudServiceConfig!,
-        onConfigChanged: updateConfig,
-      );
-    } else {
-      _aliyunDriveCloudServiceConfig =
-          CloudServiceConfig.init(type: CloudServiceType.AliyunDrive);
-      await CloudServiceConfigDao.insertConfig(_aliyunDriveCloudServiceConfig!);
       _aliyunDriveCloudService = AliyunDriveCloudService(
         _aliyunDriveCloudServiceConfig!,
         onConfigChanged: updateConfig,
@@ -117,7 +109,6 @@ class _AliyunDriveServiceScreenState
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ResponsiveUtil.isLinux()
         ? _buildUnsupportBody()
         : inited
@@ -149,32 +140,34 @@ class _AliyunDriveServiceScreenState
     bool showLoading = true,
     bool showSuccessToast = true,
   }) async {
-    if (showLoading) {
-      CustomLoadingDialog.showLoading(title: appLocalizations.cloudConnecting);
-    }
-    await currentService.authenticate().then((value) async {
-      setState(() {
-        currentConfig.connected = (value == CloudServiceStatus.success);
-      });
-      if (!currentConfig.connected) {
-        switch (value) {
-          case CloudServiceStatus.connectionError:
-            IToast.show(appLocalizations.cloudConnectionError);
-            break;
-          case CloudServiceStatus.unauthorized:
-            IToast.show(appLocalizations.cloudOauthFailed);
-            break;
-          default:
-            IToast.show(appLocalizations.cloudUnknownError);
-            break;
+    await CloudServiceUiHelper.runWithLoading(
+      showLoading: showLoading,
+      action: () async => currentService.authenticate().then((value) async {
+        setState(() {
+          currentConfig.connected = value.isSuccess;
+        });
+        if (!currentConfig.connected) {
+          String toast;
+          switch (value.type) {
+            case CloudServiceStatusType.connectionError:
+              toast = appLocalizations.cloudConnectionError;
+              break;
+            case CloudServiceStatusType.unauthorized:
+              toast = appLocalizations.cloudOauthFailed;
+              break;
+            default:
+              toast = appLocalizations.cloudUnknownError;
+              break;
+          }
+          IToast.show(
+              value.message != null ? "$toast: ${value.message}" : toast);
+        } else {
+          _aliyunDriveCloudServiceConfig!.configured = true;
+          updateConfig(_aliyunDriveCloudServiceConfig!);
+          if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
         }
-      } else {
-        _aliyunDriveCloudServiceConfig!.configured = true;
-        updateConfig(_aliyunDriveCloudServiceConfig!);
-        if (showSuccessToast) IToast.show(appLocalizations.cloudAuthSuccess);
-      }
-    });
-    if (showLoading) CustomLoadingDialog.dismissLoading();
+      }),
+    );
   }
 
   _buildBody() {
@@ -270,51 +263,39 @@ class _AliyunDriveServiceScreenState
               color: ChewieTheme.primaryColor,
               fontSizeDelta: 2,
               onPressed: () async {
-                CustomLoadingDialog.showLoading(
-                    title: appLocalizations.cloudPulling);
-                try {
-                  List<AliyunDriveFileInfo>? files =
-                      await _aliyunDriveCloudService!.listBackups();
-                  if (files == null) {
-                    CustomLoadingDialog.dismissLoading();
-                    IToast.show(appLocalizations.cloudPullFailed);
-                    return;
-                  }
-                  CloudServiceConfigDao.updateLastPullTime(
-                      _aliyunDriveCloudServiceConfig!);
-                  CustomLoadingDialog.dismissLoading();
-                  files.sort((a, b) =>
-                      b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
-                  if (files.isNotEmpty) {
-                    BottomSheetBuilder.showBottomSheet(
-                      context,
-                      responsive: true,
-                      (dialogContext) => AliyunDriveBackupsBottomSheet(
-                        files: files,
-                        cloudService: _aliyunDriveCloudService!,
-                        onSelected: (selectedFile) async {
-                          var dialog = showProgressDialog(
-                            appLocalizations.cloudPulling,
-                            showProgress: true,
-                          );
-                          Uint8List? res =
-                              await _aliyunDriveCloudService!.downloadFile(
+                final files = await CloudServiceUiHelper.loadBackups<
+                    List<AliyunDriveFileInfo>>(
+                  action: _aliyunDriveCloudService!.listBackups,
+                  logName: "Aliyun Drive",
+                );
+                if (!mounted || files == null) return;
+                await CloudServiceConfigDao.updateLastPullTime(
+                    _aliyunDriveCloudServiceConfig!);
+                if (!mounted) return;
+                files.sort((a, b) =>
+                    b.lastModifiedDateTime.compareTo(a.lastModifiedDateTime));
+                if (files.isNotEmpty) {
+                  BottomSheetBuilder.showBottomSheet(
+                    context,
+                    responsive: true,
+                    (dialogContext) => AliyunDriveBackupsBottomSheet(
+                      files: files,
+                      cloudService: _aliyunDriveCloudService!,
+                      onSelected: (selectedFile) async {
+                        await CloudServiceUiHelper.downloadAndImport(
+                          context: context,
+                          logName: "Aliyun Drive",
+                          action: (onProgress) =>
+                              _aliyunDriveCloudService!.downloadFile(
                             selectedFile.id,
-                            onProgress: (c, t) {
-                              dialog.updateProgress(progress: c / t);
-                            },
-                          );
-                          ImportTokenUtil.importFromCloud(context, res, dialog);
-                        },
-                      ),
-                    );
-                  } else {
-                    IToast.show(appLocalizations.cloudNoBackupFile);
-                  }
-                } catch (e, t) {
-                  ILogger.error("Failed to pull file from aliyunDrive", e, t);
-                  CustomLoadingDialog.dismissLoading();
-                  IToast.show(appLocalizations.cloudPullFailed);
+                            onProgress: onProgress,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  IToast.show(appLocalizations.cloudNoBackupFile);
                 }
               },
             ),
@@ -327,7 +308,7 @@ class _AliyunDriveServiceScreenState
               text: appLocalizations.cloudPushBackup,
               fontSizeDelta: 2,
               onPressed: () async {
-                ExportTokenUtil.backupEncryptToCloud(
+                await ExportTokenUtil.backupEncryptToCloud(
                   config: _aliyunDriveCloudServiceConfig!,
                   cloudService: _aliyunDriveCloudService!,
                 );
@@ -349,6 +330,7 @@ class _AliyunDriveServiceScreenState
                   CustomLoadingDialog.showLoading(
                       title: appLocalizations.cloudLoggingOut);
                   await _aliyunDriveCloudService!.signOut();
+                  if (!mounted) return;
                   setState(() {
                     _aliyunDriveCloudServiceConfig!.connected = false;
                     _aliyunDriveCloudServiceConfig!.account = "";

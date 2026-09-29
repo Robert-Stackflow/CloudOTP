@@ -11,6 +11,8 @@ class TipBanner extends StatelessWidget {
   final Color? backgroundColor;
   final Color? textColor;
   final EdgeInsetsGeometry padding;
+  final Widget? action;
+  final double actionSpacing;
 
   final EdgeInsetsGeometry margin;
 
@@ -23,6 +25,8 @@ class TipBanner extends StatelessWidget {
     this.textColor,
     this.padding = const EdgeInsets.all(12),
     this.margin = const EdgeInsets.symmetric(horizontal: 0),
+    this.action,
+    this.actionSpacing = 10,
   });
 
   factory TipBanner.info(
@@ -144,23 +148,34 @@ class TipBanner extends StatelessWidget {
         color: backgroundColor ?? background,
         borderRadius: ChewieDimens.borderRadius8,
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(
-            customIcon ?? defaultIcons[type],
-            color: text,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                customIcon ?? defaultIcons[type],
                 color: text,
-                fontSize: 14,
+                size: 20,
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    color: text,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
           ),
+          if (action != null) ...[
+            SizedBox(height: actionSpacing),
+            Align(alignment: Alignment.centerRight, child: action!),
+          ],
         ],
       ),
     );

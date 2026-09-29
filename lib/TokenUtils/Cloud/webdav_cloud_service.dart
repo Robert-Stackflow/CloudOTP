@@ -19,7 +19,6 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:cloudotp/TokenUtils/export_token_util.dart';
 import 'package:cloudotp/Utils/hive_util.dart';
 import 'package:dio/dio.dart';
-import 'package:path/path.dart';
 import 'package:awesome_cloud/awesome_cloud.dart';
 
 import '../../Models/cloud_service_config.dart';
@@ -56,56 +55,80 @@ class WebDavCloudService extends CloudService {
     client.setConnectTimeout(8000);
     client.setSendTimeout(8000);
     client.setReceiveTimeout(8000);
-    CloudServiceStatus status = await authenticate();
-    if (status == CloudServiceStatus.success) {
-      await client.mkdir(_webdavPath);
-    }
+  }
+
+  static String remoteFilePath(String path) {
+    final normalized = path.replaceAll('\\', '/');
+    if (normalized.startsWith('$_webdavPath/')) return normalized;
+    return '$_webdavPath/${normalized.replaceFirst(RegExp(r'^/+'), '')}';
+  }
+
+  static void sortBackupsNewestFirst(List<WebDavFileInfo> files) {
+    files.sort((a, b) {
+      final aTime = a.mTime ?? a.cTime;
+      final bTime = b.mTime ?? b.cTime;
+      if (aTime == null && bTime == null) {
+        return (b.name ?? '').compareTo(a.name ?? '');
+      }
+      if (aTime == null) return 1;
+      if (bTime == null) return -1;
+      final byTime = bTime.compareTo(aTime);
+      return byTime != 0 ? byTime : (b.name ?? '').compareTo(a.name ?? '');
+    });
   }
 
   @override
   Future<bool> isConnected() async {
     CloudServiceStatus status = await authenticate();
-    return status == CloudServiceStatus.success;
+    return status.isSuccess;
   }
 
   @override
   Future<CloudServiceStatus> authenticate() async {
     try {
       await client.ping();
+      await client.mkdirAll(_webdavPath);
+      await client.readDir(_webdavPath);
+      // A successful OPTIONS request alone does not prove backup access.
+      final probePath = remoteFilePath(
+          'CloudOTP-connection-${DateTime.now().microsecondsSinceEpoch}.tmp');
+      await client.write(probePath, Uint8List.fromList([0]));
+      await client.remove(probePath);
       return CloudServiceStatus.success;
     } catch (e, t) {
       ILogger.error("Failed to authenticate webdav", e, t);
       if (e is DioException) {
+        final msg = e.message ?? e.error?.toString();
         switch (e.type) {
           case DioExceptionType.connectionTimeout:
           case DioExceptionType.receiveTimeout:
           case DioExceptionType.sendTimeout:
           case DioExceptionType.badCertificate:
           case DioExceptionType.connectionError:
-            return CloudServiceStatus.connectionError;
+            return CloudServiceStatus(CloudServiceStatusType.connectionError,
+                message: msg);
           case DioExceptionType.badResponse:
             if (e.response!.statusCode == 401) {
-              return CloudServiceStatus.unauthorized;
+              return CloudServiceStatus(CloudServiceStatusType.unauthorized,
+                  message: msg);
             } else {
-              return CloudServiceStatus.connectionError;
+              return CloudServiceStatus(CloudServiceStatusType.connectionError,
+                  message:
+                      "HTTP ${e.response?.statusCode} ${e.response?.statusMessage ?? msg}");
             }
           default:
             break;
         }
       }
-      return CloudServiceStatus.unknownError;
+      return CloudServiceStatus(CloudServiceStatusType.unknownError,
+          message: e.toString());
     }
   }
 
   @override
   Future<List<WebDavFileInfo>?> listFiles() async {
-    try {
-      var list = await client.readDir(_webdavPath);
-      return list;
-    } catch (e, t) {
-      ILogger.error("Failed to list file from webdav", e, t);
-      return null;
-    }
+    var list = await client.readDir(_webdavPath);
+    return list;
   }
 
   @override
@@ -129,28 +152,16 @@ class WebDavCloudService extends CloudService {
     Uint8List fileData, {
     Function(int, int)? onProgress,
   }) async {
-    try {
-      CancelToken c = CancelToken();
-      double progress = 0;
-      await client.write(
-        join(_webdavPath, fileName),
-        fileData,
-        onProgress: (c, t) {
-          onProgress?.call(c, t);
-          progress = c / t;
-        },
-        cancelToken: c,
-      );
-      deleteOldBackup();
-      if (progress >= 1) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e, t) {
-      ILogger.error("Failed to upload file to webdav", e, t);
-      return false;
-    }
+    CancelToken c = CancelToken();
+    await client.write(
+      remoteFilePath(fileName),
+      fileData,
+      onProgress: (c, t) {
+        onProgress?.call(c, t);
+      },
+      cancelToken: c,
+    );
+    return await completeUpload(true);
   }
 
   @override
@@ -158,9 +169,7 @@ class WebDavCloudService extends CloudService {
     String path, {
     Function(int, int)? onProgress,
   }) async {
-    if (!path.startsWith(_webdavPath)) {
-      path = join(_webdavPath, path);
-    }
+    path = remoteFilePath(path);
     try {
       return Uint8List.fromList(
         await client.read(
@@ -178,9 +187,7 @@ class WebDavCloudService extends CloudService {
 
   @override
   Future<bool> deleteFile(String path) async {
-    if (!path.startsWith(_webdavPath)) {
-      path = join(_webdavPath, path);
-    }
+    path = remoteFilePath(path);
     await client.remove(path);
     return true;
   }
@@ -193,12 +200,13 @@ class WebDavCloudService extends CloudService {
     maxCount ??= CloudOTPHiveUtil.getMaxBackupsCount();
     List<WebDavFileInfo>? list = await listBackups();
     if (list == null) return false;
-    list.sort((a, b) {
-      if (a.mTime == null || b.mTime == null) return 0;
-      return a.mTime!.compareTo(b.mTime!);
-    });
-    while (list.length > maxCount) {
-      var file = list.removeAt(0);
+    sortBackupsNewestFirst(list);
+    final deleteCount = CloudService.getOldBackupDeleteCount(
+      backupCount: list.length,
+      maxCount: maxCount,
+    );
+    for (int i = 0; i < deleteCount; i++) {
+      var file = list.removeLast();
       await deleteFile(file.path!);
     }
     return true;

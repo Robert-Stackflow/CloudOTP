@@ -29,50 +29,55 @@ class TokenDao {
   static Future<int> insertToken(OtpToken token) async {
     final db = await DatabaseManager.getDataBase();
     token.seq = await getMaxSeq() + 1;
-    token.id = await getMaxId() + 1;
-    int id = await db.insert(
+    final values = token.toMap()..remove('id');
+    final id = await db.insert(
       tableName,
-      token.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      values,
+      conflictAlgorithm: ConflictAlgorithm.abort,
     );
+    token.id = id;
     ExportTokenUtil.autoBackup(
         triggerType: AutoBackupTriggerType.tokenInserted);
     Utils.initTray();
     return id;
   }
 
-  static Future<int> insertTokens(List<OtpToken> tokens) async {
+  static Future<int> insertTokens(
+    List<OtpToken> tokens, {
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
+  }) async {
     if (tokens.isEmpty) return 0;
-    final db = await DatabaseManager.getDataBase();
-    int maxSeq = await getMaxSeq();
-    int maxId = await getMaxId();
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    int maxSeq = await getMaxSeq(overrideDb: db);
     Batch batch = db.batch();
+    // The incoming list is in display order (top first). Assign descending seq
+    // so the first item gets the highest seq, preserving the original order
+    // (display is ordered by seq DESC). A plain `maxSeq + 1 + i` would reverse
+    // the list on backup restore / cloud pull.
     for (int i = 0; i < tokens.length; i++) {
-      tokens[i].seq = maxSeq + 1 + i;
-      tokens[i].id = maxId + 1 + i;
+      tokens[i].seq = maxSeq + tokens.length - i;
+      final values = tokens[i].toMap()..remove('id');
       batch.insert(
         tableName,
-        tokens[i].toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        values,
+        conflictAlgorithm: ConflictAlgorithm.abort,
       );
     }
     List<dynamic> results = await batch.commit();
-    ExportTokenUtil.autoBackup(
-        triggerType: AutoBackupTriggerType.tokensInserted);
-    Utils.initTray();
+    for (int i = 0; i < results.length; i++) {
+      tokens[i].id = results[i] as int;
+    }
+    if (notifyChanges) {
+      ExportTokenUtil.autoBackup(
+          triggerType: AutoBackupTriggerType.tokensInserted);
+      Utils.initTray();
+    }
     return results.length;
   }
 
-  static Future<int> getMaxId() async {
-    final db = await DatabaseManager.getDataBase();
-    List<Map<String, dynamic>> maps = await db.rawQuery(
-      "SELECT MAX(id) as id FROM $tableName",
-    );
-    return maps[0]["id"] ?? -1;
-  }
-
-  static Future<int> getMaxSeq() async {
-    final db = await DatabaseManager.getDataBase();
+  static Future<int> getMaxSeq({DatabaseExecutor? overrideDb}) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
     List<Map<String, dynamic>> maps = await db.rawQuery(
       "SELECT MAX(seq) as seq FROM $tableName",
     );
@@ -106,7 +111,8 @@ class TokenDao {
   static Future<int> updateTokens(
     List<OtpToken> tokens, {
     bool autoBackup = true,
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
+    bool notifyChanges = true,
   }) async {
     if (tokens.isEmpty) return 0;
     final db = overrideDb ?? await DatabaseManager.getDataBase();
@@ -121,11 +127,11 @@ class TokenDao {
       );
     }
     List<dynamic> results = await batch.commit();
-    if (autoBackup) {
+    if (autoBackup && notifyChanges) {
       ExportTokenUtil.autoBackup(
           triggerType: AutoBackupTriggerType.tokensUpdated);
     }
-    Utils.initTray();
+    if (notifyChanges) Utils.initTray();
     return results.length;
   }
 
@@ -231,8 +237,7 @@ class TokenDao {
     }
 
     if (searchKey.isNotEmpty) {
-      conditions
-          .add('(issuer LIKE ? OR account LIKE ? OR description LIKE ?)');
+      conditions.add('(issuer LIKE ? OR account LIKE ? OR description LIKE ?)');
       args.addAll(["%$searchKey%", "%$searchKey%", "%$searchKey%"]);
     }
 
@@ -258,7 +263,7 @@ class TokenDao {
     List<String> tags = const [],
     String? tokenType,
     String orderBy = "",
-    Database? overrideDb,
+    DatabaseExecutor? overrideDb,
   }) async {
     final db = overrideDb ?? await DatabaseManager.getDataBase();
     final search = _buildSearchWhere(
@@ -272,6 +277,42 @@ class TokenDao {
     return List.generate(maps.length, (i) {
       return OtpToken.fromMap(maps[i]);
     });
+  }
+
+  static Future<int> getTokenCount({DatabaseExecutor? overrideDb}) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final result = await db.rawQuery('SELECT COUNT(*) FROM $tableName');
+    return (result.first.values.first as num).toInt();
+  }
+
+  static Future<List<OtpToken>> listTokensByCategoryUid(
+    String categoryUid, {
+    String searchKey = "",
+    List<String> tags = const [],
+    String? tokenType,
+    DatabaseExecutor? overrideDb,
+  }) async {
+    final db = overrideDb ?? await DatabaseManager.getDataBase();
+    final search = _buildSearchWhere(
+      searchKey: searchKey,
+      tags: tags,
+      tokenType: tokenType,
+    );
+    final conditions = <String>['binding.category_uid = ?'];
+    final args = <Object>[categoryUid];
+    if (search.where != null) {
+      conditions.add(search.where!);
+      args.addAll(search.whereArgs!);
+    }
+    final maps = await db.rawQuery('''
+      SELECT DISTINCT token.*
+      FROM $tableName AS token
+      INNER JOIN ${BindingDao.tableName} AS binding
+        ON binding.token_uid = token.uid
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY token.pinned DESC, token.seq DESC
+    ''', args);
+    return maps.map(OtpToken.fromMap).toList();
   }
 
   static Future<OtpToken?> getTokenById(

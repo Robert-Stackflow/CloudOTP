@@ -80,7 +80,10 @@ class AliyunDriveCloudService extends CloudService {
       _config.account = userInfo.name ?? "";
       _config.totalSize = userInfo.spaceAmount ?? 0;
       _config.usedSize = userInfo.spaceUsed ?? 0;
-      _config.remark = userInfo.toJson();
+      _config.remark = {
+        ...userInfo.toJson(),
+        if (_config.title.isNotEmpty) "title": _config.title,
+      };
       onConfigChanged?.call(_config);
     }
     return userInfo;
@@ -114,7 +117,11 @@ class AliyunDriveCloudService extends CloudService {
 
     list.sort(
         (a, b) => a.lastModifiedDateTime.compareTo(b.lastModifiedDateTime));
-    while (list.length > maxCount) {
+    final deleteCount = CloudService.getOldBackupDeleteCount(
+      backupCount: list.length,
+      maxCount: maxCount,
+    );
+    for (int i = 0; i < deleteCount; i++) {
       final file = list.removeAt(0);
       await deleteFile(file.id);
     }
@@ -179,8 +186,7 @@ class AliyunDriveCloudService extends CloudService {
       driveId: driveId,
       onProgress: onProgress,
     );
-    deleteOldBackup();
-    return response.isSuccess;
+    return await completeUpload(response.isSuccess);
   }
 
   @override

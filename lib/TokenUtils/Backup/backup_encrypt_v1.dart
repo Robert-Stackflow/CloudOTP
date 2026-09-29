@@ -18,7 +18,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:pointycastle/export.dart';
 
 import './backup_encrypt_interface.dart';
@@ -100,17 +99,28 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
 
     try {
       unencryptedData = cipher.process(encryptedData);
-    } catch (e, t) {
-      ILogger.error(
-          "Failed to decrypt data (InvalidPasswordOrDataCorruptedException)",
-          e,
-          t);
+    } catch (_) {
       throw InvalidPasswordOrDataCorruptedException();
     }
 
-    final json = utf8.decode(unencryptedData);
-    Backup res = Backup.fromJson(jsonDecode(json));
-    return res;
+    try {
+      final json = utf8.decode(unencryptedData);
+      final decoded = jsonDecode(json);
+      if (decoded is! Map) {
+        throw const BackupFormatException('Backup root must be an object');
+      }
+      return Backup.fromJson(Map<String, dynamic>.from(decoded));
+    } on BackupSchemaUnsupportedException {
+      throw BackupVersionUnsupportException();
+    } on BackupLimitExceededException {
+      rethrow;
+    } on BackupFormatException catch (e) {
+      throw InvalidPasswordOrDataCorruptedException(message: e.message);
+    } on FormatException {
+      throw InvalidPasswordOrDataCorruptedException();
+    } catch (_) {
+      throw InvalidPasswordOrDataCorruptedException();
+    }
   }
 
   @override
@@ -124,8 +134,7 @@ class BackupEncryptionV1 implements BackupEncryptInterface {
         }
       }
       return true;
-    } catch (e, t) {
-      ILogger.error("Failed to decrypt (FileNotBackupException)", e, t);
+    } catch (_) {
       throw FileNotBackupException();
     }
   }
