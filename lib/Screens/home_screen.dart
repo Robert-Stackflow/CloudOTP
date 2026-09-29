@@ -49,6 +49,7 @@ import '../Database/config_dao.dart';
 import '../Database/token_dao.dart';
 import '../Models/token_category.dart';
 import '../TokenUtils/export_token_util.dart';
+import '../TokenUtils/Backup/backup_health_service.dart';
 import '../TokenUtils/otp_token_parser.dart';
 import '../Utils/app_provider.dart';
 import '../Widgets/BottomSheet/select_category_for_tokens_bottom_sheet.dart';
@@ -904,7 +905,22 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
               defaultValue: false)) {
         changeSearchBar(true);
       }
+      _checkBackupHealthIfDue();
     });
+  }
+
+  Future<void> _checkBackupHealthIfDue() async {
+    try {
+      final results = await BackupHealthService.checkIfDue();
+      if (mounted &&
+          results != null &&
+          results.any((result) => !result.isHealthy)) {
+        IToast.showTop(appLocalizations.backupHealthWarning);
+      }
+    } catch (error, stackTrace) {
+      ILogger.error(
+          'Failed to run automatic backup health check', error, stackTrace);
+    }
   }
 
   @override

@@ -80,6 +80,7 @@ class CloudOTPHiveUtil {
   static const String enableBackupOnLaunchKey = "enableBackupOnLaunch";
   static const String enablePeriodicBackupKey = "enablePeriodicBackup";
   static const String periodicBackupIntervalKey = "periodicBackupInterval";
+  static const String backupHealthLastCheckKey = "backupHealthLastCheck";
 
   //Encrypt
   static const String encryptDatabaseStatusKey = "encryptDatabaseStatus";
