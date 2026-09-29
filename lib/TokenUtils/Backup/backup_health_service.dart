@@ -53,7 +53,6 @@ class BackupHealthResult {
   final int? bindingCount;
 
   bool get isHealthy => status == BackupHealthStatus.healthy;
-  bool get shouldWarn => !isHealthy && status != BackupHealthStatus.needsSetup;
 }
 
 class _CloudBackupFile {
@@ -76,37 +75,6 @@ class BackupHealthService {
   const BackupHealthService._();
 
   static const int maxBackupFileBytes = 16 * 1024 * 1024;
-  static const Duration automaticCheckInterval = Duration(days: 1);
-  static bool _automaticCheckRunning = false;
-
-  /// Checks at most once per day when the unlocked home screen is opened.
-  /// A null result means the check was not due or is already running.
-  static Future<List<BackupHealthResult>?> checkIfDue() async {
-    if (_automaticCheckRunning) return null;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final lastCheck = ChewieHiveUtil.getInt(
-      CloudOTPHiveUtil.backupHealthLastCheckKey,
-    );
-    final elapsed = now - lastCheck;
-    if (lastCheck > 0 &&
-        elapsed >= 0 &&
-        elapsed < automaticCheckInterval.inMilliseconds) {
-      return null;
-    }
-    _automaticCheckRunning = true;
-    try {
-      final results = await checkAll().toList();
-      if (results.isNotEmpty) {
-        await ChewieHiveUtil.put(
-          CloudOTPHiveUtil.backupHealthLastCheckKey,
-          DateTime.now().millisecondsSinceEpoch,
-        );
-      }
-      return results;
-    } finally {
-      _automaticCheckRunning = false;
-    }
-  }
 
   static Stream<BackupHealthResult> checkAll() async* {
     final password = await ConfigDao.getBackupPassword();

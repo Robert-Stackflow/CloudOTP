@@ -63,12 +63,7 @@ class _BackupHealthScreenState extends State<BackupHealthScreen> {
       showBack: true,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
-        const SizedBox(height: 10),
-        TipBanner(
-          message: appLocalizations.backupHealthReadOnly,
-          customIcon: LucideIcons.shieldCheck,
-        ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -98,7 +93,9 @@ class _BackupHealthScreenState extends State<BackupHealthScreen> {
                       size: 16, color: ChewieTheme.primaryColor),
               text: _checking
                   ? appLocalizations.backupHealthChecking
-                  : appLocalizations.backupHealthCheckNow,
+                  : _checked
+                      ? appLocalizations.backupHealthCheckAgain
+                      : appLocalizations.backupHealthCheckNow,
               color: ChewieTheme.primaryColor,
               textStyle: ChewieTheme.bodySmall.copyWith(
                 color: ChewieTheme.primaryColor,
