@@ -18,3 +18,6 @@ export "utils/token_manager.dart";
 export 'webdav/webdav_client.dart';
 export 's3/lib/s3_storage.dart';
 export 's3/lib/models.dart';
+
+export 'utils/ios_oauth_session.dart';
+export 'utils/ios_oauth_http.dart';

@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../l10n/l10n.dart';
+import '../../Screens/Setting/laboratory_screen.dart';
 
 class MoreBottomSheet extends StatefulWidget {
   const MoreBottomSheet({
@@ -240,6 +241,13 @@ class _MoreBottomSheetState extends BaseDynamicState<MoreBottomSheet> {
             onTap: () {
               Navigator.pop(context);
               RouteUtil.pushCupertinoRoute(context, const AboutSettingScreen());
+            },
+          ),
+          if (ResponsiveUtil.isIOS()) EntryItem(
+            title: laboratoryTitle(context), showLeading: true, leading: LucideIcons.flaskConical,
+            onTap: () {
+              Navigator.pop(context);
+              RouteUtil.pushCupertinoRoute(context, const LaboratoryScreen());
             },
           ),
           EntryItem(

@@ -139,7 +139,7 @@ class DefaultTokenManager extends ITokenManager {
         'refresh_token': refreshToken,
       };
 
-      final resp = await http.post(Uri.parse(tokenEndpoint), body: body);
+      final resp = await IOSOAuthHttp.post(Uri.parse(tokenEndpoint), body: body);
       if (resp.statusCode != 200) {
         CloudLogger.errorResponse(TAG, "Error refreshing token", resp);
         await clearToken();

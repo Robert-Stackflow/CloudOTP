@@ -13,6 +13,7 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import '../Platform/ios/ios_services.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -84,6 +85,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
         ProtocolListener,
         AutomaticKeepAliveClientMixin {
   Timer? _timer;
+  DateTime? _iosBackgroundedAt;
   TextEditingController searchController = TextEditingController();
   List<OtpToken> _menuTokens = [];
   List<TokenCategory> _menuCategories = [];
@@ -195,6 +197,7 @@ class MainScreenState extends BaseWindowState<MainScreen>
     searchController.addListener(() {
       homeScreenState?.performSearch(searchController.text);
     });
+    if (ResponsiveUtil.isIOS()) IOSServices.syncAutoFill();
     _startAutoBackupOnLaunch();
     _scheduleDesktopCoachMark();
   }
@@ -1474,10 +1477,23 @@ class MainScreenState extends BaseWindowState<MainScreen>
       case AppLifecycleState.inactive:
         break;
       case AppLifecycleState.resumed:
+        if (ResponsiveUtil.isIOS()) {
+          final leftAt = _iosBackgroundedAt;
+          _iosBackgroundedAt = null;
+          if (leftAt != null && !appProvider.preventLock &&
+              CloudOTPHiveUtil.shouldAutoLock() &&
+              DateTime.now().difference(leftAt).inSeconds >= appProvider.autoLockTime.seconds) {
+            jumpToLock(autoAuth: true);
+          }
+        }
         cancleTimer();
         break;
       case AppLifecycleState.paused:
-        setTimer();
+        if (ResponsiveUtil.isIOS()) {
+          _iosBackgroundedAt = DateTime.now();
+        } else {
+          setTimer();
+        }
         break;
       case AppLifecycleState.detached:
         break;

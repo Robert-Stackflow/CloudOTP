@@ -167,7 +167,11 @@ class PinVerifyScreenState extends BaseWindowState<PinVerifyScreen>
   }
 
   void localAuth() async {
-    ChewieUtils.localAuth(onAuthed: success);
+    if (ResponsiveUtil.isIOS()) {
+      if (await BiometricUtil.authenticateIOS() && mounted) success();
+    } else {
+      ChewieUtils.localAuth(onAuthed: success);
+    }
   }
 
   @override

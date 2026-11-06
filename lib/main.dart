@@ -13,6 +13,8 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'Debug/demo_data.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -115,6 +117,14 @@ Future<void> initApp(WidgetsBinding widgetsBinding) async {
   await initHive();
   await initCryptoUtil();
   await BiometricUtil.initStorage();
+  if (ResponsiveUtil.isIOS() && kDebugMode &&
+      const bool.fromEnvironment('CLOUDOTP_SEED_DEMO') &&
+      DatabaseManager.initialized &&
+      !ChewieHiveUtil.getBool(DemoData.completionKey, defaultValue: false)) {
+    final result = await DemoData.seed(await DatabaseManager.getDataBase());
+    await ChewieHiveUtil.put(DemoData.completionKey, true);
+    ILogger.info('Added ${result.tokens} demo tokens and ${result.categories} demo categories; existing data preserved');
+  }
   await TokenImageUtil.loadBrandLogos();
   CustomFont.downloadFont(showToast: false);
   if (ResponsiveUtil.isAndroid()) await initAndroid();

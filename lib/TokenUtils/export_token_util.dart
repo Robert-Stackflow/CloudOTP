@@ -13,6 +13,7 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import '../Platform/ios/ios_services.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -407,6 +408,7 @@ class ExportTokenUtil {
     List<CloudService>? cloudServices,
     required AutoBackupLog log,
   }) async {
+    final iosBackupTask = ResponsiveUtil.isIOS() ? await IOSServices.beginBackup() : null;
     bool canLocalBackup = log.type == AutoBackupType.local ||
         log.type == AutoBackupType.localAndCloud;
     bool canCloudBackup = log.type == AutoBackupType.cloud ||
@@ -530,10 +532,15 @@ class ExportTokenUtil {
     } finally {
       try {
         await AutoBackupLogDao.insertLog(log);
+        if (ResponsiveUtil.isIOS()) {
+          await IOSServices.notifyBackup(log.haveFailed
+              ? appLocalizations.backupFailed : appLocalizations.backupSuccess);
+        }
       } catch (e, t) {
         ILogger.error("Failed to persist auto backup log", e, t);
       } finally {
         if (showLoading && dialog != null) dialog.dismiss();
+        if (ResponsiveUtil.isIOS()) await IOSServices.endBackup(iosBackupTask);
       }
     }
   }

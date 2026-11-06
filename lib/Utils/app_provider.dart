@@ -16,6 +16,7 @@
 import 'dart:async';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
+import 'package:awesome_cloud/awesome_cloud.dart' show IOSOAuthSession;
 import 'package:cloudotp/Models/auto_backup_log.dart';
 import 'package:cloudotp/Screens/main_screen.dart';
 import 'package:flutter/material.dart';
@@ -218,12 +219,21 @@ class AppProvider with ChangeNotifier {
 
   Timer? _preventLockTimer;
   bool _preventLock = false;
+  DateTime? _preventLockDeadline;
 
-  bool get preventLock => _preventLock;
+  bool get preventLock {
+    if (!ResponsiveUtil.isIOS()) return _preventLock;
+    final legacyHoldActive = _preventLock &&
+        _preventLockDeadline != null &&
+        DateTime.now().isBefore(_preventLockDeadline!);
+    return legacyHoldActive || IOSOAuthSession.instance.protectsAutoLock;
+  }
 
   set preventLock(bool value) {
     _preventLockTimer?.cancel();
     _preventLock = value;
+    _preventLockDeadline =
+        value ? DateTime.now().add(const Duration(minutes: 5)) : null;
     if (value) {
       _preventLockTimer = Timer(const Duration(minutes: 5), () {
         _preventLock = false;

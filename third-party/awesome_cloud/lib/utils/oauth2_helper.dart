@@ -1,9 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:awesome_cloud/awesome_cloud.dart';
+import '../models/status.dart';
+import 'cloud_logger.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:hashlib/hashlib.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
+import 'ios_oauth_session.dart';
 
 class OAuth2Helper {
   static String generateStateParameter([int length = 32]) {
@@ -52,6 +57,40 @@ class OAuth2Helper {
     required String state,
     String? scopes,
   }) async {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      try {
+        final requestState = generateStateParameter();
+        return await IOSOAuthSession.instance.authenticate(
+          authorizationUrl: authUri.replace(queryParameters: {
+            ...authUri.queryParameters,
+            'state': requestState,
+          }),
+          callbackUrl: Uri.parse(callbackUrl),
+          state: requestState,
+        );
+      } catch (error) {
+        // Provider messages and PlatformException details can contain secrets.
+        final code = switch (error) {
+          IOSOAuthException(:final code) => code,
+          PlatformException(:final code) => switch (code) {
+              'CANCELED' ||
+              'TIMEOUT' ||
+              'IN_PROGRESS' ||
+              'START_FAILED' ||
+              'NO_PRESENTATION_WINDOW' ||
+              'INVALID_CALLBACK' ||
+              'HTTPS_CALLBACK_UNSUPPORTED' ||
+              'INVALID_ARGUMENTS' ||
+              'AUTHENTICATION_FAILED' =>
+                code,
+              _ => 'session_failed',
+            },
+          _ => 'session_failed',
+        };
+        CloudLogger.debug('OAuth', 'iOS authentication ended', code);
+        return null;
+      }
+    }
     try {
       final result = await FlutterWebAuth2.authenticate(
         url: authUri.toString(),

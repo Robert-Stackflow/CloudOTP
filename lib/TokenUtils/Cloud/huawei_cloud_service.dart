@@ -46,6 +46,9 @@ class HuaweiCloudService extends CloudService {
 
   @override
   Future<bool> checkServer() async {
+    if (IOSOAuthHttp.enabled) {
+      return IOSOAuthHttp.isAvailable(Uri.parse(_customAuthEndpoint));
+    }
     try {
       final response = await http.head(Uri.parse(_customAuthEndpoint));
       return response.statusCode == 200;

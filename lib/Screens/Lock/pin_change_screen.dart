@@ -122,7 +122,7 @@ class PinChangeScreenState extends BaseDynamicState<PinChangeScreen> {
   }
 
   void auth() async {
-    await ChewieUtils.localAuth(onAuthed: () {
+    void onAuthed() {
       IToast.showTop(appLocalizations.biometricVerifySuccess);
       setState(() {
         _notifier.setStatus(
@@ -133,7 +133,12 @@ class PinChangeScreenState extends BaseDynamicState<PinChangeScreen> {
         _currentStep = 2;
       });
       _gestureUnlockView.currentState?.updateStatus(UnlockStatus.normal);
-    });
+    }
+    if (ResponsiveUtil.isIOS()) {
+      if (await BiometricUtil.authenticateIOS() && mounted) onAuthed();
+    } else {
+      await ChewieUtils.localAuth(onAuthed: onAuthed);
+    }
   }
 
   Widget _buildStepIndicator() {
