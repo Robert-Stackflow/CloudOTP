@@ -17,6 +17,8 @@ import 'package:awesome_chewie/awesome_chewie.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 
 import '../l10n/l10n.dart';
+import '../Platform/ios/ios_services.dart';
+import 'package:flutter/services.dart';
 
 extension AvailableBiometric on CanAuthenticateResponse {
   bool get isAvailable =>
@@ -29,6 +31,25 @@ extension AvailableBiometric on CanAuthenticateResponse {
 class BiometricUtil {
   static const String databasePassswordStorageKey = "CloudOTP-DatabasePassword";
   static BiometricStorageFile? databasePassswordStorage;
+
+  static bool _authenticating = false;
+
+  static Future<bool> authenticateIOS() async {
+    if (!ResponsiveUtil.isIOS() || _authenticating) return false;
+    _authenticating = true;
+    try {
+      return await const MethodChannel('cloudotp/ios').invokeMethod<bool>(
+              'authenticate',
+              {'reason': appLocalizations.biometricToDecryptDatabase}) ??
+          false;
+    } on PlatformException catch (error, stack) {
+      ILogger.error('iOS biometric authentication failed', error, stack);
+      IToast.showTop(appLocalizations.biometricError);
+      return false;
+    } finally {
+      _authenticating = false;
+    }
+  }
 
   static Future<CanAuthenticateResponse> canAuthenticate() async {
     return await BiometricStorage().canAuthenticate();
@@ -105,15 +126,22 @@ class BiometricUtil {
     if (databasePassswordStorage == null) {
       return null;
     }
-    return await databasePassswordStorage!.read(
-      promptInfo: PromptInfo(
-        androidPromptInfo: AndroidPromptInfo(
-          title: appLocalizations.biometricSignInTitle,
-          subtitle: appLocalizations.biometricToDecryptDatabase,
-          negativeButton: appLocalizations.biometricCancelButton,
-        ),
-      ),
-    );
+    return await IOSServices.withSystemAuthentication(() =>
+        databasePassswordStorage!.read(
+          promptInfo: PromptInfo(
+            iosPromptInfo: ResponsiveUtil.isIOS()
+                ? IosPromptInfo(
+                    accessTitle: appLocalizations.biometricToDecryptDatabase,
+                    saveTitle: appLocalizations.biometricToSaveDatabasePassword,
+                  )
+                : IosPromptInfo.defaultValues,
+            androidPromptInfo: AndroidPromptInfo(
+              title: appLocalizations.biometricSignInTitle,
+              subtitle: appLocalizations.biometricToDecryptDatabase,
+              negativeButton: appLocalizations.biometricCancelButton,
+            ),
+          ),
+        ));
   }
 
   static Future<bool> setDatabasePassword(String password) async {
@@ -124,16 +152,24 @@ class BiometricUtil {
       return false;
     }
     try {
-      await databasePassswordStorage!.write(
-        password,
-        promptInfo: PromptInfo(
-          androidPromptInfo: AndroidPromptInfo(
-            title: appLocalizations.biometricSignInTitle,
-            subtitle: appLocalizations.biometricToSaveDatabasePassword,
-            negativeButton: appLocalizations.biometricCancelButton,
-          ),
-        ),
-      );
+      await IOSServices.withSystemAuthentication(() =>
+          databasePassswordStorage!.write(
+            password,
+            promptInfo: PromptInfo(
+              iosPromptInfo: ResponsiveUtil.isIOS()
+                  ? IosPromptInfo(
+                      accessTitle: appLocalizations.biometricToDecryptDatabase,
+                      saveTitle:
+                          appLocalizations.biometricToSaveDatabasePassword,
+                    )
+                  : IosPromptInfo.defaultValues,
+              androidPromptInfo: AndroidPromptInfo(
+                title: appLocalizations.biometricSignInTitle,
+                subtitle: appLocalizations.biometricToSaveDatabasePassword,
+                negativeButton: appLocalizations.biometricCancelButton,
+              ),
+            ),
+          ));
       return true;
     } catch (e, t) {
       ILogger.error("Failed to save database password", e, t);

@@ -13,6 +13,9 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import '../Platform/ios/ios_home_controls.dart';
+import '../Widgets/Home/pull_search_scroll_physics.dart';
+import '../Platform/ios/ios_home_spacing.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -57,30 +60,6 @@ import '../Widgets/CoachMark/coach_mark_manager.dart';
 import 'Token/add_token_screen.dart';
 import '../l10n/l10n.dart';
 import 'Token/token_layout.dart';
-
-class _PullSearchScrollPhysics extends AlwaysScrollableScrollPhysics {
-  const _PullSearchScrollPhysics({required this.isPulling, super.parent});
-
-  final bool Function() isPulling;
-
-  @override
-  _PullSearchScrollPhysics applyTo(ScrollPhysics? ancestor) =>
-      _PullSearchScrollPhysics(
-        isPulling: isPulling,
-        parent: buildParent(ancestor),
-      );
-
-  @override
-  double applyBoundaryConditions(ScrollMetrics position, double value) {
-    // Consume the reverse drag in the pull hint before either scrolls.
-    if (isPulling() &&
-        position.pixels >= position.minScrollExtent &&
-        value > position.pixels) {
-      return value - position.pixels;
-    }
-    return super.applyBoundaryConditions(position, value);
-  }
-}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -1276,7 +1255,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       bottomNavigationBar: ResponsiveUtil.selectByPlatform(
         mobile: _buildMobileBottombar(),
       ),
-      floatingActionButton: _multiSelectMode
+      floatingActionButton: _multiSelectMode || _usesIOSBottomControls
           ? null
           : ResponsiveUtil.selectByPlatform(
               mobile: _buildFloatingActionButton(),
@@ -1290,8 +1269,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     return NestedScrollView(
       controller: _nestScrollController,
       physics: appProvider.pullToSearch
-          ? _PullSearchScrollPhysics(
+          ? PullSearchScrollPhysics(
               isPulling: () => _pullSearchHeaderHeld.value,
+              clampPullOverscroll: ResponsiveUtil.isIOS(),
+              parent: ResponsiveUtil.isIOS() ? const ClampingScrollPhysics() : null,
             )
           : null,
       floatHeaderSlivers: true,
@@ -1331,8 +1312,8 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     });
   }
 
-  _buildFloatingActionButton() {
-    var button = MyFloatingActionButton(
+  Widget _buildScanButton() {
+    return MyFloatingActionButton(
       key: _fabKey,
       heroTag: "Hero-${categories.length}",
       onPressed: () {
@@ -1350,6 +1331,12 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
       backgroundColor: ChewieTheme.primaryColor,
       child: const Icon(Icons.qr_code_rounded, color: Colors.white, size: 28),
     );
+  }
+
+  bool get _usesIOSBottomControls => ResponsiveUtil.isIOS() && !ResponsiveUtil.isLandscapeLayout();
+
+  _buildFloatingActionButton() {
+    final button = _buildScanButton();
     return Selector<AppProvider, bool>(
       selector: (context, provider) => provider.hideBottombarWhenScrolling,
       builder: (context, hideBottombarWhenScrolling, child) => ScrollToHide(
@@ -1579,8 +1566,10 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
     if (_multiSelectMode) {
       return const SizedBox.shrink();
     }
-    double bottomInset = MediaQuery.of(context).viewPadding.bottom;
-    double height = kToolbarHeight +
+    final iosSpacing = IOSHomeSpacing(MediaQuery.of(context));
+    final isIOS = _usesIOSBottomControls;
+    double bottomInset = isIOS ? iosSpacing.safeBottom : MediaQuery.of(context).viewPadding.bottom;
+    double height = isIOS ? iosSpacing.barHeight : kToolbarHeight +
         verticalPadding * 2 +
         bottomInset +
         (ResponsiveUtil.isLandscapeTablet() ? 24 : 0);
@@ -1590,7 +1579,7 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
           Selector<AppProvider, bool>(
         selector: (context, provider) => provider.enableFrostedGlassEffect,
         builder: (context, enableFrostedGlassEffect, child) {
-          var container = Container(
+          Widget container = Container(
             alignment: Alignment.centerLeft,
             height: height,
             decoration: BoxDecoration(
@@ -1601,18 +1590,25 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                           : 0.24)
                       : 1),
             ),
-            padding: EdgeInsets.symmetric(vertical: 5 + verticalPadding)
+            padding: isIOS ? iosSpacing.barPadding : EdgeInsets.symmetric(vertical: 5 + verticalPadding)
                 .copyWith(right: 70, bottom: 5 + verticalPadding + bottomInset),
             child: _buildTabBar(const EdgeInsets.only(left: 10, right: 10)),
           );
+          if (isIOS) {
+            container = IOSHomeControls(
+              spacing: iosSpacing,
+              categoryBar: categories.isEmpty ? null : container,
+              scanner: _buildScanButton(),
+            );
+          }
           return ScrollToHide(
-            enabled: hideBottombarWhenScrolling,
+            enabled: hideBottombarWhenScrolling || (isIOS && categories.isEmpty),
             scrollController: _scrollController,
             controller: _bottombarScrollToHideController,
             height: height,
             duration: const Duration(milliseconds: 300),
             hideDirection: Axis.vertical,
-            child: ResponsiveUtil.isLandscapeTablet() || categories.isEmpty
+            child: ResponsiveUtil.isLandscapeTablet() || (categories.isEmpty && !isIOS)
                 ? IgnorePointer(
                     child: Container(
                       height: height,
@@ -1664,14 +1660,19 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
         hideProgress: provider.hideProgressBar,
       ),
       builder: (context, settings, child) {
-        double bottomPadding = MediaQuery.of(context).padding.bottom;
+        final media = MediaQuery.of(context);
+        double bottomPadding = ResponsiveUtil.isIOS()
+            ? IOSHomeSpacing(media).safeBottom : media.padding.bottom;
         return ReorderableGridView.builder(
           cacheExtent: ResponsiveUtil.isAndroid() ? 300 : 999,
           // controller: _scrollController,
           gridItemsNotifier: gridItemsNotifier,
           autoScroll: true,
-          physics: _PullSearchScrollPhysics(
+          physics: PullSearchScrollPhysics(
             isPulling: () => _pullSearchDistance.value > 0,
+            clampPullOverscroll: ResponsiveUtil.isIOS() && appProvider.pullToSearch,
+            parent: ResponsiveUtil.isIOS() && appProvider.pullToSearch
+                ? const ClampingScrollPhysics() : null,
           ),
           padding: EdgeInsets.only(
               left: 10,
@@ -1681,7 +1682,9 @@ class HomeScreenState extends BasePanelScreenState<HomeScreen>
                   ? 88 + bottomPadding
                   : settings.hideBottombar || categories.isEmpty
                       ? 10 + bottomPadding
-                      : 85 + bottomPadding),
+                      : ResponsiveUtil.isIOS()
+                          ? IOSHomeSpacing(media).barHeight + 10
+                          : 85 + bottomPadding),
           gridDelegate: SliverWaterfallFlowDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: layoutType.maxCrossAxisExtent,
             crossAxisSpacing: 8,

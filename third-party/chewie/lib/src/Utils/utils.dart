@@ -1,3 +1,4 @@
+import 'System/screen_protection_coordinator.dart';
 import 'dart:async';
 
 import 'package:awesome_chewie/awesome_chewie.dart';
@@ -12,7 +13,19 @@ import 'package:screen_protector/screen_protector.dart';
 import 'package:window_manager/window_manager.dart';
 
 class ChewieUtils {
+  static final _iosProtection = ScreenProtectionCoordinator();
+
   static Future<void> setSafeMode(bool enabled) async {
+    if (ResponsiveUtil.isIOS()) {
+      try {
+        await _iosProtection.set(enabled, (value) async {
+          if (value) { await enableSafeMode(); } else { await disableSafeMode(); }
+        });
+      } catch (error, stack) {
+        ILogger.error('Unable to update iOS screen protection', error, stack);
+      }
+      return;
+    }
     if (ResponsiveUtil.isMobile()) {
       if (enabled) {
         enableSafeMode();
@@ -25,9 +38,11 @@ class ChewieUtils {
   static Future<void> enableSafeMode() async {
     if (ResponsiveUtil.isIOS()) {
       await ScreenProtector.preventScreenshotOn();
-      await ScreenProtector.protectDataLeakageWithBlur();
-      await ScreenProtector.protectDataLeakageWithColor(
-          ChewieTheme.scaffoldBackgroundColor);
+      // Legacy inactive covers also obscure Face ID. A scene-aware native
+      // cover now handles actual background entry, while screenshot prevention
+      // stays enabled independently.
+      await ScreenProtector.protectDataLeakageOff();
+      await const MethodChannel('cloudotp/ios').invokeMethod('setPrivacyCover', {'enabled': true});
     } else if (ResponsiveUtil.isAndroid()) {
       await ScreenProtector.protectDataLeakageOn();
       FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
@@ -37,8 +52,8 @@ class ChewieUtils {
   static Future<void> disableSafeMode() async {
     if (ResponsiveUtil.isIOS()) {
       await ScreenProtector.preventScreenshotOff();
-      await ScreenProtector.protectDataLeakageWithBlurOff();
-      await ScreenProtector.protectDataLeakageWithColorOff();
+      await ScreenProtector.protectDataLeakageOff();
+      await const MethodChannel('cloudotp/ios').invokeMethod('setPrivacyCover', {'enabled': false});
     } else if (ResponsiveUtil.isAndroid()) {
       await ScreenProtector.protectDataLeakageOff();
       FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
@@ -98,7 +113,15 @@ class ChewieUtils {
     String? toastText,
     bool autoClear = false,
     Duration autoClearDuration = const Duration(seconds: 30),
-  }) {
+  }) async {
+    if (ResponsiveUtil.isIOS()) {
+      if (!await awaitIOSCopy(data.toString(), autoClear ? autoClearDuration : null)) return;
+      if ((toastText ?? chewieLocalizations.copySuccess).isNotEmpty) {
+        IToast.showTop(toastText ?? chewieLocalizations.copySuccess);
+      }
+      HapticFeedback.mediumImpact();
+      return;
+    }
     Clipboard.setData(ClipboardData(text: data.toString())).then((value) {
       toastText ??= chewieLocalizations.copySuccess;
       if (toastText.notNullOrEmpty) {
@@ -112,6 +135,20 @@ class ChewieUtils {
       _clipboardClearTimer = Timer(autoClearDuration, () {
         Clipboard.setData(const ClipboardData(text: ''));
       });
+    }
+  }
+
+  static Future<bool> awaitIOSCopy(String text, Duration? expiration) async {
+    try {
+      await const MethodChannel('cloudotp/ios').invokeMethod('copy', {
+        'text': text,
+        'expiresIn': expiration?.inSeconds,
+      });
+      return true;
+    } on PlatformException catch (error, stack) {
+      ILogger.error('Unable to copy to iOS pasteboard', error, stack);
+      IToast.showTop(error.message ?? 'Unable to copy');
+      return false;
     }
   }
 

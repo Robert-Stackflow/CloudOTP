@@ -1,0 +1,2 @@
+// Copy to LocalSigning.xcconfig and set your Apple development team ID.
+DEVELOPMENT_TEAM = YOUR_TEAM_ID

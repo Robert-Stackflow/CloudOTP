@@ -13,6 +13,7 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+import '../Platform/ios/ios_services.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -138,6 +139,10 @@ class Utils {
   }
 
   static Future<void> initTray() async {
+    if (ResponsiveUtil.isIOS()) {
+      await IOSServices.syncAutoFill();
+      return;
+    }
     try {
       if (!ResponsiveUtil.isDesktop()) return;
       ILogger.debug("Initializing tray...");

@@ -126,7 +126,7 @@ class BiometricStorageImpl {
   private func canAuthenticate(result: @escaping StorageCallback) {
     var error: NSError?
     let context = LAContext()
-    if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+    if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
       result("Success")
       return
     }
@@ -252,7 +252,7 @@ class BiometricStorageFile {
       return;
     }
     query[kSecMatchLimit as String] = kSecMatchLimitOne
-    query[kSecUseOperationPrompt as String] = promptInfo.accessTitle
+    context.localizedReason = promptInfo.accessTitle ?? "Unlock CloudOTP"
     query[kSecReturnAttributes as String] = true
     query[kSecReturnData as String] = true
     query[kSecUseAuthenticationContext as String] = context
@@ -307,7 +307,7 @@ class BiometricStorageFile {
         kSecUseAuthenticationContext as String: context,
       ]) { (_, new) in new }
       if let operationPrompt = promptInfo.saveTitle {
-        query[kSecUseOperationPrompt as String] = operationPrompt
+        context.localizedReason = operationPrompt
       }
     } else {
       hpdebug("No authentication required for \(name)")

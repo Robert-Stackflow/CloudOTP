@@ -22,6 +22,9 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<!-- OAuth callbacks are owned by the authentication session, not Flutter navigation. -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -47,7 +50,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Scan qrcodes to analyze tokens.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Authenticate</string>
+	<string>Use Face ID to unlock your encrypted CloudOTP data and verification codes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Select photos to analyze tokens from qrcodes.</string>
 	<key>UIApplicationSceneManifest</key>
@@ -92,5 +95,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>CloudOTPKeychainGroup</key>
+	<string>$(AppIdentifierPrefix)com.cloudchewie.cloudotp.autofill</string>
+	<key>CloudOTPAutoFillAvailable</key>
+	<string>$(CLOUDOTP_AUTOFILL_ENABLED)</string>
 </dict>
 </plist>

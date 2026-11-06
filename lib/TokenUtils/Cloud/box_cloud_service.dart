@@ -61,6 +61,9 @@ class BoxCloudService extends CloudService {
 
   @override
   Future<bool> checkServer() async {
+    if (IOSOAuthHttp.enabled) {
+      return IOSOAuthHttp.isAvailable(Uri.parse(CloudService.serverEndpoint));
+    }
     try {
       final response = await http.head(Uri.parse(CloudService.serverEndpoint));
       ILogger.info(

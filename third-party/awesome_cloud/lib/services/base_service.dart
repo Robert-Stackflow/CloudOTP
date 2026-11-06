@@ -20,6 +20,7 @@ import 'package:http/http.dart' as http;
 import '../models/status.dart';
 import '../utils/cloud_logger.dart';
 import '../utils/oauth2_helper.dart';
+import '../utils/ios_oauth_http.dart';
 import '../utils/token_manager.dart';
 
 abstract class BaseCloudService with ChangeNotifier {
@@ -175,7 +176,7 @@ abstract class BaseCloudService with ChangeNotifier {
         'grant_type': 'authorization_code',
         'code': code,
       };
-      http.Response resp = await http.post(tokenUri, body: body);
+      http.Response resp = await IOSOAuthHttp.post(tokenUri, body: body);
       if (!isSuccess(resp)) {
         CloudLogger.errorResponse(
             serviceName, "Connect failed when getting access token", resp);
@@ -218,7 +219,7 @@ abstract class BaseCloudService with ChangeNotifier {
         CloudLogger.error(serviceName, "Connect failed: No code received");
         return false;
       }
-      http.Response resp = await http.post(tokenUri, body: {
+      http.Response resp = await IOSOAuthHttp.post(tokenUri, body: {
         'client_id': clientId,
         'redirect_uri': callbackUrl,
         'grant_type': 'authorization_code',
@@ -281,7 +282,7 @@ abstract class BaseCloudService with ChangeNotifier {
     if (headers != null) {
       tmpHeaders.addAll(headers);
     }
-    return processResponse(await http.post(
+    return processResponse(await IOSOAuthHttp.post(
       url,
       headers: tmpHeaders,
       body: body,
@@ -297,7 +298,7 @@ abstract class BaseCloudService with ChangeNotifier {
     if (headers != null) {
       tmpHeaders.addAll(headers);
     }
-    return processResponse(await http.get(
+    return processResponse(await IOSOAuthHttp.get(
       url,
       headers: tmpHeaders,
     ));

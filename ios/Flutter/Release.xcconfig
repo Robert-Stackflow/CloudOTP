@@ -1,2 +1,5 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+
+// Optional developer-specific signing; never commit personal team settings.
+#include? "LocalSigning.xcconfig"
